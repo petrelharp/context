@@ -22,9 +22,10 @@ nonorffile = fileopt(args.outfix + ".nonorfcoding.gz","w")
 noncodingfile = fileopt(args.outfix + ".noncoding.gz","w")
 
 pos = int(infile.readline())
-cds = map( int, codingfile.readline().split() )
+cdstxt = codingfile.readline().split()
 
 while cds:
+    cds = map( int, cds )
     while pos < cds[0]:
         noncodingfile.write(str(pos)+"\n")
         pos = int(infile.readline())
@@ -34,11 +35,10 @@ while cds:
         else:
             nonorffile.write(str(pos)+"\n")
         pos = int(infile.readline())
-    cds = map( int, codingfile.readline().split() )
+    cdstxt = codingfile.readline().split()
 
 # finish off
-while pos:
-    noncodingfile.write(str(pos)+"\n")
-    pos = int(infile.readline())
+for pos in infile:
+    noncodingfile.write(pos+"\n")
 
 raise SystemExit
