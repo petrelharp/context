@@ -18,7 +18,7 @@ args = parser.parse_args()
 
 infile = fileopt( args.infile, "r" )
 logfile = fileopt( args.logfile, "w" )
-outfiles = dict([ (x,fileopt( args.outfix + x + ".gz", "w" )) for x in args.patterns ])
+outfiles = dict([ (x,fileopt( args.outfix + "." + x + ".gz", "w" )) for x in args.patterns ])
 patterns = dict([ (y,[ x for x in y ]) for y in args.patterns ])
 
 logfile.write(str(args))
