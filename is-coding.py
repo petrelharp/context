@@ -13,7 +13,7 @@ parser.add_argument('--outfix', '-o', default="locations", action='store', help=
 
 args = parser.parse_args()
 # example:
-    # args = parser.parse_args("-c CDS-dmel-3R-r5.50.CDS.starts.ends.gz -i 4.rawTAC.gz -o 4.rawTAC -l 4.rawTAC.CDS.log".split())
+# args = parser.parse_args("-c CDS-dmel-3R-r5.50.CDS.starts.ends.gz -i 4.rawTAC.gz -o 4.rawTAC -l 4.rawTAC.CDS.log".split())
 
 infile = fileopt(args.infile,"r")
 codingfile = fileopt(args.codingfile,"r")
@@ -21,24 +21,24 @@ orffile = fileopt(args.outfix + ".orfcoding.gz","w")
 nonorffile = fileopt(args.outfix + ".nonorfcoding.gz","w")
 noncodingfile = fileopt(args.outfix + ".noncoding.gz","w")
 
-pos = int(infile.readline())
+pos = infile.readline().strip()
 cdstxt = codingfile.readline().split()
 
-while cdstxt:
+while pos and cdstxt:
     cds = map( int, cdstxt )
-    while pos < cds[0]:
-        noncodingfile.write(str(pos)+"\n")
-        pos = int(infile.readline())
-    while pos < cds[1]:
-        if pos-cds[0]==0:
-            orffile.write(str(pos)+"\n")
+    while pos and int(pos) < cds[0]:
+        noncodingfile.write(pos+"\n")
+        pos = infile.readline().strip()
+    while pos and int(pos) < cds[1]:
+        if (int(pos)-cds[0])%3==0:
+            orffile.write(pos+"\n")
         else:
-            nonorffile.write(str(pos)+"\n")
-        pos = int(infile.readline())
+            nonorffile.write(pos+"\n")
+        pos = infile.readline().strip()
     cdstxt = codingfile.readline().split()
 
 # finish off
 for pos in infile:
-    noncodingfile.write(pos+"\n")
+    noncodingfile.write(pos)
 
 raise SystemExit
