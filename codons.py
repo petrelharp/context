@@ -25,4 +25,4 @@ Val = [ "GTT", "GTC", "GTA", "GTG", ]
 
 codons = [ Ala, Arg, Asn, Asp, Cys, Gln, Glu, Gly, His, Ile, Leu, Lys, Met, Phe, Pro, Ser, Thr, Trp, Tyr, Val ]
 
-allcodons
+allcodons = reduce( lambda x,y: x+y, codons )
