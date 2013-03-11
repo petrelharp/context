@@ -5,7 +5,7 @@ import sys, gzip, signal
 from plrutils import *
 import collections
 
-parser = argparse.ArgumentParser(description='Write out a collection of files giving the locations of certain sequences.')
+parser = argparse.ArgumentParser(description='Split up position files into coding, noncoding etc.')
 parser.add_argument('--infile', '-i', nargs='?', default="-")
 parser.add_argument('--codingfile', '-c', nargs='?', help="Tab-separated file with starting & ending positions of coding sequence.")
 parser.add_argument('--logfile', '-l', nargs='?', default="-")
