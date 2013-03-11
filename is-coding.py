@@ -24,7 +24,7 @@ noncodingfile = fileopt(args.outfix + ".noncoding.gz","w")
 pos = int(infile.readline())
 cdstxt = codingfile.readline().split()
 
-while cds:
+while cdstxt:
     cds = map( int, cds )
     while pos < cds[0]:
         noncodingfile.write(str(pos)+"\n")
