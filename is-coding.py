@@ -25,7 +25,7 @@ pos = int(infile.readline())
 cdstxt = codingfile.readline().split()
 
 while cdstxt:
-    cds = map( int, cds )
+    cds = map( int, cdstxt )
     while pos < cds[0]:
         noncodingfile.write(str(pos)+"\n")
         pos = int(infile.readline())
