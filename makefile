@@ -14,6 +14,9 @@ dsim-all-chromosome-r1.4.fasta.gz :
 dyak-all-chromosome-r1.3.fasta.gz :
 	wget ftp://ftp.flybase.net/releases/current/dyak_r1.3/fasta/dyak-all-chromosome-r1.3.fasta.gz
 
+dmel-all-chromosome-r5.50.fasta.gz :
+	wget ftp://ftp.flybase.net//genomes/Drosophila_melanogaster/dmel_r5.50_FB2013_02/fasta/dmel-all-chromosome-r5.50.fasta.gz
+
 $(chromosomes).raw.$(codons).gz : get-all-positions.sh get-positions.py
 	source @<
 
@@ -23,7 +26,7 @@ CDS-dmel-$(chromosomes)-r5.50.CDS.starts.ends.gz : extract-coding.sh
 $(chromosomes).raw.$(codons).$(orfcoding).gz : is-coding.sh is-coding.py
 	source @<
 
-freeze2.snps-freqs.vcf.gz : freeze2.vcf.gz
+freeze2.snps.vcf.gz : freeze2.vcf.gz
 	( zcat freeze2.vcf.gz | head -n 19; zcat freeze2.vcf.gz | grep "^.*\s.*\s.*\s[ACGT]\s[ACGT]\s" ) | gzip -c > freeze2.snps.vcf.gz
 	pseq freeze2.snps.vcf.gz counts | gzip -c > freeze2.snps-freqs.vcf.gz
 	rm freeze2.snps.vcf.gz
