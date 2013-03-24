@@ -27,3 +27,19 @@ freeze2.snps-freqs.vcf.gz : freeze2.vcf.gz
 	( zcat freeze2.vcf.gz | head -n 19; zcat freeze2.vcf.gz | grep "^.*\s.*\s.*\s[ACGT]\s[ACGT]\s" ) | gzip -c > freeze2.snps.vcf.gz
 	pseq freeze2.snps.vcf.gz counts | gzip -c > freeze2.snps-freqs.vcf.gz
 	rm freeze2.snps.vcf.gz
+
+dm3.droYak2.all.chain.gz :
+	wget http://hgdownload.cse.ucsc.edu/goldenPath/dm3/vsDroYak2/dm3.droYak2.all.chain.gz
+
+dm3.droSim1.all.chain.gz :
+	wget http://hgdownload.cse.ucsc.edu/goldenPath/dm3/vsDroSim1/dm3.droSim1.all.chain.gz
+
+freeze2.snps-dsim-mapped freeze2.snps-dyak-mapped : dm3.droYak2.all.chain.gz dm3.droSim1.all.chain.gz
+	zcat  freeze2.snps-freqs.vcf.gz | tail -n +2 | cut -f 1 | sed -e "s/:\(.*\)/:\1-\1/" | gzip -c > freeze2.snps-positions.gz
+	../liftOver -positions freeze2.snps-positions.gz ../flybase/dm3.droSim1.all.chain.gz freeze2.snps-dsim-mapped freeze2.snps-dsim-unmapped
+	../liftOver -positions freeze2.snps-positions.gz ../flybase/dm3.droYak2.all.chain.gz freeze2.snps-dyak-mapped freeze2.snps-dyak-unmapped
+
+
+dsim.fasta.gz dyak.fast.gz : 
+	zcat dsim-all-chromosome-r1.4.fasta.gz | awk '/^>/ { if (line) print line; print $0 } !/^>/ { line = line $0 } END { print line }' | fold -w 210 | gzip -c > dsim.fasta.gz
+	zcat dyak-all-chromosome-r1.3.fasta.gz | awk '/^>/ { if (line) print line; print $0 } !/^>/ { line = line $0 } END { print line }' | fold -w 210 | gzip -c > dyak.fasta.gz
