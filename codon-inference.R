@@ -142,6 +142,7 @@ fn <- function (z) {
 initpar <- c(tt,initprob,M[nonzM])
 system.time( ans <- optim( par=initpar, fn=fn, lower=0, method="L-BFGS-B" ) )
 # 51 sec for nstates=16
+# 9422 sec for nstates=32
 
 esttt <- ans$par[seq_along(tt)]
 estip <- ans$par[(length(tt)+1):(length(tt)+nstates)]
