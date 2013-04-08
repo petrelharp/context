@@ -1,6 +1,9 @@
 #!/usr/bin/R
 # input data
 
+bases <- c("A","C","G","T")
+nbases <- length(bases)
+
 codons <- data.frame( rbind(
         c("TTT", "F", "Phe"),
         c("TTC", "F", "Phe"),
