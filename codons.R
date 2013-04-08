@@ -68,3 +68,5 @@ codons <- data.frame( rbind(
         c("GGG", "G", "Gly")
     ) )
 names(codons) <- c("codon", "aacode", "aa")
+
+synons <- setdiff( levels(codons$aa), c("Met","Trp","Ter") )
