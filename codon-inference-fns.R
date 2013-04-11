@@ -65,6 +65,19 @@ singlebase <- function (baserates) {
     with( all.onestep, new( "dgTMatrix", i=i-1L, j=j-1L, x=rep(rmat,winlen*nbases^(winlen-1L)), Dim=c(npatt,npatt) ) )
 }
 
+
+ntrans <- apply( expand.grid(bases,bases), 1, function (uv) {
+            # list of matrices giving the number of u->v transitions involved for each pattern change
+            u <- uv[1]; v <- uv[2]
+            outer( 1:nrow(patterns), 1:nrow(patterns), function (x,y) {
+                        rowSums( (patterns[x,]==u) & (patterns[y,]==v) )
+                    } )
+        } )
+dim(ntrans) <- c( nrow(patterns), nrow(patterns), length(bases)*length(bases) )
+dimnames(ntrans) <- list( rownames(patterns), rownames(patterns), outer(bases,bases,paste,sep=".") )
+# total number (nonidentical) transitions
+ttrans <- rowSums(ntrans[,,row( dimnames(ntrans)[[3]] ) != col( dimnames(ntrans)[[3]] )],dims=2)
+
 if (FALSE) {
     singlebase.dense <- function (baserates) {
         # take matrix of single-base rates

@@ -26,10 +26,18 @@ CDS-dmel-$(chromosomes)-r5.50.CDS.starts.ends.gz : extract-coding.sh
 $(chromosomes).raw.$(codons).$(orfcoding).gz : is-coding.sh is-coding.py
 	source @<
 
-freeze2.snps.vcf.gz : freeze2.vcf.gz
+freeze2.vcf.gz : 
+	wget http://www.hgsc.bcm.tmc.edu/projects/dgrp/freeze2_Feb_2013/vcf_files/freeze2.vcf.gz
+
+freeze2.snps.vcf.gz freeze2.snps-freqs.vcf.gz : freeze2.vcf.gz coverages.gz
+	# grep for SNPs only
 	( zcat freeze2.vcf.gz | head -n 19; zcat freeze2.vcf.gz | grep "^.*\s.*\s.*\s[ACGT]\s[ACGT]\s" ) | gzip -c > freeze2.snps.vcf.gz
-	pseq freeze2.snps.vcf.gz counts | gzip -c > freeze2.snps-freqs.vcf.gz
-	rm freeze2.snps.vcf.gz
+	# add total coverage as first column
+	gunzip coverages.gz
+	# only keep snps with coverage at least 3000 and no more than 10000 (see hist of coverages)
+	( zcat freeze2.snps.vcf.gz | head -n 19; zcat freeze2.snps.vcf.gz | paste coverages - | awk 'int($1)>=3000 && int($1)<=10000' | cut -f 2- ) | gzip -c > freeze2.snps.filtered.vcf.gz
+	gzip coverages
+	pseq freeze2.snps.filtered.vcf.gz counts | gzip -c > freeze2.snps-freqs.vcf.gz
 
 dm3.droYak2.all.chain.gz :
 	wget http://hgdownload.cse.ucsc.edu/goldenPath/dm3/vsDroYak2/dm3.droYak2.all.chain.gz
@@ -46,3 +54,6 @@ freeze2.snps-dsim-mapped freeze2.snps-dyak-mapped : dm3.droYak2.all.chain.gz dm3
 dsim.fasta.gz dyak.fast.gz : 
 	zcat dsim-all-chromosome-r1.4.fasta.gz | awk '/^>/ { if (line) print line; print $0 } !/^>/ { line = line $0 } END { print line }' | fold -w 210 | gzip -c > dsim.fasta.gz
 	zcat dyak-all-chromosome-r1.3.fasta.gz | awk '/^>/ { if (line) print line; print $0 } !/^>/ { line = line $0 } END { print line }' | fold -w 210 | gzip -c > dyak.fasta.gz
+
+coverages.gz : freeze2.snps.vcf.gz
+	zcat freeze2.snps.vcf.gz | tail -n +20 | cut -f 11- | sed -e "s/[0-9\/.]*:\([0-9]*\):\([0-9]*\):[0-9.]*/\1 \2 /g" | awk '{ for(i=1; i<=NF;i++) j+=$i; print j; j=0 }' | gzip -c > coverages.gz
