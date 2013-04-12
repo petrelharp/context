@@ -36,46 +36,42 @@ mutmats <- lapply( mutpats, function (x) {
     } )
 
 # mutation rates
-mutrates <- rep( 1, length(mutmats) )/10
+mutrates <- runif( length(mutmats) )*1e-8
 # function to transfer these to list of values in mutation matrix
 nmutswitches <- sapply(mutmats,NROW)
 whichmut <- function (mutrates) { rep(mutrates,times=nmutswitches) }
 
 # list of patterns with selection coefficients
-# can be regexps but only using "." and "[...]"
+# can be regexps but only using "." and "[...]" (needs regexplen() to work)
 selpats <- c(
         "[GC]",
         "[AT]",
         paste( paste(rep(".",lwin),collapse=''), paste( codons$codon[codons$aa %in% synons], paste(rep(".",rwin),collapse=''), sep='' ), sep='' ),
     NULL )
-regexplen <- function (xx) {
-    # length of the matching string... grrr.
-    sapply( xx, function (x) {
-        y <- diff( c(0,grep("[]\\[]",strsplit(x,"")[[1]],value=FALSE),nchar(x)+1) ) - 1  # lengths of bits in and out of "[]"s
-        sum( y[(1 ==  (1:length(y))%%2)] ) + (length(y)-1)/2
-    } )
-}
 # number of times each selpat matches each pattern
-selmatches <- lapply(selpats, function (x) {
+selmatches <- do.call( rbind, lapply(selpats, function (x) {
         rowSums( sapply( 0:(winlen-regexplen(x)), function (k) {
                     xx <- paste( c(rep(".",k), x, rep(".", winlen-regexplen(x)-k)), collapse='' )
                     grepl( xx, rownames(patterns) ) 
             } ) )
-    } )
+    } ) )
 
 # selection coefficients
-selcoef <- runif( length(selpats) )
+selcoef <- runif( length(selpats) )*1e-4
 # function to transfer these to list of values (signed) in transition matrix
-fromsel <- sapply( selmatches, 
-whichsel <- function (selcoef) {
-    selcoef%*%(tosel - fromsel)
-}
+# these are ( transitions ) x ( selpats ) matrix
+fromsel <- selmatches[,  do.call( rbind, mutmats )$i ]
+tosel <- selmatches[,  do.call( rbind, mutmats )$j ]
+seltrans <- tosel - fromsel
+seldiff <- function (selcoef) { as.vector( crossprod(selcoef,seltrans)) }
+
+# Other params
+tNe <- (6e6/20)*1e4
 
 # full instantaneous transition matrix
-transmatrix <- 
+transmatrix <- with( do.call( rbind, mutmats ), new( "dgTMatrix", i=i-1L, j=j-1L, x=whichmut(mutrates)*(1+2*tNe*seldiff(selcoef)), Dim=c(npatt,npatt) ) )
 
-mutmatrix <- with( do.call( rbind, mutmats ), new( "dgTMatrix", i=i-1L, j=j-1L, x=whichmut(mutrates)+whichsel(selcoef), Dim=c(npatt,npatt) ) )
-
-# system.time( replicate( 50, expm( mutmatrix, method="Higham08" ) ) )
-# .27 sec each for winlen = 4
-# 6 sec each for winlen = 5
+# system.time( replicate( 1, expm( transmatrix, method="Higham08" ) ) )
+# with winlen=6 is 114 sec
+# with winlen=5 is 2.7 sec
+# with winlen=4 is .075 sec

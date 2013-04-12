@@ -79,6 +79,16 @@ if (FALSE ){
     ttrans <- rowSums(ntrans[,,row( dimnames(ntrans)[[3]] ) != col( dimnames(ntrans)[[3]] )],dims=2)
 }
 
+# Misc
+
+regexplen <- function (xx) {
+    # length of the string matching a regexp that uses only "." and "[...]" (no other special characters!)
+    sapply( xx, function (x) {
+        y <- diff( c(0,grep("[]\\[]",strsplit(x,"")[[1]],value=FALSE),nchar(x)+1) ) - 1  # lengths of bits in and out of "[]"s
+        sum( y[(1 ==  (1:length(y))%%2)] ) + (length(y)-1)/2
+    } )
+}
+
 if (FALSE) {
     singlebase.dense <- function (baserates) {
         # take matrix of single-base rates
