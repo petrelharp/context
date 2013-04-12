@@ -4,7 +4,7 @@ require(expm)
 
 # size of window on either side of the focal site
 lwin <- 0
-rwin <- 2
+rwin <- 1
 win <- 3
 winlen <- lwin+win+rwin
 
@@ -37,14 +37,45 @@ mutmats <- lapply( mutpats, function (x) {
 
 # mutation rates
 mutrates <- rep( 1, length(mutmats) )/10
-
-mutmatrix <- with( do.call( rbind, mutmats ), new( "dgTMatrix", i=i-1L, j=j-1L, x=rep(mutrates,times=sapply(mutmats,NROW)), Dim=c(npatt,npatt) ) )
-
-system.time( replicate( 50, expm( mutmatrix, method="Higham08" ) ) )
+# function to transfer these to list of values in mutation matrix
+nmutswitches <- sapply(mutmats,NROW)
+whichmut <- function (mutrates) { rep(mutrates,times=nmutswitches) }
 
 # list of patterns with selection coefficients
+# can be regexps but only using "." and "[...]"
 selpats <- c(
-        codons$codon[codons$aa %in% synons],
+        "[GC]",
+        "[AT]",
+        paste( paste(rep(".",lwin),collapse=''), paste( codons$codon[codons$aa %in% synons], paste(rep(".",rwin),collapse=''), sep='' ), sep='' ),
     NULL )
+regexplen <- function (xx) {
+    # length of the matching string... grrr.
+    sapply( xx, function (x) {
+        y <- diff( c(0,grep("[]\\[]",strsplit(x,"")[[1]],value=FALSE),nchar(x)+1) ) - 1  # lengths of bits in and out of "[]"s
+        sum( y[(1 ==  (1:length(y))%%2)] ) + (length(y)-1)/2
+    } )
+}
+# number of times each selpat matches each pattern
+selmatches <- lapply(selpats, function (x) {
+        rowSums( sapply( 0:(winlen-regexplen(x)), function (k) {
+                    xx <- paste( c(rep(".",k), x, rep(".", winlen-regexplen(x)-k)), collapse='' )
+                    grepl( xx, rownames(patterns) ) 
+            } ) )
+    } )
 
-# 
+# selection coefficients
+selcoef <- runif( length(selpats) )
+# function to transfer these to list of values (signed) in transition matrix
+fromsel <- sapply( selmatches, 
+whichsel <- function (selcoef) {
+    selcoef%*%(tosel - fromsel)
+}
+
+# full instantaneous transition matrix
+transmatrix <- 
+
+mutmatrix <- with( do.call( rbind, mutmats ), new( "dgTMatrix", i=i-1L, j=j-1L, x=whichmut(mutrates)+whichsel(selcoef), Dim=c(npatt,npatt) ) )
+
+# system.time( replicate( 50, expm( mutmatrix, method="Higham08" ) ) )
+# .27 sec each for winlen = 4
+# 6 sec each for winlen = 5
