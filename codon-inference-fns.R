@@ -1,6 +1,5 @@
 #!/usr/bin/R
 # NOTE that things like winlen must be defined already, e.g.
-source("codons.R")
 
 if (FALSE) {
     # size of window on either side of the focal site
@@ -11,10 +10,11 @@ if (FALSE) {
     nbases <- length(bases)
 
     patterns <- do.call( expand.grid, rep( list(bases), winlen ) )
-    npatt <- nrow(patterns)
     baseind <- nbases^(0:(winlen-1))
     rownames(patterns) <- apply(patterns,1,paste,collapse="")
 }
+
+npatt <- nrow(patterns)
 
 # do stuff mod nbases, essentially.
 expandind <- function (i) { i <- i-1; out <- matrix(0,length(i),winlen); for (k in 0:(winlen-1)) { out[,k+1] <- i%%nbases; i <- i%/%nbases }; return(out) }
@@ -43,40 +43,41 @@ onebase.transitions <- lapply( seq_along(bases), function (u) {
         cbind( 1:npatt, sapply( 1:npatt, chind, u=u, k=lwin+1 ) )
     } )
 
-# row/column indices of one-step transitions
-onestep <- lapply( 1:winlen, function (k) {
-                header <- if (k==1) { "" } else { apply( do.call( expand.grid, rep( list(bases), k-1L ) ), 1, paste, collapse='' ) }
-                footer <- if (k==winlen) { "" } else { apply( do.call( expand.grid, rep( list(bases), winlen-k ) ), 1, paste, collapse='' ) }
-                ix <- as.vector( outer( outer( rep(bases,nbases), header, function (x,y) paste(y,x,sep='') ), footer, paste, sep='' ) )
-                jx <- as.vector( outer( outer( rep(bases,each=nbases), header, function (x,y) paste(y,x,sep='') ), footer, paste, sep='' ) )
-                ii <- as.integer( match( ix, rownames(patterns) ) )
-                jj <- as.integer( match( jx, rownames(patterns) ) )
-                return( data.frame( i=ii, j=jj ) )
-        } )
-all.onestep <- do.call( rbind, onestep )
+if (FALSE ){
+    # row/column indices of one-step transitions
+    onestep <- lapply( 1:winlen, function (k) {
+                    header <- if (k==1) { "" } else { apply( do.call( expand.grid, rep( list(bases), k-1L ) ), 1, paste, collapse='' ) }
+                    footer <- if (k==winlen) { "" } else { apply( do.call( expand.grid, rep( list(bases), winlen-k ) ), 1, paste, collapse='' ) }
+                    ix <- as.vector( outer( outer( rep(bases,nbases), header, function (x,y) paste(y,x,sep='') ), footer, paste, sep='' ) )
+                    jx <- as.vector( outer( outer( rep(bases,each=nbases), header, function (x,y) paste(y,x,sep='') ), footer, paste, sep='' ) )
+                    ii <- as.integer( match( ix, rownames(patterns) ) )
+                    jj <- as.integer( match( jx, rownames(patterns) ) )
+                    return( data.frame( i=ii, j=jj ) )
+            } )
+    all.onestep <- do.call( rbind, onestep )
 
-singlebase <- function (baserates) {
-    # take vector of off-diagonal entires of rate matrix
-    # and return (sparse) matrix of codon transition rates
-    # NOTE dgTMatrix indexes ** 0-based **
-    rmat <- matrix(0,nbases,nbases)
-    rmat[row(rmat)!=col(rmat)] <- baserates
-    diag(rmat) <- (-1)*rowSums(rmat)
-    with( all.onestep, new( "dgTMatrix", i=i-1L, j=j-1L, x=rep(rmat,winlen*nbases^(winlen-1L)), Dim=c(npatt,npatt) ) )
+    singlebase <- function (baserates) {
+        # take vector of off-diagonal entires of rate matrix
+        # and return (sparse) matrix of codon transition rates
+        # NOTE dgTMatrix indexes ** 0-based **
+        rmat <- matrix(0,nbases,nbases)
+        rmat[row(rmat)!=col(rmat)] <- baserates
+        diag(rmat) <- (-1)*rowSums(rmat)
+        with( all.onestep, new( "dgTMatrix", i=i-1L, j=j-1L, x=rep(rmat,winlen*nbases^(winlen-1L)), Dim=c(npatt,npatt) ) )
+    }
+
+    ntrans <- apply( expand.grid(bases,bases), 1, function (uv) {
+                # list of matrices giving the number of u->v transitions involved for each pattern change
+                u <- uv[1]; v <- uv[2]
+                outer( 1:nrow(patterns), 1:nrow(patterns), function (x,y) {
+                            rowSums( (patterns[x,]==u) & (patterns[y,]==v) )
+                        } )
+            } )
+    dim(ntrans) <- c( nrow(patterns), nrow(patterns), length(bases)*length(bases) )
+    dimnames(ntrans) <- list( rownames(patterns), rownames(patterns), outer(bases,bases,paste,sep=".") )
+    # total number (nonidentical) transitions
+    ttrans <- rowSums(ntrans[,,row( dimnames(ntrans)[[3]] ) != col( dimnames(ntrans)[[3]] )],dims=2)
 }
-
-
-ntrans <- apply( expand.grid(bases,bases), 1, function (uv) {
-            # list of matrices giving the number of u->v transitions involved for each pattern change
-            u <- uv[1]; v <- uv[2]
-            outer( 1:nrow(patterns), 1:nrow(patterns), function (x,y) {
-                        rowSums( (patterns[x,]==u) & (patterns[y,]==v) )
-                    } )
-        } )
-dim(ntrans) <- c( nrow(patterns), nrow(patterns), length(bases)*length(bases) )
-dimnames(ntrans) <- list( rownames(patterns), rownames(patterns), outer(bases,bases,paste,sep=".") )
-# total number (nonidentical) transitions
-ttrans <- rowSums(ntrans[,,row( dimnames(ntrans)[[3]] ) != col( dimnames(ntrans)[[3]] )],dims=2)
 
 if (FALSE) {
     singlebase.dense <- function (baserates) {
