@@ -56,6 +56,10 @@ selmatches <- do.call( rbind, lapply(selpats, function (x) {
             } ) )
     } ) )
 
+# Other params
+Ne <- 1e4
+tlen <- (6e6/20)
+
 # selection coefficients
 selcoef <- runif( length(selpats) )*1e-4
 # function to transfer these to list of values (signed) in transition matrix
@@ -64,14 +68,14 @@ fromsel <- selmatches[,  do.call( rbind, mutmats )$i ]
 tosel <- selmatches[,  do.call( rbind, mutmats )$j ]
 seltrans <- tosel - fromsel
 seldiff <- function (selcoef) { as.vector( crossprod(selcoef,seltrans)) }
-
-# Other params
-tNe <- (6e6/20)*1e4
+fixfn <- function (x,Ne) { ifelse( x==0, 1, expm1(2*x)/expm1(2*Ne*x) ) }
 
 # full instantaneous transition matrix
-transmatrix <- with( do.call( rbind, mutmats ), new( "dgTMatrix", i=i-1L, j=j-1L, x=whichmut(mutrates)*(1+2*tNe*seldiff(selcoef)), Dim=c(npatt,npatt) ) )
+mutmatrix <- with( do.call( rbind, mutmats ), new( "dgTMatrix", i=i-1L, j=j-1L, x=whichmut(mutrates), Dim=c(npatt,npatt) ) )
+transmatrix <- with( do.call( rbind, mutmats ), new( "dgTMatrix", i=i-1L, j=j-1L, x=whichmut(mutrates)*fixfn(seldiff(selcoef),Ne), Dim=c(npatt,npatt) ) )
 
 # system.time( replicate( 1, expm( transmatrix, method="Higham08" ) ) )
 # with winlen=6 is 114 sec
 # with winlen=5 is 2.7 sec
 # with winlen=4 is .075 sec
+
