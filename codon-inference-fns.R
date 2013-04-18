@@ -25,7 +25,7 @@ getmutmats <- function(mutpats,patterns) {
 }
 fixfn <- function (x,Ne) { ifelse( x==0, 1, expm1(2*x)/expm1(2*Ne*x) ) }
 
-setClass("genmatrix", representation(nmutswitches="integer",seltrans="matrix"), contains = "dgTMatrix")
+setClass("genmatrix", representation(nmutswitches="integer",seltrans="matrix",patnames="character"), contains = "dgTMatrix")
 
 
 makegenmatrix <- function (mutpats,selpats,patterns,mutrates=rep(1,length(mutpats)),selcoef=rep(1,length(selpats)),Ne=1) {
@@ -56,10 +56,23 @@ makegenmatrix <- function (mutpats,selpats,patterns,mutrates=rep(1,length(mutpat
     seldiff <- function (selcoef) { as.vector( crossprod(selcoef,seltrans)) }
 
     # full instantaneous mutation, and transition matrix
-    genmatrix <- with( allmutmats, new( "genmatrix", i=i-1L, j=j-1L, x=whichmut(mutrates)*fixfn(seldiff(selcoef),Ne), Dim=c(npatt,npatt), nmutswitches=nmutswitches, seltrans=seltrans ) )
+    genmatrix <- with( allmutmats, new( "genmatrix", i=i-1L, j=j-1L, x=whichmut(mutrates)*fixfn(seldiff(selcoef),Ne), Dim=c(npatt,npatt), nmutswitches=nmutswitches, seltrans=seltrans, patnames=rownames(patterns) ) )
     # diag(genmatrix) <- (-1)*rowSums(genmatrix)
 
     return(genmatrix)
+}
+
+collapsepatmatrix <- function (tmat, lwin=0, rwin=0, patnames=tmat@patnames) {
+    # reduce an (nbases)^k x (nbases)^k matrix
+    #   to a (nbases)^k x (nbases)^k-m matrix
+    # by summing over possible combinations on the left and right, with m = lwin+rwin
+    winlen <- nchar(patnames[1])
+    win <- winlen - lwin - rwin
+    stopifnot(win>0)
+    fpatnames <- rownames(getpatterns(win))
+    matchpats <- match( substr(patnames,lwin,lwin+win-1), fpatnames )
+    matchmatrix <- new( "dgTMatrix", i=(seq_along(patnames)-1), j=(matchpats-1), x=rep(1,length(patnames)) )
+    return( tmat %*% matchmatrix )
 }
 
 update <- function (G, mutrates, selcoef, Ne) {

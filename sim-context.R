@@ -88,3 +88,15 @@ counts <- Matrix( 0, nrow=length(initmatches), ncol=length(finalmatches) )
 for (x in seq_along(initmatches))  for (y in seq_along(finalmatches)) {
     counts[x,y] <- length(intersect(initmatches[[x]][1],finalmatches[[y]][1]))
 }
+
+# oops, put this in to makegenmatrix somehow
+selpats <- c(
+        "[GC]",
+        "[AT]",
+        paste( paste(rep(".",lwin),collapse=''), paste( codons$codon[codons$aa %in% synons], paste(rep(".",rwin),collapse=''), sep='' ), sep='' ),
+    NULL )
+
+fullgenmatrix <- makegenmatrix( mutpats, selpats, ipatterns )
+fullgenmatrix@x <- update(genmatrix,mutrates,selcoef,Ne)
+
+subgenmatrix <- collapsepatmatrix( fullgenmatrix, lwin=lwin, rwin=rwin )
