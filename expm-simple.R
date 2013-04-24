@@ -18,12 +18,8 @@ expm.poisson <- function (A,n=20)
     return( exp(-t) * expA )
 }
 
-expm.check <- function (A) 
-{
-
-}
-
 expm.simple <- function (A)
+## code from expm::expm
 {
     d <- dim(A)
     if (length(d) != 2 || d[1] != d[2]) 
