@@ -17,7 +17,7 @@ dyak-all-chromosome-r1.3.fasta.gz :
 	wget ftp://ftp.flybase.net/releases/current/dyak_r1.3/fasta/dyak-all-chromosome-r1.3.fasta.gz
 
 dmel-all-chromosome-r5.50.fasta.gz :
-	wget ftp://ftp.flybase.net//genomes/Drosophila_melanogaster/dmel_r5.50_FB2013_02/fasta/dmel-all-chromosome-r5.50.fasta.gz
+	wget ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r5.50_FB2013_02/fasta/dmel-all-chromosome-r5.50.fasta.gz
 
 # $(chromosomes).raw.$(codons).gz : get-all-positions.sh get-positions.py
 # 	source @<
