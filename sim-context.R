@@ -2,11 +2,16 @@
 source("codons.R")
 source("codon-inference-fns.R")
 
-nbases <- 100000
+seqlen <- 100000
 tlen <- 6e6
+
+#######
+# Codons
 
 # maximum size of pattern
 patlen <- 3
+lwin <- 0
+rwin <- 0
 
 # all possible patterns
 patterns <- getpatterns(patlen)
@@ -27,17 +32,12 @@ selpats <- c(
         "[GC]",
         "[AT]",
         # paste( paste(rep(".",lwin),collapse=''), paste( codons$codon[codons$aa %in% synons], paste(rep(".",rwin),collapse=''), sep='' ), sep='' ),
-        codons$codon[codons$aa %in% synons],
     NULL )
 # selection coefficients
 selcoef <- runif( length(selpats) )*1e-4
 
 # check:
 stopifnot( patlen >= max( c( sapply(mutpats,function (x) max(nchar(x[1]),nchar(x[2]))), sapply(gsub(".","",selpats,fixed=TRUE),regexplen) ) ) )
-
-# as mutpats, but right-padded to have a common width
-fullmutpats <- lapply( mutpats, function (x)  { sapply( gsub(".","",x,fixed=TRUE), function (y) paste( y, paste(rep(".",patlen-regexplen(y)),collapse=''), sep='' ) ) } )
-fullselpats <- sapply( gsub(".","",selpats,fixed=TRUE), function (x)  { paste( x, paste(rep(".",patlen-regexplen(x)),collapse=''), sep='' ) } )
 
 # other params
 Ne <- 1e4
@@ -56,24 +56,34 @@ meanrate <- maxrate * patlen * tlen
 
 ####
 # number and locations of possible changes, ordered by time they occur at
-n.events <- rpois(1,lambda=maxrate*tlen*(nbases-patlen+1))
-loc.events <- sample(nbases-patlen+1,n.events,replace=TRUE)
+n.events <- rpois(1,lambda=maxrate*tlen*(seqlen-patlen+1))
+loc.events <- sample(seqlen-patlen+1,n.events,replace=TRUE)
 
-# initial string -- note right padding to allow rightmost bases to match
-finalseq <- initseq <- paste( sample(bases,nbases,replace=TRUE), collapse="" )
+# count transitions, for debugging
+ntrans <- Matrix(0,nrow=nrow(patterns),ncol=nrow(patterns))
+
+# initial and final sequences
+finalseq <- initseq <- paste( sample(bases,seqlen,replace=TRUE), collapse="" )
 for (k in loc.events) {
     subseq <- substr(finalseq, k, k+patlen-1 )
-    isubseq <- ( (genmatrix@i + 1) == match( subseq, rownames(patterns) ) )
+    msubseq <- match( subseq, rownames(patterns) )
+    isubseq <- which( (genmatrix@i + 1) == msubseq )
     # indices of possible replacement patterns
     jsubseq <- (genmatrix@j+1)[isubseq]
     # probabilities of choosing these
     psubseq <- genmatrix@x[isubseq]/maxrate
-    replace <- sample( c(subseq,rownames(patterns)[jsubseq]), 1, prob=c(max(0,1-sum(psubseq)),psubseq) )
+    replind <- sample( c(msubseq,1+seq_along(patterns)[jsubseq]), 1, prob=c(max(0,1-sum(psubseq)),psubseq) )
+    ntrans[msubseq,jsubseq] <- ntrans[msubseq,jsubseq] + 1
+    replstr <- c(subseq,rownames(patterns))[replind]
     substr( finalseq, k, k+patlen-1 ) <- replace
 }
 
+# check
+plot( as.vector( ntrans / sweep(genmatrix,1,maxrate,"/") ) )
+
+## transition probabilities?
 # size of window on either side of the focal site
-lwin <- 0
+lwin <- 1
 rwin <- 1
 win <- 3
 winlen <- lwin+win+rwin
@@ -81,22 +91,58 @@ winlen <- lwin+win+rwin
 ipatterns <- getpatterns(winlen)
 fpatterns <- getpatterns(win)
 
-# Ok, count occurrences.
-initmatches <- sapply( lapply( rownames(ipatterns), gregexpr, initseq ), "[[", 1 )
-finalmatches <- sapply( lapply( rownames(fpatterns), gregexpr, finalseq ), "[[", 1 )
+# Ok, count occurrences.  Note needs perl "lookahead" to count overlapping patterns.
+#   (see http://stackoverflow.com/questions/7878992/finding-the-indexes-of-multiple-overlapping-matching-substrings)
+initmatches <- sapply( lapply( rownames(ipatterns), function (p) gregexpr(paste("(?=",p,")",sep=''),initseq,perl=TRUE) ), "[[", 1 )
+finalmatches <- sapply( lapply( rownames(fpatterns), function (p) gregexpr(paste("(?=",p,")",sep=''),finalseq,perl=TRUE) ), "[[", 1 )
 counts <- Matrix( 0, nrow=length(initmatches), ncol=length(finalmatches) )
-for (x in seq_along(initmatches))  for (y in seq_along(finalmatches)) {
-    counts[x,y] <- length(intersect(initmatches[[x]][1],finalmatches[[y]][1]))
+for (x in seq_along(initmatches))  { 
+    for (y in seq_along(finalmatches)) {
+        counts[x,y] <- length(intersect(initmatches[[x]],(-lwin)+finalmatches[[y]]))
+    } 
 }
+
+stopifnot(sum(counts)==seqlen-winlen+1)
 
 # oops, put this in to makegenmatrix somehow
 selpats <- c(
         "[GC]",
         "[AT]",
-        paste( paste(rep(".",lwin),collapse=''), paste( codons$codon[codons$aa %in% synons], paste(rep(".",rwin),collapse=''), sep='' ), sep='' ),
     NULL )
 
 fullgenmatrix <- makegenmatrix( mutpats, selpats, ipatterns )
-fullgenmatrix@x <- update(genmatrix,mutrates,selcoef,Ne)
+fullgenmatrix@x <- update(fullgenmatrix,mutrates,selcoef,Ne)
+
+transmatrix <- expm( tlen * (fullgenmatrix-Diagonal(nrow(fullgenmatrix),rowSums(fullgenmatrix))), method="Higham08" )
 
 subgenmatrix <- collapsepatmatrix( fullgenmatrix, lwin=lwin, rwin=rwin )
+subtransmatrix <- transmatrix %*% subgenmatrix
+changed <- outer( rownames(ipatterns), rownames(fpatterns), function (x,y) { substr(x,lwin+1,lwin+win)!=y } )
+
+expected <- (seqlen-winlen+1) * (1/nbases)^winlen * subtransmatrix
+in.expected <- rowSums(counts) * subtransmatrix
+
+plot( as.vector(counts), as.vector(expected), col=1+changed )
+abline(0,1)
+plot( as.vector(counts), as.vector(in.expected), col=1+changed )
+abline(0,1)
+
+
+
+#######
+# testing: number of subsequences
+
+xseqlen <- 1000
+xpats <- rownames(getpatterns(2))
+x <- replicate( 1000, { 
+            aseq <- paste( sample(bases,xseqlen,replace=TRUE), collapse="" )
+            xmatches <- sapply( lapply( xpats, function (p) gregexpr(paste("(?=",p,")",sep=''),aseq,perl=TRUE) ), "[[", 1 )
+            sapply( xmatches, length )
+        } )
+rownames(x) <- xpats
+poisx <- rpois(10000,lambda=xseqlen/length(xpats))
+hx <- hist(c(x,poisx), freq=FALSE, plot=FALSE)
+histx <- invisible( lapply( seq_along(xpats), function (k) hist( x[k,], col=adjustcolor(rainbow(64)[k],.2), plot=FALSE, breaks=hx$breaks, freq=FALSE ) ) )
+matplot( sapply(histx, "[[", "density" ), type='l', lty=c(1,2,2,2,2,1,2,2,2,2,1,2,2,2,2,1), col=1:16 )
+legend("topright",legend=xpats,lty=c(1,2,2,2,2,1,2,2,2,2,1,2,2,2,2,1),col=1:16)
+lines( hist( poisx, breaks=hx$breaks, plot=FALSE )$density, lwd=2 )

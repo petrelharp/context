@@ -1,5 +1,6 @@
 #!/usr/bin/R
 require(Matrix)
+require(expm)
 
 getpatterns <- function(winlen) {
     patterns <- do.call( expand.grid, rep( list(bases), winlen ) )
@@ -15,10 +16,10 @@ getmutmats <- function(mutpats,patterns) {
         # given pairlist of mutation patterns,
         # return list of matrices with indices of changes corresponding to mutation patterns
         do.call( rbind, lapply( 1:(winlen-nchar(x[1])+1), function (k) {
-                i <- which( substr( rownames(patterns), k, k+nchar(x[1])-1 ) == x[1] )
+                i <- which( substr( rownames(patterns), k, k+nchar(x[1])-1 ) == x[1] ) # matches input
                 replstr <- rownames(patterns)[i]
-                substr( replstr, k, k+nchar(x[1])-1 ) <- x[2]
-                j <- match( replstr, rownames(patterns) )
+                substr( replstr, k, k+nchar(x[1])-1 ) <- x[2] # these, substituted
+                j <- match( replstr, rownames(patterns) )  # indices of mutated strings
                 data.frame( i=i, j=j )
             } ) )
     } )
@@ -31,6 +32,7 @@ setClass("genmatrix", representation(nmutswitches="integer",seltrans="matrix",pa
 makegenmatrix <- function (mutpats,selpats,patterns,mutrates=rep(1,length(mutpats)),selcoef=rep(1,length(selpats)),Ne=1) {
     # make the generator matrix, carrying with it the means to quickly update itself.
     winlen <- ncol(patterns)
+    npatt <- nrow(patterns)
     # list of matrices with indices of changes corresponding to mutation patterns above
     mutmats <- getmutmats(mutpats,patterns)
     allmutmats <- do.call( rbind, mutmats )
@@ -63,6 +65,7 @@ makegenmatrix <- function (mutpats,selpats,patterns,mutrates=rep(1,length(mutpat
 }
 
 collapsepatmatrix <- function (tmat, lwin=0, rwin=0, patnames=tmat@patnames) {
+    # returns a projection matrix that will
     # reduce an (nbases)^k x (nbases)^k matrix
     #   to a (nbases)^k x (nbases)^k-m matrix
     # by summing over possible combinations on the left and right, with m = lwin+rwin
@@ -70,9 +73,9 @@ collapsepatmatrix <- function (tmat, lwin=0, rwin=0, patnames=tmat@patnames) {
     win <- winlen - lwin - rwin
     stopifnot(win>0)
     fpatnames <- rownames(getpatterns(win))
-    matchpats <- match( substr(patnames,lwin,lwin+win-1), fpatnames )
-    matchmatrix <- new( "dgTMatrix", i=(seq_along(patnames)-1), j=(matchpats-1), x=rep(1,length(patnames)) )
-    return( tmat %*% matchmatrix )
+    matchpats <- match( substr(patnames,lwin+1L,lwin+win), fpatnames )
+    matchmatrix <- new( "dgTMatrix", i=(seq_along(patnames)-1L), j=(matchpats-1L), x=rep(1,length(patnames)), Dim=c(length(patnames),length(fpatnames)) )
+    return( matchmatrix )
 }
 
 update <- function (G, mutrates, selcoef, Ne) {
