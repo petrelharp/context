@@ -4,22 +4,19 @@ require(expm)
 
 getpatterns <- function(winlen) {
     patterns <- do.call( expand.grid, rep( list(bases), winlen ) )
-    npatt <- nrow(patterns)
-    baseind <- nbases^(0:(winlen-1))
-    rownames(patterns) <- apply(patterns,1,paste,collapse="")
-    return( patterns )
+    return( apply(patterns,1,paste,collapse="") )
 }
 
 getmutmats <- function(mutpats,patterns) { 
-    winlen <- ncol(patterns)
+    winlen <- nchar(patterns[1])
     lapply( mutpats, function (x) {
         # given pairlist of mutation patterns,
         # return list of matrices with indices of changes corresponding to mutation patterns
         do.call( rbind, lapply( 1:(winlen-nchar(x[1])+1), function (k) {
-                i <- which( substr( rownames(patterns), k, k+nchar(x[1])-1 ) == x[1] ) # matches input
-                replstr <- rownames(patterns)[i]
+                i <- which( substr( patterns, k, k+nchar(x[1])-1 ) == x[1] ) # matches input
+                replstr <- patterns[i]
                 substr( replstr, k, k+nchar(x[1])-1 ) <- x[2] # these, substituted
-                j <- match( replstr, rownames(patterns) )  # indices of mutated strings
+                j <- match( replstr, patterns )  # indices of mutated strings
                 data.frame( i=i, j=j )
             } ) )
     } )
@@ -31,8 +28,8 @@ setClass("genmatrix", representation(nmutswitches="integer",seltrans="matrix",pa
 
 makegenmatrix <- function (mutpats,selpats,patterns,mutrates=rep(1,length(mutpats)),selcoef=rep(1,length(selpats)),Ne=1) {
     # make the generator matrix, carrying with it the means to quickly update itself.
-    winlen <- ncol(patterns)
-    npatt <- nrow(patterns)
+    patlen <- nchar(patterns[1])
+    npatt <- length(patterns)
     # list of matrices with indices of changes corresponding to mutation patterns above
     mutmats <- getmutmats(mutpats,patterns)
     allmutmats <- do.call( rbind, mutmats )
@@ -43,9 +40,9 @@ makegenmatrix <- function (mutpats,selpats,patterns,mutrates=rep(1,length(mutpat
 
     # number of times each selpat matches each pattern
     selmatches <- do.call( rbind, lapply(selpats, function (x) {
-            rowSums( sapply( 0:(winlen-regexplen(x)), function (k) {
-                        xx <- paste( c(rep(".",k), x, rep(".", winlen-regexplen(x)-k)), collapse='' )
-                        grepl( xx, rownames(patterns) ) 
+            rowSums( sapply( 0:(patlen-regexplen(x)), function (k) {
+                        xx <- paste( c(rep(".",k), x, rep(".", patlen-regexplen(x)-k)), collapse='' )
+                        grepl( xx, patterns ) 
                 } ) )
         } ) )
 
@@ -58,7 +55,8 @@ makegenmatrix <- function (mutpats,selpats,patterns,mutrates=rep(1,length(mutpat
     seldiff <- function (selcoef) { as.vector( crossprod(selcoef,seltrans)) }
 
     # full instantaneous mutation, and transition matrix
-    genmatrix <- with( allmutmats, new( "genmatrix", i=i-1L, j=j-1L, x=whichmut(mutrates)*fixfn(seldiff(selcoef),Ne), Dim=c(npatt,npatt), nmutswitches=nmutswitches, seltrans=seltrans, patnames=rownames(patterns) ) )
+    genmatrix <- with( allmutmats, new( "genmatrix", i=i-1L, j=j-1L, x=whichmut(mutrates)*fixfn(seldiff(selcoef),Ne), Dim=c(npatt,npatt), nmutswitches=nmutswitches, seltrans=seltrans, patnames=patterns ) )
+    rownames( genmatrix ) <- patterns
     # diag(genmatrix) <- (-1)*rowSums(genmatrix)
 
     return(genmatrix)
@@ -69,8 +67,8 @@ collapsepatmatrix <- function (tmat, lwin=0, rwin=0, patnames=tmat@patnames) {
     # reduce an (nbases)^k x (nbases)^k matrix
     #   to a (nbases)^k x (nbases)^k-m matrix
     # by summing over possible combinations on the left and right, with m = lwin+rwin
-    winlen <- nchar(patnames[1])
-    win <- winlen - lwin - rwin
+    patlen <- nchar(patnames[1])
+    win <- patlen - lwin - rwin
     stopifnot(win>0)
     fpatnames <- rownames(getpatterns(win))
     matchpats <- match( substr(patnames,lwin+1L,lwin+win), fpatnames )
@@ -125,7 +123,7 @@ if (FALSE ){
     win <- 3
     winlen <- lwin+rwin+win
     patterns <- getpatterns(winlen)
-    npatt <- nrow(patterns)
+    npatt <- length(patterns)
 
     onebase.transitions <- lapply( seq_along(bases), function (u) {
             # list of single-base transitions at the central site
@@ -138,8 +136,8 @@ if (FALSE ){
                     footer <- if (k==winlen) { "" } else { apply( do.call( expand.grid, rep( list(bases), winlen-k ) ), 1, paste, collapse='' ) }
                     ix <- as.vector( outer( outer( rep(bases,nbases), header, function (x,y) paste(y,x,sep='') ), footer, paste, sep='' ) )
                     jx <- as.vector( outer( outer( rep(bases,each=nbases), header, function (x,y) paste(y,x,sep='') ), footer, paste, sep='' ) )
-                    ii <- as.integer( match( ix, rownames(patterns) ) )
-                    jj <- as.integer( match( jx, rownames(patterns) ) )
+                    ii <- as.integer( match( ix, patterns ) )
+                    jj <- as.integer( match( jx, patterns ) )
                     return( data.frame( i=ii, j=jj ) )
             } )
     all.onestep <- do.call( rbind, onestep )
@@ -156,13 +154,14 @@ if (FALSE ){
 
     ntrans <- apply( expand.grid(bases,bases), 1, function (uv) {
                 # list of matrices giving the number of u->v transitions involved for each pattern change
+                splitpats <- do.call(rbind, strsplit(patterns,"") )
                 u <- uv[1]; v <- uv[2]
-                outer( 1:nrow(patterns), 1:nrow(patterns), function (x,y) {
-                            rowSums( (patterns[x,]==u) & (patterns[y,]==v) )
+                outer( 1:length(patterns), 1:length(patterns), function (x,y) {
+                            rowSums( (splitpats[x,]==u) & (splitpats[y,]==v) )
                         } )
             } )
-    dim(ntrans) <- c( nrow(patterns), nrow(patterns), length(bases)*length(bases) )
-    dimnames(ntrans) <- list( rownames(patterns), rownames(patterns), outer(bases,bases,paste,sep=".") )
+    dim(ntrans) <- c( length(patterns), length(patterns), length(bases)*length(bases) )
+    dimnames(ntrans) <- list( patterns, patterns, outer(bases,bases,paste,sep=".") )
     # total number (nonidentical) transitions
     ttrans <- rowSums(ntrans[,,row( dimnames(ntrans)[[3]] ) != col( dimnames(ntrans)[[3]] )],dims=2)
 }
