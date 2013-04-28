@@ -63,12 +63,14 @@ winlen <- lwin+win+rwin
 subtransmatrix <- gettransmatrix(mutpats, mutrates, selpats, selcoef, Ne, tlen, win, lwin, rwin)
 counts <- counttrans( rownames(subtransmatrix), colnames(subtransmatrix), simseqs, lwin )
 
-# note this is only SORT OF expected
+# averaged
 expected <- (seqlen-winlen+1) * (1/nbases)^winlen * subtransmatrix
+# accounting for initial sequence
 in.expected <- rowSums(counts) * subtransmatrix
+# indicator of counts where patterns have changed
 changed <- whichchanged(subtransmatrix,lwin=lwin,win=win)
 
-# looks more or less right
+# huh.
 layout(matrix(1:4,2))
 plot( as.vector(counts), as.vector(expected), col=1+changed ); abline(0,1)
 plot( as.vector(counts), as.vector(in.expected), col=1+changed ); abline(0,1)

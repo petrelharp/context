@@ -1,6 +1,6 @@
 # Simulate a sequence, with context-dependent mutation rates
 
-simseq <- function (seqlen, tlen, genmatrix, bases, count.trans=TRUE, basefreqs=rep(1/length(bases),length(bases)), ... ) {
+simseq <- function (seqlen, tlen, genmatrix, bases, count.trans=TRUE, initseq, basefreqs=rep(1/length(bases),length(bases)), ... ) {
     # simulate a random sequence and evolve it with genmatrix.
     #  record transition counts if count.trans it TRUE (e.g. for debugging)
     patterns <- rownames(genmatrix)
@@ -15,10 +15,11 @@ simseq <- function (seqlen, tlen, genmatrix, bases, count.trans=TRUE, basefreqs=
     n.events <- rpois(1,lambda=maxrate*tlen*(seqlen-patlen+1))
     loc.events <- sample(seqlen-patlen+1,n.events,replace=TRUE)
     # count transitions, for debugging
-    ntrans <- if (count.trans) { data.frame( i=NA, j=NA, loc=loc.events ) } else { NULL }
+    ntrans <- if (count.trans) { data.frame( i=rep(NA,n.events), j=rep(NA,n.events), loc=loc.events ) } else { NULL }
     # initial and final sequences
-    finalseq <- initseq <- paste( sample(bases,seqlen,replace=TRUE,prob=basefreqs), collapse="" )
-    for (k in 1:n.events) {
+    if (missing(initseq)) { initseq <- paste( sample(bases,seqlen,replace=TRUE,prob=basefreqs), collapse="" ) }
+    finalseq <- initseq
+    for (k in seq_along(loc.events)) {
         subseq <- substr(finalseq, loc.events[k], loc.events[k]+patlen-1 )  # from string
         msubseq <- match( subseq, patterns )  # which row for this string?
         isubseq <- which( (genmatrix@i + 1) == msubseq ) # transitions are these entries of genmatrix
