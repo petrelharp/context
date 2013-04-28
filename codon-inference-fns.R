@@ -23,13 +23,13 @@ getmutmats <- function(mutpats,patterns) {
 }
 fixfn <- function (x,Ne) { ifelse( x==0, 1, expm1(2*x)/expm1(2*Ne*x) ) }
 
-setClass("genmatrix", representation(nmutswitches="integer",seltrans="matrix",patnames="character"), contains = "dgTMatrix")
+setClass("genmatrix", representation(nmutswitches="integer",seltrans="matrix"), contains = "dgTMatrix")
 
 
-makegenmatrix <- function (mutpats,selpats,patterns,mutrates=rep(1,length(mutpats)),selcoef=rep(1,length(selpats)),Ne=1) {
+makegenmatrix <- function (mutpats,selpats,patlen=nchar(patterns[1]),patterns=getpatterns(patlen),mutrates=rep(1,length(mutpats)),selcoef=rep(1,length(selpats)),Ne=1) {
     # make the generator matrix, carrying with it the means to quickly update itself.
-    patlen <- nchar(patterns[1])
-    npatt <- length(patterns)
+    #  DON'T do the diagonal, so that the updating is easier.
+    if (!is.numeric(patlen)|(missing(patlen)&missing(patterns))) { stop("need patlen or patterns") }
     # list of matrices with indices of changes corresponding to mutation patterns above
     mutmats <- getmutmats(mutpats,patterns)
     allmutmats <- do.call( rbind, mutmats )
@@ -55,30 +55,54 @@ makegenmatrix <- function (mutpats,selpats,patterns,mutrates=rep(1,length(mutpat
     seldiff <- function (selcoef) { as.vector( crossprod(selcoef,seltrans)) }
 
     # full instantaneous mutation, and transition matrix
-    genmatrix <- with( allmutmats, new( "genmatrix", i=i-1L, j=j-1L, x=whichmut(mutrates)*fixfn(seldiff(selcoef),Ne), Dim=c(npatt,npatt), nmutswitches=nmutswitches, seltrans=seltrans, patnames=patterns ) )
-    rownames( genmatrix ) <- patterns
+    genmatrix <- with( allmutmats, new( "genmatrix", i=i-1L, j=j-1L, x=whichmut(mutrates)*fixfn(seldiff(selcoef),Ne), Dim=c(length(patterns),length(patterns)), nmutswitches=nmutswitches, seltrans=seltrans ) )
+    rownames( genmatrix ) <- colnames( genmatrix ) <- patterns
     # diag(genmatrix) <- (-1)*rowSums(genmatrix)
 
     return(genmatrix)
 }
 
-collapsepatmatrix <- function (tmat, lwin=0, rwin=0, patnames=tmat@patnames) {
+update <- function (G, mutrates, selcoef, Ne) {
+    # use like: genmatrix@x <- update(genmatrix,...)
+    rep(mutrates,times=G@nmutswitches) * fixfn( as.vector(crossprod(selcoef,G@seltrans)), Ne)
+}
+
+collapsepatmatrix <- function (tmat, lwin=0, rwin=0, patterns=rownames(tmat)) {
     # returns a projection matrix that will
     # reduce an (nbases)^k x (nbases)^k matrix
     #   to a (nbases)^k x (nbases)^k-m matrix
     # by summing over possible combinations on the left and right, with m = lwin+rwin
-    patlen <- nchar(patnames[1])
+    patlen <- nchar(patterns[1])
     win <- patlen - lwin - rwin
     stopifnot(win>0)
-    fpatnames <- rownames(getpatterns(win))
-    matchpats <- match( substr(patnames,lwin+1L,lwin+win), fpatnames )
-    matchmatrix <- new( "dgTMatrix", i=(seq_along(patnames)-1L), j=(matchpats-1L), x=rep(1,length(patnames)), Dim=c(length(patnames),length(fpatnames)) )
+    fpatterns <- getpatterns(win)
+    matchpats <- match( substr(patterns,lwin+1L,lwin+win), fpatterns )
+    matchmatrix <- new( "dgTMatrix", i=(seq_along(patterns)-1L), j=(matchpats-1L), x=rep(1,length(patterns)), Dim=c(length(patterns),length(fpatterns)) )
     return( matchmatrix )
 }
 
-update <- function (G, mutrates, selcoef, Ne) {
-    # use like: genmatrix@x <- update(genmatrix,...)
-    rep(mutrates,times=G@nmutswitches) * fixfn( as.vector(crossprod(selcoef,G@seltrans)), Ne)
+gettransmatrix <- function (mutpats, mutrates, selpats, selcoef, Ne, tlen, win, lwin=0, rwin=0, ... ) {
+    # get reduced transition matrix: given (lwin, win, rwin) context probability of pattern in win
+    winlen <- lwin+win+rwin
+    ipatterns <- getpatterns(winlen)
+    fpatterns <- getpatterns(win)
+
+    fullgenmatrix <- makegenmatrix( mutpats, selpats, patterns=ipatterns )
+    fullgenmatrix@x <- update(fullgenmatrix,mutrates,selcoef,Ne)
+
+    transmatrix <- expm( tlen * (fullgenmatrix-Diagonal(nrow(fullgenmatrix),rowSums(fullgenmatrix))), method="Higham08" )
+
+    subgenmatrix <- collapsepatmatrix( fullgenmatrix, lwin=lwin, rwin=rwin )
+    subtransmatrix <- transmatrix %*% subgenmatrix
+    rownames(subtransmatrix) <- ipatterns
+    colnames(subtransmatrix) <- fpatterns
+    return( subtransmatrix )
+}
+
+whichchanged <- function (ipatterns,fpatterns,lwin=0,win=nchar(ipatterns[0])) {
+    # return indicator corresponding to entries of output of gettransmatrix that have changed
+    if (!is.null(dimnames(ipatterns))) { fpatterns <- colnames(ipatterns); ipatterns <- rownames(ipatterns) }
+    return( outer( ipatterns, fpatterns, function (x,y) { substr(x,lwin+1,lwin+win)!=y } ) )
 }
 
 ## Older stuff
@@ -114,6 +138,7 @@ regexplen <- function (xx) {
         sum( y[(1 ==  (1:length(y))%%2)] ) + (length(y)-1)/2
     } )
 }
+
 
 # Unused?  Takes a long time anyhow.
 if (FALSE ){
@@ -191,12 +216,12 @@ if (FALSE) {
     range( fullrates - singlebase.dense(baserates) )
 
     # test some
-    ijx <- data.frame( ix=sample(rownames(patterns),20), k=sample(1:winlen,20,replace=TRUE), v=sample(bases,20,replace=TRUE), stringsAsFactors=FALSE )
+    ijx <- data.frame( ix=sample((patterns),20), k=sample(1:winlen,20,replace=TRUE), v=sample(bases,20,replace=TRUE), stringsAsFactors=FALSE )
     ijx$jx <- ijx$ix
     ijx$u <- substring(ijx$ix,ijx$k,ijx$k)
     substring(ijx$jx,ijx$k,ijx$k) <- ijx$v
-    ijx$i <- match( ijx$ix, rownames(patterns) )
-    ijx$j <- match( ijx$jx, rownames(patterns) )
+    ijx$i <- match( ijx$ix, (patterns) )
+    ijx$j <- match( ijx$jx, (patterns) )
     ijx$rate <- baserates[ as.matrix(ijx[, c("u","v") ]) ]
     ijx$sparse <- fullrates[ as.matrix(ijx[,c("i","j")]) ]
     ijx$dense <- fullrates.dense[ as.matrix(ijx[,c("i","j")]) ]

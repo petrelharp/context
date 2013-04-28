@@ -8,9 +8,6 @@ patlen <- 3
 lwin <- 0
 rwin <- 0
 
-# all possible patterns
-patterns <- getpatterns(patlen)
-
 # list of patterns that have mutation rates
 mutpats <- c(
         combn( bases, 2, simplify=FALSE ),  lapply( combn( bases, 2, simplify=FALSE ), rev),  # single-base rates
@@ -39,32 +36,50 @@ seqlen <- 100000
 tlen <- 6e6
 
 # full instantaneous mutation, and transition matrix
-genmatrix <- makegenmatrix( mutpats, selpats, patterns )
+#   RECALL THIS OMITS THE DIAGONAL
+genmatrix <- makegenmatrix( mutpats, selpats, patlen=patlen )
 genmatrix@x <- update(genmatrix,mutrates,selcoef,Ne)
 
 simseqs <- simseq( seqlen, tlen, genmatrix, bases )
 
-# check
-with( simseqs, plot( as.vector( ntrans / sweep(genmatrix,1,maxrate,"/") ) ) )
+# check: number of transitions matches expected?
+# normalized prob of transitions
+obs.table <- table(simseqs$ntrans[c("i","j")])
+obs.p <- with( simseqs, sweep(as.matrix(obs.table),1,rowSums(obs.table),"/") )
+exp.p <- sweep(genmatrix,1,max(rowSums(genmatrix)),"/")
+diag(exp.p) <- 1-rowSums(exp.p)
+pvals <- rep( as.vector(exp.p), as.vector(obs.table) )
+stopifnot(all(pvals>0))
+stopifnot(all(pvals*length(pvals)>1/100))
+# plot(as.vector(exp.p),as.vector(obs.p-exp.p))
 
 ## transition probabilities?
 # size of window on either side of the focal site
-lwin <- 1
-rwin <- 1
-win <- 3
+lwin <- 2
+rwin <- 2
+win <- 1
 winlen <- lwin+win+rwin
 
 subtransmatrix <- gettransmatrix(mutpats, mutrates, selpats, selcoef, Ne, tlen, win, lwin, rwin)
-counts <- counttrans( rownames(subtransmatrix), colnames(subtransmatrix), simseqs )
+counts <- counttrans( rownames(subtransmatrix), colnames(subtransmatrix), simseqs, lwin )
 
+# note this is only SORT OF expected
 expected <- (seqlen-winlen+1) * (1/nbases)^winlen * subtransmatrix
 in.expected <- rowSums(counts) * subtransmatrix
+changed <- whichchanged(subtransmatrix,lwin=lwin,win=win)
 
-plot( as.vector(counts), as.vector(expected), col=1+changed )
-abline(0,1)
-plot( as.vector(counts), as.vector(in.expected), col=1+changed )
-abline(0,1)
+# looks more or less right
+layout(matrix(1:4,2))
+plot( as.vector(counts), as.vector(expected), col=1+changed ); abline(0,1)
+plot( as.vector(counts), as.vector(in.expected), col=1+changed ); abline(0,1)
+plot( as.vector(counts)[changed], as.vector(expected)[changed], col=2 ); abline(0,1)
+plot( as.vector(counts)[changed], as.vector(in.expected)[changed], col=2 ); abline(0,1)
 
+# how many events per window?
+hist(simseqs$ntrans$loc,breaks=seq(0,seqlen+10,by=4*winlen))
+hist(simseqs$ntrans$loc,breaks=seq(0,seqlen+10,by=2*winlen))
+hist(simseqs$ntrans$loc,breaks=seq(0,seqlen+10,by=winlen))
+hist(simseqs$ntrans$loc,breaks=seq(0,seqlen+10,by=1))
 
 
 #######
