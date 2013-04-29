@@ -33,7 +33,8 @@ stopifnot( patlen >= max( c( sapply(mutpats,function (x) max(nchar(x[1]),nchar(x
 # other params
 Ne <- 1e4
 seqlen <- 100000
-tlen <- 6e6
+# tlen <- 6e6
+tlen <- 6e5
 
 # full instantaneous mutation, and transition matrix
 #   RECALL THIS OMITS THE DIAGONAL
