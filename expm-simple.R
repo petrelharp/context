@@ -1,103 +1,73 @@
 #!/usr/bin/R
-# modified from expm::expm.Higham08
 
-expm.poisson <- function (A,n=20) 
+expm.simple.poisson <- function (A,n=20) 
 {
-    # only works for stochastic matrices
+    # -> only works for stochastic matrices
     dA <- (-1) * diag(A)
     t <- max( dA )
     P <- A/t
     diag(P) <- 1-dA/t
-    Pk <- t * P
+    Pk <- exp(-t) * t * P
     expA <- Pk
-    diag(expA) <- diag(expA)+1  # identity
+    diag(expA) <- exp(-t) + diag(expA)  # identity
     for (k in 2:n) {
         Pk <- (t/k) * P%*%Pk
         expA <- expA + Pk
     }
-    return( exp(-t) * expA )
+    return( expA )
 }
 
-expm.simple <- function (A)
-## code from expm::expm
+if (FALSE) {
+    # determine number of scaling-squaring steps for the below
+    #  since:
+    #    ( ... ( expm.simple.poisson( A / 2^k, n ) )^2 ... )^2 takes (n-1) + k matrix multiplications
+    #    and want ppois( n, lambda=lambda/2^k,lower.tail=TRUE ) < eps
+    eps <- 1e-16
+    lambdas <- seq(.1,100,length.out=100)
+    optvals <- sapply( lambdas, function (lambda) { ( sapply( 1:20, function (k) { k + sum(ppois(q=1:200,lambda=lambda/2^k,log.p=TRUE,lower.tail=FALSE)>log(eps)) - 1 } ) ) } )
+    layout(matrix(1:4,nrow=2))
+    matplot( optvals, type='l', ylim=c(0,30), xlab="number of scaling-sqarings", ylab="number of matrix mults" )
+    points( apply(optvals,2,which.min), apply(optvals,2,min), pch=20 )
+    plot( lambdas, lambdas/2^(apply(optvals,2,which.min)), xlab="lambda", ylab="scale-to-this" )
+    plot( lambdas, apply(optvals,2,min), ylab="number of matrix mults" )
+    plot( lambdas, apply(optvals,2,which.min), ylab="number of rescalings" )
+    lines( lambdas, ceiling( log2(lambdas) - log2(.05) ) )
+    # Seems to rescale lambda to be less than .2 (usually, .4) ... (with eps=1e-8); which is enough so that we can take n=4.
+    #   Then lambda/2^k < .4   <=>   k = ceiling( log2(lambda/.4) )
+    #   Let's go with this. 
+    #  Might think that:
+    #    need dpois( x=2, lambda=t/2^k, lower.tail=FALSE ) < eps  (see above)
+    #      ... which is 1 - exp(-t/2^k) ( 1 + t/2^k + t^2/2^(2k+1) ) 
+    #             \approx 1 - (1-t/2^k+t^2/2^(2k+1)-t^3/(3*2^(3k+1)))(1 + t/2^k + t^2/2^(2k+1))
+    #             \approx t^3/(3*2^(3k+1))
+    #    so get k = (1/3) * log2( t^3/(6*eps) )
+    # but something's not quite right...
+    lines( lambdas, (1/3) * ( 3 * log2( lambdas ) - log2(6*eps) ) )
+}
+
+expm.poisson <- function (A,n=4)
 {
-    d <- dim(A)
-    if (length(d) != 2 || d[1] != d[2]) 
-        stop("'A' must be a square matrix")
-    n <- d[1]
-    if (n <= 1) 
-        return(exp(A))
-    nA <- Matrix::norm(A, "1")
-    I <- if (is(A, "Matrix")) 
-        Diagonal(n)
-    else diag(n)
-    if (nA <= 2.1) {
-        t <- c(0.015, 0.25, 0.95, 2.1)
-        l <- which.max(nA <= t)
-        C <- rbind(c(120, 60, 12, 1, 0, 0, 0, 0, 0, 0), c(30240, 
-            15120, 3360, 420, 30, 1, 0, 0, 0, 0), c(17297280, 
-            8648640, 1995840, 277200, 25200, 1512, 56, 1, 0, 
-            0), c(17643225600, 8821612800, 2075673600, 302702400, 
-            30270240, 2162160, 110880, 3960, 90, 1))
-        A2 <- A %*% A
-        P <- I
-        U <- C[l, 2] * I
-        V <- C[l, 1] * I
-        for (k in 1:l) {
-            P <- P %*% A2
-            U <- U + C[l, (2 * k) + 2] * P
-            V <- V + C[l, (2 * k) + 1] * P
-        }
-        U <- A %*% U
-        X <- solve(V - U, V + U)
+    # -> only works for stochastic matrices
+    # as above, but determine n automatrically
+    #  and do scaling-and-squaring
+    # 
+    # --> the constants are for eps=1e-8 <--
+    dA <- (-1) * diag(A)
+    dmax <- max( dA )
+    P <- A/dmax
+    diag(P) <- 1-dA/dmax
+    nscales <- max(0, ceiling(log2(dmax) - log2(.2)))  # see above
+    t <- dmax/2^(nscales)
+    Pk <- exp(-t) * t * P
+    expA <- Pk
+    diag(expA) <- exp(-t) + diag(expA)  # identity
+    for (k in 2:n) {
+        Pk <- (t/k) * P%*%Pk
+        expA <- expA + Pk
     }
-    else {
-        s <- log2(nA/5.4)
-        B <- A
-        if (s > 0) {
-            s <- ceiling(s)
-            B <- B/(2^s)
-        }
-        c. <- c(64764752532480000, 32382376266240000, 7771770303897600, 
-            1187353796428800, 129060195264000, 10559470521600, 
-            670442572800, 33522128640, 1323241920, 40840800, 
-            960960, 16380, 182, 1)
-        B2 <- B %*% B
-        B4 <- B2 %*% B2
-        B6 <- B2 %*% B4
-        U <- B %*% (B6 %*% (c.[14] * B6 + c.[12] * B4 + c.[10] * 
-            B2) + c.[8] * B6 + c.[6] * B4 + c.[4] * B2 + c.[2] * 
-            I)
-        V <- B6 %*% (c.[13] * B6 + c.[11] * B4 + c.[9] * B2) + 
-            c.[7] * B6 + c.[5] * B4 + c.[3] * B2 + c.[1] * I
-        X <- solve(V - U, V + U)
-        if (s > 0) 
-            for (t in 1:s) X <- X %*% X
+    while (nscales>0) {
+        expA <- expA %*% expA
+        nscales <- nscales-1
     }
-    if (balancing) {
-        d <- baS$scale
-        X <- X * (d * rep(1/d, each = n))
-        pp <- as.integer(baP$scale)
-        if (baP$i1 > 1) {
-            for (i in (baP$i1 - 1):1) {
-                tt <- X[, i]
-                X[, i] <- X[, pp[i]]
-                X[, pp[i]] <- tt
-                tt <- X[i, ]
-                X[i, ] <- X[pp[i], ]
-                X[pp[i], ] <- tt
-            }
-        }
-        if (baP$i2 < n) {
-            for (i in (baP$i2 + 1):n) {
-                tt <- X[, i]
-                X[, i] <- X[, pp[i]]
-                X[, pp[i]] <- tt
-                tt <- X[i, ]
-                X[i, ] <- X[pp[i], ]
-                X[pp[i], ] <- tt
-            }
-        }
-    }
-    X
+    return( expA )
 }
