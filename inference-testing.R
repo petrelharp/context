@@ -3,6 +3,9 @@ source("codons.R")
 source("codon-inference-fns.R")
 source("sim-context-fns.R")
 
+# do diagnostic plots?
+diagnostics <- interactive()
+
 # maximum size of pattern
 patlen <- 3
 lwin <- 0
@@ -52,7 +55,10 @@ diag(exp.p) <- 1-rowSums(exp.p)
 pvals <- rep( as.vector(exp.p), as.vector(obs.table) )
 stopifnot(all(pvals>0))
 stopifnot(all(pvals*length(pvals)>1/100))
-# plot(as.vector(exp.p),as.vector(obs.p-exp.p))
+if (diagnostics) {
+    plot(as.vector(exp.p),as.vector(obs.p)-as.vector(exp.p))
+    abline(0,c(5,-5))
+}
 
 ## transition probabilities?
 # size of window on either side of the focal site
@@ -77,6 +83,30 @@ plot( as.vector(counts), as.vector(expected), col=1+changed ); abline(0,1)
 plot( as.vector(counts), as.vector(in.expected), col=1+changed ); abline(0,1)
 plot( as.vector(counts)[changed], as.vector(expected)[changed], col=2 ); abline(0,1)
 plot( as.vector(counts)[changed], as.vector(in.expected)[changed], col=2 ); abline(0,1)
+# should be mixture of poissons -- compare means in bins
+usethese <- ( changed & as.vector(in.expected)>.1 )
+exp.bins <- cut( as.vector(in.expected)[usethese], 40 )
+exp.bin.vals <- tapply( as.vector(in.expected)[usethese], exp.bins, mean )
+points( tapply( as.vector(counts)[usethese], exp.bins, mean ), exp.bin.vals, pch=20 )
+
+if (FALSE) {
+    # should be mixture of poissons
+    changed.hists <- table( counts=factor(as.vector(counts)[changed],levels=0:max(counts[changed])), expected=round(as.vector(expected)[changed],digits=2) )
+    changed.pois <- sapply( 1:ncol(changed.hists), function (k) {
+                    x <- as.numeric(rownames(changed.hists))
+                    colSums(changed.hists)[k] * dpois( x, lambda=as.numeric(colnames(changed.hists)[k]) )
+                } )
+    unchanged.hists <- table( counts=factor(as.vector(counts)[!changed],levels=min(counts[!changed]):max(counts[!changed])), expected=round(as.vector(expected)[!changed],digits=2) )
+    unchanged.pois <- sapply( 1:ncol(unchanged.hists), function (k) {
+                    x <- as.numeric(rownames(unchanged.hists))
+                    colSums(unchanged.hists)[k] * dpois( x, lambda=as.numeric(colnames(unchanged.hists)[k]) )
+                } )
+    matplot(changed.hists,type='l',ylim=range(changed.hists[,-1]),lty=2,col=rainbow(ncol(changed.hists)), lwd=2 )
+    matlines(changed.pois,col=rainbow(ncol(changed.hists)), lty=1 )
+    matplot(unchanged.hists,type='l',ylim=range(unchanged.hists[,-1]),lty=2,col=rainbow(ncol(unchanged.hists)), lwd=2 )
+    matlines(unchanged.pois,col=rainbow(ncol(unchanged.hists)), lty=1 )
+}
+
 
 # how many events per window?
 hist(simseqs$ntrans$loc,breaks=seq(0,seqlen+10,by=4*winlen))

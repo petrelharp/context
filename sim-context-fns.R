@@ -15,7 +15,7 @@ simseq <- function (seqlen, tlen, genmatrix, bases, count.trans=TRUE, initseq, b
     n.events <- rpois(1,lambda=maxrate*tlen*(seqlen-patlen+1))
     loc.events <- sample(seqlen-patlen+1,n.events,replace=TRUE)
     # count transitions, for debugging
-    ntrans <- if (count.trans) { data.frame( i=rep(NA,n.events), j=rep(NA,n.events), loc=loc.events ) } else { NULL }
+    ntrans <- if (count.trans) { data.frame( i=factor(rep(NA,n.events),levels=rownames(genmatrix)), j=factor(rep(NA,n.events),levels=colnames(genmatrix)), loc=loc.events ) } else { NULL }
     # initial and final sequences
     if (missing(initseq)) { initseq <- paste( sample(bases,seqlen,replace=TRUE,prob=basefreqs), collapse="" ) }
     finalseq <- initseq
@@ -26,11 +26,13 @@ simseq <- function (seqlen, tlen, genmatrix, bases, count.trans=TRUE, initseq, b
         jsubseq <- c( msubseq, (genmatrix@j[isubseq]+1) ) # indices of possible replacement patterns (self is first)
         psubseq <- c( diags[msubseq], genmatrix@x[isubseq] )  # probabilities of choosing these
         replind <- sample( jsubseq, 1, prob=psubseq ) # choose this replacement string (index)
-        if (count.trans) {  ntrans$i[k] <- msubseq; ntrans$j[k] <- replind } # record this
         replstr <- patterns[replind] # what is the replacement string
+        if (count.trans) {  ntrans$i[k] <- subseq; ntrans$j[k] <- replstr } # record this
         substr( finalseq, loc.events[k], loc.events[k]+patlen-1 ) <- replstr  # put it in
     }
-    return( list( initseq=initseq, finalseq=finalseq, maxrate=maxrate, ntrans=ntrans ) )
+    output <-  list( initseq=initseq, finalseq=finalseq, maxrate=maxrate, ntrans=ntrans ) 
+    class(output) <- "simseq"
+    return(output)
 }
 
 
@@ -51,4 +53,28 @@ counttrans <- function (ipatterns, fpatterns, simseqs, lwin=0) {
         } 
     }
     return(counts)
+}
+
+show.simseq <- function (x,printit=FALSE,maxchar=1e8) { 
+    # display the output of simulation by lowercasing or replacing with "." bases that didn't change
+    patlen <- nchar( levels( x$ntrans$i )[1] )
+    chars <- strsplit(x$finalseq,'')[[1]]
+    events <- unique(x$ntrans$loc)
+    eventlocs <- (seq_along(chars) %in% outer(events,0:(patlen-1),"+"))
+    if (length(events)>0) {
+        whichchanged <- sapply( events, function (k) { kev <- (x$ntrans$loc==k); any( x$ntrans$i[kev] != x$ntrans$j[kev] ) } )
+        changedlocs <- ( seq_along(chars) %in% outer( events[whichchanged], 0:(patlen-1), "+" ) )
+        chars[eventlocs & !changedlocs] <- tolower(chars[eventlocs & !changedlocs])
+    }
+    chars[!eventlocs] <- "."
+    out <- paste( chars, collapse='' )
+    if (printit) {
+        cat(paste(substr(x$initseq,1,maxchar),"\n",sep=''))
+        cat(paste(substr(out,1,maxchar),"\n",sep=''))
+    }
+    return(invisible(out))
+} 
+
+print.simseq <- function (x,...) {
+    invisible( show.simseq(x,printit=TRUE,maxchar=200) )
 }

@@ -5,6 +5,7 @@ source("sim-context-fns.R")
 
 # Test suite?
 
+
 ###
 # Simulate a bunch of short seqs
 nsamples <- 10000
@@ -54,3 +55,81 @@ if (interactive()) {
     plot( abs(all.counts[bignums]-expec.counts[bignums])/expec.counts[bignums] )
 }
 
+#####
+# Really simple case
+
+seqlen <- 1e5
+Ne <- 1e4
+tlen <- 6e6
+patlen <- 1
+mutpats <- c(
+        combn( bases, 2, simplify=FALSE ),  lapply( combn( bases, 2, simplify=FALSE ), rev),  # single-base rates
+    NULL )
+mutrates <- rep(1e-8,length(mutpats))
+selpats <- c(  )
+selcoef <- rep( 1e-4, length(selpats) )
+genmatrix <- makegenmatrix( mutpats, selpats, patlen=patlen )
+genmatrix@x <- update(genmatrix,mutrates,selcoef,Ne)
+simseqs <- simseq( seqlen, tlen, genmatrix, bases )
+
+# size of window on either side of the focal site
+lwin <- 2
+rwin <- 2
+win <- 1
+winlen <- lwin+win+rwin
+subtransmatrix <- gettransmatrix(mutpats, mutrates, selpats, selcoef, Ne, tlen, win, lwin, rwin)
+counts <- counttrans( rownames(subtransmatrix), colnames(subtransmatrix), simseqs, lwin )
+# averaged
+expected <- (seqlen-winlen+1) * (1/nbases)^winlen * subtransmatrix
+# accounting for initial sequence
+in.expected <- rowSums(counts) * subtransmatrix
+# indicator of counts where patterns have changed
+changed <- whichchanged(subtransmatrix,lwin=lwin,win=win)
+
+tmp <- arrayInd( which(!changed & abs(counts-in.expected)<.5), .dim=dim(subtransmatrix) )
+tmp <- data.frame( iseq=factor(tmp[,1],levels=1:nrow(subtransmatrix)), fseq=factor(tmp[,2],levels=1:ncol(subtransmatrix)) )
+levels(tmp$iseq) <- rownames(subtransmatrix)
+levels(tmp$fseq) <- colnames(subtransmatrix)
+table(tmp$fseq)
+
+# huh.
+layout(matrix(1:4,2))
+plot( as.vector(counts), as.vector(expected), col=1+changed ); abline(0,1)
+plot( as.vector(counts), as.vector(in.expected), col=1+changed ); abline(0,1)
+plot( as.vector(counts)[changed], as.vector(expected)[changed], col=2 ); abline(0,1)
+plot( as.vector(counts)[changed], as.vector(in.expected)[changed], col=2 ); abline(0,1)
+# should be mixture of poissons -- compare means in bins
+usethese <- ( changed & as.vector(in.expected)>.1 )
+exp.bins <- cut( as.vector(in.expected)[usethese], 40 )
+exp.bin.vals <- tapply( as.vector(in.expected)[usethese], exp.bins, mean )
+points( tapply( as.vector(counts)[usethese], exp.bins, mean ), exp.bin.vals, pch=20 )
+
+
+###
+# visualize changes
+
+if (interactive()) {
+    nsteps <- 50
+    seqlen <- 200
+    Ne <- 1e4
+    tlen <- 6e6/nsteps
+    patlen <- 2
+    mutpats <- c(
+            combn( bases, 2, simplify=FALSE ),  lapply( combn( bases, 2, simplify=FALSE ), rev),  # single-base rates
+            list( c("CG","TG"), c("CG","CA") ), # CpG rates
+        NULL )
+    mutrates <- runif( length(mutpats) )*1e-8
+    selpats <- c( "[GC]", "[AT]" )
+    selcoef <- runif( length(selpats) )*1e-4
+    genmatrix <- makegenmatrix( mutpats, selpats, patlen=patlen )
+    genmatrix@x <- update(genmatrix,mutrates,selcoef,Ne)
+    inseq <- simseq( seqlen, tlen, genmatrix, bases )
+    many.seqs <- character(nsteps)
+    many.seqs[1] <- inseq$initseq
+    many.seqs[2] <- show.simseq(inseq)
+    for (k in 3:nsteps) { 
+        inseq <- simseq( seqlen, tlen, genmatrix, bases, initseq=inseq$finalseq )
+        many.seqs[k] <- show.simseq( inseq )
+    }
+    many.seqs
+}
