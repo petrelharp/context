@@ -1,0 +1,7 @@
+.Rhistory
+.RData
+.*.sw?
+*.pyc
+temp
+test
+tmp
