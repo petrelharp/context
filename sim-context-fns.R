@@ -21,7 +21,7 @@ simseq <- function (seqlen, tlen, patlen, mutpats, mutrates, selpats, selcoef, b
     # number and locations of possible changes, ordered by time they occur at
     n.events <- rpois(1,lambda=maxrate*tlen*seqlen)
     loc.events <- sample(seqlen,n.events,replace=TRUE)
-    wrap.events <- (loc.events+patlen<=seqlen+1) #events wrapping around the end
+    wrap.events <- (loc.events+patlen>seqlen+1) #events wrapping around the end
     # count transitions, for debugging
     ntrans <- if (count.trans) { data.frame( i=factor(rep(NA,n.events),levels=rownames(genmatrix)), j=factor(rep(NA,n.events),levels=colnames(genmatrix)), loc=loc.events ) } else { NULL }
     # initial and final sequences
@@ -29,9 +29,9 @@ simseq <- function (seqlen, tlen, patlen, mutpats, mutrates, selpats, selcoef, b
     finalseq <- initseq
     for (k in seq_along(loc.events)) {
         subseq <- if (wrap.events[k]) { # from string (cyclical)
-            substr(finalseq, loc.events[k], loc.events[k]+patlen-1 ) 
+            paste( substr( finalseq, loc.events[k], seqlen), substr(finalseq, 1, loc.events[k]+patlen-seqlen-1), sep='' )
         } else {  
-            paste( substr( finalseq, loc.events[k], seqlen), substr(finalseq, 1, loc.events[k]+patlen-seqlen), sep='' )
+            substr(finalseq, loc.events[k], loc.events[k]+patlen-1 ) 
         }
         msubseq <- match( subseq, patterns )  # which row for this string?
         isubseq <- which( (genmatrix@i + 1) == msubseq ) # transitions are these entries of genmatrix
@@ -41,10 +41,10 @@ simseq <- function (seqlen, tlen, patlen, mutpats, mutrates, selpats, selcoef, b
         replstr <- patterns[replind] # what is the replacement string
         if (count.trans) {  ntrans$i[k] <- subseq; ntrans$j[k] <- replstr } # record this
         if (wrap.events[k]) { # put this back in (cyclical)
-            substr( finalseq, loc.events[k], loc.events[k]+patlen-1 ) <- replstr
-        } else {
             substr( finalseq, loc.events[k], seqlen) <- substr(replstr,1,seqlen-loc.events[k]+1)
-            substr(finalseq, 1, loc.events[k]+patlen-seqlen) <- substr(seqlen-loc.events[k]+2,patlen)
+            substr(finalseq, 1, loc.events[k]+patlen-seqlen) <- substr(replstr,seqlen-loc.events[k]+2,patlen)
+        } else {
+            substr( finalseq, loc.events[k], loc.events[k]+patlen-1 ) <- replstr
         }
     }
     output <-  list( initseq=initseq, finalseq=finalseq, maxrate=maxrate, ntrans=ntrans ) 
