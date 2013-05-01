@@ -2,6 +2,9 @@
 .RData
 .*.sw?
 *.pyc
+*.aux
+*.log
+*.Rout
 temp
 test
 tmp

@@ -45,13 +45,13 @@ if (FALSE) {
     lines( lambdas, (1/3) * ( 3 * log2( lambdas ) - log2(6*eps) ) )
 }
 
-expm.poisson <- function (A,n=4)
+expm.poisson <- function (A,n=5)
 {
     # -> only works for stochastic matrices
     # as above, but determine n automatrically
     #  and do scaling-and-squaring
     # 
-    # --> the constants are for eps=1e-8 <--
+    # --> the constants are for eps=1e-8, maybe??  <--
     dA <- (-1) * diag(A)
     dmax <- max( dA )
     P <- A/dmax

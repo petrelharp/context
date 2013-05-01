@@ -61,16 +61,16 @@ if (interactive()) {
 seqlen <- 1e5
 Ne <- 1e4
 tlen <- 6e6
-patlen <- 1
+patlen <- 2
 mutpats <- c(
         combn( bases, 2, simplify=FALSE ),  lapply( combn( bases, 2, simplify=FALSE ), rev),  # single-base rates
+        # list( c("CG","TG"), c("CG","CA") ), # CpG rates
     NULL )
-mutrates <- rep(1e-8,length(mutpats))
-selpats <- c(  )
+# mutrates <- rep(1e-8,length(mutpats))
+mutrates <- runif( length(mutpats) )*1e-8
+selpats <- c( "[CG]" )
 selcoef <- rep( 1e-4, length(selpats) )
-genmatrix <- makegenmatrix( mutpats, selpats, patlen=patlen )
-genmatrix@x <- update(genmatrix,mutrates,selcoef,Ne)
-simseqs <- simseq( seqlen, tlen, genmatrix, bases )
+simseqs <- simseq( seqlen, tlen, patlen=patlen, mutpats=mutpats, selpats=selpats, mutrates=mutrates, selcoef=selcoef )
 
 # size of window on either side of the focal site
 lwin <- 2
@@ -92,11 +92,16 @@ levels(tmp$iseq) <- rownames(subtransmatrix)
 levels(tmp$fseq) <- colnames(subtransmatrix)
 table(tmp$fseq)
 
-# huh.
+# observed = expected?
 layout(matrix(1:4,2))
 plot( as.vector(counts), as.vector(expected), col=1+changed ); abline(0,1)
 plot( as.vector(counts), as.vector(in.expected), col=1+changed ); abline(0,1)
 plot( as.vector(counts)[changed], as.vector(expected)[changed], col=2 ); abline(0,1)
+# should be mixture of poissons -- compare means in bins
+usethese <- ( changed & as.vector(expected)>.1 )
+exp.bins <- cut( as.vector(expected)[usethese], 40 )
+exp.bin.vals <- tapply( as.vector(expected)[usethese], exp.bins, mean )
+points( tapply( as.vector(counts)[usethese], exp.bins, mean ), exp.bin.vals, pch=20 )
 plot( as.vector(counts)[changed], as.vector(in.expected)[changed], col=2 ); abline(0,1)
 # should be mixture of poissons -- compare means in bins
 usethese <- ( changed & as.vector(in.expected)>.1 )

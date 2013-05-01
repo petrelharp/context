@@ -35,18 +35,19 @@ stopifnot( patlen >= max( c( sapply(mutpats,function (x) max(nchar(x[1]),nchar(x
 
 # other params
 Ne <- 1e4
-seqlen <- 100000
+seqlen <- 1e5
 # tlen <- 6e6
 tlen <- 6e5
+
+# simulate the sequence
+simseqs <- simseq( seqlen, tlen, patlen=patlen, mutpats=mutpats, selpats=selpats, mutrates=mutrates, selcoef=selcoef )
+
 
 # full instantaneous mutation, and transition matrix
 #   RECALL THIS OMITS THE DIAGONAL
 genmatrix <- makegenmatrix( mutpats, selpats, patlen=patlen )
-genmatrix@x <- update(genmatrix,mutrates,selcoef,Ne)
-
-simseqs <- simseq( seqlen, tlen, genmatrix, bases )
-
-# check: number of transitions matches expected?
+genmatrix@x <- update(genmatrix,mutrates/(patlen-sapply(sapply(mutpats,"[",1),nchar)+1),selcoef,Ne) # see source of simseq for why rescale
+# check: number of (infinitesimal) transitions matches expected?
 # normalized prob of transitions
 obs.table <- table(simseqs$ntrans[c("i","j")])
 obs.p <- with( simseqs, sweep(as.matrix(obs.table),1,rowSums(obs.table),"/") )
@@ -56,8 +57,8 @@ pvals <- rep( as.vector(exp.p), as.vector(obs.table) )
 stopifnot(all(pvals>0))
 stopifnot(all(pvals*length(pvals)>1/100))
 if (diagnostics) {
-    plot(as.vector(exp.p),as.vector(obs.p)-as.vector(exp.p))
-    abline(0,c(5,-5))
+    plot(as.vector(exp.p),as.vector(obs.p)-as.vector(exp.p), xlab="expected infinitesimal transition counts", ylab="residuals")
+    abline(0,5); abline(0,-5)
 }
 
 ## transition probabilities?
