@@ -43,24 +43,6 @@ tlen <- 6e5
 simseqs <- simseq( seqlen, tlen, patlen=patlen, mutpats=mutpats, selpats=selpats, mutrates=mutrates, selcoef=selcoef )
 
 
-# full instantaneous mutation, and transition matrix
-#   RECALL THIS OMITS THE DIAGONAL
-genmatrix <- makegenmatrix( mutpats, selpats, patlen=patlen )
-genmatrix@x <- update(genmatrix,mutrates/(patlen-sapply(sapply(mutpats,"[",1),nchar)+1),selcoef,Ne) # see source of simseq for why rescale
-# check: number of (infinitesimal) transitions matches expected?
-# normalized prob of transitions
-obs.table <- table(simseqs$ntrans[c("i","j")])
-obs.p <- with( simseqs, sweep(as.matrix(obs.table),1,rowSums(obs.table),"/") )
-exp.p <- sweep(genmatrix,1,max(rowSums(genmatrix)),"/")
-diag(exp.p) <- 1-rowSums(exp.p)
-pvals <- rep( as.vector(exp.p), as.vector(obs.table) )
-stopifnot(all(pvals>0))
-stopifnot(all(pvals*length(pvals)>1/100))
-if (diagnostics) {
-    plot(as.vector(exp.p),as.vector(obs.p)-as.vector(exp.p), xlab="expected infinitesimal transition counts", ylab="residuals")
-    abline(0,5); abline(0,-5)
-}
-
 ## transition probabilities?
 # size of window on either side of the focal site
 lwin <- 2
@@ -78,7 +60,7 @@ in.expected <- rowSums(counts) * subtransmatrix
 # indicator of counts where patterns have changed
 changed <- whichchanged(subtransmatrix,lwin=lwin,win=win)
 
-# huh.
+# Compare observed and expected counts:
 layout(matrix(1:4,2))
 plot( as.vector(counts), as.vector(expected), col=1+changed ); abline(0,1)
 plot( as.vector(counts), as.vector(in.expected), col=1+changed ); abline(0,1)
@@ -90,30 +72,33 @@ exp.bins <- cut( as.vector(in.expected)[usethese], 40 )
 exp.bin.vals <- tapply( as.vector(in.expected)[usethese], exp.bins, mean )
 points( tapply( as.vector(counts)[usethese], exp.bins, mean ), exp.bin.vals, pch=20 )
 
-if (FALSE) {
-    # should be mixture of poissons
-    changed.hists <- table( counts=factor(as.vector(counts)[changed],levels=0:max(counts[changed])), expected=round(as.vector(expected)[changed],digits=2) )
-    changed.pois <- sapply( 1:ncol(changed.hists), function (k) {
-                    x <- as.numeric(rownames(changed.hists))
-                    colSums(changed.hists)[k] * dpois( x, lambda=as.numeric(colnames(changed.hists)[k]) )
-                } )
-    unchanged.hists <- table( counts=factor(as.vector(counts)[!changed],levels=min(counts[!changed]):max(counts[!changed])), expected=round(as.vector(expected)[!changed],digits=2) )
-    unchanged.pois <- sapply( 1:ncol(unchanged.hists), function (k) {
-                    x <- as.numeric(rownames(unchanged.hists))
-                    colSums(unchanged.hists)[k] * dpois( x, lambda=as.numeric(colnames(unchanged.hists)[k]) )
-                } )
-    matplot(changed.hists,type='l',ylim=range(changed.hists[,-1]),lty=2,col=rainbow(ncol(changed.hists)), lwd=2 )
-    matlines(changed.pois,col=rainbow(ncol(changed.hists)), lty=1 )
-    matplot(unchanged.hists,type='l',ylim=range(unchanged.hists[,-1]),lty=2,col=rainbow(ncol(unchanged.hists)), lwd=2 )
-    matlines(unchanged.pois,col=rainbow(ncol(unchanged.hists)), lty=1 )
-}
-
-
 # how many events per window?
 hist(simseqs$ntrans$loc,breaks=seq(0,seqlen+10,by=4*winlen))
 hist(simseqs$ntrans$loc,breaks=seq(0,seqlen+10,by=2*winlen))
 hist(simseqs$ntrans$loc,breaks=seq(0,seqlen+10,by=winlen))
 hist(simseqs$ntrans$loc,breaks=seq(0,seqlen+10,by=1))
+
+
+#####
+# Now, evolve from a common root.
+
+seqlen <- 1e5
+tlen <- 6e6
+Ne <- 1e4
+initseq <- rinitseq(seqlen,bases)
+simseqs <- lapply(1:2, function (k) simseq( seqlen, tlen, patlen=patlen, mutpats=mutpats, selpats=selpats, mutrates=mutrates, selcoef=selcoef ) )
+
+## transition probabilities?
+# size of window on either side of the focal site
+lwin <- 2
+rwin <- 2
+win <- 1
+winlen <- lwin+win+rwin
+
+subtransmatrix <- gettransmatrix(mutpats, mutrates, selpats, selcoef, Ne, tlen, win, lwin, rwin)
+for (k in seq_along(simseqs)) {
+    simseqs[[k]]$counts <- counttrans( rownames(subtransmatrix), colnames(subtransmatrix), simseqs[[k]], lwin )
+}
 
 
 #######

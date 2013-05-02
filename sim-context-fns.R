@@ -1,5 +1,10 @@
 # Simulate a sequence, with context-dependent mutation rates
 
+rinitseq <- function (seqlen,bases,basefreqs=rep(1/length(bases),length(bases))) {
+    # return a random sequence
+    paste( sample(bases,seqlen,replace=TRUE,prob=basefreqs), collapse="" )
+}
+
 simseq <- function (seqlen, tlen, patlen, mutpats, mutrates, selpats, selcoef, bases=c("A","C","G","T"), count.trans=TRUE, initseq, basefreqs=rep(1/length(bases),length(bases)), ... ) {
     # simulate a random sequence and evolve it with genmatrix.
     #  record transition counts if count.trans it TRUE (e.g. for debugging)
@@ -25,7 +30,7 @@ simseq <- function (seqlen, tlen, patlen, mutpats, mutrates, selpats, selcoef, b
     # count transitions, for debugging
     ntrans <- if (count.trans) { data.frame( i=factor(rep(NA,n.events),levels=rownames(genmatrix)), j=factor(rep(NA,n.events),levels=colnames(genmatrix)), loc=loc.events ) } else { NULL }
     # initial and final sequences
-    if (missing(initseq)) { initseq <- paste( sample(bases,seqlen,replace=TRUE,prob=basefreqs), collapse="" ) }
+    if (missing(initseq)) { initseq <- rinitseq(seqlen,bases,basefreqs) }
     finalseq <- initseq
     for (k in seq_along(loc.events)) {
         subseq <- if (wrap.events[k]) { # from string (cyclical)
@@ -59,10 +64,10 @@ counttrans <- function (ipatterns, fpatterns, simseqs, lwin=0) {
     initseq <- simseqs[["initseq"]]
     finalseq <- simseqs[["finalseq"]]
     seqlen <- nchar(initseq)
+    stopifnot( seqlen == nchar(finalseq) )
     # cyclic-ize
     initseq <- paste(initseq,substr(initseq,1,patlen-1))
     finalseq <- paste(finalseq,substr(finalseq,1,patlen-1))
-    stopifnot( seqlen == nchar(finalseq) )
     # Ok, count occurrences.  Note needs perl "lookahead" to count overlapping patterns.
     #   (see http://stackoverflow.com/questions/7878992/finding-the-indexes-of-multiple-overlapping-matching-substrings)
     initmatches <- lapply( ipatterns, function (p) gregexpr(paste("(?=",p,")",sep=''),initseq,perl=TRUE) )
