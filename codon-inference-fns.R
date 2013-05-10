@@ -102,15 +102,26 @@ collapsepatmatrix <- function (ipatterns, lwin=0, rwin=0, fpatterns=getpatterns(
     return( matchmatrix )
 }
 
+computetransmatrix <- function( genmatrix, tlen, projmatrix, names=TRUE, ... ) {
+    A <- tlen*(genmatrix-Diagonal(nrow(genmatrix),rowSums(genmatrix)))
+    subtransmatrix <- sapply( 1:ncol(projmatrix), function (k) { expAtv( A=A, v=projmatrix[,k] )$eAtv } )
+    if (names) {
+        rownames(subtransmatrix) <- rownames(genmatrix)
+        colnames(subtransmatrix) <- colnames(projmatrix)
+    }
+    subtransmatrix
+}
+
 gettransmatrix <- function (mutpats, mutrates, selpats, selcoef, Ne, tlen, win, lwin=0, rwin=0, expm=expm.poisson, ... ) {
     # get reduced transition matrix: given (lwin, win, rwin) context, return probability of pattern in win
     #   note: alternative is expm=expm::expm(x,method="Higham08")
     winlen <- lwin+win+rwin
     fullgenmatrix <- makegenmatrix( mutpats, selpats, patlen=winlen)
     fullgenmatrix@x <- update(fullgenmatrix,mutrates,selcoef,Ne)
-    transmatrix <- expm( tlen * (fullgenmatrix-Diagonal(nrow(fullgenmatrix),rowSums(fullgenmatrix))) )  # exponentiate
-    subgenmatrix <- collapsepatmatrix( ipatterns=rownames(fullgenmatrix), lwin=lwin, rwin=rwin )
-    subtransmatrix <- transmatrix %*% subgenmatrix        # collapse
+    projmatrix <- collapsepatmatrix( ipatterns=rownames(fullgenmatrix), lwin=lwin, rwin=rwin )
+    subtransmatrix <- computetransmatrix( genmatrix, tlen, projmatrix, names=TRUE )
+    # transmatrix <- expm( tlen * (fullgenmatrix-Diagonal(nrow(fullgenmatrix),rowSums(fullgenmatrix))) )  # exponentiate
+    # subtransmatrix <- transmatrix %*% projmatrix        # collapse
     return( subtransmatrix )
 }
 

@@ -25,7 +25,8 @@ mutrates <- runif( length(mutpats) )*1e-8
 selpats <- c(
         "[GC]",
         "[AT]",
-        # paste( paste(rep(".",lwin),collapse=''), paste( codons$codon[codons$aa %in% synons], paste(rep(".",rwin),collapse=''), sep='' ), sep='' ),
+        # paste( paste(rep(".",lwin),collapse=''), paste( codons$codon[codons$aa %in% synons], paste(rep(".",rwin),collapse=''), sep='' ), sep='' ), # all codons
+        # codons$codon[! codons$aa %in% synons],  # stop codons
     NULL )
 # selection coefficients
 selcoef <- runif( length(selpats) )*1e-4
@@ -78,6 +79,57 @@ hist(simseqs$ntrans$loc,breaks=seq(0,seqlen+10,by=2*winlen))
 hist(simseqs$ntrans$loc,breaks=seq(0,seqlen+10,by=winlen))
 hist(simseqs$ntrans$loc,breaks=seq(0,seqlen+10,by=1))
 
+
+
+####
+# Inference?
+
+lwin <- 2
+rwin <- 2
+win <- 1
+winlen <- lwin+win+rwin
+genmatrix <- makegenmatrix( mutpats, selpats, patlen=winlen)
+genmatrix@x <- update(genmatrix,mutrates,selcoef,Ne)
+projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
+
+subtransmatrix <- computetransmatrix( genmatrix, tlen, projmatrix, names=TRUE )
+
+counts <- counttrans( rownames(subtransmatrix), colnames(subtransmatrix), simseqs, lwin )
+
+nmuts <- length(mutpats)
+nsel <- length(selpats)
+const <- sum(counts*log(1/1.09))  # rescale to get value closer to zero
+Ne.scale <- 1e4
+tlen.scale <- 1e5
+coef.scale <- 1e-6
+likfun <- function (params) {
+    # params are: mutrates, selcoef, Ne, tlen, scaled
+    mutrates <- params[1:nmuts]*coef.scale
+    selcoef <- params[nmuts+(1:nsel)]*coef.scale
+    Ne <- params[nmuts+nsel+1] * Ne.scale
+    tlen <- params[nmuts+nsel+2] * tlen.scale
+    # this is collapsed transition matrix
+    genmatrix@x <- update(genmatrix,mutrates,selcoef,Ne)
+    subtransmatrix <- computetransmatrix( genmatrix, tlen, projmatrix )
+    # return negative log-likelihood 
+    # (-1) * sum( counts * log(subtransmatrix) ) + const
+    counts * log(subtransmatrix)
+}
+
+initpar <- c( 
+        runif( length(mutpats) )*1e-8 / coef.scale,
+        runif( length(selpats) )*1e-4 / coef.scale,
+        runif(1)*2*Ne / Ne.scale ,
+        runif(1)*2*tlen / tlen.scale
+        )
+initpar <- c( mutrates / coef.scale, selcoef / coef.scale, Ne / Ne.scale , tlen / tlen.scale )
+lbs <- c( rep( 1e-6, nmuts+nsel ), 1e-2, 1e-2 )
+ans <- optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs )
+x <- cbind(init=initpar, estim=ans$par, truth=c(mutrates/coef.scale,selcoef/coef.scale,Ne/Ne.scale,tlen/tlen.scale) )
+matplot((x-x[,"truth"])/rowMeans(x),type='l',col=1:3,lty=1:3)
+abline(v=.5+c(nmuts,nmuts+nsel))
+legend("topleft",col=1:3,lty=1,legend=colnames(x))
+apply( x, 2, likfun )
 
 #####
 # Now, evolve from a common root.
