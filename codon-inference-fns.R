@@ -103,7 +103,7 @@ collapsepatmatrix <- function (ipatterns, lwin=0, rwin=0, fpatterns=getpatterns(
 }
 
 computetransmatrix <- function( genmatrix, tlen, projmatrix, names=TRUE, ... ) {
-    A <- (genmatrix-Diagonal(nrow(genmatrix),rowSums(genmatrix)))
+    A <- tlen*(genmatrix-Diagonal(nrow(genmatrix),rowSums(genmatrix)))
     subtransmatrix <- sapply( 1:ncol(projmatrix), function (k) { expAtv( A=A, v=projmatrix[,k] )$eAtv } )
     if (names) {
         rownames(subtransmatrix) <- rownames(genmatrix)
@@ -142,7 +142,7 @@ getlikfun <- function (nmuts,nsel,coef.scale,Ne.scale,tlen.scale,genmatrix,projm
         genmatrix@x <- update(genmatrix,mutrates,selcoef,Ne)
         subtransmatrix <- computetransmatrix( genmatrix, tlen, projmatrix )
         # return negative log-likelihood 
-        sum( counts * log(subtransmatrix) ) + const
+        (-1) * sum( counts * log(subtransmatrix) ) + const
     } )
 }
 
