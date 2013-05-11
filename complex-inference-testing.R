@@ -7,20 +7,22 @@ source("sim-context-fns.R")
 patlen <- 2
 lwin <- 0
 rwin <- 0
-mutpats <- list( 
-        fwd=combn( bases, 2, simplify=FALSE ), 
-        rev=lapply( combn( bases, 2, simplify=FALSE ), rev),
-        gc=list( c("GC","TC") ) ,
-        ga=list( c("GA","CA") ) ,
-        ta=list( c("AT","GT") ) 
+mutpats <- c( 
+        combn( bases, 2, simplify=FALSE ), 
+        lapply( combn( bases, 2, simplify=FALSE ), rev),
+        list(
+                gc=list( c("GC","TC") ) ,
+                ga=list( c("GA","CA") ) ,
+                ta=list( c("AT","GT") ) 
+            )
     ) 
-mutrates <- runif( length(mutpats) )*1e-8
-selpats <- c( "[GC]", "[AT]" )
-selcoef <- runif( length(selpats) )*1e-4
+mutrates <- runif( length(mutpats) )*3e-8
+selpats <- c( "[GC]", "[AT]", "AAA", "CCC" )
+selcoef <- sort( runif( length(selpats) ) )*1e-4
 # other params
 Ne <- 1e4
 seqlen <- 1e4
-tlen <- 1e7  # 6e7 gives lots of transitions; 1e7 not so many
+tlen <- 6e7  # 6e7 gives lots of transitions; 1e7 not so many
 # simulate the sequence
 simseqs <- simseq( seqlen, tlen, patlen=patlen, mutpats=mutpats, selpats=selpats, mutrates=mutrates, selcoef=selcoef )
 
@@ -49,7 +51,7 @@ Ne.scale <- 1e4
 likfun <- getlikfun(nmuts=nmuts,nsel=nsel,genmatrix=genmatrix,projmatrix=projmatrix,const=const)
 initpar <- c( runif( length(mutpats) ) * mean(mutrates) * tlen, runif( length(selpats) )*1e-4, runif(1)*2*Ne ) # random init
 truth <- c( mutrates * tlen, selcoef, Ne )  # truth
-lbs <- c( rep( 1e-6, nmuts+nsel ), 1e-2 )
+lbs <- c( rep( 1e-8, nmuts+nsel ), 1e2 )
 cheating.ans <- optim( par=truth, fn=likfun, method="L-BFGS-B", lower=lbs, control=list(trace=3, parscale=c( rep(1,nmuts), rep(sel.scale,nsel), Ne.scale ) ) )
 random.ans <- optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs, control=list(trace=3, parscale=c( rep(1,nmuts), rep(sel.scale,nsel), Ne.scale ) ) )
 
