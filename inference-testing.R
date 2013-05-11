@@ -37,8 +37,7 @@ stopifnot( patlen >= max( c( sapply(mutpats,function (x) max(nchar(x[1]),nchar(x
 # other params
 Ne <- 1e4
 seqlen <- 1e5
-# tlen <- 6e6
-tlen <- 6e5
+tlen <- 6e6
 
 # simulate the sequence
 simseqs <- simseq( seqlen, tlen, patlen=patlen, mutpats=mutpats, selpats=selpats, mutrates=mutrates, selcoef=selcoef )
@@ -112,8 +111,7 @@ likfun <- function (params) {
     genmatrix@x <- update(genmatrix,mutrates,selcoef,Ne)
     subtransmatrix <- computetransmatrix( genmatrix, tlen, projmatrix )
     # return negative log-likelihood 
-    # (-1) * sum( counts * log(subtransmatrix) ) + const
-    counts * log(subtransmatrix)
+    (-1) * sum( counts * log(subtransmatrix) ) + const
 }
 
 initpar <- c( 
@@ -121,8 +119,8 @@ initpar <- c(
         runif( length(selpats) )*1e-4 / coef.scale,
         runif(1)*2*Ne / Ne.scale ,
         runif(1)*2*tlen / tlen.scale
-        )
-initpar <- c( mutrates / coef.scale, selcoef / coef.scale, Ne / Ne.scale , tlen / tlen.scale )
+        ) # falsehood
+initpar <- c( mutrates / coef.scale, selcoef / coef.scale, Ne / Ne.scale , tlen / tlen.scale )  # truth
 lbs <- c( rep( 1e-6, nmuts+nsel ), 1e-2, 1e-2 )
 ans <- optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs )
 x <- cbind(init=initpar, estim=ans$par, truth=c(mutrates/coef.scale,selcoef/coef.scale,Ne/Ne.scale,tlen/tlen.scale) )

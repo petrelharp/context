@@ -103,7 +103,7 @@ collapsepatmatrix <- function (ipatterns, lwin=0, rwin=0, fpatterns=getpatterns(
 }
 
 computetransmatrix <- function( genmatrix, tlen, projmatrix, names=TRUE, ... ) {
-    A <- tlen*(genmatrix-Diagonal(nrow(genmatrix),rowSums(genmatrix)))
+    A <- (genmatrix-Diagonal(nrow(genmatrix),rowSums(genmatrix)))
     subtransmatrix <- sapply( 1:ncol(projmatrix), function (k) { expAtv( A=A, v=projmatrix[,k] )$eAtv } )
     if (names) {
         rownames(subtransmatrix) <- rownames(genmatrix)
@@ -130,6 +130,22 @@ whichchanged <- function (ipatterns,fpatterns,lwin=0,win=nchar(ipatterns[0])) {
     if (!is.null(dimnames(ipatterns))) { fpatterns <- colnames(ipatterns); ipatterns <- rownames(ipatterns) }
     return( outer( ipatterns, fpatterns, function (x,y) { substr(x,lwin+1,lwin+win)!=y } ) )
 }
+
+getlikfun <- function (nmuts,nsel,coef.scale,Ne.scale,tlen.scale,genmatrix,projmatrix,const=0) {
+    return( function (params) {
+        # params are: mutrates, selcoef, Ne, tlen, scaled
+        mutrates <- params[1:nmuts]*coef.scale
+        selcoef <- params[nmuts+(1:nsel)]*coef.scale
+        Ne <- params[nmuts+nsel+1] * Ne.scale
+        tlen <- params[nmuts+nsel+2] * tlen.scale
+        # this is collapsed transition matrix
+        genmatrix@x <- update(genmatrix,mutrates,selcoef,Ne)
+        subtransmatrix <- computetransmatrix( genmatrix, tlen, projmatrix )
+        # return negative log-likelihood 
+        sum( counts * log(subtransmatrix) ) + const
+    } )
+}
+
 
 # Misc
 
