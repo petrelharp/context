@@ -85,6 +85,9 @@ counttrans <- function (ipatterns, fpatterns, simseqs, lwin=0) {
 
 show.simseq <- function (x,printit=FALSE,maxchar=1e8) { 
     # display the output of simulation by lowercasing or replacing with "." bases that didn't change
+    x$initseq <- substr(x$initseq,1,maxchar)
+    x$finalseq <- substr(x$finalseq,1,maxchar)
+    x$ntrans <- subset(x$ntrans,loc<=maxchar)
     patlen <- nchar( levels( x$ntrans$i )[1] )
     chars <- strsplit(x$finalseq,'')[[1]]
     events <- unique(x$ntrans$loc)
