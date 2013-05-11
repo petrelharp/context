@@ -74,7 +74,7 @@ counttrans <- function (ipatterns, fpatterns, simseqs, lwin=0) {
     #   (see http://stackoverflow.com/questions/7878992/finding-the-indexes-of-multiple-overlapping-matching-substrings)
     initmatches <- lapply( ipatterns, function (p) gregexpr(paste("(?=",p,")",sep=''),initseq,perl=TRUE) )
     finalmatches <- lapply( fpatterns, function (p) gregexpr(paste("(?=",p,")",sep=''),finalseq,perl=TRUE) )
-    counts <- Matrix( 0, nrow=length(initmatches), ncol=length(finalmatches) )
+    counts <- Matrix( 0, nrow=length(initmatches), ncol=length(finalmatches), dimnames=list(ipatterns,fpatterns) )
     for (x in seq_along(initmatches))  {
         for (y in seq_along(finalmatches)) {
             counts[x,y] <- length(intersect(initmatches[[x]][[1]],(-lwin)+finalmatches[[y]][[1]]))

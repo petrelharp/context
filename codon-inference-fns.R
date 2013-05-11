@@ -105,8 +105,9 @@ collapsepatmatrix <- function (ipatterns, lwin=0, rwin=0, fpatterns=getpatterns(
     return( matchmatrix )
 }
 
-computetransmatrix <- function( genmatrix, tlen, projmatrix, names=TRUE, ... ) {
-    A <- tlen*(genmatrix-Diagonal(nrow(genmatrix),rowSums(genmatrix)))
+computetransmatrix <- function( genmatrix, projmatrix, tlen=1, names=TRUE, ... ) {
+    # tlen confounded with mutation parameters... best to leave that out of here...
+    A <- if (tlen==1) { genmatrix - Diagonal(nrow(genmatrix),rowSums(genmatrix)) } else {  tlen*(genmatrix-Diagonal(nrow(genmatrix),rowSums(genmatrix))) }
     subtransmatrix <- sapply( 1:ncol(projmatrix), function (k) { expAtv( A=A, v=projmatrix[,k] )$eAtv } )
     if (names) {
         rownames(subtransmatrix) <- rownames(genmatrix)
@@ -115,7 +116,7 @@ computetransmatrix <- function( genmatrix, tlen, projmatrix, names=TRUE, ... ) {
     subtransmatrix
 }
 
-gettransmatrix <- function (mutpats, mutrates, selpats, selcoef, Ne, tlen, win, lwin=0, rwin=0, expm=expm.poisson, ... ) {
+gettransmatrix <- function (mutpats, mutrates, selpats, selcoef, Ne, tlen=1, win, lwin=0, rwin=0, expm=expm.poisson, ... ) {
     # get reduced transition matrix: given (lwin, win, rwin) context, return probability of pattern in win
     #   note: alternative is expm=expm::expm(x,method="Higham08")
     winlen <- lwin+win+rwin
@@ -140,10 +141,10 @@ getlikfun <- function (nmuts,nsel,genmatrix,projmatrix,const=0) {
         mutrates <- params[1:nmuts]
         selcoef <- params[nmuts+(1:nsel)]
         Ne <- params[nmuts+nsel+1]
-        tlen <- params[nmuts+nsel+2]
+        # tlen <- params[nmuts+nsel+2]  # confounded.
         # this is collapsed transition matrix
         genmatrix@x <- update(genmatrix,mutrates,selcoef,Ne)
-        subtransmatrix <- computetransmatrix( genmatrix, tlen, projmatrix )
+        subtransmatrix <- computetransmatrix( genmatrix, projmatrix )
         # return negative log-likelihood 
         (-1) * sum( counts * log(subtransmatrix) ) + const
     } )

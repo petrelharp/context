@@ -29,7 +29,7 @@ lwin <- 0
 rwin <- 0
 win <- seqlen
 winlen <- lwin+win+rwin
-subtransmatrix <- gettransmatrix(mutpats, mutrates, selpats, selcoef, Ne, tlen, win, lwin, rwin)
+subtransmatrix <- gettransmatrix(mutpats, mutrates*tlen, selpats, selcoef, Ne, win, lwin, rwin)
 allseqs <- data.frame( 
         initseq=factor(sapply(many.seqs,"[[","initseq"),levels=rownames(subtransmatrix)), 
         finalseq=factor(sapply(many.seqs,"[[","finalseq"),levels=colnames(subtransmatrix)) 

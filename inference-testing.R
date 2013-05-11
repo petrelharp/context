@@ -50,7 +50,7 @@ rwin <- 2
 win <- 1
 winlen <- lwin+win+rwin
 
-subtransmatrix <- gettransmatrix(mutpats, mutrates, selpats, selcoef, Ne, tlen, win, lwin, rwin)
+subtransmatrix <- gettransmatrix(mutpats*tlen, mutrates, selpats, selcoef, Ne, win, lwin, rwin)
 counts <- counttrans( rownames(subtransmatrix), colnames(subtransmatrix), simseqs, lwin )
 
 # averaged
@@ -91,43 +91,33 @@ genmatrix <- makegenmatrix( mutpats, selpats, patlen=winlen)
 genmatrix@x <- update(genmatrix,mutrates,selcoef,Ne)
 projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
 
-subtransmatrix <- computetransmatrix( genmatrix, tlen, projmatrix, names=TRUE )
+subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE )
 
 counts <- counttrans( rownames(subtransmatrix), colnames(subtransmatrix), simseqs, lwin )
 
 nmuts <- length(mutpats)
 nsel <- length(selpats)
 const <- sum(counts*log(1/1.09))  # rescale to get value closer to zero
+rate.scale <- max(rowSums(genmatrix))
+sel.scale <- 1e-5
 Ne.scale <- 1e4
-tlen.scale <- 1e5
-coef.scale <- 1e-6
-likfun <- function (params) {
-    # params are: mutrates, selcoef, Ne, tlen, scaled
-    mutrates <- params[1:nmuts]*coef.scale
-    selcoef <- params[nmuts+(1:nsel)]*coef.scale
-    Ne <- params[nmuts+nsel+1] * Ne.scale
-    tlen <- params[nmuts+nsel+2] * tlen.scale
-    # this is collapsed transition matrix
-    genmatrix@x <- update(genmatrix,mutrates,selcoef,Ne)
-    subtransmatrix <- computetransmatrix( genmatrix, tlen, projmatrix )
-    # return negative log-likelihood 
-    (-1) * sum( counts * log(subtransmatrix) ) + const
-}
+likfun <- getlikfun(nmuts=nmuts,nsel=nsel,genmatrix=genmatrix,projmatrix=projmatrix,const=const)
 
 initpar <- c( 
-        runif( length(mutpats) )*1e-8 / coef.scale,
+        runif( length(mutpats) )*1e-8 * tlen, 
         runif( length(selpats) )*1e-4 / coef.scale,
         runif(1)*2*Ne / Ne.scale ,
-        runif(1)*2*tlen / tlen.scale
         ) # falsehood
-initpar <- c( mutrates / coef.scale, selcoef / coef.scale, Ne / Ne.scale , tlen / tlen.scale )  # truth
-lbs <- c( rep( 1e-6, nmuts+nsel ), 1e-2, 1e-2 )
+initpar <- c( runif( length(mutpats) ) * mean(mutrates) * tlen, runif( length(selpats) )*1e-4, runif(1)*2*Ne ) # random init
+truth <- c( mutrates * tlen, selcoef, Ne )  # truth
+lbs <- c( rep( 1e-6, nmuts+nsel ), 1e-2 )
 ans <- optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs )
-x <- cbind(init=initpar, estim=ans$par, truth=c(mutrates/coef.scale,selcoef/coef.scale,Ne/Ne.scale,tlen/tlen.scale) )
-matplot((x-x[,"truth"])/rowMeans(x),type='l',col=1:3,lty=1:3)
-abline(v=.5+c(nmuts,nmuts+nsel))
-legend("topleft",col=1:3,lty=1,legend=colnames(x))
-apply( x, 2, likfun )
+lbs <- c( rep( 1e-6, nmuts+nsel ), 1e-2 )
+cheating.ans <- optim( par=truth, fn=likfun, method="L-BFGS-B", lower=lbs, control=list(trace=3, parscale=c( rep(1,nmuts), rep(sel.scale,nsel), Ne.scale ) ) )
+random.ans <- optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs, control=list(trace=3, parscale=c( rep(1,nmuts), rep(sel.scale,nsel), Ne.scale ) ) )
+
+estimates <- cbind(init=initpar, ans=random.ans$par, cheating=cheating.ans$par, truth=truth )
+apply( estimates, 2, likfun )
 
 #####
 # Now, evolve from a common root.
@@ -145,7 +135,7 @@ rwin <- 2
 win <- 1
 winlen <- lwin+win+rwin
 
-subtransmatrix <- gettransmatrix(mutpats, mutrates, selpats, selcoef, Ne, tlen, win, lwin, rwin)
+subtransmatrix <- gettransmatrix(mutpats, mutrates*tlen, selpats, selcoef, Ne, win, lwin, rwin)
 for (k in seq_along(simseqs)) {
     simseqs[[k]]$counts <- counttrans( rownames(subtransmatrix), colnames(subtransmatrix), simseqs[[k]], lwin )
 }
