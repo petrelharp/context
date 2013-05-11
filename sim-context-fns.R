@@ -14,7 +14,9 @@ simseq <- function (seqlen, tlen, patlen, mutpats, mutrates, selpats, selcoef, b
     #    then we'll match on CG.., .CG., and ..CG, so the transition rates of e.g. CGTT -> TGTT should be 1.5/(4-2+1) = 0.5
     #   So, rescale mutrates:
     genmatrix <- makegenmatrix( mutpats, selpats, patlen=patlen )
-    mutrates <- mutrates / (patlen-sapply(sapply(mutpats,"[",1),nchar)+1)
+    mutpatlens <- lapply( mutpats, function (x) unique(nchar(unlist(x))) )
+    if (! all( sapply(mutpatlens,length)==1 ) ) { stop("need each list in mutpats to have patterns of the same length") }
+    mutrates <- mutrates / (patlen-unlist(mutpatlens)+1)  # avoid multiple counting
     genmatrix@x <- update(genmatrix,mutrates,selcoef,Ne)
     patterns <- rownames(genmatrix)
     # max mutation rate

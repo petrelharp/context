@@ -9,21 +9,25 @@ getpatterns <- function(winlen) {
 }
 
 getmutmats <- function(mutpats,patterns) {
-    # given pairlist of mutation patterns,
+    # given mutation patterns,
+    #   which can be a list of either pairs or lists of pairs,
     # return list of matrices with indices of changes corresponding to mutation patterns
     #   i.e. if (i,j) is a row of output[[k]], then patterns[j] can be obtained from patterns[i]
     #   by performing the substitution from mutpats[[i]][1] -> mutpats[[i]][2]
     #   at some location within the string.
     winlen <- nchar(patterns[1])
-    lapply( mutpats, function (x) {
-        patlen <- nchar(x[1])
-        do.call( rbind, lapply( 1:(winlen-patlen+1), function (k) {
-                i <- which( substr( patterns, k, k+patlen-1 ) == x[1] ) # matches input
-                replstr <- patterns[i]
-                substr( replstr, k, k+patlen-1 ) <- x[2] # these, substituted
-                j <- match( replstr, patterns )  # indices of mutated strings
-                data.frame( i=i, j=j )
-            } ) )
+    mutpats <- lapply( mutpats, function (x) { if (is.list(x)) { x } else { list(x) } } )
+    lapply( mutpats, function (y) {
+            do.call( rbind, lapply(y, function (x) {
+                patlen <- nchar(x[1])
+                do.call( rbind, lapply( 1:(winlen-patlen+1), function (k) {
+                        i <- which( substr( patterns, k, k+patlen-1 ) == x[1] ) # matches input
+                        replstr <- patterns[i]
+                        substr( replstr, k, k+patlen-1 ) <- x[2] # these, substituted
+                        j <- match( replstr, patterns )  # indices of mutated strings
+                        data.frame( i=i, j=j )
+                    } ) )
+        } ) )
     } )
 }
 
@@ -46,7 +50,6 @@ makegenmatrix <- function (mutpats,selpats,patlen=nchar(patterns[1]),patterns=ge
     allmutmats <- do.call( rbind, mutmats )
 
     # function to transfer these to list of values in mutation matrix
-    mutpatlens <- sapply( sapply(mutpats,"[",1), nchar )
     nmutswitches <- sapply(mutmats,NROW)
     whichmut <- function (mutrates) { rep(mutrates,times=nmutswitches) }
 
@@ -131,13 +134,13 @@ whichchanged <- function (ipatterns,fpatterns,lwin=0,win=nchar(ipatterns[0])) {
     return( outer( ipatterns, fpatterns, function (x,y) { substr(x,lwin+1,lwin+win)!=y } ) )
 }
 
-getlikfun <- function (nmuts,nsel,coef.scale,Ne.scale,tlen.scale,genmatrix,projmatrix,const=0) {
+getlikfun <- function (nmuts,nsel,genmatrix,projmatrix,const=0) {
     return( function (params) {
         # params are: mutrates, selcoef, Ne, tlen, scaled
-        mutrates <- params[1:nmuts]*coef.scale
-        selcoef <- params[nmuts+(1:nsel)]*coef.scale
-        Ne <- params[nmuts+nsel+1] * Ne.scale
-        tlen <- params[nmuts+nsel+2] * tlen.scale
+        mutrates <- params[1:nmuts]
+        selcoef <- params[nmuts+(1:nsel)]
+        Ne <- params[nmuts+nsel+1]
+        tlen <- params[nmuts+nsel+2]
         # this is collapsed transition matrix
         genmatrix@x <- update(genmatrix,mutrates,selcoef,Ne)
         subtransmatrix <- computetransmatrix( genmatrix, tlen, projmatrix )
