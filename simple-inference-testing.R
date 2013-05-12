@@ -5,8 +5,6 @@ source("sim-context-fns.R")
 
 # maximum size of pattern (for simulation)
 patlen <- 2
-lwin <- 0
-rwin <- 0
 mutpats <- list( 
         fwd=combn( bases, 2, simplify=FALSE ), 
         rev=lapply( combn( bases, 2, simplify=FALSE ), rev),
@@ -23,6 +21,10 @@ seqlen <- 1e4
 tlen <- 1e7  # 6e7 gives lots of transitions; 1e7 not so many
 # simulate the sequence
 simseqs <- simseq( seqlen, tlen, patlen=patlen, mutpats=mutpats, selpats=selpats, mutrates=mutrates, selcoef=selcoef )
+
+thisone <- formatC( floor(runif(1)*1e6) ), digits=6,flag='0')
+now <- format(Sys.time(), "%Y-%m-%d-%H-%M")
+save( thisone, now, patlen, mutpats, selpats, selcoef, Ne, tlen, seqlen, simseqs, file=paste(now,thisone,"selsims.RData",sep='') )
 
 ####
 # Inference.

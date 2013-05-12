@@ -1,11 +1,18 @@
 # Simulate a sequence, with context-dependent mutation rates
 
 rinitseq <- function (seqlen,bases,basefreqs=rep(1/length(bases),length(bases))) {
-    # return a random sequence
-    paste( sample(bases,seqlen,replace=TRUE,prob=basefreqs), collapse="" )
+    # return a random sequence.  bases can in fact be longer patterns.
+    # note that if bases are longer than 1 character, 
+    #  DOES NOT actually produce a sting with frequencies basefreqs.
+    patlen <- mean( nchar(bases) )
+    rpats <- c()
+    while( sum(nchar(rpats))<seqlen ) {
+        rpats <- c( rpats, sample( bases, floor(1.05*seqlen/patlen), replace=TRUE,prob=basefreqs ) )
+    }
+    return( substr( paste( rpats, collapse="" ), 1, seqlen ) )
 }
 
-simseq <- function (seqlen, tlen, patlen, mutpats, mutrates, selpats, selcoef, bases=c("A","C","G","T"), count.trans=TRUE, initseq, basefreqs=rep(1/length(bases),length(bases)), ... ) {
+simseq <- function (seqlen, tlen, patlen, mutpats, mutrates, selpats, selcoef, Ne, bases=c("A","C","G","T"), count.trans=TRUE, initseq, basefreqs=rep(1/length(bases),length(bases)), ... ) {
     # simulate a random sequence and evolve it with genmatrix.
     #  record transition counts if count.trans it TRUE (e.g. for debugging)
     # First make transition matrix
@@ -59,6 +66,17 @@ simseq <- function (seqlen, tlen, patlen, mutpats, mutrates, selpats, selcoef, b
     return(output)
 }
 
+countpats <- function (patterns, simseq ) {
+    # count number of times each pattern appears in character string simseq, cyclic-ized.
+    patlen <- nchar(patterns[1])
+    seqlen <- nchar(simseq)
+    simseq <- paste(simseq,substr(simseq,1,patlen-1),sep='') # cyclic-ize
+    matches <- lapply( patterns, function (p) gregexpr(paste("(?=",p,")",sep=''),simseq,perl=TRUE) )
+    counts <-  sapply(matches,function(x) length(x[[1]]) )
+    names(counts) <- patterns
+    return(counts)
+}
+
 counttrans <- function (ipatterns, fpatterns, initseq=simseqs[["initseq"]], finalseq=simseqs[["finalseq"]], simseqs, lwin=0) {
     # count number of times initseq matches ipatterns while finalseq matches fpatterns
     # again, cyclical
@@ -66,8 +84,8 @@ counttrans <- function (ipatterns, fpatterns, initseq=simseqs[["initseq"]], fina
     seqlen <- nchar(initseq)
     stopifnot( seqlen == nchar(finalseq) )
     # cyclic-ize
-    initseq <- paste(initseq,substr(initseq,1,patlen-1))
-    finalseq <- paste(finalseq,substr(finalseq,1,patlen-1))
+    initseq <- paste(initseq,substr(initseq,1,patlen-1),sep='')
+    finalseq <- paste(finalseq,substr(finalseq,1,patlen-1),sep='')
     # Ok, count occurrences.  Note needs perl "lookahead" to count overlapping patterns.
     #   (see http://stackoverflow.com/questions/7878992/finding-the-indexes-of-multiple-overlapping-matching-substrings)
     initmatches <- lapply( ipatterns, function (p) gregexpr(paste("(?=",p,")",sep=''),initseq,perl=TRUE) )
