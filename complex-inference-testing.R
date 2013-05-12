@@ -39,7 +39,7 @@ projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=
 
 subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE )
 
-counts <- counttrans( rownames(subtransmatrix), colnames(subtransmatrix), simseqs, lwin )
+counts <- counttrans( rownames(subtransmatrix), colnames(subtransmatrix), simseqs=simseqs, lwin=lwin )
 
 nmuts <- length(mutpats)
 nsel <- length(selpats)

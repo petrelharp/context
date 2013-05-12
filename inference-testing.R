@@ -51,7 +51,7 @@ win <- 1
 winlen <- lwin+win+rwin
 
 subtransmatrix <- gettransmatrix(mutpats*tlen, mutrates, selpats, selcoef, Ne, win, lwin, rwin)
-counts <- counttrans( rownames(subtransmatrix), colnames(subtransmatrix), simseqs, lwin )
+counts <- counttrans( rownames(subtransmatrix), colnames(subtransmatrix), simseqs=simseqs, lwin=lwin )
 
 # averaged
 expected <- (seqlen-winlen+1) * (1/nbases)^winlen * subtransmatrix
@@ -137,7 +137,7 @@ winlen <- lwin+win+rwin
 
 subtransmatrix <- gettransmatrix(mutpats, mutrates*tlen, selpats, selcoef, Ne, win, lwin, rwin)
 for (k in seq_along(simseqs)) {
-    simseqs[[k]]$counts <- counttrans( rownames(subtransmatrix), colnames(subtransmatrix), simseqs[[k]], lwin )
+    simseqs[[k]]$counts <- counttrans( rownames(subtransmatrix), colnames(subtransmatrix), simseqs=simseqs[[k]], lwin=lwin )
 }
 
 

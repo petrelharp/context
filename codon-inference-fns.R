@@ -105,9 +105,12 @@ collapsepatmatrix <- function (ipatterns, lwin=0, rwin=0, fpatterns=getpatterns(
     return( matchmatrix )
 }
 
-computetransmatrix <- function( genmatrix, projmatrix, tlen=1, names=TRUE, ... ) {
+computetransmatrix <- function( genmatrix, projmatrix, tlen=1, names=FALSE, transpose=FALSE, ... ) {
+    # Compute the product of exp(tlen*genmatrix) and projmatrix, either on the left or the right (as transpose is true or false)
     # tlen confounded with mutation parameters... best to leave that out of here...
     A <- if (tlen==1) { genmatrix - Diagonal(nrow(genmatrix),rowSums(genmatrix)) } else {  tlen*(genmatrix-Diagonal(nrow(genmatrix),rowSums(genmatrix))) }
+    if (transpose) { A <- t(A) }
+    if (is.null(dim(projmatrix))) { dim(projmatrix) <- c(length(projmatrix),1) }
     subtransmatrix <- sapply( 1:ncol(projmatrix), function (k) { expAtv( A=A, v=projmatrix[,k] )$eAtv } )
     if (names) {
         rownames(subtransmatrix) <- rownames(genmatrix)
@@ -129,6 +132,18 @@ gettransmatrix <- function (mutpats, mutrates, selpats, selcoef, Ne, tlen=1, win
     return( subtransmatrix )
 }
 
+getupdowntrans <- function ( genmatrix, projmatrix, mutrates, selcoef, Ne, initfreqs, tlens=c(1,1) ) {
+    # arguments are lists of two: first the "up" branch (leading from simpler summaries), second the "down"
+    # returns matrix with entry [x,y] the probability of seeing y on the "down branch" given x was seen on the "up" branch.
+    genmatrix.up <- genmatrix
+    genmatrix.up@x <- update(genmatrix,mutrates[[1]]*tlens[1],selcoef[[1]],Ne[1])
+    genmatrix.down <- genmatrix
+    genmatrix.down@x <- update(genmatrix,mutrates[[2]]*tlens[2],selcoef[[2]],Ne[2])
+    upbranch <- initfreqs * computetransmatrix( genmatrix.up, projmatrix )   #  prob of root, y
+    downbranch <- computetransmatrix( genmatrix.down, initfreqs, transpose=TRUE )  # marginal prob of x
+    return( computetransmatrix( genmatrix.down, upbranch, transpose=TRUE ) / as.vector(downbranch) )  # conditional prob of y given x
+}
+
 whichchanged <- function (ipatterns,fpatterns,lwin=0,win=nchar(ipatterns[0])) {
     # return indicator corresponding to entries of output of gettransmatrix that have changed
     if (!is.null(dimnames(ipatterns))) { fpatterns <- colnames(ipatterns); ipatterns <- rownames(ipatterns) }
@@ -137,7 +152,7 @@ whichchanged <- function (ipatterns,fpatterns,lwin=0,win=nchar(ipatterns[0])) {
 
 getlikfun <- function (nmuts,nsel,genmatrix,projmatrix,const=0) {
     return( function (params) {
-        # params are: mutrates, selcoef, Ne, tlen, scaled
+        # params are: mutrates, selcoef, Ne 
         mutrates <- params[1:nmuts]
         selcoef <- params[nmuts+(1:nsel)]
         Ne <- params[nmuts+nsel+1]

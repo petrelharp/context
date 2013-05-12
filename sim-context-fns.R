@@ -59,12 +59,10 @@ simseq <- function (seqlen, tlen, patlen, mutpats, mutrates, selpats, selcoef, b
     return(output)
 }
 
-counttrans <- function (ipatterns, fpatterns, simseqs, lwin=0) {
+counttrans <- function (ipatterns, fpatterns, initseq=simseqs[["initseq"]], finalseq=simseqs[["finalseq"]], simseqs, lwin=0) {
     # count number of times initseq matches ipatterns while finalseq matches fpatterns
     # again, cyclical
     patlen <- nchar(ipatterns[1])
-    initseq <- simseqs[["initseq"]]
-    finalseq <- simseqs[["finalseq"]]
     seqlen <- nchar(initseq)
     stopifnot( seqlen == nchar(finalseq) )
     # cyclic-ize
