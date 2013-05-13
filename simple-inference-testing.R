@@ -20,7 +20,7 @@ Ne <- 1e4
 seqlen <- 1e4
 tlen <- 1e7  # 6e7 gives lots of transitions; 1e7 not so many
 # simulate the sequence
-simseqs <- simseq( seqlen, tlen, patlen=patlen, mutpats=mutpats, selpats=selpats, mutrates=mutrates, selcoef=selcoef )
+simseqs <- simseq( seqlen, tlen, patlen=patlen, mutpats=mutpats, selpats=selpats, mutrates=mutrates, selcoef=selcoef, Ne=Ne )
 
 thisone <- formatC( floor(runif(1)*1e6) ), digits=6,flag='0')
 now <- format(Sys.time(), "%Y-%m-%d-%H-%M")
