@@ -1,0 +1,33 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb}
+\newcommand{\E}{\mathbb{E}}
+\renewcommand{\P}{\mathbb{P}}
+
+\begin{document}
+
+\section*{Introduction}
+
+Interacting particle systems with neighborhood structure: transition probabilities generally not expressable (except TASEP).
+Markov random fields with Glauber dynamics a case of this.
+
+Example: Ising model.
+
+Context-dependent substitution processes are an example of interest for phylogenetics and evolutionary inference.
+Usually dealt with either by using larger and larger windows (but, only up to four bp),
+or by doing MCMC over additional information (entire history of changes).
+Also, Markov-along-the-genome method.
+
+The difficulty comes from the fact that the rates of change at any one site depend in principle on arbitrarily far away sites,
+so transition matrix is ginormous.
+
+Goal: parameter inference, given before-after observations, or else observations descended from a common ancestor.
+
+Here restrict to one-dimensional neighborhood structure,
+to make it easier.
+
+\section*{Notation}
+
+
+
+
+\end{document}
