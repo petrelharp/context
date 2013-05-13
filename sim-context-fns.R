@@ -43,17 +43,17 @@ simseq <- function (seqlen, tlen, patlen, mutpats, mutrates, selpats, selcoef, N
     finalseq <- initseq
     for (k in seq_along(loc.events)) {
         subseq <- if (wrap.events[k]) { # from string (cyclical)
-            paste( substr( finalseq, loc.events[k], seqlen), substr(finalseq, 1, loc.events[k]+patlen-seqlen-1), sep='' )
-        } else {  
-            substr(finalseq, loc.events[k], loc.events[k]+patlen-1 ) 
-        }
+                paste( substr( finalseq, loc.events[k], seqlen), substr(finalseq, 1, loc.events[k]+patlen-seqlen-1), sep='' )
+            } else {  
+                substr(finalseq, loc.events[k], loc.events[k]+patlen-1 ) 
+            }
         msubseq <- match( subseq, patterns )  # which row for this string?
         isubseq <- which( (genmatrix@i + 1) == msubseq ) # transitions are these entries of genmatrix
         jsubseq <- c( msubseq, (genmatrix@j[isubseq]+1) ) # indices of possible replacement patterns (self is first)
         psubseq <- c( diags[msubseq], genmatrix@x[isubseq] )  # probabilities of choosing these
         replind <- sample( jsubseq, 1, prob=psubseq ) # choose this replacement string (index)
         replstr <- patterns[replind] # what is the replacement string
-        if (count.trans) {  ntrans$i[k] <- subseq; ntrans$j[k] <- replstr } # record this
+        if (count.trans) {  ntrans$i[k] <- subseq; ntrans$j[k] <- replstr } # record this (is a factor so not storing actual strings)
         if (wrap.events[k]) { # put this back in (cyclical)
             substr( finalseq, loc.events[k], seqlen) <- substr(replstr,1,seqlen-loc.events[k]+1)
             substr(finalseq, 1, loc.events[k]+patlen-seqlen) <- substr(replstr,seqlen-loc.events[k]+2,patlen)
