@@ -1,6 +1,8 @@
 \documentclass{article}
+\usepackage{fullpage}
 \usepackage{amsmath,amssymb}
 \usepackage{amsthm}
+
 \newcommand{\E}{\mathbb{E}}
 \renewcommand{\P}{\mathbb{P}}
 \newcommand{\calS}{\mathcal{S}}  % set of states
@@ -12,6 +14,8 @@
 \newcommand{\join}{\oplus}  % matches
 \newcommand{\st}{\colon}  % such that
 
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
 \theoremstyle{definition}
 \newtheorem{example}{Example}[section]
 
@@ -164,6 +168,38 @@ In principle, this gives us the transition probabilities for the process:
 \end{align}
 
 
+\section{Simulation}
+
+First, it will be useful to have a brief description of how to simulate such a process.
+Briefly, we can put down a Poisson process of times and locations of possible changes,
+at an appropriate rate $\mu_*$,
+and then resolve each possible change in temporal order.
+We situate ``changes'' at the beginning of the matching pattern,
+so $\mu_*$ can be defined as the maximum sum of rates matching  the start of a sequence:
+\[
+\mu_* = \max \left\{ \sum_{y \in \calS^n} \sum_{j\in J(1,x,y)} \mu_j \st x \in \calS^n \right\} .
+\]
+Now sample possible changes: let $s_{ij}$ denote the $j^\text{th}$ possible change at site $i$,
+so that $0 \le s_{i1} < s_{i2} < \cdots < s_{iN_i} \le t$ is a rate $\mu_*$ Poisson process.
+Then, suppose we have determined the state at time $s$ to be $X(s) = x$,
+and the next event is $s_{ij} = \min \{ s_{k\ell} : s_{k\ell}>s \}$.
+The process then jumps to a new state at times $s_{ij}$ with probability proportional to the corresponding rate.
+In other words, let
+\[
+q_k = \begin{cases}
+  \mu_k/\mu_* \qquad & \text{if } x_i^{(|u_k|)} = u_k  \\
+  0 \qquad & \text{otherwise,}
+\end{cases}
+\]
+and let $q_0 = 1-\sum_{k=1}^{n_T} q_k$.
+By construction of $\mu_*$, $q_0\ge 0$.)
+Now choose transition $k$ with probability $q_k$, and if $k>0$, replace $x_i^{|u_k|}$ with $v_k$.
+
+For instance, to simulate TASEP, one has only to let $\mu_*=\lambda$, and at each $s_{ij}$
+check if at site $i$ there is a 1 followed by a 0,
+and if so, switch them.
+
+
 \section{Inference}
 
 The problem at hand is to infer the parameters of the model, given the state at time 0 and later at time $t$.
@@ -208,16 +244,45 @@ This is the probability that if we begin with a sequence $x$ of length $\ell+m+r
 then after time $t$ we will see at the middle $m$ positions the pattern $y$,
 ignoring what is present in the leftmost $\ell$ and rightmost $r$ positions.
 In a long sequence, $p_m(x,z)$ might not be a very good approximation for $\P\{ X_i^{(m)}(t) = z | X_i(0)^{(m)} = x \}$,
-but for long enough $\ell$ and $m$ we do expect
-\begin{align}
+we do expect $p_{\ell,m,r}(x,y)$ to be correct, asymptotically in $\ell$ and $r$:
+\begin{align} \label{eqn:window_approx}
   \P\{ X_i^{(m)}(t) = y | X_i(0)^{(\ell+m+r)} = x \} \approx p_{\ell,m,r}(x,y) .
 \end{align}
 
-It is easy to convince oneself that the approximation gets better as $\ell$ and $r$ increase.
-Here is a simple argument.
+In fact, the approximation improves exponentially as $\ell$ and $m$ increase --
+here is a simple argument.
 Suppose the maximum length of any transition pattern is $R = \max\{ |u| : (\mu,u,v) \in \calT \}$.
 The transition rate at site $i$ at time $s$ is determined if we know $X_{i-R}^{(2R+1)}(s)$;
 this can be determined from $X_{i-R}^{2R+1}(0)$ and the outcome of all changes happening before time $s$ at sites in $(i-R-1, \ldots, i+R)$.
+These will depend in turn on the outcome of previous possible changes.
+For each site $i$ and times $s_1 < s_2$, define the set of states $H(i,s_1,s_2)$ 
+so that if one knows the possible change points $s_{ij}$,
+then changes outside of $H(i,s_1,s_2)$ do not affect the distribution of $X_i(s_2)$.
+Concretely, define $H(i,s_1,s_2)$ by the property that $i \in H(i,s_1,s_2)$, and
+\begin{gather}
+  \text{if } s_1 < s_{jk} \le s_2 \text{ for some } i-R-1 \le j \le i+R, \text{ then } H(j,s_1,s_{jk}) \subseteq H(i,s_1,s_2) .
+\end{gather}
+In other words, $H(i,s_1,s_2)$ is the union of the $R$-neighborhoods of $i$ and all possible changes occurring in $H(i,s_1,s_2)$ between $s_1$ and $s_2$.
+For a set of states $I$, let $H(I,s_1,s_2) = \bigcup_{i\in I} H(i,s_1,s_2)$.
+Formally, the state $X_i(s_2)$ is conditionally independent of $\{X_j(s_1) \st j \notin H(i,s_1,s_2)\}$.
+Informally, the approximation \eqref{eqn:window_approx} will be good if $H$ does note expand beyond the flanking context.
+Now, MAKE THIS EASIER TO READ
+\begin{multline}
+  \P\{ X_i^{(m)}(t) = y \mid X(0) \} 
+  = \P\left\{ H(\{i,\ldots,i+m\},0,t)\subseteq\{i-\ell,\ldots,i+m+r\} \right\} \\
+   \qquad \qquad {} \times \P\left\{ X_i^{(m)}(t) = y \mid X_{i-\ell}^{(\ell+m+r)}(0), \; H(\{i,\ldots,i+m\},0,t)\subseteq\{i-\ell,\ldots,i+m+r\} \right\} \\
+     \qquad {} + \P\left\{ H(\{i,\ldots,i+m\},0,t)\nsubseteq\{i-\ell,\ldots,i+m+r\} \right\}  \\
+   \qquad\qquad {} \times \P\left\{ X_i^{(m)}(t) = y \mid X_{i-\ell}^{(\ell+m+r)}(0), \; H(\{i,\ldots,i+m\},0,t)\nsubseteq\{i-\ell,\ldots,i+m+r\} \right\} ,
+\end{multline}
+and so
+\begin{align} \label{eqn:prob_approx}
+  \left| \P\{ X_i^{(m)}(t) = y \mid X(0) \} - p_{\ell,m,r}(t;x,y) \right| \le 2 \P\left\{  H(\{I,\ldots,i+m\},0,t)\subseteq\{i-\ell,\ldots,i+m+r\} \right\}.
+\end{align}
 
+So, the error is bounded by the probability that $H(I,0,t)$ is larger than the context from $I-\ell$ to $I+r$.
+However, following $H$ backwards in time, the outer edge of $H$ expands as a continuous-time random walk:
+for instance, the left edge $L(s) = \min \{ j \in H(I,t-s,t) \}$ jumps leftwards at rate $R\mu_*$ with a random jump size
+that has mean $R/2$.
+General facts about random walks imply that \eqref{eqn:prob_approx} is bounded above by $C e^{-\alpha \ell/t}$, for some constants $C$ and $\alpha$.
 
 \end{document}
