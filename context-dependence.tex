@@ -1,7 +1,19 @@
 \documentclass{article}
 \usepackage{amsmath,amssymb}
+\usepackage{amsthm}
 \newcommand{\E}{\mathbb{E}}
 \renewcommand{\P}{\mathbb{P}}
+\newcommand{\calS}{\mathcal{S}}  % set of states
+\newcommand{\calT}{\mathcal{T}}  % set of transition triples
+\newcommand{\nA}{\mbox{A}}  % nucleotides:
+\newcommand{\nC}{\mbox{C}}
+\newcommand{\nG}{\mbox{G}}
+\newcommand{\nT}{\mbox{T}}
+\newcommand{\join}{\oplus}  % matches
+\newcommand{\st}{\colon}  % such that
+
+\theoremstyle{definition}
+\newtheorem{example}{Example}[section]
 
 \begin{document}
 
@@ -27,7 +39,185 @@ to make it easier.
 
 \section*{Notation}
 
+The common framework of the above examples is a one-dimensional grid of $n$ sites,
+and each site is labeled with one of a finite set of states.
+These change with time -- so, write $X_i(t)$ for the state of the $i^\mathrm{th}$ site at time $t$,
+where each $X_i(t) \in \calS$, the set of possible states.
+(To avoid edge effects, we sometimes arrange these sites in a circle, so the indices are interpreted $\mod n$.)
+The time evolution is Markov, and is determined by a set of transition rates and associated patterns.  
+``Patterns'' are sequences of states, and we let $|u|$ denote the length of the pattern $u$.
+Transition rates are assumed to be local and homogeneous, so for example saying ``pattern $u$ changes to $v$ at rate $\mu$''
+means that if $(X_i(t), \ldots, X_{i+\ell}(t)) = (u_1, \ldots, u_\ell)$ (where $\ell=|u|=|v|$),
+then $\P\{(X_i(t+dt), \ldots, X_{i+\ell}(t+dt)) = (v_1, \ldots, v_\ell) = \mu dt + o(dt)$,
+regardless of the location $i$ along the sequence.
+We call such a $(\mu,u,v)$ a ``transition triple''.
+The set of all transition triples $\calT = \{ (\mu_j,u_j,v_j) \}_{j=1}^{n_T}$ 
+determines the time evolution of the process.
 
+It will often be convenient, notationally and computationally, to avoid edge effects
+by treating the $n$ sites as a circle, and treating all indices $\mod n$.
+
+\begin{example}[TASEP]
+  The \emph{Totally Asymmetric Simple Exclusion Process} labels each site as ``empty'' or ``occupied'' (0 or 1, respectively), 
+  and says that each occupied site, independently at rate $\lambda$, checks the site to the right to see if it is empty,
+  and if it is, moves there.  
+  This process therefore has only one transition triple:
+
+  \begin{center}
+    \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }c}
+      $u$  &  $v$  &  $\mu$  \\
+      \hline
+      01  &   10   &  $\lambda$
+    \end{tabular}
+  \end{center}
+
+  This only has one parameter, the speed.  
+  Note, however, that it may not be entirely trivial to estimate the speed,
+  since (on the circle) it may not be obvious which particle moved where.
+
+\end{example}
+
+\begin{example}[CpG mutation]
+  A sequence of genome can be written using A, C, G, and T;
+  in the most general model of single-site mutation, each of the 12 possible transitions occurs at its own rate.
+  Furthermore, it is a well-known observation that in many species, and certain contexts, 
+  a C followed by a G has an additional, higher rate with either the C changing to a T or the G changing to an A.
+  This simplest model of context-dependent substitution rates in a genome sequence has rates
+
+  \begin{center}
+    \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }cc}
+      $u$  &  $v$  &  $\mu$  & \\
+      \hline
+      $x$  &  $y$  &  $m_{xy}$ & \qquad $x \neq y \in \{\nA,\nC,\nG,\nT\}$  \\
+      CG   &  TG   &  $\gamma$ & \\
+      CG   &  CA   &  $\gamma$ &  
+    \end{tabular}
+  \end{center}
+
+  This has 13 parameters.
+  Note that there are no conserved quantities here, unlike in TASEP,
+  which we could imagine as indestructible particles moving.
+
+
+\end{example}
+
+
+\begin{example}[Ising model with Glauber dynamics]
+  In the Ising model, each site is labeled as either ``up'' or ``down'' ($+1$ or $-1$ respectively),
+  imagined as magnetic dipoles,
+  and the energy associated with a given state $x$ is $H(x) = - \beta \sum_i x_i x_{i+1} + \gamma \sum_i x_i$.
+  The associated stationary distribution on configurations is proportional to $\exp(-H(x))$.
+  One way to add temporal dynamics that preserve the distribution 
+  is to say that each site, independently at rate $\lambda$,
+  forgets its spin, 
+  and reconfigures to a state chosen with probability proportional to the stationary probability of the resulting configuration.
+  This is known as ``Glauber dynamics'', and ignoring transitions that don't change the state,
+  we get that if patterns $u$ and $v$ differ at only one site, then $u$ changes to $v$ at rate $1/(1+\exp(H(u)-H(v)))$, so
+
+  \begin{center}
+    \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }c}
+      $u$  &  $v$  &  $\mu$  \\
+      \hline
+      $+++$  &   $+-+$   &  $\lambda/1+e^{2\beta - \gamma})$ \\
+      $++-$  &   $+--$   &  $\lambda/(1+e^{-\gamma})$ \\
+      $+-+$  &   $+++$   &  $\lambda/(1+e^{-2\beta + \gamma})$ \\
+      $+--$  &   $++-$   &  $\lambda/(1+e^{\gamma})$ \\
+      $-++$  &   $--+$   &  $\lambda/(1+e^{-\gamma})$ \\
+      $-+-$  &   $---$   &  $\lambda/(1+e^{-2\beta - \gamma})$ \\
+      $--+$  &   $-++$   &  $\lambda/(1+e^{\gamma})$ \\
+      $---$  &   $-+-$   &  $\lambda/(1+e^{2\beta + \gamma})$ 
+    \end{tabular}
+  \end{center}
+
+  This has three parameters: the speed $\lambda$, the inverse temperature $\beta$, and the strength of magnetization $\gamma$
+  (here scaled by temperature).
+
+\end{example}
+
+
+\paragraph{The generator matrix}
+For clarity, we should define how the set of transition rates determines the transition rate matrix,
+the $|\calS|^n \times |\calS|^n$ matrix $G(n)$ whose $(x,y)^\text{th}$ entry gives the instantaneous rate 
+with which the process in state $x$ jumps to state $y$.
+Let $x_i^{(\ell)} = (x_i, x_{i+1}, \ldots, x_{i+\ell-1})$ be the subsequence of length $\ell$ beginning at location $i$,
+and for each $1\le i \le n$, and patterns $u,v \in \calS^\ell$ define the relation
+\[
+x \xrightarrow{i,u,v} y \qquad \text{iff} \qquad \begin{cases}
+  x_j = y_j \quad &\text{for } j<i \\
+  x_{i+k} = u_k \quad &\text{for } k < \ell \\
+  y_{i+k} = v_k \quad &\text{for } k < \ell, and \\
+  x_j = y_j \quad &\text{for } j\ge i+\ell ,
+\end{cases}
+\]
+i.e.\ if $x$ and $y$ match except for in $i,i+1,\ldots,i+\ell$, where $x$ matches with $u$ and $y$ matches with $v$.
+Interpet these indices $\mod n$, even for short sequences, a point we will come back to.
+We'll also need the set of transitions that can move from $x$ to $y$ at a given location: let  $J(i,x,y) = \{ j \st x \xrightarrow{i,u_j,v_j} y \}$.
+Then, the rate $G(n)_{x,y}$ is the sum of all matching transition rates,
+namely
+\begin{align*}
+  G(n)_{x,y} = \sum_{i=1}^n \sum_{j \in J(i,x,y)}  \mu_j ,
+\end{align*}
+and if there are no triples $(\mu,u,v)$ with $x \xrightarrow{i,u,v} y$ for some $i$, then $G(n)_{x,y}=0$.
+In principle, this gives us the transition probabilities for the process:
+\begin{align} \label{eqn:full_likelihood}
+  p_n(t;x,y) := \P\{ X(t) = y \mid X(0) = x \} = (e^{tG_n})_{xy} .
+\end{align}
+
+
+\section{Inference}
+
+The problem at hand is to infer the parameters of the model, given the state at time 0 and later at time $t$.
+If $n$ is large enough and $t$ is not too large,
+this should be feasible.
+(If $t$ is too large, the process may ``saturate'' --
+if there are many changes at most sites, then in at least most models, 
+we will lost most of the information about the dynamics,
+retaining information only about the parameters that affect the stationary distribution.
+In TASEP, we lose all information as it approaches stationarity,
+in the Ising model we have information about $\beta$ and $\gamma$ but not $\lambda$,
+and in the CpG model it is not immediately clear.
+
+
+But, how can we extract the information?
+These are Markov processes, on the state space $\calS^n$, 
+so the full likelihood function is given by \eqref{eqn:full_likelihood},
+but doing anything with the $|\calS|^n \times |\calS|^n$ matrix $G_n$ is clearly infeasible.
+We can, however, compute \eqref{eqn:full_likelihood} for smaller $n$,
+so the first thing that one might think to do is to break the sequence up into many blocks of length $m$,
+and treat these as independent, taking $m$ as large as is feasible.
+Then we would define $p_m(t;x,y)$ to be the probability that a string $x$ of length $m$ evolves to string $y$ over time $t$,
+denote by $x_i^{(m)}$ the block of length $m$ beginning at index $i$,
+and obtain the approximate likelihood function
+\[
+  \prod_{k=0}^{n/m} p_m(x_{km}^{(m)},y_{km}^{(m)}) .
+\]
+Variations are possible (what do we do about the edge effects for $p_m$?),
+but in any case there is no guarentee that this is close to correct,
+as it ignore dependencies between neighboring blocks.
+
+Intuitively, we want to increase the size of the context 
+-- but increasing $m$ does not do this, as there are always edge effects.
+However, we could look at the context in the initial sequence but not in the final sequence,
+including the states of an additional $\ell$ and $r$ sites on the left and right, respectively.
+Concretely, define the marginal probabilities
+\begin{align}
+  p_{\ell,m,r}(t;x,y) &= \sum_{a \in \calS^\ell} \sum_{b \in \calS^r} p_{\ell+m+r}(t;x,a \join y \join b) , \quad \text{for}\; x \in \calS^{\ell+m+r}, \; y \in \calS^m ,
+\end{align}
+where $a \join y \join b$ is the sequence composed of concatenating $a$, $y$, and $b$ together in that order.
+This is the probability that if we begin with a sequence $x$ of length $\ell+m+r$, 
+then after time $t$ we will see at the middle $m$ positions the pattern $y$,
+ignoring what is present in the leftmost $\ell$ and rightmost $r$ positions.
+In a long sequence, $p_m(x,z)$ might not be a very good approximation for $\P\{ X_i^{(m)}(t) = z | X_i(0)^{(m)} = x \}$,
+but for long enough $\ell$ and $m$ we do expect
+\begin{align}
+  \P\{ X_i^{(m)}(t) = y | X_i(0)^{(\ell+m+r)} = x \} \approx p_{\ell,m,r}(x,y) .
+\end{align}
+
+It is easy to convince oneself that the approximation gets better as $\ell$ and $r$ increase.
+Here is a simple argument.
+Suppose the maximum length of any transition pattern is $R = \max\{ |u| : (\mu,u,v) \in \calT \}$.
+The transition rate at site $i$ at time $s$ is determined if we know $X_{i-R}^{(2R+1)}(s)$;
+this can be determined from $X_{i-R}^{2R+1}(0)$ and the outcome of all changes happening before time $s$ at sites in $(i-R-1, \ldots, i+R)$.
 
 
 \end{document}
