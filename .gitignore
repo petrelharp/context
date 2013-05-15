@@ -1,5 +1,5 @@
 .Rhistory
-.RData
+*.RData
 .*.sw?
 *.pyc
 *.aux

@@ -41,7 +41,7 @@ Goal: parameter inference, given before-after observations, or else observations
 Here restrict to one-dimensional neighborhood structure,
 to make it easier.
 
-\section*{Notation}
+\section{Notation and Examples}
 
 The common framework of the above examples is a one-dimensional grid of $n$ sites,
 and each site is labeled with one of a finite set of states.
@@ -109,7 +109,7 @@ by treating the $n$ sites as a circle, and treating all indices $\mod n$.
 \begin{example}[Ising model with Glauber dynamics]
   In the Ising model, each site is labeled as either ``up'' or ``down'' ($+1$ or $-1$ respectively),
   imagined as magnetic dipoles,
-  and the energy associated with a given state $x$ is $H(x) = - \beta \sum_i x_i x_{i+1} + \gamma \sum_i x_i$.
+  and the energy associated with a given state $x$ is $H(x) = - \beta \sum_i x_i x_{i+1} - \gamma \sum_i x_i$.
   The associated stationary distribution on configurations is proportional to $\exp(-H(x))$.
   One way to add temporal dynamics that preserve the distribution 
   is to say that each site, independently at rate $\lambda$,
@@ -158,9 +158,9 @@ Interpet these indices $\mod n$, even for short sequences, a point we will come 
 We'll also need the set of transitions that can move from $x$ to $y$ at a given location: let  $J(i,x,y) = \{ j \st x \xrightarrow{i,u_j,v_j} y \}$.
 Then, the rate $G(n)_{x,y}$ is the sum of all matching transition rates,
 namely
-\begin{align*}
+\begin{align} \label{eqn:G_defn}
   G(n)_{x,y} = \sum_{i=1}^n \sum_{j \in J(i,x,y)}  \mu_j ,
-\end{align*}
+\end{align}
 and if there are no triples $(\mu,u,v)$ with $x \xrightarrow{i,u,v} y$ for some $i$, then $G(n)_{x,y}=0$.
 In principle, this gives us the transition probabilities for the process:
 \begin{align} \label{eqn:full_likelihood}
@@ -248,6 +248,15 @@ we do expect $p_{\ell,m,r}(x,y)$ to be correct, asymptotically in $\ell$ and $r$
 \begin{align} \label{eqn:window_approx}
   \P\{ X_i^{(m)}(t) = y | X_i(0)^{(\ell+m+r)} = x \} \approx p_{\ell,m,r}(x,y) .
 \end{align}
+We provide a concrete statement of this approximation later.
+
+
+
+
+%%%%
+\subsection*{Proof of the approximation}
+
+\begin{proof}
 
 In fact, the approximation improves exponentially as $\ell$ and $m$ increase --
 here is a simple argument.
@@ -284,5 +293,37 @@ However, following $H$ backwards in time, the outer edge of $H$ expands as a con
 for instance, the left edge $L(s) = \min \{ j \in H(I,t-s,t) \}$ jumps leftwards at rate $R\mu_*$ with a random jump size
 that has mean $R/2$.
 General facts about random walks imply that \eqref{eqn:prob_approx} is bounded above by $C e^{-\alpha \ell/t}$, for some constants $C$ and $\alpha$.
+
+\end{proof}
+
+%%%%%%%%
+\subsection{Edge effects and cyclicization}
+
+The choice to treat long sequences as cyclical is generally of little importance.
+However, we have defined in \eqref{eqn:G_defn} the basic building block of our approximation, $G(m)$,
+to be the transition matrix \emph{for a circular sequence} of length $m$, where $m$ may be short.
+This seems strange -- but, what else would we do at the edges?
+We want to use $G(\ell+m+r)$ to compute the chance that a given $(\ell+m+r)$-sequence ends up with another given $m$-sequence in the middle;
+and if $\ell$ and $r$ are big enough relative to $t$, this will be a good approximation regardless of what we do at the edges.
+One answer would be to not allow patterns hanging off of either end to match,
+resulting in a slight underestimate of the chance of change.
+A better approximation would be to use the marginal frequencies in some way to average over surroudning sequence 
+-- but, this requires marginal frequencies to be known, and these are not stationary.
+However, the leftmost site in a randomly chosen window is a sample from the marginal distribution,
+and if sites separated by distance $\ell+m+r$ are sufficiently uncorrelated,
+wrapping the sequence around is a good approximation to averaging over marginal frequencies in the surrounding sequence.
+It is easy to imagine situations where this would not be the best solution --
+but again, if $\ell$ and $r$ are large enough, it won't matter much.
+
+
+
+
+%%%%%%%%%%%
+\section{Computation}
+
+
+
+
+
 
 \end{document}

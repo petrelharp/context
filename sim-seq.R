@@ -42,6 +42,6 @@ system.time(
 
 thisone <- formatC( floor(runif(1)*1e6) , digits=6,flag='0')
 now <- format(Sys.time(), "%Y-%m-%d-%H-%M")
-save( thisone, now, patlen, mutpats, selpats, selcoef, Ne, seqlen, tlen, branchlens, initfreqs, simseqs, file=paste(now,thisone,"selsims.RData",sep='') )
+save( thisone, now, patlen, mutpats, selpats, selcoef, Ne, seqlen, tlen, branchlens, initfreqs, simseqs, file=paste(now,thisone,"sims/selsims.RData",sep='') )
 
 
