@@ -38,6 +38,8 @@ so transition matrix is ginormous.
 
 Goal: parameter inference, given before-after observations, or else observations descended from a common ancestor.
 
+Review stats lit, e.g. reviews by Friel, original by Besag (autologistic model), genetics by Larribe and Fearnead.
+
 Here restrict to one-dimensional neighborhood structure,
 to make it easier.
 
@@ -250,6 +252,22 @@ we do expect $p_{\ell,m,r}(x,y)$ to be correct, asymptotically in $\ell$ and $r$
 \end{align}
 We provide a concrete statement of this approximation later.
 
+%%%%
+\subsection{Poisson approximation?}
+
+Now we know how to compute the (marginal) probability that a particular subsequence changes into another subsequence.
+Therefore, if we know the pattern $x$ (say) appears $N(x)$ times in the original sequence $X(0)$,
+the expected number of times $y$ would appear juxtaposed with $x$ is $N(x)p_{\ell,m,r}(x,y)$.
+
+\begin{flushright}
+\begin{tabular}{c|ccccccc}
+ $X(0)$ &  C  & A & C & T & C & A & C \\
+ $X(t)$ &  $\centerdot$  & $\centerdot$  & C & T & C & $\centerdot$  & $\centerdot$  
+\end{tabular}
+\end{flushright}
+
+
+There is correlation, of course.
 
 
 
