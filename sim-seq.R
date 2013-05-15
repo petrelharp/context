@@ -10,13 +10,13 @@ args <- commandArgs(TRUE)
 if (length(args)<2) {
     stop(usage)
 } else {
-    seqlen <- as.numeric(args[1])
-    tlen <- as.numeric(args[2])
+    seqlen <- as.numeric(args[1])  # e.g. 1e4
+    tlen <- as.numeric(args[2]) # total length 6e7 gives lots of transitions (but still signal); 1e7 not so many
 }
 
 source("codons.R")
-source("codon-inference-fns.R")
 source("sim-context-fns.R")
+source("codon-inference-fns.R")
 
 # maximum size of pattern (for simulation)
 patlen <- 2
@@ -32,8 +32,6 @@ selpats <- c( "[GC]", "[AT]" )
 selcoef <- runif( length(selpats) )*1e-3
 # other params
 Ne <- c(1e4,1e4)
-seqlen <- 1e6
-tlen <- 3e7  # total length 6e7 gives lots of transitions (but still signal); 1e7 not so many
 branchlens <- c(1,1)
 
 initfreqs <- c(.3,.3,.2,.2)
