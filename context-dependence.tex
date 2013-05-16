@@ -13,6 +13,8 @@
 \newcommand{\nT}{\mbox{T}}
 \newcommand{\join}{\oplus}  % matches
 \newcommand{\st}{\colon}  % such that
+\newcommand{\var}{\mathop{\mbox{var}}}
+\newcommand{\cov}{\mathop{\mbox{cov}}}
 
 \theoremstyle{plain}
 \newtheorem{theorem}{Theorem}
@@ -253,21 +255,45 @@ we do expect $p_{\ell,m,r}(x,y)$ to be correct, asymptotically in $\ell$ and $r$
 We provide a concrete statement of this approximation later.
 
 %%%%
-\subsection{Poisson approximation?}
+\subsection{A likelihood function}
 
 Now we know how to compute the (marginal) probability that a particular subsequence changes into another subsequence.
-Therefore, if we know the pattern $x$ (say) appears $N(x)$ times in the original sequence $X(0)$,
-the expected number of times $y$ would appear juxtaposed with $x$ is $N(x)p_{\ell,m,r}(x,y)$.
-
-\begin{flushright}
+For patterns $x$ and $y$, with offset $\ell$ (so that $|x|=|y|+2\ell$),
+we can count how many times $x$ appears in $X(0)$,
+and how many times $x$ appears in $X(0)$ while $y$ appears at the same place in $X(t)$, offset by $\ell$.
+For instance, if $x$ is ACTCAC, $y$ is CGC, and $\ell=3$, this looks like:
+\begin{center}
 \begin{tabular}{c|ccccccc}
- $X(0)$ &  C  & A & C & T & C & A & C \\
- $X(t)$ &  $\centerdot$  & $\centerdot$  & C & T & C & $\centerdot$  & $\centerdot$  
+ $x$ &  C  & A & C & T & C & A & C \\
+ $y$ &  $\centerdot$  & $\centerdot$  & C & G & C & $\centerdot$  & $\centerdot$  
 \end{tabular}
-\end{flushright}
+\end{center}
+where $\cdot$ could be any base.
+Let $N(x)$ and $N_\ell(x,y)$ count these events, respectively.
 
+From the definitions above, 
+the expected number of times $y$ would appear juxtaposed with $x$ is approximately $N(x)p_{\ell,m,r}(x,y)$.
+Covariances are also easy to compute.
+If we define $M_i(x,y)$ to be 1 if $X_{i-\ell}^{|x|}(0)=x$ and $X_i^({|y|})(t)=y$, and 0 otherwise,
+so that $N(x,y) = \sum_{i=1}^n M_i(x,y)$, then
+\begin{align}
+  \var[N(x,y)] &= \sum_{i=1}^n \var[M_i(x,y)] + \sum_{i\neq j} \cov[M_i(x,y), M_j(x,y)] \\
+  &= n \var[M_1(x,y)] + 2n\sum_{k=1}^n \cov[M_1(x,y),M_{k+1}(x,y)] \\
+  &\approx n p_{\ell,m}(x,y)(1-p_{\ell,m}(x,y)) + 2n\sum_{k=1}^{m+2\ell} \left( \E[M_1(x,y) M_{k+1}(x,y)] - p_{\ell,m}(x,y)^2 \right) \\
+  &= n p_{\ell,m}(x,y)(1-(1+2m+4\ell)p_{\ell,m}(x,y)) + 2n\sum_{k=1}^{m+2\ell} \E[M_1(x,y) M_{k+1}(x,y)] .
+\end{align}
+The term $\E[M_1(x,y) M_{k+1}(x,y)]$ is the probability that $x$ matches at both site 1 and site $k+1$,
+and that $y$ matches both at site $\ell+1$ and at site $\ell+k+1$.
+For this to be nonzero, the joint pattern $(x,y)$ must allow self-overlaps.
+Similarly, if $(x_1,y_1) \neq (x_2,y_2)$ then
+\begin{align}
+  \begin{split}
+    \cov[N(x_1,y_1),N(x_2,y_2)] 
+    & \approx - n (2m+4\ell) p_{\ell,m}(x_1,y_1)p_{\ell,m}(x_2,y_2) \\
+    & \qquad {} + n\sum_{k=1}^{m+2\ell} \E[M_1(x_1,y_1) M_{k+1}(x_2,y_2) + M_1(x_2,y_2) M_{k+1}(x_1,y_1)] .
+  \end{split}
+\end{align}
 
-There is correlation, of course.
 
 
 
