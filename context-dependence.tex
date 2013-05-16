@@ -255,7 +255,7 @@ we do expect $p_{\ell,m,r}(x,y)$ to be correct, asymptotically in $\ell$ and $r$
 We provide a concrete statement of this approximation later.
 
 %%%%
-\subsection{A likelihood function}
+\subsection{Summary statistics}
 
 Now we know how to compute the (marginal) probability that a particular subsequence changes into another subsequence.
 For patterns $x$ and $y$, with offset $\ell$ (so that $|x|=|y|+2\ell$),
@@ -294,6 +294,22 @@ Similarly, if $(x_1,y_1) \neq (x_2,y_2)$ then
   \end{split}
 \end{align}
 
+
+%%%%
+\subsection{A likelihood function}
+
+The covariance calculations show that
+if $p_{\ell,m}(x,y)$ is small enough (i.e.\ the pattern is not common),
+then $N(x,y)$ is close to Poisson.
+
+Using this observation, we can estimate parameters by composite likelihood,
+using all $N(x,y)$ as data.
+
+To get confidence intervals, we need to either simulate, or do something different.
+If we use only a subset of patterns $\{(x_k,y_k)\}$ chosen so that $\E[M_1(x,y) M_{k+1}(x,y)]$ is small (or zero),
+the entire collection $\{N(x_k,y_k)\}$ will be close to independent Poisson.
+(using Stein's method)
+Then we'll have the correct likelihood function for (this subset of) data, and can go Bayesian.
 
 
 
