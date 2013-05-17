@@ -304,12 +304,19 @@ then $N(x,y)$ is close to Poisson.
 
 Using this observation, we can estimate parameters by composite likelihood,
 using all $N(x,y)$ as data.
+Maximum likelihood then gets an asymptotically unbiased estimate of the parameters.
 
 To get confidence intervals, we need to either simulate, or do something different.
+
 If we use only a subset of patterns $\{(x_k,y_k)\}$ chosen so that $\E[M_1(x,y) M_{k+1}(x,y)]$ is small (or zero),
 the entire collection $\{N(x_k,y_k)\}$ will be close to independent Poisson.
 (using Stein's method)
-Then we'll have the correct likelihood function for (this subset of) data, and can go Bayesian.
+Then we'll have the correct likelihood function for (this subset of) data.
+If changes are rare, then one way to get a set of patterns with this property is to only choose ones such that going from $x$ to $y$ entails a change;
+and any overlapping patterns must require additional changes, 
+i.e.\ if $(x_1,y_1)$ matches at $i_1$, 
+then for $(x_2,y_2)$ to match at $i_2$, 
+there must be additional changes outside $(i_1,\ldots,i_1+\ell-1)$.
 
 
 
@@ -375,12 +382,94 @@ wrapping the sequence around is a good approximation to averaging over marginal 
 It is easy to imagine situations where this would not be the best solution --
 but again, if $\ell$ and $r$ are large enough, it won't matter much.
 
+%%%%%%%%
+\section{Phylogenetic inference}
+
+In phylogenetic applications, rather than ``before'' and ``after'' observations,
+we get two (or more) observations evolved from a common root.
+In the simplest case of two taxa we have two processes $X$ and $Y$,
+with identical starting states $X(0)=Y(0)$,
+observed only at times $t_X$ and $t_Y$ respectively.
+
+If the approximation described above holds,
+then we can write the probability that we see (long) pattern $x$ in $X(t_X)$ juxtaposed with (short) pattern $y$ in $Y(t_Y)$
+using the pattern frequencies at the root.
+Concretely: pick a random location $I$ in the sequence and let $X_{I-\ell}^{m+2\ell}(0) = \rho$ be the (long) pattern seen there at the root,
+and write $\pi(z)$ for the frequency of pattern $z$ in $X(0)$, i.e.\ $\P\{\rho=z\}=\pi(z)$.
+% Given the corresponding pattern in $X(t_X)$, the distribution of $\rho$ is proportional to
+% \[
+%     \P\{ \rho=z \mid X_{I-\ell}^{m+2\ell}(t_X)=x\} \propto \pi(z) p_{m+2\ell}(t,z,x) .
+% \]
+The probability that we see $x$ and $y$ at the random location $I$ is
+\begin{align} \label{eqn:phylo_likelihood}
+    \P\{X_{I-\ell}^{m+2\ell}(t_X)=x \text{ and } Y_I^\ell(t_Y)=y \} = \sum_{z \in \calS^{m+2\ell}} \pi(z) p_{m+2\ell}(t_X,z,x) p_{m,\ell}(t_Y,z,y) .
+\end{align}
+This can be computed without much more effort than the simpler case above,
+but requires the frequencies at the root.
+
+\subsection{The root distribution}
+
+We clearly don't want to add an extra parameter $\pi(z)$ for all $z \in \calS^{m+2\ell}$. 
+If nothing else, it would make the inference depend on $m$ and $\ell$, which we'd like to avoid.
+One approach would be to put a Dirichlet distribution on $\pi(z)$,
+but this would destroy many of the nice computational properties of the likelihoods,
+since making the frequencies of patterns at the root random introduces correlations between counts.
+An alternative is to specify $\pi$ through lower-dimensional statistics,
+for instance to model the root state as a sample from a Markov random field
+with parameters for the marginal frequencies of each state, and pairwise (or higher) correlations between them.
+
+A Markov random field with interactions between sites no more than distance two away 
+is determined by the energy function $\phi(a,b,c)$ which gives the ``energy'' of the configuration $abc$ for each $a,b,c \in \calS$.
+We use this to define the distribution on root patterns $\pi$ by
+\begin{align}  \label{eqn:root_mrf}
+    \pi(z) = \frac{1}{Z} \exp\left( - \sum_{i=1}^{|z|} h(z_{i-1},z_i,z_{i+1}) \right),
+\end{align}
+i.e.\ the exponential of the total energy of each three adjacent sites,
+where $Z$ is the normalizing constant.
+Note that it is often difficult to compute $Z$ in applications of Markov random fields,
+but here we are working with relatively short sequences, 
+so we just compute \eqref{eqn:root_mrf} for all possible $z$, and divide by the sum.
+(However, for this same reason this is not equivalent to saying that $X(0)$ is a sample from the Markov random field
+and finding the distribution of patterns within this.)
 
 
 
 %%%%%%%%%%%
 \section{Computation}
 
+For inference, we need to compute the $|\calS|^{m+2\ell} \times |\calS|^m$ matrix whose $(x,y)^\text{th}$ entry is $p_{m,\ell}(t,x,y)$,
+for various $t$.
+This matrix is a projection of the $|\calS|^{m+2\ell} \times |\calS|^{m+2\ell}$ matrix whose $(x,z)^\text{th}$ entry is
+\begin{align}
+    p_{m+2\ell}(x,z) = \left( e^{t G(m+2\ell)} \right)_{x,z} ,
+\end{align}
+where $G(m+2\ell)$ is the sparse $|\calS|^{m+2\ell} \times |\calS|^{m+2\ell}$ matrix defined in \eqref{eqn:G_defn}.
+The ``projection'' we need just marginalizes over long patterns $z$ that match the shorter pattern $y$:
+if we define the matrix $U$ in this way, so that $U_{zy}=1$ if $z_\ell^m=y$ and $U_{zy}=0$ otherwise,
+then
+\[
+    p_{m,\ell}(t,x,y) = \sum_{z \in \calS^{m+2\ell}} \left( e^{t G(m+2\ell)} \right)_{xz} U_{zy} ,
+\]
+so in fact we don't need the entire matrix $e^{t G(m+2\ell)}$,
+just the product of this matrix with each of the columns of $U$.
+
+Modern techniques in sparse matrix computation (e.g.\ Krylov methods) provide efficient ways to do this
+by only multiplying $G$ and $U$ some number of times, 
+which is much more efficient because $G$ is sparse.
+
+Also note that the further calculations in the phylogenetic case can be done using these methods.
+To compute
+\[
+    \sum_z \pi(z) p_{m+2\ell}(t_X,z,x) p_{m,\ell}(t_Y,z,y) 
+    = \sum_z \left( e^{t_X G(m+2\ell)} \right)_{zx} \pi(z) \sum_w \left( e^{t_X G(m+2\ell)} \right)_{zw} U_{wy} ,
+\]
+we can first compute $\sum_w \left( e^{t_X G(m+2\ell)} \right)_{zw} U_{wy}$ as above,
+multiply by $\pi(z)$, and then apply the algorithm again using the transpose of $G(m+2\ell)$.
+
+Using the R package expm, this makes computation quite feasible:
+with four possible states and $\ell=2$ and $m=1$, so that $G(m+2\ell)$ is a $1024 \times 1024$ matrix,
+computing $e^{t G(5) }$ takes 13 seconds, while computing $e^{t G(5)} U$ takes only 0.3 seconds.
+Increasing to $\ell=4$ and $m=1$ or $\ell=3$ and $m=2$ is still feasible, taking $e^{t G(8)} U$ in 42 and 47 seconds, respectively.
 
 
 
