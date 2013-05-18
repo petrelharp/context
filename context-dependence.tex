@@ -473,6 +473,30 @@ Increasing to $\ell=4$ and $m=1$ or $\ell=3$ and $m=2$ is still feasible, taking
 
 
 
+%%%%%%
+\section{Bayesian things}
+
+So, suppose we've got a list of patterns $(x_i,y_i)$
+and we're happy with the idea that they're independent.
+Recall that
+\[
+\E\left[ N(x,y) \mid N(x) \right] = N(x) p_{m,\ell}(x,y) ,
+\]
+Parameters $\theta$ enter implicitly through $p_{m,\ell}$.
+
+
+In the case that we observe the initial sequence, $N(x,y)$ are binomial with sample size $N(x)$.
+and so the likelihood is 
+\[
+\prod_x N(x)! \prod_y \frac{ p_{m,\ell}(x,y)^{N(x,y)} }{ N(x,y)! } ,
+\]
+and so the negative log likelihood is, up to a constant,
+\[
+\sum_{x,y} N(x,y) \log p_{m,\ell}(x,y) .
+\]
+
+
+
 
 
 \end{document}

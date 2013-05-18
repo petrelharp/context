@@ -6,15 +6,16 @@ rinitseq <- function (seqlen,bases,basefreqs=rep(1/length(bases),length(bases)))
     # return a random sequence.  bases can in fact be longer patterns.
     # note that if bases are longer than 1 character, 
     #  DOES NOT actually produce a sting with frequencies basefreqs.
+    stringfun <- if ( all(bases %in% c("A","C","G","T","-") ) ) { DNAString } else { BString }
     patlen <- mean( nchar(bases) )
     rpats <- c()
     while( sum(nchar(rpats))<seqlen ) {
         rpats <- c( rpats, sample( bases, floor(1.05*seqlen/patlen), replace=TRUE, prob=basefreqs ) )
     }
-    return( DNAString(substr( paste( rpats, collapse="" ), 1, seqlen )) )
+    return( stringfun(substr( paste( rpats, collapse="" ), 1, seqlen )) )
 }
 
-simseq <- function (seqlen, tlen, patlen, mutpats, mutrates, selpats, selcoef, Ne, bases=c("A","C","G","T"), count.trans=TRUE, initseq, basefreqs=rep(1/length(bases),length(bases)), ... ) {
+simseq <- function (seqlen, tlen, patlen, mutpats, mutrates, selpats, selcoef, Ne=1, bases=c("A","C","G","T"), count.trans=TRUE, initseq, basefreqs=rep(1/length(bases),length(bases)), ... ) {
     # simulate a random sequence and evolve it with genmatrix.
     #  record transition counts if count.trans it TRUE (e.g. for debugging)
     # First make transition matrix
@@ -22,13 +23,14 @@ simseq <- function (seqlen, tlen, patlen, mutpats, mutrates, selpats, selcoef, N
     #    e.g. if the rate of CG -> TG is 1.5, and pattern length is 4,
     #    then we'll match on CG.., .CG., and ..CG, so the transition rates of e.g. CGTT -> TGTT should be 1.5/(4-2+1) = 0.5
     #   So, rescale mutrates:
+    stringsetfun <- if ( all(bases %in% c("A","C","G","T","-") ) ) { DNAStringSet } else { BStringSet }
     genmatrix <- makegenmatrix( mutpats, selpats, patlen=patlen )
     mutpatlens <- lapply( mutpats, function (x) unique(nchar(unlist(x))) )
     if (! all( sapply(mutpatlens,length)==1 ) ) { stop("need each list in mutpats to have patterns of the same length") }
     mutrates <- mutrates / (patlen-unlist(mutpatlens)+1)  # avoid multiple counting
     genmatrix@x <- update(genmatrix,mutrates,selcoef,Ne)
     patterns <- rownames(genmatrix)
-    patstrings <- DNAStringSet( patterns )
+    patstrings <- stringsetfun( patterns )
     # max mutation rate
     stopifnot( inherits(genmatrix,"dgTMatrix") )  # we access @i, @j, and @x directly...
     stopifnot( all(genmatrix>=0) )  # assume this comes WITHOUT the diagonal
@@ -52,17 +54,20 @@ simseq <- function (seqlen, tlen, patlen, mutpats, mutrates, selpats, selcoef, N
             }
         msubseq <- match( subseq, patstrings )  # which row for this string?
         isubseq <- which( (genmatrix@i + 1) == msubseq ) # transitions are these entries of genmatrix
-        jsubseq <- c( msubseq, (genmatrix@j[isubseq]+1) ) # indices of possible replacement patterns (self is first)
-        psubseq <- c( diags[msubseq], genmatrix@x[isubseq] )  # probabilities of choosing these
-        replind <- sample( jsubseq, 1, prob=psubseq ) # choose this replacement string (index)
-        replstr <- patstrings[[replind]] # what is the replacement string
-        if (count.trans) {  ntrans$i[k] <- patterns[msubseq]; ntrans$j[k] <- patterns[replind] } # record this (is a factor so not storing actual strings)
-        if (wrap.events[k]) { # put this back in (cyclical)
-            subseq( finalseq, loc.events[k], seqlen) <- subseq(replstr,1,seqlen-loc.events[k]+1)
-            subseq(finalseq, 1, loc.events[k]+patlen-seqlen) <- subseq(replstr,seqlen-loc.events[k]+2,patlen)
-        } else {
-            subseq( finalseq, loc.events[k], loc.events[k]+patlen-1 ) <- replstr
+        if (length(isubseq)>0) {   # do nothing if this pattern doesn't mutate
+            jsubseq <- c( msubseq, (genmatrix@j[isubseq]+1) ) # indices of possible replacement patterns (self is first)
+            psubseq <- c( diags[msubseq], genmatrix@x[isubseq] )  # probabilities of choosing these
+            replind <- sample( jsubseq, 1, prob=psubseq ) # choose this replacement string (index)
+            replstr <- patstrings[[replind]] # what is the replacement string
+            if (count.trans) {  ntrans$i[k] <- patterns[msubseq]; ntrans$j[k] <- patterns[replind] } # record this (is a factor so not storing actual strings)
+            if (wrap.events[k]) { # put this back in (cyclical)
+                subseq( finalseq, loc.events[k], seqlen) <- subseq(replstr,1,seqlen-loc.events[k]+1)
+                subseq(finalseq, 1, loc.events[k]+patlen-seqlen-1) <- subseq(replstr,seqlen-loc.events[k]+2,patlen)
+            } else {
+                subseq( finalseq, loc.events[k], loc.events[k]+patlen-1 ) <- replstr
+            }
         }
+        if (nchar(finalseq) != nchar(initseq)) { browser() }
     }
     output <-  list( initseq=initseq, finalseq=finalseq, maxrate=maxrate, ntrans=ntrans ) 
     class(output) <- "simseq"
@@ -120,5 +125,5 @@ show.simseq <- function (x,printit=FALSE,maxchar=1e8) {
 } 
 
 print.simseq <- function (x,...) {
-    invisible( show.simseq(x,printit=TRUE,maxchar=200) )
+    invisible( show.simseq(x,printit=TRUE,maxchar=min(nchar(x$initseq),200)) )
 }
