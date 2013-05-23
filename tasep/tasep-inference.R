@@ -43,7 +43,7 @@ if (interactive()) {
     win <- 2
 
     # pick one
-    thissim <- siminfo[5,"file"]
+    thissim <- siminfo[1,"file"]
 }
 
 load(thissim)
