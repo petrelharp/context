@@ -15,7 +15,7 @@ getpatterns <- function(winlen) {
 getmutmats <- function(mutpats,patterns,boundary=c("wrap","none")) {
     # given mutation patterns,
     #   which can be a list of either pairs or lists of pairs,
-    # return list of matrices with indices of changes corresponding to mutation patterns
+    # return list of matrices with (1-based) indices of changes corresponding to mutation patterns
     #   i.e. if (i,j) is a row of output[[k]], then patterns[j] can be obtained from patterns[i]
     #   by performing the substitution from mutpats[[i]][1] -> mutpats[[i]][2]
     #   at some location within the string.
@@ -30,7 +30,6 @@ getmutmats <- function(mutpats,patterns,boundary=c("wrap","none")) {
                         wpatterns <- paste( patterns, substr(patterns,1,patlen), sep='' )
                         maxshift <- winlen
                         subsfun <- function (pat,topat,k) { wrapsubstr( pat, k, k+patlen-1 ) <- topat; return(pat) }
-                        xfun <- function (...) { 1 }
                     },
                     none={
                         wpatterns <- patterns
@@ -67,15 +66,13 @@ makegenmatrix <- function (mutpats,selpats,patlen=nchar(patterns[1]),patterns=ge
     allmutmats <- do.call( rbind, mutmats )
     # convert to dgCMatrix format
     dgCord <- order( allmutmats$j, allmutmats$i )
-    invdgCord <- sort( seq_along(dgCord), index.return=TRUE )$ix  # inverse of the permuation dgCord
-    dgCp <- sapply(0:length(patterns), function (k) sum(allmutmats$j<k))
-
+    dgCp <- sapply(0:length(patterns), function (k) sum(allmutmats$j<k+1))
     # function to transfer these to list of values in mutation matrix
     nmutswitches <- sapply(mutmats,NROW)
     muttrans <- dgTtodgC( new( "dgTMatrix", i=1:sum(nmutswitches)-1L, j=rep(seq_along(mutrates),times=nmutswitches)-1L, x=rep(1,sum(nmutswitches)), Dim=c(sum(nmutswitches),length(mutrates)) ) )
-    muttrans <- muttrans[ invdgCord , , drop=FALSE ]
+    muttrans <- muttrans[ dgCord , , drop=FALSE ]
     whichmut <- function (mutrates) { as.vector(muttrans %*% mutrates) }
-
+    # selection?
     if (length(selpats)>0) {
         # selmatches[i,j] is number of times selpat[i] matches pattern[j]
         selmatches <- do.call( rbind, lapply(selpats, function (x) {
@@ -89,14 +86,13 @@ makegenmatrix <- function (mutpats,selpats,patlen=nchar(patterns[1]),patterns=ge
         #     ... make these sparse?
         fromsel <- selmatches[,  allmutmats$i, drop=FALSE ]
         tosel <- selmatches[,  allmutmats$j, drop=FALSE ]
-        seltrans <- (tosel - fromsel)[invdgCord,,drop=FALSE]
+        seltrans <- t( (tosel - fromsel)[,dgCord,drop=FALSE] )
         seldiff <- function (selcoef) { as.vector( seltrans %*% selcoef ) }
     } else {
         seltrans <- numeric(0)
-        dim(seltrans) <- c(0,0)
+        dim(seltrans) <- c(nrow(muttrans),0)
         seldiff <- function (...) { 0 }
     }
-
     # full instantaneous mutation, and transition matrix
     genmatrix <- with( allmutmats, new( "genmatrix", i=(i-1L)[dgCord], p=dgCp,
             x=whichmut(mutrates)*fixfn(seldiff(selcoef),Ne), 
@@ -106,7 +102,6 @@ makegenmatrix <- function (mutpats,selpats,patlen=nchar(patterns[1]),patterns=ge
         ) )
     rownames( genmatrix ) <- colnames( genmatrix ) <- patterns
     # diag(genmatrix) <- (-1)*rowSums(genmatrix)  # this makes genmatrix a dgCMatrix
-
     return(genmatrix)
 }
 
@@ -132,20 +127,25 @@ collapsepatmatrix <- function (ipatterns, lwin=0, rwin=nchar(ipatterns[1])-nchar
 meangenmatrix <- function (lwin,rwin,patlen,...) {
     # create a generator matrix that averages over possible adjacent states
     longpatlen <- patlen+lwin+rwin
-    genmat <- makegenmatrix(...,patlen=longpatlen)
-    projmat <- collapsepatmatrix(ipatterns=rownames(genmat),lwin=lwin,rwin=rwin)
-    meanmat <- t( sweep( projmat, 2, colSums(projmat), "/" ) )
-    pgenmat <- meanmat %*% genmat %*% projmat 
-    # construct matrix to project from x values in big dgCMatrix to little one
-    ij.in <- 1L + cbind( i=genmat@i, j=rep(1:ncol(genmat),times=diff(genmat@p))-1L )
-    ij.out <- 1L + cbind( i=pgenmat@i, j=rep(1:ncol(pgenmat),times=diff(pgenmat@p))-1L )
-    ij.trans <- do.call( rbind, lapply( 1:nrow(ij.out), function (k) {
-                cbind( 
-                    i=k,
-                    j=
-                    x=(meanmat[ij.out[k,"i"],ij.in[,"i"]])*(projmat[ij.in[,"j"],ij.out[k,"j"]])
-                    ) 
-            } ) )
+    genmat <- makegenmatrix(...,patlen=longpatlen)  # this is G
+    projmat <- collapsepatmatrix(ipatterns=rownames(genmat),lwin=lwin,rwin=rwin)  # this is P
+    meanmat <- t( sweep( projmat, 2, colSums(projmat), "/" ) )  # this is M
+    pgenmat <- meanmat %*% genmat %*% projmat   # this is H = M G P
+    ii <- pgenmat@i
+    jj <- rep(1:ncol(pgenmat),times=diff(pgenmat@p)) - 1L
+    nondiag <- ( ii != jj )
+    # construct matrix to project from x values in big dgCMatrix to little one:
+    #  note that H_ij = M_i. G  P_.j  = sum_kl M_ik G_kl P_lj
+    #  ... and we have constructed G and H so we know which the nonzero elements are already
+    #    and can use this to find the linear transformation 
+    #    from nonzero elemetns of G to nonzero elements of H
+    ij.H <- 1L + cbind( i=ii[nondiag], j=jj[nondiag] )
+    ij.G <- 1L + cbind( i=genmat@i, j=rep(1:ncol(genmat),times=diff(genmat@p))-1L )
+    pnonz <- t( apply( ij.H, 1, function (ij) { meanmat[ij[1],ij.G[,"i"]] * projmat[ij.G[,"j"],ij[2]] } ) )
+    pp <- sapply( 0:ncol(pgenmat), function(k) sum(jj[nondiag]<k) )
+    meangenmat <- new( "genmatrix", i=ii[nondiag], p=pp, x=pgenmat@x[nondiag], Dim=pgenmat@Dim, Dimnames=pgenmat@Dimnames,
+        muttrans = (pnonz %*% genmat@muttrans), seltrans = (pnonz %*% genmat@seltrans) )
+    return( meangenmat )
 }
 
 computetransmatrix <- function( genmatrix, projmatrix, tlen=1, names=FALSE, transpose=FALSE, ... ) {
@@ -199,26 +199,26 @@ getlikfun <- function (nmuts,nsel,genmatrix,projmatrix,const=0) {
 # Misc
 
 wrapsubstr <- function (x,start,stop) {
-    if (nchar(x)==0) { return("") }
-    while( nchar(x)<stop ) {
+    if (all(nchar(x)==0)) { return("") }
+    while( any(nchar(x)<stop) ) {
         x <- paste(x,x,sep='')
     }
     substr(x,start,stop)
 }
 
 "wrapsubstr<-" <- function (x,start,stop,value) {
+    if (length(value)<length(x)) { value <- rep(value,length(x)) }
     xlen <- nchar(x)
-    stop <- stop - xlen*(start%/%xlen)
-    start <- start%%xlen
-    if (all(xlen==0)) { return("") }
-    k <- 1
-    while( any(stop>xlen) ) {
-        substr(x,start,xlen) <- substr(value,k,k+xlen-start)
-        k <- k+xlen-start+1
-        start <- 1
-        stop <- stop-(xlen-start+1)
+    k <- rep(1,length(x))
+    while( TRUE ) {
+        stop <- ifelse( xlen>0, stop - xlen*((start-1)%/%xlen), 0 )
+        start <- ifelse( xlen>0, (start-1)%%xlen+1, 0 )
+        thisstop <- pmin(xlen,stop)
+        substr(x,start,thisstop) <- substr(value,k,k+thisstop-start)
+        k <- k+thisstop-start+1
+        start <- thisstop+1
+        if( all(stop<start) ) { break; }
     }
-    substr(x,start,stop) <- substr(value,k,k+stop-start)
     return(x)
 }
 
