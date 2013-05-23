@@ -1,6 +1,6 @@
 #!/usr/bin/R
-require(Matrix)
-require(expm)
+require(Matrix,warn.conflicts=FALSE)
+require(expm,warn.conflicts=FALSE)
 # find what dir we're in
 frame_files <- lapply(sys.frames(), function(x) x$ofile)
 frame_files <- Filter(Negate(is.null), frame_files)

@@ -1,6 +1,6 @@
 # Simulate a sequence, with context-dependent mutation rates
-require(Biostrings)
-require(IRanges)
+require(Biostrings,warn.conflicts=FALSE)
+require(IRanges,warn.conflicts=FALSE)
 
 rinitseq <- function (seqlen,bases,basefreqs=rep(1/length(bases),length(bases))) {
     # return a random sequence.  bases can in fact be longer patterns.
