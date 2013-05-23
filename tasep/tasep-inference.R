@@ -66,7 +66,7 @@ lapply( 1:maxwin, function (thiswin) {
     lwin <- rwin <- thiswin
     winlen <- lwin+win+rwin
 
-    genmatrix <- makegenmatrix( mutpats, selpats=c(), patlen=winlen, boundary="wrap")
+    genmatrix <- meangenmatrix( lwin=1, rwin=1, patlen=winlen, mutpats=mutpats, selpats=c(), boundary="wrap" )
     genmatrix@x <- update(genmatrix,mutrates,selcoef=numeric(0),Ne=1)
     projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
     subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE )

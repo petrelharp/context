@@ -32,7 +32,8 @@ simseq <- function (seqlen, tlen, patlen, mutpats, mutrates, selpats, selcoef, N
     patterns <- rownames(genmatrix)
     patstrings <- stringsetfun( patterns )
     # max mutation rate
-    stopifnot( inherits(genmatrix,"dgTMatrix") )  # we access @i, @j, and @x directly...
+    stopifnot( inherits(genmatrix,"dgCMatrix") )  # we access @i, @p, and @x directly...
+    gmj <- rep( 0:(ncol(genmatrix)-1), times=diff(genmatrix@p) )  # column indices corresp to @i
     stopifnot( all(genmatrix>=0) )  # assume this comes WITHOUT the diagonal
     maxrate <- max( rowSums(genmatrix) )
     diags <- maxrate - rowSums(genmatrix)
@@ -55,7 +56,7 @@ simseq <- function (seqlen, tlen, patlen, mutpats, mutrates, selpats, selcoef, N
         msubseq <- match( subseq, patstrings )  # which row for this string?
         isubseq <- which( (genmatrix@i + 1) == msubseq ) # transitions are these entries of genmatrix
         if (length(isubseq)>0) {   # do nothing if this pattern doesn't mutate
-            jsubseq <- c( msubseq, (genmatrix@j[isubseq]+1) ) # indices of possible replacement patterns (self is first)
+            jsubseq <- c( msubseq, (gmj[isubseq]+1) ) # indices of possible replacement patterns (self is first)
             psubseq <- c( diags[msubseq], genmatrix@x[isubseq] )  # probabilities of choosing these
             replind <- sample( jsubseq, 1, prob=psubseq ) # choose this replacement string (index)
             replstr <- patstrings[[replind]] # what is the replacement string
