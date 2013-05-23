@@ -92,7 +92,6 @@ makegenmatrix <- function (mutpats,selpats,patlen=nchar(patterns[1]),patterns=ge
     allmutmats <- do.call( rbind, mutmats )
     # convert to dgCMatrix format
     dgCord <- order( allmutmats$j, allmutmats$i )
-    dgCp <- sapply(0:length(patterns), function (k) sum(allmutmats$j<k+1))
     # function to transfer these to list of values in mutation matrix
     nmutswitches <- sapply(mutmats,NROW)
     muttrans <- dgTtodgC( new( "dgTMatrix", i=1:sum(nmutswitches)-1L, j=rep(seq_along(mutrates),times=nmutswitches)-1L, x=rep(1,sum(nmutswitches)), Dim=c(sum(nmutswitches),length(mutrates)) ) )
@@ -109,9 +108,16 @@ makegenmatrix <- function (mutpats,selpats,patlen=nchar(patterns[1]),patterns=ge
     } else {
         seltrans <- Matrix(numeric(0),nrow=nrow(muttrans),ncol=0)
     }
+    # there may be duplicated rows (matching multiple patterns); deal with this
+    dups <- c(FALSE,diff(allmutmats[dgCord,][,1])==0)
+    dupproj <- new("dgTMatrix",i=cumsum(!dups)-1L,j=seq_along(dups)-1L,x=rep(1,length(dups)),Dim=c(nrow(allmutmats)-sum(dups),nrow(allmutmats)))
+    muttrans <- dupproj %*% muttrans
+    seltrans <- dupproj %*% seltrans
     # full instantaneous mutation, and transition matrix
-    genmatrix <- with( allmutmats, new( "genmatrix", i=(i-1L)[dgCord], p=dgCp,
-            x=rep(1,length(dgCord)),
+    genmatrix <- with( allmutmats[dgCord,], new( "genmatrix", 
+            i=(i-1L)[!dups], 
+            p=sapply(0:length(patterns), function (k) sum(j[!dups]<k+1)),
+            x=rep(1,sum(!dups)),
             Dim=c(length(patterns),length(patterns)), 
             muttrans=muttrans,
             seltrans=seltrans,
