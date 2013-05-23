@@ -20,14 +20,14 @@ if (length(args)<1) {
     if (length(args)>=3) {
         maxwin <- as.numeric(args[3])
     } else {
-        maxwin <- 6
+        maxwin <- 4
     }
 }
 
 
 scriptdir <- "../"
-source(paste(scriptdir,"codon-inference-fns.R",sep=''))
-source(paste(scriptdir,"sim-context-fns.R",sep=''))
+source(paste(scriptdir,"codon-inference-fns.r",sep=''))
+source(paste(scriptdir,"sim-context-fns.r",sep=''))
 
 if (interactive()) {
     # available simulated sequences
