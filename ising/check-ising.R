@@ -13,12 +13,11 @@ mutpats <- list(
     ) 
 mutrates <- c(3,5)
 selpats <- list(
-        c("OO","XX"),
         c("OX","XO"),
-        c("O"),
         c("X")
     )
-selcoef <- c(0,-2,0,1)
+selcoef <- c(-2,1)
+
 
 fixfn <- function (ds,...) { ifelse( ds==0, 1, 1/(1+exp(-ds)) ) }
 

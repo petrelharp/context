@@ -79,7 +79,7 @@ fixfn <- function (ds,Ne) {
 }
 
 # genmatrix extends the sparse matrix class, carrying along more information.
-setClass("genmatrix", representation(muttrans="Matrix",seltrans="matrix",mutrates="numeric",selcoef="numeric"), contains = "dgCMatrix")
+setClass("genmatrix", representation(muttrans="Matrix",seltrans="Matrix",mutrates="numeric",selcoef="numeric"), contains = "dgCMatrix")
 
 makegenmatrix <- function (mutpats,selpats,patlen=nchar(patterns[1]),patterns=getpatterns(patlen),mutrates=rep(1,length(mutpats)),selcoef=rep(1,length(selpats)),Ne=1, boundary=c("wrap","none")) {
     # make the generator matrix, carrying with it the means to quickly update itself.
@@ -105,10 +105,9 @@ makegenmatrix <- function (mutpats,selpats,patlen=nchar(patterns[1]),patterns=ge
         #     ... make these sparse?
         fromsel <- selmatches[,  allmutmats$i, drop=FALSE ]
         tosel <- selmatches[,  allmutmats$j, drop=FALSE ]
-        seltrans <- t( (tosel - fromsel)[,dgCord,drop=FALSE] )
+        seltrans <- Matrix(t( (tosel - fromsel)[,dgCord,drop=FALSE] ))
     } else {
-        seltrans <- numeric(0)
-        dim(seltrans) <- c(nrow(muttrans),0)
+        seltrans <- Matrix(numeric(0),nrow=nrow(muttrans),ncol=0)
     }
     # full instantaneous mutation, and transition matrix
     genmatrix <- with( allmutmats, new( "genmatrix", i=(i-1L)[dgCord], p=dgCp,
@@ -161,7 +160,10 @@ meangenmatrix <- function (lwin,rwin,patlen,...) {
     #    from nonzero elemetns of G to nonzero elements of H
     ij.H <- 1L + cbind( i=ii[nondiag], j=jj[nondiag] )
     ij.G <- 1L + cbind( i=genmat@i, j=rep(1:ncol(genmat),times=diff(genmat@p))-1L )
-    pnonz <- t( apply( ij.H, 1, function (ij) { meanmat[ij[1],ij.G[,"i"]] * projmat[ij.G[,"j"],ij[2]] } ) )
+    # for-loop to avoid memory hogging
+    pnonz <- Matrix( 0, nrow=nrow(ij.H), ncol=nrow(ij.G), sparse=TRUE )
+    for (k in 1:nrow(ij.H)) { pnonz[k,] <-  meanmat[ij.H[k,"i"],ij.G[,"i"]] * projmat[ij.G[,"j"],ij.H[k,"j"]] }
+    # pnonz <- t( apply( ij.H, 1, function (ij) { meanmat[ij[1],ij.G[,"i"]] * projmat[ij.G[,"j"],ij[2]] } ) )
     pp <- sapply( 0:ncol(pgenmat), function(k) sum(jj[nondiag]<k) )
     meangenmat <- new( "genmatrix", i=ii[nondiag], p=pp, x=pgenmat@x[nondiag], Dim=pgenmat@Dim, Dimnames=pgenmat@Dimnames,
         muttrans = (pnonz %*% genmat@muttrans), seltrans = (pnonz %*% genmat@seltrans),
