@@ -15,7 +15,7 @@ rinitseq <- function (seqlen,bases,basefreqs=rep(1/length(bases),length(bases)))
     return( stringfun(substr( paste( rpats, collapse="" ), 1, seqlen )) )
 }
 
-simseq <- function (seqlen, tlen, patlen, mutpats, mutrates, selpats, selcoef, Ne=1, bases=c("A","C","G","T"), count.trans=TRUE, initseq, basefreqs=rep(1/length(bases),length(bases)), ... ) {
+simseq <- function (seqlen, tlen, patlen, mutpats, mutrates, selpats, selcoef, bases=c("A","C","G","T"), count.trans=TRUE, initseq, basefreqs=rep(1/length(bases),length(bases)), ... ) {
     # simulate a random sequence and evolve it with genmatrix.
     #  record transition counts if count.trans it TRUE (e.g. for debugging)
     # First make transition matrix
@@ -28,7 +28,7 @@ simseq <- function (seqlen, tlen, patlen, mutpats, mutrates, selpats, selcoef, N
     mutpatlens <- lapply( mutpats, function (x) unique(nchar(unlist(x))) )
     if (! all( sapply(mutpatlens,length)==1 ) ) { stop("need each list in mutpats to have patterns of the same length") }
     mutrates <- mutrates / (patlen-unlist(mutpatlens)+1)  # avoid multiple counting
-    genmatrix@x <- update(genmatrix,mutrates,selcoef,Ne)
+    genmatrix@x <- update(genmatrix,mutrates,selcoef,...)
     patterns <- rownames(genmatrix)
     patstrings <- stringsetfun( patterns )
     # max mutation rate
@@ -70,7 +70,7 @@ simseq <- function (seqlen, tlen, patlen, mutpats, mutrates, selpats, selcoef, N
         }
         if (nchar(finalseq) != nchar(initseq)) { browser() }
     }
-    output <-  list( initseq=initseq, finalseq=finalseq, maxrate=maxrate, ntrans=ntrans ) 
+    output <-  list( initseq=initseq, finalseq=finalseq, maxrate=maxrate, ntrans=ntrans, mutpats=mutpats, selpats=selpats, mutrates=mutrates, selcoef=selcoef, tlen=tlen, seqlen=seqlen, params=list(...) ) 
     class(output) <- "simseq"
     return(output)
 }

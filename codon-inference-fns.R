@@ -12,6 +12,10 @@ getpatterns <- function(winlen) {
     return( apply(patterns,1,paste,collapse="") )
 }
 
+npatterns <- function (winlen) {
+    return( length(bases)^winlen )
+}
+
 getmutmats <- function(mutpats,patterns,boundary=c("wrap","none")) {
     # given mutation patterns,
     #   which can be a list of either pairs or lists of pairs,
@@ -73,7 +77,7 @@ getselmatches <- function (selpats, patterns, boundary=c("wrap","none"), names=F
 }
 
 
-fixfn <- function (ds,Ne) { 
+popgen.fixfn <- function (ds,Ne) { 
     # total influx of fixation given selection coefficient (s[to] - s[from]) difference ds
     if (length(ds)==0) { 1 } else { ifelse( ds==0, 1, Ne*expm1(-2*ds)/expm1(-2*Ne*ds) ) } 
 }
@@ -204,14 +208,35 @@ getupdowntrans <- function ( genmatrix, projmatrix, mutrates, selcoef, Ne, initf
     return( computetransmatrix( genmatrix.down, upbranch, transpose=TRUE ) / as.vector(downbranch) )  # conditional prob of y given x
 }
 
+
 predictcounts <- function (win, lwin=0, rwin=0, initcounts, mutrates, selcoef, mutpats, selpats, genmatrix, projmatrix, ... ) {
+    # Compute expected counts of paired patterns:
     winlen <- lwin+win+rwin
     if (missing(genmatrix)) { genmatrix <- makegenmatrix(patlen=lwin+win+rwin,mutpats=mutpats,selpats=selpats, ...) }
-    if (!missing(mutrates)) { genmatrix@x <- update(genmatrix,mutrates=mutrates,selcoef=selcoef) }
+    if (!missing(mutrates)) { genmatrix@x <- update(genmatrix,mutrates=mutrates,selcoef=selcoef,...) }
     if (missing(projmatrix)) { projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin ) }
     subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE )
     if (missing(initcounts)) { initcounts <- 1 }
-    return( initcounts * subtransmatrix )
+    fullcounts <- initcounts * subtransmatrix
+    return( fullcounts )
+}
+
+projectcounts <- function( lwin, lcountwin, countwin, rcountwin, counts ) {
+    # collapse: valid shift ranges is
+    #  (l-lc)^+ <= k < (l+w)-(lc+wc)+(r-rc)^-
+    #  using counts for (lwin,win,rwin) compute counts for (lcountwin,countwin,rcountwin).
+    if ( max(0L,lwin-lcountwin) > (lwin+win)-(lcountwin+countwin)+min(0L,rwin-rcountwin) ) { stop("unreconcilable windows specified.") }
+    winlen <- nchar(rownames(counts)[1])
+    win <- nchar(colnames(counts)[1])
+    rwin <- winlen-win-lwin
+    pcounts <- matrix(0,nrow=npatterns(lcountwin+countwin+rcountwin),ncol=npatterns(countwin))
+    for (k in max(0L,lwin-lcountwin):((lwin+win)-(lcountwin+countwin)+min(0L,rwin-rcountwin))) {
+        lpmat <- collapsepatmatrix( ipatterns=rownames(counts), lwin=k, rwin=winlen-(k+lcountwin+countwin+rcountwin) )
+        rpmat <- collapsepatmatrix( ipatterns=colnames(counts), lwin=k+lcountwin-lwin, rwin=win-(k+lcountwin-lwin+countwin) )
+        pcounts <- pcounts + t(lpmat) %*% counts %*% (rpmat)
+    }
+    dimnames(pcounts) <- list( colnames(lpmat), rownames(rpmat) )
+    return(pcounts)
 }
 
 whichchanged <- function (ipatterns,fpatterns,lwin=0,win=nchar(ipatterns[0])) {

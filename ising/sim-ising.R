@@ -24,6 +24,7 @@ if (length(args)<2) {
 }
 
 simdir <- "ising-sims/"
+if (!file.exists(simdir)) { dir.create(simdir,recursive=TRUE) }
 
 bases <- c("X","O")
 
@@ -48,7 +49,7 @@ initfreqs <- c(Xfreq,1-Xfreq)
 initseq <- rinitseq(seqlen,bases,basefreqs=initfreqs)
 system.time( 
         simseqs <- list(
-                simseq( seqlen, tlen, patlen=patlen, mutpats=mutpats, mutrates=mutrates, selpats=selpats, selcoef=numeric(0), Ne=1, initseq=initseq, bases=bases )
+                simseq( seqlen=seqlen, tlen=tlen, patlen=patlen, mutpats=mutpats, mutrates=mutrates, selpats=selpats, selcoef=selcoef, initseq=initseq, bases=bases )
             )
     )
 

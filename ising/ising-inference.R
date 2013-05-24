@@ -69,19 +69,16 @@ lapply( 2:maxwin, function (thiswin) {
     lwin <- rwin <- thiswin
     winlen <- lwin+win+rwin
 
-    genmatrix <- meangenmatrix( lwin=1, rwin=1, patlen=winlen, mutpats=mutpats, selpats=selpats, boundary="wrap" )
-    genmatrix@x <- update(genmatrix,mutrates,selcoef=numeric(0))
+    genmatrix <- meangenmatrix( lwin=1, rwin=1, patlen=winlen, mutpats=mutpats, selpats=selpats, mutrates=mutrates*tlen, selcoef=selcoef, boundary="none" )
     projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
     subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE )
 
     counts <- list(
                 counttrans( rownames(projmatrix), colnames(projmatrix), simseqs[[1]]$initseq, simseqs[[1]]$finalseq, lwin=lwin )
             )
-    # allow nonmatches with small prob?
-    eps <- 0
 
-    nmuts <- length(mutrates)
-    nsel <- length(selcoef)
+    nmuts <- length(mutpats)
+    nsel <- length(selpats)
     # move from base frequencies (what we estimate) to pattern frequencies
     likfun <- function (params) {
             # params are: mutrates, selcoef
@@ -91,45 +88,57 @@ lapply( 2:maxwin, function (thiswin) {
             genmatrix@x <- update(genmatrix,mutrates=mutrates,selcoef=selcoef)
             subtransmatrix <- computetransmatrix( genmatrix, projmatrix )
             # return negative log-likelihood 
-            (-1) * sum( counts[[1]] * log(eps+subtransmatrix) )
+            (-1) * sum( counts[[1]] * log(subtransmatrix) )
     }
 
-    initpar <- c( runif( length(mutpats) ) * mean(mutrates) * tlen, runif( length(selpats) ) * mean(selcoef) ) # random init
+    initpar <- c( 2 * runif( length(mutpats) ) * mean(mutrates) * tlen, 2 * runif( length(selpats) ) * mean(selcoef) ) # random init
     truth <- c( mutrates * tlen, selcoef )  # truth
-    lbs <- c( 1e-3 )
-    scalevec <- rep( 1, length(truth) )
-    cheating.ans <- optim( par=truth, fn=likfun, method="L-BFGS-B", lower=lbs, control=list(trace=3, parscale=scalevec) )
-    random.ans <- optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs, control=list(trace=3, parscale=scalevec) )
+    lbs <- c( rep(1e-6,nmuts), rep(-Inf,nsel) )
+    cheating.ans <- optim( par=truth, fn=likfun, method="L-BFGS-B", lower=lbs, control=list(trace=3) )
+    random.ans <- optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs, control=list(trace=3) )
 
     estimates <- data.frame( rbind(init=initpar, ans=random.ans$par, cheating=cheating.ans$par, truth=truth ) )
     colnames(estimates) <- c( paste("muttime",seq_along(mutrates),sep=''), paste("selcoef",seq_along(selcoef),sep='') )
     estimates$likfun <- apply( estimates, 1, likfun )
     write.table( estimates, file=resultsfile, quote=FALSE, sep="\t" )
 
-    # look at observed and expected.
-    subtransmatrix <- computetransmatrix( genmatrix, projmatrix )
-    true.expected <- lapply( counts, function (cnt) { rowSums(cnt) * subtransmatrix } )
-    est.genmatrix <- genmatrix; est.genmatrix@x <- update(est.genmatrix,estimates["ans",1],selcoef=numeric(0),Ne=1)
-    est.subtransmatrix <- computetransmatrix( est.genmatrix, projmatrix )
-    est.expected <- lapply( counts, function (cnt) { rowSums(cnt) * est.subtransmatrix } )
-    cheating.genmatrix <- genmatrix; cheating.genmatrix@x <- update(cheating.genmatrix,estimates["cheating",1],selcoef=numeric(0),Ne=1)
-    cheating.subtransmatrix <- computetransmatrix( cheating.genmatrix, projmatrix )
-    cheating.expected <- lapply( counts, function (cnt) { rowSums(cnt) * cheating.subtransmatrix } )
-    init.counts <- rowSums(counttrans(rownames(genmatrix),colnames(projmatrix),simseqs= simseqs[[1]]))
+    # look at observed/expected counts
+    all.expected <- lapply( 1:nrow(estimates), function (k) {
+                x <- unlist(estimates[k,])
+                predictcounts( win, lwin, rwin, initcounts=rowSums(counts[[1]]), mutrates=x[1:nmuts], selcoef=x[nmuts+(1:nsel)], genmatrix=genmatrix, projmatrix=projmatrix )
+        } )
+    names(all.expected) <- rownames(estimates)
 
-    save( counts, genmatrix, subtransmatrix, truth, cheating.ans, random.ans, true.expected, est.expected, cheating.expected, file=datafile )
+    # look at observed/expected counts in smaller windows
+    cwin <- 2
+    subcounts <- projectcounts( lwin=lwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=counts[[1]] )
+    all.subexpected <- lapply( all.expected, function (x) { projectcounts( lwin=lwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=x ) } )
+
+    # # look at observed and expected.
+    # subtransmatrix <- computetransmatrix( genmatrix, projmatrix )
+    # true.expected <- lapply( counts, function (cnt) { rowSums(cnt) * subtransmatrix } )
+    # est.genmatrix <- genmatrix; est.genmatrix@x <- update(est.genmatrix,estimates["ans",1],selcoef=numeric(0),Ne=1)
+    # est.subtransmatrix <- computetransmatrix( est.genmatrix, projmatrix )
+    # est.expected <- lapply( counts, function (cnt) { rowSums(cnt) * est.subtransmatrix } )
+    # cheating.genmatrix <- genmatrix; cheating.genmatrix@x <- update(cheating.genmatrix,estimates["cheating",1],selcoef=numeric(0),Ne=1)
+    # cheating.subtransmatrix <- computetransmatrix( cheating.genmatrix, projmatrix )
+    # cheating.expected <- lapply( counts, function (cnt) { rowSums(cnt) * cheating.subtransmatrix } )
+    # init.counts <- rowSums(counttrans(rownames(genmatrix),colnames(projmatrix),simseqs= simseqs[[1]]))
+    # save( counts, genmatrix, subtransmatrix, truth, cheating.ans, random.ans, true.expected, est.expected, cheating.expected, file=datafile )
+
+    save( counts, genmatrix, subtransmatrix, truth, cheating.ans, random.ans, all.expected, cwin, subcounts, all.subexpected, file=datafile )
 
     pdf(file=paste(plotfile,"-1.pdf",sep=''),width=6, height=4, pointsize=10)
-    lord <- order( true.expected[[1]][,1] )
+    lord <- order( all.expected[["truth"]][[1]][,1] )
     layout(1)
-    plot( counts[[1]][lord,1], type='n', xaxt='n', xlab='', ylim=range(c(unlist(true.expected),unlist(lapply(counts,as.matrix)),unlist(est.expected))) )
+    plot( counts[[1]][lord,1], type='n', xaxt='n', xlab='', ylim=range(c(unlist(all.expected[["truth"]]),unlist(lapply(counts,as.matrix)),unlist(all.expected[["ans"]]))) )
     axis(1,at=1:nrow(counts[[1]]),labels=rownames(counts[[1]])[lord],las=3)
     for (k in 1:ncol(counts[[1]])) {
         for (j in 1:length(counts)) {
             points( counts[[j]][lord,k], pch=j )
-            lines(true.expected[[j]][lord,k],col='red', lty=j)
-            lines(est.expected[[j]][lord,k],col='green', lty=j, lwd=2)
-            lines(cheating.expected[[j]][lord,k],col='blue',lty=j)
+            lines(all.expected[["truth"]][[j]][lord,k],col='red', lty=j)
+            lines(all.expected[["ans"]][[j]][lord,k],col='green', lty=j, lwd=2)
+            lines(all.expected[["cheating"]][[j]][lord,k],col='blue',lty=j)
         }
         legend("topleft",legend=c("expected","estimated","cheating"),lty=1,col=c("red","green","blue"))
     }
@@ -137,18 +146,13 @@ lapply( 2:maxwin, function (thiswin) {
 
     pdf(file=paste(plotfile,"-2.pdf",sep=''),width=6, height=4, pointsize=10)
     layout(matrix(1:4,nrow=2))
+    cols <- rainbow(2+length(all.expected))[1:length(all.expected)]
     for (k in 1:4) {
-        nonz <- pmax(true.expected[[1]][,k],counts[[1]][,k],est.expected[[1]][,k])>.5
-        lord <- order( true.expected[[1]][,k] )[nonz]
-        plot( counts[[1]][lord,k], type='n', xaxt='n', xlab='', main=paste(paste(rep(".",lwin),collapse=""),colnames(counts[[1]])[k],paste(rep(".",rwin),collapse=''),sep=''), ylim=range(c(unlist(true.expected),unlist(lapply(counts,as.matrix)),unlist(est.expected))) )
-        axis(1,at=1:length(lord),labels=rownames(counts[[1]])[lord],las=3)
-        for (j in 1:1) {
-            points( counts[[j]][lord,k], pch=j )
-            lines(true.expected[[j]][lord,k],col='red', lty=j)
-            lines(est.expected[[j]][lord,k],col='green', lty=j, lwd=2)
-            lines(cheating.expected[[j]][lord,k],col='blue',lty=j)
-        }
-        legend("topleft",legend=c("expected","estimated","cheating"),lty=1,col=c("red","green","blue"))
+        lord <- order( all.subexpected[["truth"]][,k] )
+        plot( subcounts[lord,k], xaxt='n', xlab='', main=colnames(subcounts)[k] )
+        axis(1,at=1:nrow(subcounts),labels=rownames(subcounts)[lord],las=3)
+        invisible( lapply(seq_along(all.subexpected),function(j) { lines(all.subexpected[[j]][lord,k],col=cols[j]) } ) )
+        legend("topleft",legend=names(all.subexpected),lty=1,col=cols)
     }
     dev.off()
 
