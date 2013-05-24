@@ -81,7 +81,7 @@ fixfn <- function (ds,Ne) {
 # genmatrix extends the sparse matrix class, carrying along more information.
 setClass("genmatrix", representation(muttrans="Matrix",seltrans="Matrix",mutrates="numeric",selcoef="numeric"), contains = "dgCMatrix")
 
-makegenmatrix <- function (mutpats,selpats,patlen=nchar(patterns[1]),patterns=getpatterns(patlen),mutrates=rep(1,length(mutpats)),selcoef=rep(1,length(selpats)),Ne=1, boundary=c("wrap","none")) {
+makegenmatrix <- function (mutpats,selpats,patlen=nchar(patterns[1]),patterns=getpatterns(patlen),mutrates=rep(1,length(mutpats)),selcoef=rep(1,length(selpats)), boundary=c("wrap","none"), ...) {
     # make the generator matrix, carrying with it the means to quickly update itself.
     #  DON'T do the diagonal, so that the updating is easier.
     # this gives the instantaneous rate for going from patterns x -> y
@@ -125,7 +125,7 @@ makegenmatrix <- function (mutpats,selpats,patlen=nchar(patterns[1]),patterns=ge
             selcoef=selcoef
         ) )
     rownames( genmatrix ) <- colnames( genmatrix ) <- patterns
-    genmatrix@x <- update( genmatrix, mutrates, selcoef, Ne )
+    genmatrix@x <- update( genmatrix, mutrates, selcoef, ... )
     # diag(genmatrix) <- (-1)*rowSums(genmatrix)  # this makes genmatrix a dgCMatrix
     return(genmatrix)
 }
@@ -202,6 +202,16 @@ getupdowntrans <- function ( genmatrix, projmatrix, mutrates, selcoef, Ne, initf
     upbranch <- initfreqs * computetransmatrix( genmatrix.up, projmatrix )   #  prob of root, y
     downbranch <- computetransmatrix( genmatrix.down, initfreqs, transpose=TRUE )  # marginal prob of x
     return( computetransmatrix( genmatrix.down, upbranch, transpose=TRUE ) / as.vector(downbranch) )  # conditional prob of y given x
+}
+
+predictcounts <- function (win, lwin=0, rwin=0, initcounts, mutrates, selcoef, mutpats, selpats, genmatrix, projmatrix, ... ) {
+    winlen <- lwin+win+rwin
+    if (missing(genmatrix)) { genmatrix <- makegenmatrix(patlen=lwin+win+rwin,mutpats=mutpats,selpats=selpats, ...) }
+    if (!missing(mutrates)) { genmatrix@x <- update(genmatrix,mutrates=mutrates,selcoef=selcoef) }
+    if (missing(projmatrix)) { projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin ) }
+    subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE )
+    if (missing(initcounts)) { initcounts <- 1 }
+    return( initcounts * subtransmatrix )
 }
 
 whichchanged <- function (ipatterns,fpatterns,lwin=0,win=nchar(ipatterns[0])) {
