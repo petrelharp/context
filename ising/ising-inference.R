@@ -1,5 +1,6 @@
 #!/usr/bin/Rscript --vanilla
 require(optparse)
+options(error=traceback)
 
 usage <- "\
 Infer parameters from output of sim-ising.R .\
