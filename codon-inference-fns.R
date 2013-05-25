@@ -246,9 +246,13 @@ whichchanged <- function (ipatterns,fpatterns,lwin=0,win=nchar(ipatterns[0])) {
 }
 
 leftchanged <- function (ipatterns,fpatterns,lwin=0,win=nchar(ipatterns[0])) {
-    # return indicator corresponding to whether leftmost element changed
+    # return indicator corresponding to whether average of changed positions is left of middle
+    # ... any two such patterns, if they overlap, require an additional change.
     if (!is.null(dimnames(ipatterns))) { fpatterns <- colnames(ipatterns); ipatterns <- rownames(ipatterns) }
-    return( outer( ipatterns, fpatterns, function (x,y) { substr(x,lwin+1,lwin+1)!=substr(y,1,1) } ) )
+    changedchars <- sapply( 1:win, function (k) outer( ipatterns, fpatterns, function (x,y) { ifelse( substr(x,lwin+k,lwin+k)!=substr(y,k,k), k, NA ) } ) )
+    dim(changedchars) <- c( length(ipatterns), length(fpatterns), win )
+    meanpos <- rowMeans(changedchars, na.rm=TRUE, dims=2)
+    return( !is.na(meanpos) & meanpos <= (win+1)/2 )
 }
 
 getlikfun <- function (nmuts,nsel,genmatrix,projmatrix,const=0) {
