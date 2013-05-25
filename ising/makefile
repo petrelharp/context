@@ -1,5 +1,5 @@
 %.Rout : %.RData
-	Rscript --vanilla ising-inference.R -i $< > $*.log 2> $@
+	Rscript ising-inference.R -i -n 1000 $< > $*.log 2> $@
 
 test : check-ising.R
 	Rscript --vanilla $<

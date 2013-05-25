@@ -1,4 +1,4 @@
-#!/usr/bin/Rscript
+#!/usr/bin/Rscript --vanilla
 require(optparse)
 
 usage <- "\
@@ -13,7 +13,8 @@ option_list <- list(
         make_option( c("-n","--nbatches"), type="integer", default=1000, help="Number of MCMC batches. [default \"%default\"]" ),
         make_option( c("-b","--blen"), type="integer", default=10, help="Length of each MCMC batch. [default \"%default\"]" ),
         make_option( c("-m","--mmean"), type="double", default=1, help="Prior mean on mutation rates. [default \"%default\"]" ),
-        make_option( c("-v","--svar"), type="double", default=1, help="Prior variance on selection coefficents. [default \"%default\"]" )
+        make_option( c("-v","--svar"), type="double", default=1, help="Prior variance on selection coefficents. [default \"%default\"]" ),
+        make_option( c("-c","--continue"), action="store_true", default=FALSE, help="Continue with previous MCMC run?" )
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 attach(opt)
@@ -118,7 +119,7 @@ estimates$likfun <- apply( estimates, 1, likfun )
 write.table( estimates, file=resultsfile, quote=FALSE, sep="\t" )
 
 # bayesian
-mrun <- metrop( lud, initial=random.ans$par, nbatch=nbatches, blen=blen, scale=1e-2, debug=TRUE )
+mrun <- metrop( lud, initial=random.ans$par, nbatch=nbatches, blen=blen, scale=1e-2 )
 
 # look at observed/expected counts
 all.expected <- lapply( 1:nrow(estimates), function (k) {
@@ -132,7 +133,7 @@ cwin <- 2
 subcounts <- projectcounts( lwin=lwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=counts[[1]] )
 all.subexpected <- lapply( all.expected, function (x) { projectcounts( lwin=lwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=x ) } )
 
-save( counts, genmatrix, subtransmatrix, truth, cheating.ans, random.ans, all.expected, cwin, subcounts, all.subexpected, mrun, file=datafile )
+save( counts, genmatrix, subtransmatrix, lud, likfun, truth, cheating.ans, random.ans, nonoverlapping, nov.counts, mmean, svar, all.expected, cwin, subcounts, all.subexpected, mrun, file=datafile )
 
 pdf(file=paste(plotfile,"-mcmc.pdf",sep=''),width=6, height=4, pointsize=10)
 matplot( mrun$batch, type='l', lty=c(rep(1,nmuts),rep(2,nsel)), col=1:length(truth) )
@@ -142,7 +143,7 @@ legend("topright",lty=c(rep(1,nmuts),rep(2,nsel),1,1), col=c(1:length(truth),1,a
 dev.off()
 
 pdf(file=paste(plotfile,"-1.pdf",sep=''),width=6, height=4, pointsize=10)
-lord <- order( all.expected[["truth"]][[1]][,1] )
+lord <- order( all.expected[["truth"]][,1] )
 layout(1)
 plot( counts[[1]][lord,1], type='n', xaxt='n', xlab='', ylim=range(c(unlist(all.expected[["truth"]]),unlist(lapply(counts,as.matrix)),unlist(all.expected[["ans"]]))) )
 axis(1,at=1:nrow(counts[[1]]),labels=rownames(counts[[1]])[lord],las=3)
