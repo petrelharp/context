@@ -301,12 +301,10 @@ Similarly, if $(x_1,y_1) \neq (x_2,y_2)$ then
 The covariance calculations show that
 if $p_{\ell,m}(x,y)$ is small enough (i.e.\ the pattern is not common),
 then $N(x,y)$ is close to Poisson.
-
 Using this observation, we can estimate parameters by composite likelihood,
 using all $N(x,y)$ as data.
 Maximum likelihood then gets an asymptotically unbiased estimate of the parameters.
-
-To get confidence intervals, we need to either simulate, or do something different.
+However, since they are not independent, to get confidence intervals, we need to either simulate, or do something different.
 
 If we use only a subset of patterns $\{(x_k,y_k)\}$ chosen so that $\E[M_1(x,y) M_{k+1}(x,y)]$ is small (or zero),
 the entire collection $\{N(x_k,y_k)\}$ will be close to independent Poisson.
@@ -317,6 +315,31 @@ and any overlapping patterns must require additional changes,
 i.e.\ if $(x_1,y_1)$ matches at $i_1$, 
 then for $(x_2,y_2)$ to match at $i_2$, 
 there must be additional changes outside $(i_1,\ldots,i_1+\ell-1)$.
+
+Here is one way to obtain such a set.
+Take a pair of patterns $(x,y)$, that overlap at $m$ positions,
+and suppose that they differ at $1 \le i_1, \ldots, i_d \le m$.
+For example, in the example above with $m=3$ and $\ell=2$,
+\begin{center}
+\begin{tabular}{c|ccccccc}
+ $x$ &  C  & A & C & T & C & A & C \\
+ $y$ &  $\centerdot$  & $\centerdot$  & C & G & C & $\centerdot$  & $\centerdot$  
+\end{tabular}
+\end{center}
+$x$ and $y$ differ only at (relative) position $i_1=2$.
+Let $\bar i = (1/d) \sum_{j=1}^d i_j$ be the mean position of the changes,
+and take only patterns with $(m-1)/2 < \bar i \le (m+1)/2$.
+As another example,
+\begin{center}
+\begin{tabular}{c|ccccccc}
+ $x$ &  A & C & T & C & A & C & G \\
+ $y$ &  $\centerdot$  & $\centerdot$  & G & C & A & $\centerdot$  & $\centerdot$  
+\end{tabular}
+\end{center}
+has $i_1 = \bar i = 1$.
+No two such patterns can be shifted versions of each other
+without adding more changed sites,
+since shifting by $k$ without adding changed sites just adds $k$ to $\bar i$.
 
 
 
@@ -453,11 +476,28 @@ then
 so in fact we don't need the entire matrix $e^{t G(m+2\ell)}$,
 just the product of this matrix with each of the columns of $U$.
 
-Modern techniques in sparse matrix computation (e.g.\ Krylov methods) provide efficient ways to do this
+Modern techniques in sparse matrix computation (Krylov methods) provide efficient ways to do this
 by only multiplying $G$ and $U$ some number of times, 
 which is much more efficient because $G$ is sparse.
 
-Also note that the further calculations in the phylogenetic case can be done using these methods.
+\subsection{Updating $G$}
+
+We can also take advantage of the sparsity of $G$ to perform efficient computation of the likelihood
+under many sets of parameters.
+First note that $G(m+2\ell)$ has, assuming only single-position changes,
+$(1+m(|\calS|-1)) |\calS|^{m+2\ell}$ nonzero entries, since each of the $|\calS|^{m+2\ell}$ can change in $m$ places.
+This will determine how the computation scales with $m$, $\ell$, and $|\calS|$,
+once we precompute a number of things.
+Let $g = (g_1, \ldots, g_d)$ be the nonzero entries of $G$, in some fixed ordering;
+sparse matrix representations of $G$ store only $g$ along with information about the rows and columns these are found in.
+Each $g_i$ is a linear combination of mutation rates $\mu_j$, say $g_i = \sum_j a_{ij} \mu_j$;
+so by precomputing $a_{ij}$ we can efficiently update $G$.
+This is true if the boundary conditions are circular, mean-value, or neither.
+
+
+\subsection{Phylogenetic peeling}
+
+Furthermore, note that the further calculations in the phylogenetic case can be done using these methods.
 To compute
 \[
     \sum_z \pi(z) p_{m+2\ell}(t_X,z,x) p_{m,\ell}(t_Y,z,y) 
@@ -469,7 +509,8 @@ multiply by $\pi(z)$, and then apply the algorithm again using the transpose of 
 Using the R package expm, this makes computation quite feasible:
 with four possible states and $\ell=2$ and $m=1$, so that $G(m+2\ell)$ is a $1024 \times 1024$ matrix,
 computing $e^{t G(5) }$ takes 13 seconds, while computing $e^{t G(5)} U$ takes only 0.3 seconds.
-Increasing to $\ell=4$ and $m=1$ or $\ell=3$ and $m=2$ is still feasible, taking $e^{t G(8)} U$ in 42 and 47 seconds, respectively.
+Increasing to $\ell=4$ and $m=1$ or $\ell=3$ and $m=2$ is still feasible, taking $e^{t G(8)} U$ in 42 and 47 seconds, respectively
+(and much longer for the whole matrix $e^{t G(8)}$).
 
 
 

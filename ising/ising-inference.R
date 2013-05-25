@@ -19,6 +19,8 @@ option_list <- list(
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 attach(opt)
 
+if (interactive()) { win <- lwin <- rwin <- 2; nbatches <- 10; blen <- 10; mmean <- 1; svar <- 1 }
+
 if (is.null(infile) | is.null(nbatches)) { cat("Run\n  ising-inference.R -h\n for help.") }
 
 scriptdir <- "../"
@@ -27,25 +29,6 @@ source(paste(scriptdir,"sim-context-fns.R",sep=''))
 
 require(mcmc)
 
-if (interactive()) {
-
-    # available simulated sequences
-    simdir <- "ising-sims"
-    simfiles <- list.files(simdir,"*.RData",full.names=TRUE)
-    siminfo <- do.call(rbind, lapply(simfiles, function (x) {
-            load(x)
-            y <- do.call( data.frame, c(list(date=now,seqlen=seqlen, tlen=tlen, file=x), as.list(mutrates), as.list(selcoef), stringsAsFactors=FALSE) )
-            colnames(y) <- c( colnames(y)[1:4], paste("mutrate",seq_along(mutrates),sep=''), paste("selcoef",seq_along(selcoef),sep='') )
-            y
-        } ) )
-    siminfo$meandist <- siminfo$tlen * colSums(siminfo[,grep("mutrate",colnames(siminfo)),drop=FALSE])
-    siminfo <- siminfo[ order(siminfo$meandist), ]
-
-    win <- 2
-
-    # pick one
-    infile <- siminfo[1,"file"]
-}
 
 load(infile)
 basedir <- gsub(".RData","",infile,fixed=TRUE)
@@ -192,13 +175,3 @@ dev.off()
 
 
 print(format(Sys.time(),"%Y-%m-%d-%H-%M"))
-
-for (x in list.files("ising-sims","*.RData",full.names=TRUE)) {
-  tmp <- load(x)
-  nmuts <- 1; nsel <- 2
-  projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
-  nonoverlapping <- leftchanged(rownames(counts[[1]]),colnames(counts[[1]]),lwin=lwin,win=win)
-  nov.counts <- counts[[1]][nonoverlapping]
-  mmean <- 1; svar <- 1
-  save( nmuts, nsel, projmatrix, nonoverlapping, nov.counts, mmean, svar, list=tmp, file=x)
-}
