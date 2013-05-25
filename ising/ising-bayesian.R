@@ -1,9 +1,14 @@
-require(mcmc)
 
-set.seed(42)
+scriptdir <- "../"
+source(paste(scriptdir,"codon-inference-fns.R",sep=''))
+source(paste(scriptdir,"sim-context-fns.R",sep=''))
+
+require(mcmc)
 
 # mean of exponential prior on mutation rate
 pmean <- 1
+# variance of gaussian prior on selection coefficient
+pvar <- 1
 
 ####
 # available simulated sequences
@@ -18,8 +23,6 @@ siminfo <- do.call(rbind, lapply(simfiles, function (x) {
 siminfo$meandist <- siminfo$tlen * colSums(siminfo[,grep("mutrate",colnames(siminfo)),drop=FALSE])
 siminfo <- siminfo[ order(siminfo$meandist), ]
 
-win <- 2
-
 # pick one
 thissim <- siminfo[1,"file"]
 
@@ -27,7 +30,8 @@ load(thissim)
 
 ######
 # Inference.
-lwin <- rwin <- thiswin
+win <- 2
+lwin <- rwin <- 2
 winlen <- lwin+win+rwin
 
 genmatrix <- makegenmatrix( mutpats, selpats=selpats, patlen=winlen, boundary="wrap")
@@ -35,30 +39,31 @@ genmatrix@x <- update(genmatrix,mutrates,selcoef=selcoef,Ne=1)
 projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
 subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE )
 
-counts <- list(
-            counttrans( rownames(projmatrix), colnames(projmatrix), simseqs[[1]]$initseq, simseqs[[1]]$finalseq, lwin=lwin )
-        )
-# allow nonmatches with small prob?
-eps <- 0
+counts <- list( counttrans( rownames(projmatrix), colnames(projmatrix), simseqs[[1]]$initseq, simseqs[[1]]$finalseq, lwin=lwin ) )
+# want only patterns with leftmost possible position changed
+nonoverlapping <- leftchanged(rownames(counts[[1]]),colnames(counts[[1]]),lwin=lwin,win=win)
+ncounts <- counts[[1]][nonoverlapping]
+
 nmuts <- length(mutrates)
 nsel <- length(selcoef)
-pmeans <- rep(pmean,nmuts+nsel)
 # move from base frequencies (what we estimate) to pattern frequencies
 lud <- function (params) {
     if (any(params<0)) {
         return( -Inf )
     } else {
-        # params are: mutrates, selcoef
+        # params are: mutrates*tlen, selcoef
         # this is collapsed transition matrix
         mutrates <- params[1:nmuts]
         selcoef <- params[nmuts+1:nsel]
         genmatrix@x <- update(genmatrix,mutrates=mutrates,selcoef=selcoef)
         subtransmatrix <- computetransmatrix( genmatrix, projmatrix )
         # return negative log-likelihood 
-        return( sum( counts[[1]] * log(eps+subtransmatrix) ) + sum(pmean*params) )
+        # return( sum( counts[[1]] * log(subtransmatrix) ) + sum(pmean*mutrates) + sum(selcoef^2)/pvar )
+        return( sum( ncounts * log(subtransmatrix[nonoverlapping]) ) + sum(pmean*mutrates) + sum(selcoef^2)/pvar )
     }
 }
 
 
+truth <- c(mutrates*tlen,selcoef)
 system.time( mrun <- metrop( lud, initial=truth, nbatch=1000, blen=10, scale=1e-2 ) )
 

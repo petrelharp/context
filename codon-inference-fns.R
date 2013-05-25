@@ -245,6 +245,12 @@ whichchanged <- function (ipatterns,fpatterns,lwin=0,win=nchar(ipatterns[0])) {
     return( outer( ipatterns, fpatterns, function (x,y) { substr(x,lwin+1,lwin+win)!=y } ) )
 }
 
+leftchanged <- function (ipatterns,fpatterns,lwin=0,win=nchar(ipatterns[0])) {
+    # return indicator corresponding to whether leftmost element changed
+    if (!is.null(dimnames(ipatterns))) { fpatterns <- colnames(ipatterns); ipatterns <- rownames(ipatterns) }
+    return( outer( ipatterns, fpatterns, function (x,y) { substr(x,lwin+1,lwin+1)!=substr(y,1,1) } ) )
+}
+
 getlikfun <- function (nmuts,nsel,genmatrix,projmatrix,const=0) {
     return( function (params) {
         # params are: mutrates, selcoef, Ne 
