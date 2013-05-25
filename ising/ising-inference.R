@@ -13,8 +13,7 @@ option_list <- list(
         make_option( c("-n","--nbatches"), type="integer", default=1000, help="Number of MCMC batches. [default \"%default\"]" ),
         make_option( c("-b","--blen"), type="integer", default=10, help="Length of each MCMC batch. [default \"%default\"]" ),
         make_option( c("-m","--mmean"), type="double", default=1, help="Prior mean on mutation rates. [default \"%default\"]" ),
-        make_option( c("-v","--svar"), type="double", default=1, help="Prior variance on selection coefficents. [default \"%default\"]" ),
-        make_option( c("-c","--continue"), action="store_true", default=FALSE, help="Continue with previous MCMC run?" )
+        make_option( c("-v","--svar"), type="double", default=1, help="Prior variance on selection coefficents. [default \"%default\"]" )
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 attach(opt)
@@ -131,9 +130,9 @@ names(all.expected) <- rownames(estimates)
 # look at observed/expected counts in smaller windows
 cwin <- 2
 subcounts <- projectcounts( lwin=lwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=counts[[1]] )
-all.subexpected <- lapply( all.expected, function (x) { list( projectcounts( lwin=lwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=x ) ) } )
+all.subexpected <- lapply( all.expected, function (x) { list( projectcounts( lwin=lwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=x[[1]] ) ) } )
 
-save( counts, genmatrix, subtransmatrix, lud, likfun, truth, cheating.ans, random.ans, estimates, initpar, nonoverlapping, nov.counts, mmean, svar, all.expected, cwin, subcounts, all.subexpected, mrun, file=datafile )
+save( counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, truth, cheating.ans, random.ans, estimates, initpar, nonoverlapping, nov.counts, mmean, svar, all.expected, cwin, subcounts, all.subexpected, mrun, win, lwin, rwin, nmuts, nsel, mmean, svar, estimates, file=datafile )
 
 pdf(file=paste(plotfile,"-mcmc.pdf",sep=''),width=6, height=4, pointsize=10)
 layout(matrix(c(1,4,2,3),nrow=2))
@@ -192,3 +191,13 @@ dev.off()
 
 
 print(format(Sys.time(),"%Y-%m-%d-%H-%M"))
+
+for (x in list.files("ising-sims","*.RData",full.names=TRUE)) {
+  tmp <- load(x)
+  nmuts <- 1; nsel <- 2
+  projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
+  nonoverlapping <- leftchanged(rownames(counts[[1]]),colnames(counts[[1]]),lwin=lwin,win=win)
+  nov.counts <- counts[[1]][nonoverlapping]
+  mmean <- 1; svar <- 1
+  save( nmuts, nsel, projmatrix, nonoverlapping, nov.counts, mmean, svar, list=tmp, file=x)
+}
