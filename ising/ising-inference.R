@@ -124,30 +124,40 @@ mrun <- metrop( lud, initial=random.ans$par, nbatch=nbatches, blen=blen, scale=1
 # look at observed/expected counts
 all.expected <- lapply( 1:nrow(estimates), function (k) {
             x <- unlist(estimates[k,])
-            predictcounts( win, lwin, rwin, initcounts=rowSums(counts[[1]]), mutrates=x[1:nmuts], selcoef=x[nmuts+(1:nsel)], genmatrix=genmatrix, projmatrix=projmatrix )
+            list( predictcounts( win, lwin, rwin, initcounts=rowSums(counts[[1]]), mutrates=x[1:nmuts], selcoef=x[nmuts+(1:nsel)], genmatrix=genmatrix, projmatrix=projmatrix ) )
     } )
 names(all.expected) <- rownames(estimates)
 
 # look at observed/expected counts in smaller windows
 cwin <- 2
 subcounts <- projectcounts( lwin=lwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=counts[[1]] )
-all.subexpected <- lapply( all.expected, function (x) { projectcounts( lwin=lwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=x ) } )
+all.subexpected <- lapply( all.expected, function (x) { list( projectcounts( lwin=lwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=x ) ) } )
 
-save( counts, genmatrix, subtransmatrix, lud, likfun, truth, cheating.ans, random.ans, nonoverlapping, nov.counts, mmean, svar, all.expected, cwin, subcounts, all.subexpected, mrun, file=datafile )
+save( counts, genmatrix, subtransmatrix, lud, likfun, truth, cheating.ans, random.ans, estimates, initpar, nonoverlapping, nov.counts, mmean, svar, all.expected, cwin, subcounts, all.subexpected, mrun, file=datafile )
 
 pdf(file=paste(plotfile,"-mcmc.pdf",sep=''),width=6, height=4, pointsize=10)
-matplot( mrun$batch, type='l', lty=c(rep(1,nmuts),rep(2,nsel)), col=1:length(truth) )
+layout(matrix(c(1,4,2,3),nrow=2))
+par(mar=c(4,4,0,0)+.1)
+for (k in 1:(ncol(mrun$batch)-1)) { 
+    for (j in (k+1):ncol(mrun$batch)) {
+        plot(mrun$batch[,j],mrun$batch[,k],xlab=colnames(estimates)[j],ylab=colnames(estimates)[k],pch=20,cex=.5,col=adjustcolor('black',.5), xlim=range(c(mrun$batch[,j],estimates[c("truth","ans"),j])), ylim=range(c(mrun$batch[,k],estimates[c("truth","ans"),k])))
+        points( estimates["truth",j], estimates["truth",k], pch=20, col='green' )
+        points( estimates["ans",j], estimates["ans",k], pch=20, col='red' )
+    }
+}
+legend("bottomright",pch=20,col=c('green','red'),legend=c("truth","estimated"))
+matplot( mrun$batch, type='l', lty=c(rep(1,nmuts),rep(2,nsel)), col=1:length(truth), xlab="mcmc gens" )
 abline(h=truth, col=adjustcolor(1:length(truth),.5), lty=c(rep(1,nmuts),rep(2,nsel)), lwd=2)
 abline(h=estimates["ans",], col=1:length(truth), lty=c(rep(1,nmuts),rep(2,nsel)) )
 legend("topright",lty=c(rep(1,nmuts),rep(2,nsel),1,1), col=c(1:length(truth),1,adjustcolor(1,.5)), lwd=c(rep(1,length(truth)),1,2),legend=c(colnames(estimates)[1:length(truth)],"point estimate","truth"))
 dev.off()
 
 pdf(file=paste(plotfile,"-1.pdf",sep=''),width=6, height=4, pointsize=10)
-lord <- order( all.expected[["truth"]][,1] )
-layout(1)
-plot( counts[[1]][lord,1], type='n', xaxt='n', xlab='', ylim=range(c(unlist(all.expected[["truth"]]),unlist(lapply(counts,as.matrix)),unlist(all.expected[["ans"]]))) )
-axis(1,at=1:nrow(counts[[1]]),labels=rownames(counts[[1]])[lord],las=3)
+layout(matrix(1:4,nrow=2))
 for (k in 1:ncol(counts[[1]])) {
+    lord <- order( all.expected[["truth"]][[1]][,k] )
+    plot( counts[[1]][lord,k], type='n', xaxt='n', xlab='', ylim=range(c(unlist(all.expected[["truth"]]),unlist(lapply(counts,as.matrix)),unlist(all.expected[["ans"]]))), ylab='counts' )
+    axis(1,at=1:nrow(counts[[1]]),labels=rownames(counts[[1]])[lord],las=3)
     for (j in 1:length(counts)) {
         points( counts[[j]][lord,k], pch=j )
         lines(all.expected[["truth"]][[j]][lord,k],col='red', lty=j)
@@ -162,20 +172,21 @@ pdf(file=paste(plotfile,"-2.pdf",sep=''),width=6, height=4, pointsize=10)
 layout(matrix(1:4,nrow=2))
 cols <- rainbow(2+length(all.expected))[1:length(all.expected)]
 for (k in 1:4) {
-    lord <- order( all.subexpected[["truth"]][,k] )
+    lord <- order( all.subexpected[["truth"]][[1]][,k] )
     plot( subcounts[lord,k], xaxt='n', xlab='', main=colnames(subcounts)[k] )
     axis(1,at=1:nrow(subcounts),labels=rownames(subcounts)[lord],las=3)
-    invisible( lapply(seq_along(all.subexpected),function(j) { lines(all.subexpected[[j]][lord,k],col=cols[j]) } ) )
+    invisible( lapply(seq_along(all.subexpected),function(j) { lines(all.subexpected[[j]][[1]][lord,k],col=cols[j]) } ) )
     legend("topleft",legend=names(all.subexpected),lty=1,col=cols)
 }
 dev.off()
 
 pdf(file=paste(plotfile,"-3.pdf",sep=''),width=6, height=4, pointsize=10)
 layout(1)
-plot( as.vector(true.expected[[1]]), as.vector(counts[[1]]), log='xy' )
+plot( as.vector(all.expected[["truth"]][[1]]), as.vector(counts[[1]]), log='xy', xlab="true expected counts", ylab="counts" )
 abline(0,1)
-points(as.vector(true.expected[[1]]), as.vector(est.expected[[1]]), col='red', pch=20 )
-points(as.vector(true.expected[[1]]), as.vector(cheating.expected[[1]]), col='green', pch=20, cex=.5)
+points(as.vector(all.expected[["truth"]][[1]]), as.vector(all.expected[["cheating"]][[1]]), col='red', pch=20 )
+points(as.vector(all.expected[["truth"]][[1]]), as.vector(all.expected[["ans"]][[1]]), col='green', pch=20, cex=.5)
+legend("topleft",pch=c(1,20,20),col=c('black','red','green'),legend=c('observed','cheating','estimated'))
 dev.off()
 
 
