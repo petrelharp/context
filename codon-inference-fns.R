@@ -235,7 +235,7 @@ projectcounts <- function( lwin, lcountwin, countwin, rcountwin, counts ) {
         rpmat <- collapsepatmatrix( ipatterns=colnames(counts), lwin=k+lcountwin-lwin, rwin=win-(k+lcountwin-lwin+countwin) )
         pcounts <- pcounts + t(lpmat) %*% counts %*% (rpmat)
     }
-    dimnames(pcounts) <- list( colnames(lpmat), rownames(rpmat) )
+    dimnames(pcounts) <- list( colnames(lpmat), colnames(rpmat) )
     return(pcounts)
 }
 
