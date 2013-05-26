@@ -23,6 +23,10 @@ if (length(args)<2) {
     }
 }
 
+# identifiers
+thisone <- formatC( floor(runif(1)*1e6) , digits=6,flag='0')
+now <- Sys.time()
+
 simdir <- "ising-sims/"
 if (!file.exists(simdir)) { dir.create(simdir,recursive=TRUE) }
 
@@ -53,8 +57,6 @@ system.time(
             )
     )
 
-thisone <- formatC( floor(runif(1)*1e6) , digits=6,flag='0')
-now <- Sys.time()
 save( thisone, now, bases, patlen, mutpats, mutrates, selpats, selcoef, fixfn, seqlen, tlen, initfreqs, simseqs, file=paste(simdir,"selsims-",format(now,"%Y-%m-%d-%H-%M"),"-",thisone,".RData",sep='') )
 
 
