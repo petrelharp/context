@@ -1,6 +1,5 @@
 #!/usr/bin/Rscript --vanilla
 require(optparse)
-options(error=traceback)
 
 usage <- "\
 Infer parameters from output of sim-ising.R .\
@@ -14,14 +13,22 @@ option_list <- list(
         make_option( c("-n","--nbatches"), type="integer", default=1000, help="Number of MCMC batches. [default \"%default\"]" ),
         make_option( c("-b","--blen"), type="integer", default=10, help="Length of each MCMC batch. [default \"%default\"]" ),
         make_option( c("-m","--mmean"), type="double", default=1, help="Prior mean on mutation rates. [default \"%default\"]" ),
-        make_option( c("-v","--svar"), type="double", default=1, help="Prior variance on selection coefficents. [default \"%default\"]" )
+        make_option( c("-v","--svar"), type="double", default=1, help="Prior variance on selection coefficents. [default \"%default\"]" ),
+        make_option( c("-o","--logfile"), type="character", default="", help="Direct output to this file. [default appends .Rout]" )
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 attach(opt)
+options(error=traceback)
 
 if (interactive()) { win <- lwin <- rwin <- 2; nbatches <- 10; blen <- 10; mmean <- 1; svar <- 1 }
 
 if (is.null(infile) | is.null(nbatches)) { cat("Run\n  ising-inference.R -h\n for help.") }
+
+if (logfile=="" & !interactive()) { logfile <- gsub(".RData",".Rout",infile,fixed=TRUE) }
+if (!is.null(logfile)) { 
+    logcon <- if (logfile=="-") { stdout() } else { file(logfile,open="wt") }
+    sink(file=logcon, type="message") 
+}
 
 scriptdir <- "../"
 source(paste(scriptdir,"codon-inference-fns.R",sep=''))
@@ -29,21 +36,16 @@ source(paste(scriptdir,"sim-context-fns.R",sep=''))
 
 require(mcmc)
 
-
 load(infile)
 basedir <- gsub(".RData","",infile,fixed=TRUE)
-if (!file.exists(basedir)) {
-    dir.create(basedir)
-}
-
-# set-up
-bases <- c("X","O")
-
-
+if (!file.exists(basedir)) { dir.create(basedir) }
 basename <- paste(basedir,"/win-",lwin,"-",win,"-",rwin,sep='')
 datafile <- paste( basename ,"-results.RData",sep='')
 resultsfile <- paste( basename ,"-results.tsv",sep='')
 plotfile <- paste( basename ,"-plot",sep='')
+
+# set-up
+bases <- c("X","O")
 
 # Inference.
 winlen <- lwin+win+rwin
@@ -56,9 +58,9 @@ counts <- list(
             counttrans( rownames(projmatrix), colnames(projmatrix), simseqs[[1]]$initseq, simseqs[[1]]$finalseq, lwin=lwin )
         )
 # want only patterns with leftmost possible position changed
-nonoverlapping <- leftchanged(rownames(counts[[1]]),colnames(counts[[1]]),lwin=lwin,win=win)
-nov.counts <- counts[[1]][nonoverlapping]
 initcounts <- rowSums(counts[[1]])
+nonoverlapping <- ( leftchanged(rownames(counts[[1]]),colnames(counts[[1]]),lwin=lwin,win=win) & (initcounts>0) )
+nov.counts <- counts[[1]][nonoverlapping]
 
 nmuts <- length(mutpats)
 nsel <- length(selpats)
