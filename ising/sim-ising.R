@@ -43,7 +43,7 @@ selpats <- list(
     )
 selcoef <- c(interaction,external.field)
 
-fixfn <- function (ds,...) { ifelse( ds==0, 1, 1/(1+exp(-ds)) ) }
+fixfn <- ising.fixfn
 
 initfreqs <- c(Xfreq,1-Xfreq)
 initseq <- rinitseq(seqlen,bases,basefreqs=initfreqs)
@@ -55,6 +55,6 @@ system.time(
 
 thisone <- formatC( floor(runif(1)*1e6) , digits=6,flag='0')
 now <- Sys.time()
-save( thisone, now, bases, patlen, mutpats, mutrates, selpats, selcoef, fixfn, seqlen, tlen, initfreqs, simseqs, file=paste(simdir,format(now,"%Y-%m-%d-%H-%M"),thisone,"selsims.RData",sep='') )
+save( thisone, now, bases, patlen, mutpats, mutrates, selpats, selcoef, fixfn, seqlen, tlen, initfreqs, simseqs, file=paste(simdir,"selsims-",format(now,"%Y-%m-%d-%H-%M"),"-",thisone,".RData",sep='') )
 
 

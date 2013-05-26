@@ -24,8 +24,8 @@ if (interactive()) { win <- lwin <- rwin <- 2; nbatches <- 10; blen <- 10; mmean
 
 if (is.null(infile) | is.null(nbatches)) { cat("Run\n  ising-inference.R -h\n for help.") }
 
-if (logfile=="" & !interactive()) { logfile <- gsub(".RData",".Rout",infile,fixed=TRUE) }
-if (!is.null(logfile)) { 
+if (logfile!="" & !interactive()) { 
+    logfile <- gsub(".RData",".Rout",infile,fixed=TRUE)
     logcon <- if (logfile=="-") { stdout() } else { file(logfile,open="wt") }
     sink(file=logcon, type="message") 
 }

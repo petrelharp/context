@@ -19,7 +19,7 @@ selpats <- list(
 selcoef <- c(-2,1)
 
 
-fixfn <- function (ds,...) { ifelse( ds==0, 1, 1/(1+exp(-ds)) ) }
+fixfn <- function (ds,...) { 1/(1+exp(-ds)) }
 
 ###### 
 # Can make correct generator matrices?

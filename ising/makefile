@@ -9,3 +9,6 @@ analyses : $(simfiles)
 
 test : check-ising.R
 	Rscript --vanilla $<
+
+info : 
+	Rscript ../siminfo.R ising-sims
