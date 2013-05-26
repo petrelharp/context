@@ -21,7 +21,12 @@ if (length(args)<2) {
     }
 }
 
+# identifiers
+thisone <- formatC( floor(runif(1)*1e6) , digits=6,flag='0')
+now <- Sys.time()
+
 simdir <- "tasep-sims/"
+if (!file.exists(simdir)) { dir.create(simdir,recursive=TRUE) }
 
 bases <- c("X","O")
 
@@ -34,17 +39,19 @@ mutpats <- list(
     list( c("XO","OX") )
     ) 
 mutrates <- 2 * runif( length(mutpats) )
+selpats <- list()
+selcoef <- numeric(0)
+
+fixfn <- function (...) { 1 }
 
 initfreqs <- c(Xfreq,1-Xfreq)
 initseq <- rinitseq(seqlen,bases,basefreqs=initfreqs)
 system.time( 
         simseqs <- list(
-                simseq( seqlen, tlen, patlen=patlen, mutpats=mutpats, mutrates=mutrates, selpats=c(), selcoef=numeric(0), Ne=1, initseq=initseq, bases=bases )
+                simseq( seqlen=seqlen, tlen=tlen, patlen=patlen, mutpats=mutpats, mutrates=mutrates, selpats=selpats, selcoef=selcoef, initseq=initseq, bases=bases )
             )
     )
 
-thisone <- formatC( floor(runif(1)*1e6) , digits=6,flag='0')
-now <- Sys.time()
-save( thisone, now, patlen, mutpats, mutrates, seqlen, tlen, initfreqs, simseqs, file=paste(simdir,format(now,"%Y-%m-%d-%H-%M"),thisone,"selsims.RData",sep='') )
+save( thisone, now, bases, patlen, mutpats, mutrates, selpats, selcoef, fixfn, seqlen, tlen, initfreqs, simseqs, file=paste(simdir,"selsims-",format(now,"%Y-%m-%d-%H-%M"),"-",thisone,".RData",sep='') )
 
 

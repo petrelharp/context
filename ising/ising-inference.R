@@ -20,7 +20,7 @@ opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 attach(opt)
 options(error=traceback)
 
-if (interactive()) { win <- lwin <- rwin <- 2; nbatches <- 10; blen <- 10; mmean <- 1; svar <- 1 }
+if (interactive()) { win <- lwin <- rwin <- 3; nbatches <- 10; blen <- 10; mmean <- 1; svar <- 1 }
 
 if (is.null(infile) | is.null(nbatches)) { cat("Run\n  ising-inference.R -h\n for help.") }
 
@@ -58,7 +58,7 @@ subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE )
 counts <- list(
             counttrans( rownames(projmatrix), colnames(projmatrix), simseqs[[1]]$initseq, simseqs[[1]]$finalseq, lwin=lwin )
         )
-# want only patterns with leftmost possible position changed
+# want only patterns that overlap little
 initcounts <- rowSums(counts[[1]])
 nonoverlapping <- ( leftchanged(rownames(counts[[1]]),colnames(counts[[1]]),lwin=lwin,win=win) & (initcounts>0) )
 nov.counts <- counts[[1]][nonoverlapping]
@@ -67,14 +67,14 @@ nmuts <- length(mutpats)
 nsel <- length(selpats)
 # (quasi)-likelihood function using all counts -- binomial
 likfun <- function (params) {
-        # params are: mutrates, selcoef
-        mutrates <- params[1:nmuts]
-        selcoef <- params[nmuts+1:nsel]
-        genmatrix@x <- update(genmatrix,mutrates=mutrates,selcoef=selcoef)
-        # this is collapsed transition matrix
-        subtransmatrix <- computetransmatrix( genmatrix, projmatrix )
-        # return negative log-likelihood 
-        (-1) * sum( counts[[1]] * log(subtransmatrix) )
+    # params are: mutrates, selcoef
+    mutrates <- params[1:nmuts]
+    selcoef <- params[nmuts+1:nsel]
+    genmatrix@x <- update(genmatrix,mutrates=mutrates,selcoef=selcoef)
+    # this is collapsed transition matrix
+    subtransmatrix <- computetransmatrix( genmatrix, projmatrix )
+    # return negative log-likelihood 
+    (-1) * sum( counts[[1]] * log(subtransmatrix) )
 }
 # using only nonoverlapping counts, plus priors -- indep't poisson.
 lud <- function (params) {
@@ -119,7 +119,7 @@ cwin <- 2
 subcounts <- projectcounts( lwin=lwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=counts[[1]] )
 all.subexpected <- lapply( all.expected, function (x) { list( projectcounts( lwin=lwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=x[[1]] ) ) } )
 
-save( counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, truth, cheating.ans, random.ans, estimates, initpar, nonoverlapping, nov.counts, mmean, svar, all.expected, cwin, subcounts, all.subexpected, mrun, win, lwin, rwin, nmuts, nsel, mmean, svar, estimates, file=datafile )
+save( counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, truth, cheating.ans, random.ans, estimates, initpar, nonoverlapping, nov.counts, mmean, svar, all.expected, cwin, subcounts, all.subexpected, mrun, win, lwin, rwin, nmuts, nsel, file=datafile )
 
 pdf(file=paste(plotfile,"-mcmc.pdf",sep=''),width=6, height=4, pointsize=10)
 layout(matrix(c(1,4,2,3),nrow=2))
