@@ -5,7 +5,8 @@ simfiles = $(shell ls ising-sims/*.RData | sed -e "s/RData/Rout/g")
 analyses : $(simfiles)
 
 %.Rout : %.RData
-	Rscript ising-inference.R -i $< -n 1000 > $*.log 2> $@
+	# can pass args in by doing e.g. 'make ARGS="-l 3 -r 3" whatever.Rout'
+	Rscript ising-inference.R -i $< -o $@ ${ARGS} 
 
 test : check-ising.R
 	Rscript --vanilla $<

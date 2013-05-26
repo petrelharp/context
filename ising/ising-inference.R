@@ -28,6 +28,7 @@ if (logfile!="" & !interactive()) {
     logfile <- gsub(".RData",".Rout",infile,fixed=TRUE)
     logcon <- if (logfile=="-") { stdout() } else { file(logfile,open="wt") }
     sink(file=logcon, type="message") 
+    sink(file=logcon, type="output")   # send both to log file
 }
 
 scriptdir <- "../"
