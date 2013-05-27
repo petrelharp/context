@@ -19,7 +19,7 @@ opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 attach(opt)
 options(error=traceback)
 
-if (interactive()) { win <- lwin <- rwin <- 3; nbatches <- 10; blen <- 10; mmean <- 1; svar <- 1 }
+if (interactive()) { win <- lwin <- rwin <- 3; nbatches <- 10; blen <- 10; mmean <- 1 }
 
 if (is.null(infile) | is.null(nbatches)) { cat("Run\n  tasep-inference.R -h\n for help.") }
 
@@ -101,7 +101,7 @@ mrun <- metrop( lud, initial=random.ans$par, nbatch=nbatches, blen=blen, scale=1
 # look at observed/expected counts
 all.expected <- lapply( 1:nrow(estimates), function (k) {
             x <- unlist(estimates[k,])
-            list( predictcounts( win, lwin, rwin, initcounts=rowSums(counts[[1]]), mutrates=x[1], genmatrix=genmatrix, projmatrix=projmatrix ) )
+            list( predictcounts( win, lwin, rwin, initcounts=rowSums(counts[[1]]), mutrates=x[1], selcoef=numeric(0), genmatrix=genmatrix, projmatrix=projmatrix ) )
     } )
 names(all.expected) <- rownames(estimates)
 
@@ -110,7 +110,7 @@ cwin <- 2
 subcounts <- projectcounts( lwin=lwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=counts[[1]] )
 all.subexpected <- lapply( all.expected, function (x) { list( projectcounts( lwin=lwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=x[[1]] ) ) } )
 
-save( counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, truth, cheating.ans, random.ans, estimates, initpar, nonoverlapping, nov.counts, mmean, svar, all.expected, cwin, subcounts, all.subexpected, mrun, win, lwin, rwin, nmuts, nsel, file=datafile )
+save( counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, truth, cheating.ans, random.ans, estimates, initpar, nonoverlapping, nov.counts, mmean, all.expected, cwin, subcounts, all.subexpected, mrun, win, lwin, rwin, nmuts, nsel, file=datafile )
 
 pdf(file=paste(plotfile,"-mcmc.pdf",sep=''),width=6, height=4, pointsize=10)
 plot( mrun$batch, type='l', xlab="mcmc gens", ylab="tlen*jumprate" )

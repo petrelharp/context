@@ -9,19 +9,29 @@ Usage:\
 
 args <- commandArgs(TRUE)
 if (length(args)<1) {
-    simdir <- "ising-sims/"
+    simdir <- "sims/"
 } else {
     simdir <- args[1]
 }
 
 
 # available simulated sequences
-simdir <- "ising-sims"
 simfiles <- list.files(simdir,"*.RData",full.names=TRUE)
 siminfo <- do.call(rbind, lapply(simfiles, function (x) {
-        load(x)
-        y <- do.call( data.frame, c(list(date=now,seqlen=seqlen, tlen=tlen, file=x), as.list(mutrates), as.list(selcoef), stringsAsFactors=FALSE) )
-        colnames(y) <- c( colnames(y)[1:4], paste("mutrate",seq_along(mutrates),sep=''), paste("selcoef",seq_along(selcoef),sep='') )
+        tmp <- load(x)
+        y <- list(date=now,seqlen=seqlen, tlen=tlen, file=x) 
+        pnames <- names(y)
+        if ("mutrates"%in%tmp) { 
+            y <- c( y, as.list(mutrates) )
+            pnames <- c( pnames, paste("mutrate",seq_along(mutrates),sep='') )
+        }
+        if ("selcoef"%in%tmp) { 
+            y <- c( y, as.list(selcoef) )
+            pnames <- c( pnames, paste("selcoef",seq_along(selcoef),sep='') )
+        }
+        y <- c( y, list( stringsAsFactors=FALSE ) )
+        y <- do.call( data.frame, y )
+        colnames(y) <- pnames
         y
     } ) )
 siminfo$meandist <- siminfo$tlen * colSums(siminfo[,grep("mutrate",colnames(siminfo)),drop=FALSE])
