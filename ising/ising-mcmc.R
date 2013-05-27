@@ -12,6 +12,7 @@ option_list <- list(
         make_option( c("-r","--rwin"), type="integer", default=3, help="Size of left-hand context. [default \"%default\"]" ),
         make_option( c("-n","--nbatches"), type="integer", default=1000, help="Number of MCMC batches. [default \"%default\"]" ),
         make_option( c("-b","--blen"), type="integer", default=10, help="Length of each MCMC batch. [default \"%default\"]" ),
+        make_option( c("-c","--stepscale"), type="numeric", default=3e-3, help="Scale of proposal steps for Metropolis algorithm. [default \"%default\"]" ),
         make_option( c("-s","--restart"), action="store_true", default=FALSE, help="Start a whole new MCMC run?" ),
         make_option( c("-o","--logfile"), type="character", default="", help="Direct output to this file. [default appends .Rout]" )
     )
@@ -84,11 +85,13 @@ lud <- function (params) {
 }
 
 if (restart) {
-    mrun <- metrop( mrun, initial=random.ans$par, nbatch=nbatches, blen=blen, scale=1e-2 )
+    mrun <- metrop( mrun, initial=random.ans$par, nbatch=nbatches, blen=blen, scale=stepscale )
 } else {
-    mrun <- metrop( mrun, nbatch=nbatches, blen=blen, scale=1e-2 )
+    mrun <- metrop( mrun, nbatch=nbatches, blen=blen, scale=stepscale )
 }
 
+
+save( lwin, win, rwin, lud, mrun, file=paste(basename,"-mcmc-",mcmcnum,".RData",sep='') )
 
 pdf(file=paste(plotfile,"-mcmc-",mcmcnum,".pdf",sep=''),width=6, height=4, pointsize=10)
 matplot( mrun$batch, type='l', lty=c(rep(1,nmuts),rep(2,nsel)), col=1:length(truth) )
@@ -96,5 +99,3 @@ abline(h=truth, col=adjustcolor(1:length(truth),.5), lty=c(rep(1,nmuts),rep(2,ns
 abline(h=estimates["ans",], col=1:length(truth), lty=c(rep(1,nmuts),rep(2,nsel)) )
 legend("topright",lty=c(rep(1,nmuts),rep(2,nsel),1,1), col=c(1:length(truth),1,adjustcolor(1,.5)), lwd=c(rep(1,length(truth)),1,2),legend=c(colnames(estimates)[1:length(truth)],"point estimate","truth"))
 dev.off()
-
-save( lwin, win, rwin, lud, mrun, file=paste(basename,"-mcmc-",mcmcnum,".RData",sep='') )
