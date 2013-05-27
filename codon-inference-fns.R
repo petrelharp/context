@@ -87,7 +87,7 @@ ising.fixfn <- function (ds,...) { 1/(1+exp(-ds)) }
 # genmatrix extends the sparse matrix class, carrying along more information.
 setClass("genmatrix", representation(muttrans="Matrix",seltrans="Matrix",mutrates="numeric",selcoef="numeric"), contains = "dgCMatrix")
 
-makegenmatrix <- function (mutpats,selpats=list(),patlen=nchar(patterns[1]),patterns=getpatterns(patlen),mutrates=rep(1,length(mutpats)),selcoef=rep(1,length(selpats)), boundary=c("none","wrap"), ...) {
+makegenmatrix <- function (mutpats,selpats=list(),patlen=nchar(patterns[1]),patterns=getpatterns(patlen),mutrates=rep(1,length(mutpats)),selcoef=rep(1,length(selpats)), boundary="none", ...) {
     # make the generator matrix, carrying with it the means to quickly update itself.
     #  DON'T do the diagonal, so that the updating is easier.
     # this gives the instantaneous rate for going from patterns x -> y

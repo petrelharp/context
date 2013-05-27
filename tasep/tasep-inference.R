@@ -86,9 +86,12 @@ lud <- function (mutrates) {
 
 
 truth <- c( mutrates * tlen )  # truth
-parrange <- sort(unique(c(seq(0,5,length.out=100),seq(max(0,truth-.1),truth+.1,length.out=40))))
-likrange <- sapply(parrange,likfun)
 ans <- optimize(likfun,lower=1e-8,upper=10)
+if (interactive()) {
+    parrange <- sort(unique(c(seq(0,5,length.out=100),seq(max(0,truth-.1),truth+.1,length.out=40))))
+    likrange <- sapply(parrange,likfun)
+    plot(parrange,likrange)
+}
 
 estimates <- data.frame( rbind(ans=ans$minimum,truth=truth ) )
 colnames(estimates) <- "muttime"
@@ -96,7 +99,7 @@ estimates$likfun <- apply( estimates, 1, likfun )
 write.table( estimates, file=resultsfile, quote=FALSE, sep="\t" )
 
 # bayesian
-mrun <- metrop( lud, initial=random.ans$par, nbatch=nbatches, blen=blen, scale=1e-2 )
+mrun <- metrop( lud, initial=estimates["ans","muttime"], nbatch=nbatches, blen=blen, scale=1e-2 )
 
 # look at observed/expected counts
 all.expected <- lapply( 1:nrow(estimates), function (k) {
@@ -110,7 +113,7 @@ cwin <- 2
 subcounts <- projectcounts( lwin=lwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=counts[[1]] )
 all.subexpected <- lapply( all.expected, function (x) { list( projectcounts( lwin=lwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=x[[1]] ) ) } )
 
-save( counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, truth, cheating.ans, random.ans, estimates, initpar, nonoverlapping, nov.counts, mmean, all.expected, cwin, subcounts, all.subexpected, mrun, win, lwin, rwin, file=datafile )
+save( counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, truth, ans, estimates, initpar, nonoverlapping, nov.counts, mmean, all.expected, cwin, subcounts, all.subexpected, mrun, win, lwin, rwin, file=datafile )
 
 pdf(file=paste(plotfile,"-mcmc.pdf",sep=''),width=6, height=4, pointsize=10)
 plot( mrun$batch, type='l', xlab="mcmc gens", ylab="tlen*jumprate" )

@@ -42,7 +42,7 @@ checkit <- function (x,y) { stopifnot( all.equal( as.vector(x), as.vector(y) ) )
 
 checkit(
         makegenmatrix( mutpats=mutpats, selpats=selpats, selcoef=rep(0,length(selpats)), mutrates=mutrates, patlen=patlen, boundary="none" ),
-        true.mutrates
+        fixfn(0)*true.mutrates
     )
 
 checkit(
@@ -52,7 +52,7 @@ checkit(
 
 checkit( 
         makegenmatrix( mutpats=mutpats, selpats=selpats, selcoef=rep(0,length(selpats)), mutrates=mutrates, patlen=patlen, boundary="wrap" ),
-        true.mutrates
+        fixfn(0)*true.mutrates
     )
 
 checkit( 
@@ -62,7 +62,7 @@ checkit(
 
 checkit(
         meangenmatrix( lwin=1, rwin=1, mutpats=mutpats, selpats=rep(0,length(selpats)), selcoef=selcoef, mutrates=mutrates, patlen=patlen, boundary="none" ),
-        true.mutrates
+        fixfn(0)*true.mutrates
     )
 
 checkit(
