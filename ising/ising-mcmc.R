@@ -16,14 +16,17 @@ option_list <- list(
         make_option( c("-s","--restart"), action="store_true", default=FALSE, help="Start a whole new MCMC run?" ),
         make_option( c("-o","--logfile"), type="character", default="", help="Direct output to this file. [default appends .Rout]" )
     )
-opt <- parse_args(OptionParser(option_list=option_list,description=usage))
-attach(opt)
-
-if (interactive()) { win <- lwin <- rwin <- 3; nbatches <- 100; blen <- 10; restart <- FALSE }
+if (!interactive()) {
+    opt <- parse_args(OptionParser(option_list=option_list,description=usage))
+    attach(opt)
+} else {
+    for (x in option_list) { if (!exists(x@dest)) { assign(x@dest,x@default) } }
+    nbatches <- 10
+}
 
 options(error=traceback)
 
-if (is.null(infile) | is.null(nbatches)) { cat("Run\n  ising-inference.R -h\n for help.") }
+if (is.null(infile) | is.null(nbatches)) { stop("Run\n  ising-inference.R -h\n for help.") }
 
 basedir <- gsub(".RData","",infile,fixed=TRUE)
 load(infile)
@@ -53,7 +56,7 @@ if (!is.null(logfile)) {
 }
 
 load(datafile)  # has mrun and previous things
-if (length(mcmcdatafiles)) { load(grep(paste("-mcmc-",mcmcnum-1,".RData",sep=''),mcmcdatafiles,fixed=TRUE,value=TRUE)) }
+if (length(mcmcdatafiles)>0) { load(grep(paste("-mcmc-",mcmcnum-1,".RData",sep=''),mcmcdatafiles,fixed=TRUE,value=TRUE)) }
 
 ########
 
