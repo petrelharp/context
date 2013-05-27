@@ -113,7 +113,7 @@ cwin <- 2
 subcounts <- projectcounts( lwin=lwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=counts[[1]] )
 all.subexpected <- lapply( all.expected, function (x) { list( projectcounts( lwin=lwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=x[[1]] ) ) } )
 
-save( counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, truth, ans, estimates, initpar, nonoverlapping, nov.counts, mmean, all.expected, cwin, subcounts, all.subexpected, mrun, win, lwin, rwin, file=datafile )
+save( counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, truth, ans, estimates, nonoverlapping, nov.counts, mmean, all.expected, cwin, subcounts, all.subexpected, mrun, win, lwin, rwin, file=datafile )
 
 pdf(file=paste(plotfile,"-mcmc.pdf",sep=''),width=6, height=4, pointsize=10)
 plot( mrun$batch, type='l', xlab="mcmc gens", ylab="tlen*jumprate" )
