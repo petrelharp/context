@@ -113,12 +113,13 @@ all.resids <- lapply( all.expected, function (x) {
                 ) } )
 
 vars <- sapply( all.resids, function (x) as.vector(x[["sub"]]) )
+vars <-  sweep(vars,1,rowMeans(vars),"-")^2 
 
 # different generator matrices give same answers?
-stopifnot( all( rowMeans( sweep(vars,1,rowMeans(vars),"-")^2 ) < 1e-3 ) )
+stopifnot( all( rowMeans(vars) < 1e-3 ) )
 
 # and these agree with truth pretty well?
-stopifnot( all( sapply( all.expected, function (x) { ( all( abs( ppois( as.vector(subcounts), lambda=as.vector(x[["subexpected"]]) ) - 0.5 ) < .499 ) ) } ) ) )
+stopifnot( all( sapply( all.expected, function (x) { ( all( (0.5 - abs( ppois( as.vector(subcounts), lambda=as.vector(x[["subexpected"]]) ) - 0.5 )) > (1/2)*(1-(1-.001)^(1/length(as.vector(subcounts)))) ) ) } ) ) )
 
 cat("\n\n  Simulations all good!\n")
 
