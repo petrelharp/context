@@ -23,16 +23,16 @@ info :
 	Rscript ../siminfo.R tasep-sims
 
 %/mcmc-run-1.Rout : %.RData
-	Rscript tasep-mcmc.R -i $< -n 10000
+	Rscript tasep-mcmc.R -i $< -o $@ ${ARGS}
 
 %/mcmc-run-2.Rout : %.RData %/mcmc-run-1.Rout 
-	Rscript tasep-mcmc.R -i $< -n 10000
+	Rscript tasep-mcmc.R -i $< -o $@ ${ARGS}
 
 %/mcmc-run-3.Rout : %.RData %/mcmc-run-2.Rout 
-	Rscript tasep-mcmc.R -i $< -n 10000
+	Rscript tasep-mcmc.R -i $< -o $@ ${ARGS}
 
 %/mcmc-run-4.Rout : %.RData %/mcmc-run-3.Rout 
-	Rscript tasep-mcmc.R -i $< -n 10000
+	Rscript tasep-mcmc.R -i $< -o $@ ${ARGS}
 
 %/mcmc-run-5.Rout : %.RData %/mcmc-run-4.Rout 
-	Rscript tasep-mcmc.R -i $< -n 10000
+	Rscript tasep-mcmc.R -i $< -o $@ ${ARGS}
