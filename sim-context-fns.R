@@ -15,7 +15,7 @@ rinitseq <- function (seqlen,bases,basefreqs=rep(1/length(bases),length(bases)))
     return( stringfun(substr( paste( rpats, collapse="" ), 1, seqlen )) )
 }
 
-simseq <- function (seqlen, tlen, patlen, mutpats, mutrates, selpats, selcoef, bases=c("A","C","G","T"), count.trans=TRUE, initseq, basefreqs=rep(1/length(bases),length(bases)), ... ) {
+simseq <- function (seqlen, tlen, patlen, mutpats, mutrates, selpats=list(), selcoef=numeric(0), bases=c("A","C","G","T"), count.trans=FALSE, initseq, basefreqs=rep(1/length(bases),length(bases)), ... ) {
     # simulate a random sequence and evolve it with genmatrix.
     #  record transition counts if count.trans it TRUE (e.g. for debugging)
     # First make transition matrix
@@ -24,7 +24,7 @@ simseq <- function (seqlen, tlen, patlen, mutpats, mutrates, selpats, selcoef, b
     #    then we'll match on CG.., .CG., and ..CG, so the transition rates of e.g. CGTT -> TGTT should be 1.5/(4-2+1) = 0.5
     #   So, rescale mutrates:
     stringsetfun <- if ( all(bases %in% c("A","C","G","T","-") ) ) { DNAStringSet } else { BStringSet }
-    genmatrix <- makegenmatrix( mutpats, selpats, patlen=patlen )
+    genmatrix <- makegenmatrix( mutpats, selpats, patlen=patlen, boundary="none" )
     mutpatlens <- lapply( mutpats, function (x) unique(nchar(unlist(x))) )
     if (! all( sapply(mutpatlens,length)==1 ) ) { stop("need each list in mutpats to have patterns of the same length") }
     mutrates <- mutrates / (patlen-unlist(mutpatlens)+1)  # avoid multiple counting
@@ -108,16 +108,18 @@ show.simseq <- function (x,printit=FALSE,maxchar=1e8) {
     # display the output of simulation by lowercasing or replacing with "." bases that didn't change
     x$initseq <- subseq(x$initseq,1,maxchar)
     fseq <- BString( subseq(x$finalseq,1,maxchar) )
-    x$ntrans <- subset(x$ntrans,loc<=maxchar)
-    patlen <- nchar( levels( x$ntrans$i )[1] )
-    events <- unique(x$ntrans$loc)
-    eventlocs <- (seq_len(nchar(fseq)) %in% outer(events,0:(patlen-1),"+"))
-    if (length(events)>0) {
-        whichchanged <- sapply( events, function (k) { kev <- (x$ntrans$loc==k); any( x$ntrans$i[kev] != x$ntrans$j[kev] ) } )
-        changedlocs <- ( seq_len(nchar(fseq)) %in% outer( events[whichchanged], 0:(patlen-1), "+" ) )
-        fseq[eventlocs & !changedlocs] <- tolower(fseq[eventlocs & !changedlocs])
+    if (!is.null(x$ntrans)) {
+        x$ntrans <- subset(x$ntrans,loc<=maxchar)
+        patlen <- nchar( levels( x$ntrans$i )[1] )
+        events <- unique(x$ntrans$loc)
+        eventlocs <- (seq_len(nchar(fseq)) %in% outer(events,0:(patlen-1),"+"))
+        if (length(events)>0) {
+            whichchanged <- sapply( events, function (k) { kev <- (x$ntrans$loc==k); any( x$ntrans$i[kev] != x$ntrans$j[kev] ) } )
+            changedlocs <- ( seq_len(nchar(fseq)) %in% outer( events[whichchanged], 0:(patlen-1), "+" ) )
+            fseq[eventlocs & !changedlocs] <- tolower(fseq[eventlocs & !changedlocs])
+        }
+        fseq[!eventlocs] <- "."
     }
-    fseq[!eventlocs] <- "."
     if (printit) {
         cat(paste(as.character(x$initseq),"\n",sep=''))
         cat(paste(as.character(fseq),"\n",sep=''))

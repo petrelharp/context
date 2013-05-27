@@ -84,13 +84,13 @@ lud <- function (mutrates) {
     }
 }
 
-initpar <- c( runif( length(mutpats) ) * mean(mutrates) * tlen ) # random init
-truth <- c( mutrates * tlen )  # truth
-lbs <- c( 1e-3 )
-cheating.ans <- optim( par=truth, fn=likfun, method="L-BFGS-B", lower=lbs, control=list(trace=3) )
-random.ans <- optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs, control=list(trace=3) )
 
-estimates <- data.frame( rbind(init=initpar, ans=random.ans$par, cheating=cheating.ans$par, truth=truth ) )
+truth <- c( mutrates * tlen )  # truth
+parrange <- sort(unique(c(seq(0,5,length.out=100),seq(max(0,truth-.1),truth+.1,length.out=40))))
+likrange <- sapply(parrange,likfun)
+ans <- optimize(likfun,lower=1e-8,upper=10)
+
+estimates <- data.frame( rbind(ans=ans$minimum,truth=truth ) )
 colnames(estimates) <- "muttime"
 estimates$likfun <- apply( estimates, 1, likfun )
 write.table( estimates, file=resultsfile, quote=FALSE, sep="\t" )
@@ -129,9 +129,8 @@ for (k in 1:ncol(counts[[1]])) {
         points( counts[[j]][lord,k], pch=j )
         lines(all.expected[["truth"]][[j]][lord,k],col='red', lty=j)
         lines(all.expected[["ans"]][[j]][lord,k],col='green', lty=j, lwd=2)
-        lines(all.expected[["cheating"]][[j]][lord,k],col='blue',lty=j)
     }
-    legend("topleft",legend=c("expected","estimated","cheating"),lty=1,col=c("red","green","blue"))
+    legend("topleft",legend=c("expected","estimated"),lty=1,col=c("red","green"))
 }
 dev.off()
 
@@ -151,9 +150,8 @@ pdf(file=paste(plotfile,"-3.pdf",sep=''),width=6, height=4, pointsize=10)
 layout(1)
 plot( as.vector(all.expected[["truth"]][[1]]), as.vector(counts[[1]]), log='xy', xlab="true expected counts", ylab="counts" )
 abline(0,1)
-points(as.vector(all.expected[["truth"]][[1]]), as.vector(all.expected[["cheating"]][[1]]), col='red', pch=20 )
 points(as.vector(all.expected[["truth"]][[1]]), as.vector(all.expected[["ans"]][[1]]), col='green', pch=20, cex=.5)
-legend("topleft",pch=c(1,20,20),col=c('black','red','green'),legend=c('observed','cheating','estimated'))
+legend("topleft",pch=c(1,20),col=c('black','green'),legend=c('observed','estimated'))
 dev.off()
 
 
