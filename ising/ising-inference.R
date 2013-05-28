@@ -22,7 +22,7 @@ options(error=traceback)
 
 if (interactive()) { win <- lwin <- rwin <- 3; nbatches <- 10; blen <- 10; mmean <- 1; svar <- 1 }
 
-if (is.null(infile) | is.null(nbatches)) { cat("Run\n  ising-inference.R -h\n for help.") }
+if (is.null(infile)) { cat("Run\n  ising-inference.R -h\n for help.") }
 
 if (logfile!="" & !interactive()) { 
     logfile <- gsub(".RData",".Rout",infile,fixed=TRUE)
@@ -95,9 +95,10 @@ lud <- function (params) {
 # point estimates
 initpar <- c( 2 * runif( length(mutpats) ) * mean(mutrates) * tlen, 2 * runif( length(selpats) ) * mean(selcoef) ) # random init
 truth <- c( mutrates * tlen, selcoef )  # truth
-lbs <- c( rep(1e-6,nmuts), rep(-Inf,nsel) )
-cheating.ans <- optim( par=truth, fn=likfun, method="L-BFGS-B", lower=lbs, control=list(trace=3) )
-random.ans <- optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs, control=list(trace=3) )
+lbs <- c( rep(1e-6,nmuts), rep(-20,nsel) )
+ubs <- c( rep(20,nmuts), rep(20,nsel) )
+cheating.ans <- optim( par=truth, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(trace=3,fnscale=likfun(truth)) )
+random.ans <- optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(trace=3,fnscale=likfun(truth)) )
 
 estimates <- data.frame( rbind(init=initpar, ans=random.ans$par, cheating=cheating.ans$par, truth=truth ) )
 colnames(estimates) <- c( paste("muttime",seq_along(mutrates),sep=''), paste("selcoef",seq_along(selcoef),sep='') )
@@ -115,9 +116,9 @@ all.expected <- lapply( 1:nrow(estimates), function (k) {
 names(all.expected) <- rownames(estimates)
 
 # look at observed/expected counts in smaller windows
-cwin <- 2
-subcounts <- projectcounts( lwin=lwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=counts[[1]] )
-all.subexpected <- lapply( all.expected, function (x) { list( projectcounts( lwin=lwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=x[[1]] ) ) } )
+cwin <- 3; lrcwin <- 1
+subcounts <- projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=counts[[1]] )
+all.subexpected <- lapply( all.expected, function (x) { list( projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=x[[1]] ) ) } )
 
 save( counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, truth, cheating.ans, random.ans, estimates, initpar, nonoverlapping, nov.counts, mmean, svar, all.expected, cwin, subcounts, all.subexpected, mrun, win, lwin, rwin, nmuts, nsel, file=datafile )
 
@@ -155,11 +156,11 @@ for (k in 1:ncol(counts[[1]])) {
 dev.off()
 
 pdf(file=paste(plotfile,"-2.pdf",sep=''),width=6, height=4, pointsize=10)
-layout(matrix(1:4,nrow=2))
+layout(matrix(1:ncol(all.subexpected[["truth"]][[1]]),nrow=2))
 cols <- rainbow(2+length(all.expected))[1:length(all.expected)]
-for (k in 1:4) {
+for (k in 1:ncol(all.subexpected[["truth"]][[1]])) {
     lord <- order( all.subexpected[["truth"]][[1]][,k] )
-    plot( subcounts[lord,k], xaxt='n', xlab='', main=colnames(subcounts)[k] )
+    plot( subcounts[lord,k], xaxt='n', xlab='', main=colnames(subcounts)[k], log='y' )
     axis(1,at=1:nrow(subcounts),labels=rownames(subcounts)[lord],las=3)
     invisible( lapply(seq_along(all.subexpected),function(j) { lines(all.subexpected[[j]][[1]][lord,k],col=cols[j]) } ) )
     legend("topleft",legend=names(all.subexpected),lty=1,col=cols)

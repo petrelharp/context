@@ -36,7 +36,7 @@ siminfo <- lapply(simfiles, function (x) {
         for (ef in estimfiles) {
             wins <- gsub("-results.tsv","",gsub(".*win-","",ef))
             estim <- read.table(ef,sep="\t")
-            estim <- estim[match(c("ans","random.ans"),rownames(estim))[1],]
+            estim <- estim[match(c("ans","random.ans"),rownames(estim))[1],setdiff(colnames(estim),"likfun")]
             colnames(estim) <- paste( wins, colnames(estim), sep=".")
             y <- cbind(y, estim)
         }

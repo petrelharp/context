@@ -27,7 +27,7 @@ simseq <- function (seqlen, tlen, patlen, mutpats, mutrates, selpats=list(), sel
     genmatrix <- makegenmatrix( mutpats, selpats, patlen=patlen, boundary="none" )
     mutpatlens <- lapply( mutpats, function (x) unique(nchar(unlist(x))) )
     if (! all( sapply(mutpatlens,length)==1 ) ) { stop("need each list in mutpats to have patterns of the same length") }
-    mutrates <- mutrates / (patlen-unlist(mutpatlens)+1)  # avoid multiple counting
+    mutrates <- mutrates / (patlen-unlist(mutpatlens)+1)  # avoid overcounting (see above)
     genmatrix@x <- update(genmatrix,mutrates,selcoef,...)
     patterns <- rownames(genmatrix)
     patstrings <- stringsetfun( patterns )
@@ -62,15 +62,16 @@ simseq <- function (seqlen, tlen, patlen, mutpats, mutrates, selpats=list(), sel
             replstr <- patstrings[[replind]] # what is the replacement string
             if (count.trans) {  ntrans$i[k] <- patterns[msubseq]; ntrans$j[k] <- patterns[replind] } # record this (is a factor so not storing actual strings)
             if (wrap.events[k]) { # put this back in (cyclical)
-                subseq( finalseq, loc.events[k], seqlen) <- subseq(replstr,1,seqlen-loc.events[k]+1)
-                subseq(finalseq, 1, loc.events[k]+patlen-seqlen-1) <- subseq(replstr,seqlen-loc.events[k]+2,patlen)
+                subseq( finalseq, loc.events[k], seqlen ) <- subseq( replstr, 1, seqlen-loc.events[k]+1 )
+                subseq( finalseq, 1, loc.events[k]+patlen-seqlen-1 ) <- subseq( replstr, seqlen-loc.events[k]+2, patlen )
             } else {
                 subseq( finalseq, loc.events[k], loc.events[k]+patlen-1 ) <- replstr
             }
         }
-        if (nchar(finalseq) != nchar(initseq)) { browser() }
+        # sanity check:
+        # if (nchar(finalseq) != nchar(initseq)) { browser() }
     }
-    output <-  list( initseq=initseq, finalseq=finalseq, maxrate=maxrate, ntrans=ntrans, mutpats=mutpats, selpats=selpats, mutrates=mutrates, selcoef=selcoef, tlen=tlen, seqlen=seqlen, params=list(...) ) 
+    output <- list( initseq=initseq, finalseq=finalseq, maxrate=maxrate, ntrans=ntrans, mutpats=mutpats, selpats=selpats, mutrates=mutrates, selcoef=selcoef, tlen=tlen, seqlen=seqlen, bases=bases, params=list(...) ) 
     class(output) <- "simseq"
     return(output)
 }

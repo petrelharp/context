@@ -23,6 +23,8 @@ if (length(args)<2) {
     }
 }
 
+if (interactive()) { seqlen <- 1e3; tlen <- .1; interaction <- 1; external.field <- .5; Xfreq <- 0.5 }
+
 # identifiers
 thisone <- formatC( floor(runif(1)*1e6) , digits=6,flag='0')
 now <- Sys.time()
@@ -53,7 +55,7 @@ initfreqs <- c(Xfreq,1-Xfreq)
 initseq <- rinitseq(seqlen,bases,basefreqs=initfreqs)
 system.time( 
         simseqs <- list(
-                simseq( seqlen=seqlen, tlen=tlen, patlen=patlen, mutpats=mutpats, mutrates=mutrates, selpats=selpats, selcoef=selcoef, initseq=initseq, bases=bases )
+                simseq( seqlen=seqlen, tlen=tlen, patlen=patlen, mutpats=mutpats, mutrates=mutrates, selpats=selpats, selcoef=selcoef, initseq=initseq, bases=bases, count.trans=FALSE )
             )
     )
 

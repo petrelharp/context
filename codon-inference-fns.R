@@ -16,7 +16,7 @@ npatterns <- function (winlen) {
     return( length(bases)^winlen )
 }
 
-getmutmats <- function(mutpats,patterns,boundary=c("wrap","none")) {
+getmutmats <- function(mutpats,patterns,boundary=c("none","wrap")) {
     # given mutation patterns,
     #   which can be a list of either pairs or lists of pairs,
     # return list of matrices with (1-based) indices of changes corresponding to mutation patterns
@@ -51,7 +51,7 @@ getmutmats <- function(mutpats,patterns,boundary=c("wrap","none")) {
     } )
 }
 
-getselmatches <- function (selpats, patterns, boundary=c("wrap","none"), names=FALSE) {
+getselmatches <- function (selpats, patterns, boundary=c("none","wrap"), names=FALSE) {
     # selpats can be a vector or a list of vectors,
     #  each element gets one parameter
     # selmatches[i,j] is number of times anything in selpat[[i]] matches pattern[j]
@@ -216,7 +216,7 @@ predictcounts <- function (win, lwin=0, rwin=0, initcounts, mutrates, selcoef, m
     # Compute expected counts of paired patterns:
     winlen <- lwin+win+rwin
     if (missing(genmatrix)) { genmatrix <- makegenmatrix(patlen=lwin+win+rwin,mutpats=mutpats,selpats=selpats, ...) }
-    if (!missing(mutrates)) { genmatrix@x <- update(genmatrix,mutrates=mutrates,selcoef=selcoef,...) }
+    if (!missing(mutrates)|!missing(selcoef)) { genmatrix@x <- update(genmatrix,mutrates=mutrates,selcoef=selcoef,...) }
     if (missing(projmatrix)) { projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin ) }
     subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE )
     if (missing(initcounts)) { initcounts <- 1 }
@@ -322,7 +322,7 @@ gettransmatrix <- function (mutpats, mutrates, selpats, selcoef, Ne, tlen=1, win
     # get reduced transition matrix: given (lwin, win, rwin) context, return probability of pattern in win
     #   note: alternative is expm=expm::expm(x,method="Higham08")
     winlen <- lwin+win+rwin
-    fullgenmatrix <- makegenmatrix( mutpats, selpats, patlen=winlen)
+    fullgenmatrix <- makegenmatrix( mutpats, selpats, patlen=winlen,...)
     fullgenmatrix@x <- update(fullgenmatrix,mutrates,selcoef,Ne)
     projmatrix <- collapsepatmatrix( ipatterns=rownames(fullgenmatrix), lwin=lwin, rwin=rwin )
     subtransmatrix <- computetransmatrix( genmatrix, tlen, projmatrix, names=TRUE )
