@@ -15,7 +15,7 @@ rinitseq <- function (seqlen,bases,basefreqs=rep(1/length(bases),length(bases)))
     return( stringfun(substr( paste( rpats, collapse="" ), 1, seqlen )) )
 }
 
-simseq <- function (seqlen, tlen, patlen, mutpats, mutrates, selpats=list(), selcoef=numeric(0), bases=c("A","C","G","T"), count.trans=FALSE, initseq, basefreqs=rep(1/length(bases),length(bases)), ... ) {
+simseq <- function (seqlen, tlen, mutpats, mutrates, selpats=list(), selcoef=numeric(0), patlen, bases=c("A","C","G","T"), count.trans=FALSE, initseq, basefreqs=rep(1/length(bases),length(bases)), ... ) {
     # simulate a random sequence and evolve it with genmatrix.
     #  record transition counts if count.trans it TRUE (e.g. for debugging)
     # First make transition matrix
@@ -24,16 +24,34 @@ simseq <- function (seqlen, tlen, patlen, mutpats, mutrates, selpats=list(), sel
     #    then we'll match on CG.., .CG., and ..CG, so the transition rates of e.g. CGTT -> TGTT should be 1.5/(4-2+1) = 0.5
     #   So, rescale mutrates:
     stringsetfun <- if ( all(bases %in% c("A","C","G","T","-") ) ) { DNAStringSet } else { BStringSet }
-    genmatrix <- makegenmatrix( mutpats, selpats, patlen=patlen, boundary="none" )
-    mutpatlens <- lapply( mutpats, function (x) unique(nchar(unlist(x))) )
+    # determine size of padding window
+    sellen <- max( sapply( unlist( selpats ), nchar ) ) 
+    mutlen <- max( sapply( unlist( mutpats ), nchar ) )
+    mutpatlens <- unlist( lapply( mutpats, function (x) unique(nchar(unlist(x))) ) )
+    mutlen <- max(mutpatlens)
+    if (missing(patlen)) { patlen <- mutlen }
+    if (patlen<mutlen) { stop("patlen too short") }
+    pad.patlen <- patlen+2*(sellen-1)
+    # construct generator matrix for (sellen-1,patlen,sellen-1) but with outer padding not changing
+    full.genmatrix <- makegenmatrix( mutpats, selpats, patlen=pad.patlen, boundary="none" )
     if (! all( sapply(mutpatlens,length)==1 ) ) { stop("need each list in mutpats to have patterns of the same length") }
-    mutrates <- mutrates / (patlen-unlist(mutpatlens)+1)  # avoid overcounting (see above)
-    genmatrix@x <- update(genmatrix,mutrates,selcoef,...)
-    patterns <- rownames(genmatrix)
+    mutrates <- mutrates / (patlen-mutpatlens+1)  # avoid overcounting (see above)
+    full.genmatrix@x <- update(full.genmatrix,mutrates,selcoef,...)
+    patterns <- rownames(full.genmatrix)
     patstrings <- stringsetfun( patterns )
     # max mutation rate
-    stopifnot( inherits(genmatrix,"dgCMatrix") )  # we access @i, @p, and @x directly...
-    gmj <- rep( 0:(ncol(genmatrix)-1), times=diff(genmatrix@p) )  # column indices corresp to @i
+    stopifnot( inherits(full.genmatrix,"dgCMatrix") )  # we access @i, @p, and @x directly...
+    full.genmatrix.j <- rep( 0:(ncol(full.genmatrix)-1), times=diff(full.genmatrix@p) )  # column indices corresp to @i
+    # remove entries that change in outer wings
+    unch <- ( ( substr( patterns[full.genmatrix@i+1L], 1, sellen-1 ) ==  substr( patterns[full.genmatrix.j+1L], 1, sellen-1 ) ) 
+        & ( substr( patterns[full.genmatrix@i+1L], sellen+patlen, patlen+2*(sellen-1) ) ==  substr( patterns[full.genmatrix.j+1L], sellen+patlen, patlen+2*(sellen-1) ) ) )
+    genmatrix <- new( "dgCMatrix", 
+            i=full.genmatrix@i[unch], 
+            x=full.genmatrix@x[unch], 
+            p=sapply(0:ncol(full.genmatrix), function(k) sum(full.genmatrix.j[unch]<k)), 
+            Dim=dim(full.genmatrix), Dimnames=dimnames(full.genmatrix) 
+        )
+    genmatrix.j <- full.genmatrix.j[unch]
     stopifnot( all(genmatrix>=0) )  # assume this comes WITHOUT the diagonal
     maxrate <- max( rowSums(genmatrix) )
     diags <- maxrate - rowSums(genmatrix)
@@ -41,7 +59,7 @@ simseq <- function (seqlen, tlen, patlen, mutpats, mutrates, selpats=list(), sel
     # number and locations of possible changes, ordered by time they occur at
     n.events <- rpois(1,lambda=maxrate*tlen*seqlen)
     loc.events <- sample(seqlen,n.events,replace=TRUE)
-    wrap.events <- (loc.events+patlen>seqlen+1) #events wrapping around the end
+    wrap.events <- (loc.events+pad.patlen>seqlen+1) #events wrapping around the end
     # count transitions, for debugging
     ntrans <- if (count.trans) { data.frame( i=factor(rep(NA,n.events),levels=rownames(genmatrix)), j=factor(rep(NA,n.events),levels=colnames(genmatrix)), loc=loc.events ) } else { NULL }
     # initial and final sequences
@@ -49,23 +67,23 @@ simseq <- function (seqlen, tlen, patlen, mutpats, mutrates, selpats=list(), sel
     finalseq <- initseq
     for (k in seq_along(loc.events)) {
         subseq <- if (wrap.events[k]) { # from string (cyclical)
-                xscat( subseq( finalseq, loc.events[k], seqlen), subseq(finalseq, 1, loc.events[k]+patlen-seqlen-1) )
+                xscat( subseq( finalseq, loc.events[k], seqlen), subseq(finalseq, 1, loc.events[k]+pad.patlen-seqlen-1) )
             } else {  
-                subseq(finalseq, loc.events[k], loc.events[k]+patlen-1 ) 
+                subseq(finalseq, loc.events[k], loc.events[k]+pad.patlen-1 ) 
             }
         msubseq <- match( subseq, patstrings )  # which row for this string?
         isubseq <- which( (genmatrix@i + 1) == msubseq ) # transitions are these entries of genmatrix
         if (length(isubseq)>0) {   # do nothing if this pattern doesn't mutate
-            jsubseq <- c( msubseq, (gmj[isubseq]+1) ) # indices of possible replacement patterns (self is first)
+            jsubseq <- c( msubseq, (genmatrix.j[isubseq]+1) ) # indices of possible replacement patterns (self is first)
             psubseq <- c( diags[msubseq], genmatrix@x[isubseq] )  # probabilities of choosing these
             replind <- sample( jsubseq, 1, prob=psubseq ) # choose this replacement string (index)
             replstr <- patstrings[[replind]] # what is the replacement string
             if (count.trans) {  ntrans$i[k] <- patterns[msubseq]; ntrans$j[k] <- patterns[replind] } # record this (is a factor so not storing actual strings)
             if (wrap.events[k]) { # put this back in (cyclical)
                 subseq( finalseq, loc.events[k], seqlen ) <- subseq( replstr, 1, seqlen-loc.events[k]+1 )
-                subseq( finalseq, 1, loc.events[k]+patlen-seqlen-1 ) <- subseq( replstr, seqlen-loc.events[k]+2, patlen )
+                subseq( finalseq, 1, loc.events[k]+pad.patlen-seqlen-1 ) <- subseq( replstr, seqlen-loc.events[k]+2, pad.patlen )
             } else {
-                subseq( finalseq, loc.events[k], loc.events[k]+patlen-1 ) <- replstr
+                subseq( finalseq, loc.events[k], loc.events[k]+pad.patlen-1 ) <- replstr
             }
         }
         # sanity check:
@@ -103,6 +121,11 @@ counttrans <- function (ipatterns, fpatterns, initseq=simseqs[["initseq"]], fina
         } 
     }
     return(counts)
+}
+
+changepos <- function (mutpats) {
+    # return list of indices corresponding to site the mutation pattern changes
+    lapply( mutpats, lapply, function (x) { which(do.call("!=",strsplit(x,"")) ) } )
 }
 
 show.simseq <- function (x,printit=FALSE,maxchar=1e8) { 
