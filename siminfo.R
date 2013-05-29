@@ -17,8 +17,9 @@ if (!file.exists(simdir)) { stop(paste(simdir, "does not exist.\n")) }
 # available simulated sequences
 simfiles <- list.files(simdir,"*.RData",full.names=TRUE)
 siminfo <- lapply(simfiles, function (x) {
-        tmp <- load(x)
         basedir <- gsub(".RData","",x,fixed=TRUE)
+        mcmcdatafiles <- list.files(path=basedir,pattern="-mcmc.*RData",full.names=TRUE)
+        tmp <- load(x)
         y <- list(date=now,seqlen=seqlen, tlen=tlen, file=x) 
         pnames <- names(y)
         if ("mutrates"%in%tmp) { 
@@ -36,7 +37,7 @@ siminfo <- lapply(simfiles, function (x) {
         for (ef in estimfiles) {
             wins <- gsub("-results.tsv","",gsub(".*win-","",ef))
             estim <- read.table(ef,sep="\t")
-            estim <- estim[match(c("ans","random.ans"),rownames(estim))[1],setdiff(colnames(estim),"likfun")]
+            estim <- estim[match(c("ans","random.ans"),rownames(estim))[1],setdiff(colnames(estim),"likfun"),drop=FALSE]
             colnames(estim) <- paste( wins, colnames(estim), sep=".")
             y <- cbind(y, estim)
         }

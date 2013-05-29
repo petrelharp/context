@@ -21,9 +21,9 @@ attach(opt)
 
 if (interactive()) { win <- lwin <- rwin <- 3; nbatches <- 100; blen <- 10; restart <- FALSE }
 
-options(error=traceback)
+if (!'infile'%in%names(opt)) { stop("Run\n  tasep-inference.R -h\n for help.") }
 
-if (is.null(infile) | is.null(nbatches)) { cat("Run\n  tasep-inference.R -h\n for help.") }
+options(error=traceback)
 
 basedir <- gsub(".RData","",infile,fixed=TRUE)
 load(infile)
@@ -45,7 +45,7 @@ plotfile <- paste( basename ,"-plot",sep='')
 mcmcdatafiles <- list.files(path=basedir,pattern="-mcmc.*RData",full.names=TRUE)
 mcmcnum <- 1+max(c(0,as.numeric(gsub(".*-mcmc-","",gsub(".RData","",mcmcdatafiles)))),na.rm=TRUE)
 
-if (logfile=="" & !interactive()) { logfile <- paste(basedir,"/mcmc-run-",mcmcnum,".Rout",sep='') }
+if (logfile=="" & !interactive()) { logfile <- paste(basename,"-mcmc-run-",mcmcnum,".Rout",sep='') }
 if (!is.null(logfile)) { 
     logcon <- if (logfile=="-") { stdout() } else { file(logfile,open="wt") }
     sink(file=logcon, type="message") 

@@ -22,5 +22,11 @@ if (logfile!="" & !interactive()) {
     sink(file=logcon, type="output")   # send both to log file
 }
 
+basedir <- gsub(".RData","",infile,fixed=TRUE)
+mcmcdatafiles <- list.files(path=basedir,pattern="-mcmc.*RData",full.names=TRUE)
 
-
+mcmcinfo <- lapply( mcmcmdatafiles, function (x) {
+        tmp <- load(x)
+        out <- list( lwin=lwin, win=win, rwin=rwin, accept=mrun$accept, user.time=mrun$time[1], nbatch=mrun$nbatch, blen=mrun$blen, nspac=mrun$nspac )
+        summ <- summary(mrun$batch)
+    } )
