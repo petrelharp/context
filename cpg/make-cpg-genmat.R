@@ -38,6 +38,7 @@ source("../codon-inference-fns.R")
 # maximum size of pattern (for simulation)
 mutpats <- c(
         apply(combn(bases,2),2,list),  # single-base rates
+        apply(combn(bases,2)[2:1,],2,list),  # single-base rates
         list( list( c("CG","TG"), c("CG","CA") ) )  # CpG rate
     ) 
 selpats <- list()
