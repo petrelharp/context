@@ -5,7 +5,7 @@ usage <- "\
 Simulate from the process.\
 \
 Usage:\
-   Rscript sim-tasep.R seqlen tlen [Xfreq] \
+   Rscript sim-cpg.R seqlen tlen [Xfreq] \
 "
 
 args <- commandArgs(TRUE)
@@ -25,17 +25,18 @@ if (length(args)<2) {
 thisone <- formatC( floor(runif(1)*1e6) , digits=6,flag='0')
 now <- Sys.time()
 
-simdir <- "tasep-sims/"
+simdir <- "cpg-sims/"
 if (!file.exists(simdir)) { dir.create(simdir,recursive=TRUE) }
 
-bases <- c("X","O")
+bases <- c("A","T","C","G")
 
 source("../sim-context-fns.R")
 source("../codon-inference-fns.R")
 
 # maximum size of pattern (for simulation)
-mutpats <- list( 
-    list( c("XO","OX") )
+mutpats <- c(
+        apply(combn(bases,2),2,list),  # single-base rates
+        list( list( c("CG","TG"), c("CG","CA") ) )  # CpG rate
     ) 
 mutrates <- 2 * runif( length(mutpats) )
 selpats <- list()

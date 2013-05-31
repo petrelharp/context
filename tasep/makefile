@@ -21,6 +21,7 @@ test : check-tasep.R
 
 info : 
 	Rscript ../siminfo.R tasep-sims
+	Rscript ../parse-mcmc.R 
 
 %/mcmc-run-1.Rout : %.RData
 	Rscript tasep-mcmc.R -i $< -o $@ ${ARGS}

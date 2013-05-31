@@ -38,7 +38,6 @@ source("../sim-context-fns.R")
 source("../codon-inference-fns.R")
 
 # maximum size of pattern (for simulation)
-patlen <- 2
 mutpats <- list( 
     list( c("O","X"), c("X","O") )
     ) 
@@ -55,7 +54,7 @@ initfreqs <- c(Xfreq,1-Xfreq)
 initseq <- rinitseq(seqlen,bases,basefreqs=initfreqs)
 system.time( 
         simseqs <- list(
-                simseq( seqlen=seqlen, tlen=tlen, patlen=patlen, mutpats=mutpats, mutrates=mutrates, selpats=selpats, selcoef=selcoef, initseq=initseq, bases=bases, count.trans=FALSE )
+                simseq( seqlen=seqlen, tlen=tlen, mutpats=mutpats, mutrates=mutrates, selpats=selpats, selcoef=selcoef, initseq=initseq, bases=bases, count.trans=FALSE )
             )
     )
 

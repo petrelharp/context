@@ -21,6 +21,7 @@ test : check-ising.R
 
 info : 
 	Rscript ../siminfo.R ising-sims
+	Rscript ../parse-mcmc.R 
 
 %/mcmc-run-1.Rout : %.RData
 	Rscript ising-mcmc.R -i $< -n 10000

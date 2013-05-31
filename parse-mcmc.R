@@ -1,19 +1,17 @@
 #!/usr/bin/Rscript --vanilla
-require(optparse)
-
 usage <- "\
 Summarize results from mcmc runs.
 "
 
-default_simdir <- grep("sims$",list.dirs(recursive=FALSE),value=TRUE)
-if (interactive()) { simdir <- default_simdir }
-
-option_list <- list(
-        make_option( c("-i","--simdir"), type="character", default=default_simdir, help="directory containing data [default=%default]" )
-    )
-opt <- parse_args(OptionParser(option_list=option_list,description=usage))
-attach(opt)
-options(error=traceback)
+if (!interactive()) {
+    args <- commandArgs(TRUE)
+    if (length(args)>=1) {
+        simdir <- args[1]
+    } else {
+        simdir <- grep("sims$",list.dirs(recursive=FALSE),value=TRUE)
+    }
+}
+if (!file.exists(simdir)) { stop(paste(simdir, "does not exist.\n")) }
 
 simfiles <- list.files(simdir,"selsims-.*RData",full.names=TRUE)
 basedirs <- gsub(".RData","",simfiles,fixed=TRUE)
@@ -74,7 +72,7 @@ for (k in seq_along(siminfo[[1]]$muttime)) {
 for (k in seq_along(siminfo[[1]]$selcoef)) {
     layout(matrix(1:(2*(sum(hasmcmc)+1)%/%2),nrow=2))
     for (x in names(mcmcbatches[hasmcmc])) {
-        truth <- siminfo[[x]]$muttime[k]
+        truth <- siminfo[[x]]$selcoef[k]
         est <- hist( mcmcbatches[[x]][,k+nmuts], breaks=50, plot=FALSE )
         xrange <- range(c(truth,est$breaks))
         xrange <- mean(xrange) + 1.2*(xrange-mean(xrange))
