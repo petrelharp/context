@@ -18,7 +18,6 @@ if (!file.exists(simdir)) { stop(paste(simdir, "does not exist.\n")) }
 simfiles <- list.files(simdir,"*.RData",full.names=TRUE)
 siminfo <- lapply(simfiles, function (x) {
         basedir <- gsub(".RData","",x,fixed=TRUE)
-        mcmcdatafiles <- list.files(path=basedir,pattern="-mcmc.*RData",full.names=TRUE)
         tmp <- load(x)
         y <- list(date=now,seqlen=seqlen, tlen=tlen, file=x) 
         pnames <- names(y)
