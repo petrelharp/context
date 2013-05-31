@@ -8,18 +8,18 @@ Simulate from the process.\
 option_list <- list(
         make_option( c("-t","--tlen"), type="numeric", default=NULL, help="Time to simulate for." ),
         make_option( c("-s","--seqlen"), type="numeric", default=NULL, help="Number of bases to simulate." ),
-        make_option( c("-m","--baserates"), type="character", default=NULL, help="Single base transition rate (or list of A->T A->C A->G T->C T->G C->G). [default indep't Uniform[0,1]/tlen]" ),
-        make_option( c("-c","--cpgrate"), type="numeric", default=NULL, help="Additional CpG rate. [default 10*Uniform[0,1]/tlen]"),
+        make_option( c("-m","--baserates"), type="character", default=NULL, help="Single base transition rate (or list of A->T A->C A->G T->C T->G C->G). [default indep't Uniform[0,1]]" ),
+        make_option( c("-c","--cpgrate"), type="numeric", default=NULL, help="Additional CpG rate. [default 10*Uniform[0,1]]"),
         make_option( c("-f","--initfreqs"), type="character", default="c(.25,.25,.25,.25)", help="Initial base frequencies. [default \"%default\"]"),
         make_option( c("-o","--logfile"), type="character", default="", help="Direct output to this file. [default appends -simrun.Rout]" )
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 if (interactive()) { opt$tlen <- 1; opt$seqlen <- 150 }
 if ( (is.null(opt$tlen) | is.null(opt$seqlen)) ) { stop("Rscript sim-cpg.R -h for help.") }
-if (is.null(opt$baserates)) { opt$baserates <- runif(6)/opt$tlen; names(opt$baserates) <- c("A->T", "A->C", "A->G", "T->C", "T->G", "C->G") } 
+if (is.null(opt$baserates)) { opt$baserates <- runif(6); names(opt$baserates) <- c("A->T", "A->C", "A->G", "T->C", "T->G", "C->G") } 
 if (is.character(opt$baserates)) { opt$baserates <- eval(parse(text=opt$baserates)) }
 if (length(opt$baserates)==1) { opt$baserates <- rep(opt$baserates,6) }
-if (is.null(opt$cpgrate)) { cpgrate <- 10*runif(1)/opt$tlen }
+if (is.null(opt$cpgrate)) { cpgrate <- 10*runif(1) }
 opt$initfreqs <- eval(parse(text=opt$initfreqs))
 attach(opt)
 
