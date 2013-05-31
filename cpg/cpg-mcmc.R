@@ -14,6 +14,9 @@ option_list <- list(
         make_option( c("-b","--blen"), type="integer", default=10, help="Length of each MCMC batch. [default \"%default\"]" ),
         make_option( c("-c","--stepscale"), type="numeric", default=3e-3, help="Scale of proposal steps for Metropolis algorithm. [default \"%default\"]" ),
         make_option( c("-s","--restart"), action="store_true", default=FALSE, help="Start a whole new MCMC run?" ),
+        make_option( c("-d","--boundary"), type="character", default="none", help="Boundary conditions for generator matrix. [default \"%default\"]"),
+        make_option( c("-y","--meanboundary"), type="integer", default=0, help="Average over this many neighboring bases in computing generator matrix. [default \"%default\"]" ),
+        make_option( c("-g","--gmfile"), type="character", default="TRUE", help="File with precomputed generator matrix, or TRUE [default] to look for one. (otherwise, will compute)"),
         make_option( c("-o","--logfile"), type="character", default="", help="Direct output to this file. [default appends .Rout]" )
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
@@ -31,13 +34,11 @@ if (!file.exists(basedir)) {
     dir.create(basedir)
 }
 
+
 scriptdir <- "../"
 source(paste(scriptdir,"codon-inference-fns.R",sep=''))
 source(paste(scriptdir,"sim-context-fns.R",sep=''))
 require(mcmc)
-
-# set-up
-bases <- c("X","O")
 
 basename <- paste(basedir,"/win-",lwin,"-",win,"-",rwin,sep='')
 datafile <- paste( basename ,"-results.RData",sep='')
@@ -59,7 +60,16 @@ if (length(mcmcdatafiles)) { load(grep(paste("-mcmc-",mcmcnum-1,".RData",sep='')
 
 # Inference.
 winlen <- lwin+win+rwin
-genmatrix <- meangenmatrix( lwin=1, rwin=1, patlen=winlen, mutpats=mutpats, selpats=list(), mutrates=mutrates*tlen, selcoef=numeric(0), boundary="none" )
+if (gmfile=="TRUE") { gmfile <- paste(paste("genmatrices/genmatrix",winlen,boundary,meanboundary,sep="-"),".RData",sep='') }
+if (file.exists(gmfile)) {
+    load(gmfile) 
+} else {
+    if (meanboundary>0) {
+        genmatrix <- meangenmatrix( lwin=1, rwin=1, patlen=winlen, mutpats=mutpats, selpats=list(), mutrates=mutrates*tlen, selcoef=numeric(0), boundary=boundary )
+    } else {
+        genmatrix <- makegenmatrix( patlen=winlen, mutpats=mutpats, selpats=list(), mutrates=mutrates*tlen, selcoef=numeric(0), boundary=boundary )
+    }
+}
 projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
 counts <- list( counttrans( rownames(projmatrix), colnames(projmatrix), simseqs[[1]]$initseq, simseqs[[1]]$finalseq, lwin=lwin ) )
 # want only patterns with leftmost possible position changed
@@ -77,7 +87,7 @@ lud <- function (mutrates) {
         # this is collapsed transition matrix
         meancounts <- initcounts * computetransmatrix( genmatrix, projmatrix )
         # return (positive) log-posterior
-        return( (-1)*sum(meancounts[nonoverlapping]) + sum( nov.counts * log(meancounts[nonoverlapping]) ) - sum(mmean*mutrates) )
+        return( (-1)*sum(meancounts[nonoverlapping]) + sum( nov.counts * log(meancounts[nonoverlapping]) ) - sum(mmeans*mutrates) )
     }
 }
 

@@ -1,32 +1,43 @@
-#!/usr/bin/Rscript
-# Simulate up the process
+#!/usr/bin/Rscript --vanilla
+require(optparse)
 
 usage <- "\
 Simulate from the process.\
-\
-Usage:\
-   Rscript sim-cpg.R seqlen tlen [Xfreq] \
 "
 
-args <- commandArgs(TRUE)
-if (length(args)<2) {
-    stop(usage)
-} else {
-    seqlen <- as.numeric(args[1])  # e.g. 1e4
-    tlen <- as.numeric(args[2]) # total length 6e7 gives lots of transitions (but still signal); 1e7 not so many
-    if (length(args)>=3) {
-        Xfreq <- as.numeric(args[3]) # density of Xs
-    } else {
-        Xfreq <- 0.5
-    }
-}
+option_list <- list(
+        make_option( c("-t","--tlen"), type="numeric", default=NULL, help="Time to simulate for." ),
+        make_option( c("-s","--seqlen"), type="numeric", default=NULL, help="Number of bases to simulate." ),
+        make_option( c("-m","--baserates"), type="character", default=NULL, help="Single base transition rate (or list of A->T A->C A->G T->C T->G C->G). [default indep't Uniform[0,1]/tlen]" ),
+        make_option( c("-c","--cpgrate"), type="numeric", default=NULL, help="Additional CpG rate. [default 10*Uniform[0,1]/tlen]"),
+        make_option( c("-f","--initfreqs"), type="character", default="c(.25,.25,.25,.25)", help="Initial base frequencies. [default \"%default\"]"),
+        make_option( c("-o","--logfile"), type="character", default="", help="Direct output to this file. [default appends -simrun.Rout]" )
+    )
+opt <- parse_args(OptionParser(option_list=option_list,description=usage))
+if (interactive()) { opt$tlen <- 1; opt$seqlen <- 150 }
+if ( (is.null(opt$tlen) | is.null(opt$seqlen)) ) { stop("Rscript sim-cpg.R -h for help.") }
+if (is.null(opt$baserates)) { opt$baserates <- runif(6)/opt$tlen; names(opt$baserates) <- c("A->T", "A->C", "A->G", "T->C", "T->G", "C->G") } 
+if (is.character(opt$baserates)) { opt$baserates <- eval(parse(text=opt$baserates)) }
+if (length(opt$baserates)==1) { opt$baserates <- rep(opt$baserates,6) }
+if (is.null(opt$cpgrate)) { cpgrate <- 10*runif(1)/opt$tlen }
+opt$initfreqs <- eval(parse(text=opt$initfreqs))
+attach(opt)
+
+simdir <- "cpg-sims/"
+if (!file.exists(simdir)) { dir.create(simdir,recursive=TRUE) }
 
 # identifiers
 thisone <- formatC( floor(runif(1)*1e6) , digits=6,flag='0')
 now <- Sys.time()
 
-simdir <- "cpg-sims/"
-if (!file.exists(simdir)) { dir.create(simdir,recursive=TRUE) }
+basename <- paste(simdir,"selsims-",format(now,"%Y-%m-%d-%H-%M"),"-",thisone,sep='')
+outfile <- paste(basename,".RData",sep='')
+if (logfile=="" & !interactive()) { logfile <- paste(basename,"-simrun.Rout",sep='') }
+if (!is.null(logfile)) { 
+    logcon <- if (logfile=="-") { stdout() } else { file(logfile,open="wt") }
+    sink(file=logcon, type="message") 
+    sink(file=logcon, type="output") 
+}
 
 bases <- c("A","T","C","G")
 
@@ -38,13 +49,12 @@ mutpats <- c(
         apply(combn(bases,2),2,list),  # single-base rates
         list( list( c("CG","TG"), c("CG","CA") ) )  # CpG rate
     ) 
-mutrates <- 2 * runif( length(mutpats) )
+mutrates <- c(baserates,cpgrate)
 selpats <- list()
 selcoef <- numeric(0)
 
 fixfn <- function (...) { 1 }
 
-initfreqs <- c(Xfreq,1-Xfreq)
 initseq <- rinitseq(seqlen,bases,basefreqs=initfreqs)
 system.time( 
         simseqs <- list(
@@ -52,6 +62,6 @@ system.time(
             )
     )
 
-save( thisone, now, bases, patlen, mutpats, mutrates, selpats, selcoef, fixfn, seqlen, tlen, initfreqs, simseqs, file=paste(simdir,"selsims-",format(now,"%Y-%m-%d-%H-%M"),"-",thisone,".RData",sep='') )
+save( thisone, now, opt, bases, patlen, mutpats, mutrates, selpats, selcoef, fixfn, seqlen, tlen, initfreqs, simseqs, file=outfile )
 
 

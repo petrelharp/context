@@ -14,6 +14,9 @@ option_list <- list(
         make_option( c("-b","--blen"), type="integer", default=10, help="Length of each MCMC batch. [default \"%default\"]" ),
         make_option( c("-m","--mmean"), type="double", default=1, help="Prior mean on single base mutation rates. [default \"%default\"]" ),
         make_option( c("-c","--cpgmean"), type="double", default=1, help="Prior variance on CpG rate. [default \"%default\"]" ),
+        make_option( c("-d","--boundary"), type="character", default="none", help="Boundary conditions for generator matrix. [default \"%default\"]"),
+        make_option( c("-y","--meanboundary"), type="integer", default=0, help="Average over this many neighboring bases in computing generator matrix. [default \"%default\"]" ),
+        make_option( c("-g","--gmfile"), type="character", default="TRUE", help="File with precomputed generator matrix, or TRUE [default] to look for one. (otherwise, will compute)"),
         make_option( c("-o","--logfile"), type="character", default="", help="Direct output to this file. [default appends .Rout]" )
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
@@ -21,6 +24,10 @@ attach(opt)
 options(error=traceback)
 
 if (interactive()) { win <- lwin <- rwin <- 2; nbatches <- 10; blen <- 10; mmean <- 1; cpgmean <- 1 }
+
+winlen <- lwin+win+rwin
+
+if (gmfile=="TRUE") { gmfile <- paste(paste("genmatrices/genmatrix",winlen,boundary,meanboundary,sep="-"),".RData",sep='') }
 
 if (is.null(infile)) { cat("Run\n  cpg-inference.R -h\n for help.") }
 
@@ -45,13 +52,15 @@ datafile <- paste( basename ,"-results.RData",sep='')
 resultsfile <- paste( basename ,"-results.tsv",sep='')
 plotfile <- paste( basename ,"-plot",sep='')
 
-# set-up
-bases <- c("X","O")
-
-# Inference.
-winlen <- lwin+win+rwin
-
-genmatrix <- meangenmatrix( lwin=1, rwin=1, patlen=winlen, mutpats=mutpats, selpats=list(), mutrates=mutrates*tlen, selcoef=numeric(0), boundary="none" )
+if (file.exists(gmfile)) {
+    load(gmfile)
+} else {
+    if (meanboundary>0) {
+        genmatrix <- meangenmatrix( lwin=1, rwin=1, patlen=winlen, mutpats=mutpats, selpats=list(), mutrates=mutrates*tlen, selcoef=numeric(0), boundary=boundary )
+    } else {
+        genmatrix <- makegenmatrix( patlen=winlen, mutpats=mutpats, selpats=list(), mutrates=mutrates*tlen, selcoef=numeric(0), boundary=boundary )
+    }
+}
 projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
 subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE )
 
@@ -116,7 +125,7 @@ cwin <- 3; lrcwin <- 1
 subcounts <- projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=counts[[1]] )
 all.subexpected <- lapply( all.expected, function (x) { list( projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=x[[1]] ) ) } )
 
-save( counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, truth, cheating.ans, random.ans, estimates, initpar, nonoverlapping, nov.counts, mmean, cpgmean, all.expected, cwin, subcounts, all.subexpected, mrun, win, lwin, rwin, nmuts, file=datafile )
+save( opt, counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, truth, cheating.ans, random.ans, estimates, initpar, nonoverlapping, nov.counts, mmeans, all.expected, cwin, subcounts, all.subexpected, mrun, win, lwin, rwin, nmuts, file=datafile )
 
 pdf(file=paste(plotfile,"-mcmc.pdf",sep=''),width=6, height=4, pointsize=10)
 layout(matrix(c(1,4,2,3),nrow=2))

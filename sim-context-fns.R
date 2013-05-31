@@ -25,13 +25,13 @@ simseq <- function (seqlen, tlen, mutpats, mutrates, selpats=list(), selcoef=num
     #   So, rescale mutrates:
     stringsetfun <- if ( all(bases %in% c("A","C","G","T","-") ) ) { DNAStringSet } else { BStringSet }
     # determine size of padding window
-    sellen <- max( sapply( unlist( selpats ), nchar ) ) 
+    sellen <- if (length(selpats)>0) { max( sapply( unlist( selpats ), nchar ) ) } else { 0 }
     mutlen <- max( sapply( unlist( mutpats ), nchar ) )
     mutpatlens <- unlist( lapply( mutpats, function (x) unique(nchar(unlist(x))) ) )
     mutlen <- max(mutpatlens)
     if (missing(patlen)) { patlen <- mutlen }
     if (patlen<mutlen) { stop("patlen too short") }
-    pad.patlen <- patlen+2*(sellen-1)
+    pad.patlen <- patlen+2*max(0,(sellen-1))
     # construct generator matrix for (sellen-1,patlen,sellen-1) but with outer padding not changing
     full.genmatrix <- makegenmatrix( mutpats, selpats, patlen=pad.patlen, boundary="none" )
     if (! all( sapply(mutpatlens,length)==1 ) ) { stop("need each list in mutpats to have patterns of the same length") }

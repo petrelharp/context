@@ -1,25 +1,26 @@
-#!/usr/bin/Rscript
-# Simulate up the process
+#!/usr/bin/Rscript --vanilla
+require(optparse)
 
 usage <- "\
 Simulate from the process.\
 \
-Usage:\
-   Rscript sim-tasep.R seqlen tlen [Xfreq] \
 "
 
-args <- commandArgs(TRUE)
-if (length(args)<2) {
-    stop(usage)
-} else {
-    seqlen <- as.numeric(args[1])  # e.g. 1e4
-    tlen <- as.numeric(args[2]) # total length 6e7 gives lots of transitions (but still signal); 1e7 not so many
-    if (length(args)>=3) {
-        Xfreq <- as.numeric(args[3]) # density of Xs
-    } else {
-        Xfreq <- 0.5
-    }
-}
+usage <- "\
+Simulate from the process.\
+"
+
+option_list <- list(
+        make_option( c("-s","--seqlen"), type="numeric", default=NULL, help="Number of bases to simulate." ),
+        make_option( c("-t","--tlen"), type="numeric", default=NULL, help="Time to simulate for." ),
+        make_option( c("-f","--Xfreq"), type="numeric", default=0.5, help="Initial frequency of 'X'. [default \"%default\"]"),
+        make_option( c("-o","--logfile"), type="character", default="", help="Direct output to this file. [default appends .Rout]" )
+    )
+opt <- parse_args(OptionParser(option_list=option_list,description=usage))
+if (interactive()) { opt$tlen <- 1; opt$seqlen <- 150 }
+if ( (is.null(opt$tlen) | is.null(opt$seqlen)) ) { stop("Rscript sim-tasep -h for help.") }
+attach(opt)
+
 
 # identifiers
 thisone <- formatC( floor(runif(1)*1e6) , digits=6,flag='0')
@@ -37,7 +38,7 @@ source("../codon-inference-fns.R")
 mutpats <- list( 
     list( c("XO","OX") )
     ) 
-mutrates <- 2 * runif( length(mutpats) )
+mutrates <- 1
 selpats <- list()
 selcoef <- numeric(0)
 
