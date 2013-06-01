@@ -7,9 +7,9 @@ Run mcmc longer.\
 
 option_list <- list(
         make_option( c("-i","--infile"), type="character", default=NULL, help=".RData file containing simulation." ),
-        make_option( c("-w","--win"), type="integer", default=3, help="Size of matching window. [default \"%default\"]" ),
-        make_option( c("-l","--lwin"), type="integer", default=3, help="Size of left-hand context. [default \"%default\"]" ),
-        make_option( c("-r","--rwin"), type="integer", default=3, help="Size of left-hand context. [default \"%default\"]" ),
+        make_option( c("-w","--win"), type="integer", default=1, help="Size of matching window. [default \"%default\"]" ),
+        make_option( c("-l","--lwin"), type="integer", default=2, help="Size of left-hand context. [default \"%default\"]" ),
+        make_option( c("-r","--rwin"), type="integer", default=2, help="Size of left-hand context. [default \"%default\"]" ),
         make_option( c("-n","--nbatches"), type="integer", default=1000, help="Number of MCMC batches. [default \"%default\"]" ),
         make_option( c("-b","--blen"), type="integer", default=10, help="Length of each MCMC batch. [default \"%default\"]" ),
         make_option( c("-c","--stepscale"), type="numeric", default=3e-3, help="Scale of proposal steps for Metropolis algorithm. [default \"%default\"]" ),
@@ -22,7 +22,7 @@ option_list <- list(
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 attach(opt)
 
-if (interactive()) { win <- lwin <- rwin <- 3; nbatches <- 100; blen <- 10; restart <- FALSE }
+if (interactive()) { win <- 1; lwin <- rwin <- 1; nbatches <- 100; blen <- 10; restart <- FALSE; gmfile <- TRUE }
 
 if (!'infile'%in%names(opt)) { stop("Run\n  cpg-inference.R -h\n for help.") }
 
@@ -54,7 +54,7 @@ if (!is.null(logfile)) {
 }
 
 load(datafile)  # has mrun and previous things
-if (length(mcmcdatafiles)) { load(grep(paste("-mcmc-",mcmcnum-1,".RData",sep=''),mcmcdatafiles,fixed=TRUE,value=TRUE)) }
+if (length(mcmcdatafiles)>0) { load(grep(paste("-mcmc-",mcmcnum-1,".RData",sep=''),mcmcdatafiles,fixed=TRUE,value=TRUE)) }
 
 ########
 
