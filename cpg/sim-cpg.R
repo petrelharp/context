@@ -14,7 +14,7 @@ option_list <- list(
         make_option( c("-o","--logfile"), type="character", default="", help="Direct output to this file. [default appends -simrun.Rout]" )
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
-if (interactive()) { opt$tlen <- 1; opt$seqlen <- 150 }
+if (interactive()) { opt$tlen <- .1; opt$seqlen <- 150 }
 if ( (is.null(opt$tlen) | is.null(opt$seqlen)) ) { stop("Rscript sim-cpg.R -h for help.") }
 if (is.null(opt$baserates)) { opt$baserates <- runif(12); names(opt$baserates) <- c("A->T", "A->C", "A->G", "T->C", "T->G", "C->G", "T->A", "C->A", "G->A", "C->T", "G->T", "G->C") }
 if (is.character(opt$baserates)) { opt$baserates <- eval(parse(text=opt$baserates)) }
@@ -63,6 +63,6 @@ system.time(
             )
     )
 
-save( thisone, now, opt, bases, patlen, mutpats, mutrates, selpats, selcoef, fixfn, seqlen, tlen, initfreqs, simseqs, file=outfile )
+save( thisone, now, opt, bases, mutpats, mutrates, selpats, selcoef, fixfn, seqlen, tlen, initfreqs, simseqs, file=outfile )
 
 

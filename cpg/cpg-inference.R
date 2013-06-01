@@ -7,7 +7,7 @@ Infer parameters from output of sim-cpg.R .\
 
 option_list <- list(
         make_option( c("-i","--infile"), type="character", default=NULL, help=".RData file containing simulation." ),
-        make_option( c("-w","--win"), type="integer", default=2, help="Size of matching window. [default \"%default\"]" ),
+        make_option( c("-w","--win"), type="integer", default=1, help="Size of matching window. [default \"%default\"]" ),
         make_option( c("-l","--lwin"), type="integer", default=2, help="Size of left-hand context. [default \"%default\"]" ),
         make_option( c("-r","--rwin"), type="integer", default=2, help="Size of left-hand context. [default \"%default\"]" ),
         make_option( c("-n","--nbatches"), type="integer", default=20, help="Number of MCMC batches. [default \"%default\"]" ),
@@ -23,7 +23,7 @@ opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 attach(opt)
 options(error=traceback)
 
-if (interactive()) { win <- lwin <- rwin <- 2; nbatches <- 10; blen <- 10; mmean <- 1; cpgmean <- 1 }
+if (interactive()) { win <- 1; lwin <- rwin <- 2; nbatches <- 10; blen <- 10; mmean <- 1; cpgmean <- 1 }
 
 winlen <- lwin+win+rwin
 
