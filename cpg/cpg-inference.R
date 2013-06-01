@@ -23,8 +23,6 @@ opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 attach(opt)
 options(error=traceback)
 
-if (interactive()) { win <- 1; lwin <- rwin <- 2; nbatches <- 10; blen <- 10; mmean <- 1; cpgmean <- 1 }
-
 winlen <- lwin+win+rwin
 
 if (gmfile=="TRUE") { gmfile <- paste(paste("genmatrices/genmatrix",winlen,boundary,meanboundary,sep="-"),".RData",sep='') }
@@ -116,12 +114,12 @@ mrun <- metrop( lud, initial=random.ans$par, nbatch=nbatches, blen=blen, scale=1
 # look at observed/expected counts
 all.expected <- lapply( 1:nrow(estimates), function (k) {
             x <- unlist(estimates[k,])
-            list( predictcounts( win, lwin, rwin, initcounts=rowSums(counts[[1]]), mutrates=x[1:nmuts], genmatrix=genmatrix, projmatrix=projmatrix ) )
+            list( predictcounts( win, lwin, rwin, initcounts=rowSums(counts[[1]]), mutrates=x[1:nmuts], selcoef=numeric(0), genmatrix=genmatrix, projmatrix=projmatrix ) )
     } )
 names(all.expected) <- rownames(estimates)
 
 # look at observed/expected counts in smaller windows
-cwin <- 3; lrcwin <- 1
+cwin <- min(2,win); lrcwin <- min(1,lwin,rwin)
 subcounts <- projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=counts[[1]] )
 all.subexpected <- lapply( all.expected, function (x) { list( projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=x[[1]] ) ) } )
 
