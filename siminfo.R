@@ -45,7 +45,7 @@ siminfo <- lapply(simfiles, function (x) {
 allnames <- unique( as.vector( unlist( sapply( siminfo, colnames ) ) ) )
 siminfo <- lapply( siminfo, function (x) { for (y in setdiff(allnames, colnames(x))) { x[[y]] <- NA }; x[allnames] } )
 siminfo <- do.call(rbind, siminfo)
-siminfo$meandist <- siminfo$tlen * colSums(siminfo[,grep("mutrate",colnames(siminfo)),drop=FALSE])
+siminfo$meandist <- siminfo$tlen * rowSums(siminfo[,grep("mutrate",colnames(siminfo)),drop=FALSE])
 siminfo <- siminfo[ order(siminfo$meandist), ]
 
 # switch to muttime
@@ -60,5 +60,5 @@ selvars <- grep("selcoef",colnames(siminfo),value=TRUE)
 selvars <- selvars[order(gsub(".*\\.","",selvars))]
 siminfo <- siminfo[, c( setdiff(colnames(siminfo),c(mtvars,selvars,mutvars)), mtvars, selvars ) ]
 
-write.table(as.matrix(siminfo),file=pipe("column -t -s '\t'"),quote=FALSE,row.names=FALSE,sep="\t")
+write.table(format(siminfo,digits=3),file=pipe("column -t -s '\t'"),quote=FALSE,row.names=FALSE,sep="\t")
 
