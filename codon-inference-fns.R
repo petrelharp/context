@@ -245,6 +245,23 @@ projectcounts <- function( lwin, lcountwin, countwin, rcountwin, counts ) {
     return(pcounts)
 }
 
+predicttreecounts <- function (win, lwin=0, rwin=0, initcounts, mutrates, selcoef, mutpats, selpats, tlens, genmatrix, projmatrix, initfreqs, ... ) {
+    # Compute expected counts of paired patterns:
+    winlen <- lwin+win+rwin
+    if (missing(genmatrix)) { genmatrix <- makegenmatrix(patlen=lwin+win+rwin,mutpats=mutpats,selpats=selpats, ...) }
+    if (!missing(mutrates)) { genmatrix@x <- update(genmatrix,mutrates=mutrates,selcoef=selcoef,...) }
+    if (missing(projmatrix)) { projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin ) }
+    patcomp <- apply( do.call(rbind, strsplit(rownames(genmatrix),'') ), 2, match, names(initfreqs) )  # which base is at each position in each pattern
+    patfreqs <- initfreqs[patcomp]
+    dim(patfreqs) <- dim(patcomp)
+    patfreqs <- apply( patfreqs, 1, prod )
+    updownbranch <- getupdowntrans( genmatrix, projmatrix, mutrates=mutrates, selcoef=selcoef, initfreqs=patfreqs, tlens=tlens )
+    if (missing(initcounts)) { initcounts <- 1 }
+    fullcounts <- initcounts * subtransmatrix
+    return( fullcounts )
+}
+
+
 whichchanged <- function (ipatterns,fpatterns,lwin=0,win=nchar(ipatterns[0])) {
     # return indicator corresponding to entries of output of gettransmatrix that have changed
     if (!is.null(dimnames(ipatterns))) { fpatterns <- colnames(ipatterns); ipatterns <- rownames(ipatterns) }

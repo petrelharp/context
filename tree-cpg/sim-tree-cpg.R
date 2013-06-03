@@ -56,6 +56,8 @@ mutrates <- c(baserates,cpgrate)
 selpats <- list()
 selcoef <- numeric(0)
 
+if (is.null(names(initfreqs))) { names(initfreqs) <- bases }
+
 fixfn <- function (...) { 1 }
 
 initseq <- rinitseq(seqlen,bases,basefreqs=initfreqs)

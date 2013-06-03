@@ -15,8 +15,8 @@ option_list <- list(
         make_option( c("-s","--stepscale"), type="numeric", default=1e-4, help="Scale of proposal steps for Metropolis algorithm. [default \"%default\"]" ),
         make_option( c("-m","--mmean"), type="double", default=1, help="Prior mean on single base mutation rates. [default \"%default\"]" ),
         make_option( c("-c","--cpgmean"), type="double", default=1, help="Prior variance on CpG rate. [default \"%default\"]" ),
-        make_option( c("-p","--pmean"), type="double", default=1, help="Prior Dirichlet parameter for base frequencies. [default \"%default\"]" ),
-        make_option( c("-v","--tvar"), type="double", default=.5, help="Prior variance for Gaussian prior on branch length. [default \"%default\"]" ),
+        make_option( c("-p","--pprior"), type="double", default=1, help="Parameter for Dirichlet prior on base frequencies. [default \"%default\"]" ),
+        make_option( c("-v","--tprior"), type="double", default=.5, help="Parameter for Beta prior on branch length. [default \"%default\"]" ),
         make_option( c("-d","--boundary"), type="character", default="none", help="Boundary conditions for generator matrix. [default \"%default\"]"),
         make_option( c("-y","--meanboundary"), type="integer", default=0, help="Average over this many neighboring bases in computing generator matrix. [default \"%default\"]" ),
         make_option( c("-g","--gmfile"), type="character", default="TRUE", help="File with precomputed generator matrix, or TRUE [default] to look for one. (otherwise, will compute)"),
@@ -80,8 +80,8 @@ nfreqs <- length(initfreqs)
 npats <- nrow(genmatrix)
 patcomp <- apply( do.call(rbind, strsplit(rownames(genmatrix),'') ), 2, match, bases )  # which base is at each position in each pattern
 likfun <- function (params) {
-    # params are: tlen[2]/tlen[1], tlen[1]*mutrates, basefreqs
-    branchlens <- c(1,params[1])
+    # params are: tlen[1]/sum(tlen), sum(tlen)*mutrates, basefreqs
+    branchlens <- c(params[1],1-params[1])
     mutrates <- params[1+(1:nmuts)]
     initfreqs <- params[1+nmuts+(1:(nfreqs-1))]
     initfreqs <- c(1-sum(initfreqs),initfreqs)
@@ -99,17 +99,17 @@ likfun <- function (params) {
 
 # using only nonoverlapping counts, plus priors -- indep't poisson.
 mmeans <- c( rep(mmean,nmuts-1), cpgmean )
-pmeans <- rep( pmean, nfreqs )
+ppriors <- rep( pprior, nfreqs )
+tpriors <- rep( tprior, 2 )
 lud <- function (params) {
-    # params are: tlen[2]/tlen[1], tlen[1]*mutrates, basefreqs[-1]
-    branchlens <- c(1,params[1])
+    # params are: tlen[1]/sum(tlen), sum(tlen)*mutrates, basefreqs
+    branchlens <- c(params[1],1-params[1])
     mutrates <- params[1+(1:nmuts)]
     initfreqs <- params[1+nmuts+(1:(nfreqs-1))]
     initfreqs <- c(1-sum(initfreqs),initfreqs)
     patfreqs <- initfreqs[patcomp]
     dim(patfreqs) <- dim(patcomp)
-    patfreqs <- rowSums( patfreqs )
-    # params are: mutrates*tlen
+    patfreqs <- apply( patfreqs, 1, prod )
     if (any(mutrates<0) | any(initfreqs<0)) {
         return( -Inf )
     } else {
@@ -119,18 +119,18 @@ lud <- function (params) {
         return( 
                 (-1)*sum(updownbranch[nonoverlapping[[1]]]) 
                 + sum( nov.counts[[1]] * log(updownbranch[nonoverlapping[[1]]]) ) 
-                - (branchlens[2]-1)/tvar
+                + sum( (tpriors-1)*log(branchlens) )
                 - sum(mmeans*mutrates) 
-                + sum( (pmeans-1)*log(initfreqs) )
+                + sum( (ppriors-1)*log(initfreqs) )
             )
     }
 }
 
 # point estimates
-initpar <- c( 2 * runif(1), 2 * runif( nmuts ) * mean(mutrates) * tlen[1], runif(length(initfreqs)-1)/length(initfreqs) ) # random init
-truth <- c( tlen[2]/tlen[1], mutrates * tlen[1], initfreqs[-1] )  # truth
+initpar <- c( runif(1), 2 * runif( nmuts ) * mean(mutrates) * sum(tlen), runif(length(initfreqs)-1)/length(initfreqs) ) # random init
+truth <- c( tlen[1]/sum(tlen), mutrates * sum(tlen), initfreqs[-1] )  # truth
 lbs <- c( 1e-6, rep(1e-6,nmuts), rep(1e-6,length(initfreqs)-1) )
-ubs <- c( 20, rep(20,nmuts), rep(1,length(initfreqs)) )
+ubs <- c( 1, rep(20,nmuts), rep(1,length(initfreqs)) )
 cheating.ans <- optim( par=truth, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(trace=3,fnscale=likfun(truth)) )
 random.ans <- optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(trace=3,fnscale=likfun(truth)) )
 
@@ -143,20 +143,33 @@ write.table( estimates, file=resultsfile, quote=FALSE, sep="\t" )
 mrun <- metrop( lud, initial=random.ans$par, nbatch=nbatches, blen=blen, scale=stepscale )
 
 # look at observed/expected counts
+if (is.null(names(initfreqs))) { names(initfreqs) <- bases }
 all.expected <- lapply( 1:nrow(estimates), function (k) {
             x <- unlist(estimates[k,])
-            list( predictcounts( win, lwin, rwin, initcounts=rowSums(counts[[1]]), mutrates=x[1:nmuts], selcoef=numeric(0), genmatrix=genmatrix, projmatrix=projmatrix ) )
+            branchlens <- c(x[1],1-x[1])
+            mutrates <- x[1+(1:nmuts)]
+            initfreqs <- x[1+nmuts+(1:(nfreqs-1))]
+            initfreqs <- c(1-sum(initfreqs),initfreqs)
+            list( 
+                predictcounts( win, lwin, rwin, initcounts=rowSums(counts[[1]]), mutrates=mutrates, selcoef=numeric(0), genmatrix=genmatrix, projmatrix=projmatrix, initfreqs=initfreqs, tlens=branchlens ),
+                predictcounts( win, lwin, rwin, initcounts=rowSums(counts[[2]]), mutrates=mutrates, selcoef=numeric(0), genmatrix=genmatrix, projmatrix=projmatrix, initfreqs=initfreqs, tlens=rev(branchlens) ) )
     } )
 names(all.expected) <- rownames(estimates)
 
 # look at observed/expected counts in smaller windows
 cwin <- min(2,win); lrcwin <- min(1,lwin,rwin)
-subcounts <- projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=counts[[1]] )
-all.subexpected <- lapply( all.expected, function (x) { list( projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=x[[1]] ) ) } )
+subcounts <- lapply( counts, function (x) projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=x ) )
+all.subexpected <- lapply( all.expected, function (x) { 
+        list( projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=x[[1]] ),
+                projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=x[[2]] ) ) 
+    } )
 
 save( opt, counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, truth, cheating.ans, random.ans, estimates, initpar, nonoverlapping, nov.counts, mmeans, all.expected, cwin, subcounts, all.subexpected, mrun, win, lwin, rwin, nmuts, file=datafile )
 
+# plot each pairwise posterior marginal density
 pdf(file=paste(plotfile,"-mcmc.pdf",sep=''),width=6, height=4, pointsize=10)
+pairs( rbind( mrun$batch, truth ), col=c(rep(1,nrow(x)),2), pch=c(rep(1,nrow(x)),20), cex=c(rep(1,nrow(x)),2) )
+plot(as.data.frame(mrun$batch))
 layout(matrix(c(1,4,2,3),nrow=2))
 par(mar=c(4,4,0,0)+.1)
 for (k in 1:(ncol(mrun$batch)-1)) { 
