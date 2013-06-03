@@ -199,13 +199,16 @@ computetransmatrix <- function( genmatrix, projmatrix, tlen=1, names=FALSE, tran
     subtransmatrix
 }
 
-getupdowntrans <- function ( genmatrix, projmatrix, mutrates, selcoef, Ne, initfreqs, tlens=c(1,1) ) {
+getupdowntrans <- function ( genmatrix, projmatrix, mutrates, selcoef, initfreqs, tlens=c(1,1), ... ) {
     # arguments are lists of two: first the "up" branch (leading from simpler summaries), second the "down"
     # returns matrix with entry [x,y] the probability of seeing y on the "down branch" given x was seen on the "up" branch.
+    otherparams <- list(...)
+    op.1 <- lapply( otherparams, "[[", 1 )
+    op.2 <- lapply( otherparams, "[[", 2 )
     genmatrix.up <- genmatrix
-    genmatrix.up@x <- update(genmatrix,mutrates[[1]]*tlens[1],selcoef[[1]],Ne[1])
+    genmatrix.up@x <- do.call( update, c( list( genmatrix=genmatrix, mutrates=mutrates[[1]]*tlens[1], selcoef=selcoef[[1]] ), op.1 ) )
     genmatrix.down <- genmatrix
-    genmatrix.down@x <- update(genmatrix,mutrates[[2]]*tlens[2],selcoef[[2]],Ne[2])
+    genmatrix.down@x <- do.call( update, c( list( genmatrix=genmatrix, mutrates=mutrates[[2]]*tlens[2], selcoef=selcoef[[2]] ), op.2 ) )
     upbranch <- initfreqs * computetransmatrix( genmatrix.up, projmatrix )   #  prob of root, y
     downbranch <- computetransmatrix( genmatrix.down, initfreqs, transpose=TRUE )  # marginal prob of x
     return( computetransmatrix( genmatrix.down, upbranch, transpose=TRUE ) / as.vector(downbranch) )  # conditional prob of y given x
@@ -241,6 +244,23 @@ projectcounts <- function( lwin, lcountwin, countwin, rcountwin, counts ) {
     dimnames(pcounts) <- list( colnames(lpmat), colnames(rpmat) )
     return(pcounts)
 }
+
+predicttreecounts <- function (win, lwin=0, rwin=0, initcounts, mutrates, selcoef, mutpats, selpats, tlens, genmatrix, projmatrix, initfreqs, ... ) {
+    # Compute expected counts of paired patterns:
+    winlen <- lwin+win+rwin
+    if (missing(genmatrix)) { genmatrix <- makegenmatrix(patlen=lwin+win+rwin,mutpats=mutpats,selpats=selpats, ...) }
+    if (!missing(mutrates)) { genmatrix@x <- update(genmatrix,mutrates=mutrates,selcoef=selcoef,...) }
+    if (missing(projmatrix)) { projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin ) }
+    patcomp <- apply( do.call(rbind, strsplit(rownames(genmatrix),'') ), 2, match, names(initfreqs) )  # which base is at each position in each pattern
+    patfreqs <- initfreqs[patcomp]
+    dim(patfreqs) <- dim(patcomp)
+    patfreqs <- apply( patfreqs, 1, prod )
+    updownbranch <- getupdowntrans( genmatrix, projmatrix, mutrates=mutrates, selcoef=selcoef, initfreqs=patfreqs, tlens=tlens )
+    if (missing(initcounts)) { initcounts <- 1 }
+    fullcounts <- initcounts * subtransmatrix
+    return( fullcounts )
+}
+
 
 whichchanged <- function (ipatterns,fpatterns,lwin=0,win=nchar(ipatterns[0])) {
     # return indicator corresponding to entries of output of gettransmatrix that have changed
