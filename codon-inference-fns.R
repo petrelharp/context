@@ -199,13 +199,16 @@ computetransmatrix <- function( genmatrix, projmatrix, tlen=1, names=FALSE, tran
     subtransmatrix
 }
 
-getupdowntrans <- function ( genmatrix, projmatrix, mutrates, selcoef, Ne, initfreqs, tlens=c(1,1) ) {
+getupdowntrans <- function ( genmatrix, projmatrix, mutrates, selcoef, initfreqs, tlens=c(1,1), ... ) {
     # arguments are lists of two: first the "up" branch (leading from simpler summaries), second the "down"
     # returns matrix with entry [x,y] the probability of seeing y on the "down branch" given x was seen on the "up" branch.
+    otherparams <- list(...)
+    op.1 <- lapply( otherparams, "[[", 1 )
+    op.2 <- lapply( otherparams, "[[", 2 )
     genmatrix.up <- genmatrix
-    genmatrix.up@x <- update(genmatrix,mutrates[[1]]*tlens[1],selcoef[[1]],Ne[1])
+    genmatrix.up@x <- do.call( update, c( list( genmatrix=genmatrix, mutrates=mutrates[[1]]*tlens[1], selcoef=selcoef[[1]] ), op.1 ) )
     genmatrix.down <- genmatrix
-    genmatrix.down@x <- update(genmatrix,mutrates[[2]]*tlens[2],selcoef[[2]],Ne[2])
+    genmatrix.down@x <- do.call( update, c( list( genmatrix=genmatrix, mutrates=mutrates[[2]]*tlens[2], selcoef=selcoef[[2]] ), op.2 ) )
     upbranch <- initfreqs * computetransmatrix( genmatrix.up, projmatrix )   #  prob of root, y
     downbranch <- computetransmatrix( genmatrix.down, initfreqs, transpose=TRUE )  # marginal prob of x
     return( computetransmatrix( genmatrix.down, upbranch, transpose=TRUE ) / as.vector(downbranch) )  # conditional prob of y given x
