@@ -166,32 +166,12 @@ all.subexpected <- lapply( all.expected, function (x) {
 
 save( opt, counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, truth, cheating.ans, random.ans, estimates, initpar, nonoverlapping, nov.counts, mmeans, all.expected, cwin, subcounts, all.subexpected, mrun, win, lwin, rwin, nmuts, file=datafile )
 
-# plot each pairwise posterior marginal density
-pdf(file=paste(plotfile,"-mcmc.pdf",sep=''),width=6, height=4, pointsize=10)
-pairs( rbind( mrun$batch, truth ), col=c(rep(1,nrow(x)),2), pch=c(rep(1,nrow(x)),20), cex=c(rep(1,nrow(x)),2) )
-plot(as.data.frame(mrun$batch))
-layout(matrix(c(1,4,2,3),nrow=2))
-par(mar=c(4,4,0,0)+.1)
-for (k in 1:(ncol(mrun$batch)-1)) { 
-    for (j in (k+1):ncol(mrun$batch)) {
-        plot(mrun$batch[,j],mrun$batch[,k],xlab=colnames(estimates)[j],ylab=colnames(estimates)[k],pch=20,cex=.5,col=adjustcolor('black',.5), xlim=range(c(mrun$batch[,j],estimates[c("truth","ans"),j])), ylim=range(c(mrun$batch[,k],estimates[c("truth","ans"),k])))
-        points( estimates["truth",j], estimates["truth",k], pch=20, col='green' )
-        points( estimates["ans",j], estimates["ans",k], pch=20, col='red' )
-    }
-}
-legend("bottomright",pch=20,col=c('green','red'),legend=c("truth","estimated"))
-matplot( mrun$batch, type='l', col=1:length(truth), xlab="mcmc gens" )
-abline(h=truth, col=adjustcolor(1:length(truth),.5), lwd=2)
-abline(h=estimates["ans",], col=1:length(truth) )
-legend("topright",col=c(1:length(truth),1,adjustcolor(1,.5)), lwd=c(rep(1,length(truth)),1,2),legend=c(colnames(estimates)[1:length(truth)],"point estimate","truth"))
-dev.off()
-
 pdf(file=paste(plotfile,"-1.pdf",sep=''),width=6, height=4, pointsize=10)
 layout(matrix(1:4,nrow=2))
-for (k in 1:ncol(counts[[1]])) {
+for (k in 1:ncol(counts[[k]])) {
     lord <- order( all.expected[["truth"]][[1]][,k] )
     plot( counts[[1]][lord,k], type='n', xaxt='n', xlab='', ylim=range(c(unlist(all.expected[["truth"]]),unlist(lapply(counts,as.matrix)),unlist(all.expected[["ans"]]))), ylab='counts' )
-    axis(1,at=1:nrow(counts[[1]]),labels=rownames(counts[[1]])[lord],las=3)
+    axis(1,at=1:nrow(counts[[k]]),labels=rownames(counts[[k]])[lord],las=3)
     for (j in 1:length(counts)) {
         points( counts[[j]][lord,k], pch=j )
         lines(all.expected[["truth"]][[j]][lord,k],col='red', lty=j)
@@ -205,24 +185,48 @@ dev.off()
 pdf(file=paste(plotfile,"-2.pdf",sep=''),width=6, height=4, pointsize=10)
 layout(matrix(1:ncol(all.subexpected[["truth"]][[1]]),nrow=2))
 cols <- rainbow(2+length(all.expected))[1:length(all.expected)]
-for (k in 1:ncol(all.subexpected[["truth"]][[1]])) {
-    lord <- order( all.subexpected[["truth"]][[1]][,k] )
-    plot( subcounts[lord,k], xaxt='n', xlab='', main=colnames(subcounts)[k], log='y' )
-    axis(1,at=1:nrow(subcounts),labels=rownames(subcounts)[lord],las=3)
-    invisible( lapply(seq_along(all.subexpected),function(j) { lines(all.subexpected[[j]][[1]][lord,k],col=cols[j]) } ) )
-    legend("topleft",legend=names(all.subexpected),lty=1,col=cols)
+for (j in seq_along(counts)) {
+    for (k in 1:ncol(all.subexpected[["truth"]][[j]])) {
+        lord <- order( all.subexpected[["truth"]][[j]][,k] )
+        plot( subcounts[lord,k], xaxt='n', xlab='', main=colnames(subcounts)[k], log='y' )
+        axis(1,at=1:nrow(subcounts),labels=rownames(subcounts)[lord],las=3)
+        invisible( lapply(seq_along(all.subexpected),function(y) { lines(all.subexpected[[y]][[j]][lord,k],col=cols[y]) } ) )
+        legend("topleft",legend=names(all.subexpected),lty=1,col=cols)
+    }
 }
 dev.off()
 
 pdf(file=paste(plotfile,"-3.pdf",sep=''),width=6, height=4, pointsize=10)
-layout(1)
-plot( as.vector(all.expected[["truth"]][[1]]), as.vector(counts[[1]]), log='xy', xlab="true expected counts", ylab="counts" )
-abline(0,1)
-points(as.vector(all.expected[["truth"]][[1]]), as.vector(all.expected[["cheating"]][[1]]), col='red', pch=20 )
-points(as.vector(all.expected[["truth"]][[1]]), as.vector(all.expected[["ans"]][[1]]), col='green', pch=20, cex=.5)
-legend("topleft",pch=c(1,20,20),col=c('black','red','green'),legend=c('observed','cheating','estimated'))
+layout(seq_along(counts))
+for (j in seq_along(counts)) {
+    plot( as.vector(all.expected[["truth"]][[j]]), as.vector(counts[[j]]), log='xy', xlab="true expected counts", ylab="counts" )
+    abline(0,1)
+    points(as.vector(all.expected[["truth"]][[j]]), as.vector(all.expected[["cheating"]][[j]]), col='red', pch=20 )
+    points(as.vector(all.expected[["truth"]][[j]]), as.vector(all.expected[["ans"]][[j]]), col='green', pch=20, cex=.5)
+    legend("topleft",pch=c(1,20,20),col=c('black','red','green'),legend=c('observed','cheating','estimated'))
+}
 dev.off()
 
+# NOT SO USEFUL since we only do a short mcmc run
+# # plot each pairwise posterior marginal density
+# pdf(file=paste(plotfile,"-mcmc.pdf",sep=''),width=6, height=4, pointsize=10)
+# pairs( rbind( mrun$batch, truth ), col=c(rep(1,nrow(x)),2), pch=c(rep(1,nrow(x)),20), cex=c(rep(1,nrow(x)),2) )
+# plot(as.data.frame(mrun$batch))
+# layout(matrix(c(1,4,2,3),nrow=2))
+# par(mar=c(4,4,0,0)+.1)
+# for (k in 1:(ncol(mrun$batch)-1)) { 
+#     for (j in (k+1):ncol(mrun$batch)) {
+#         plot(mrun$batch[,j],mrun$batch[,k],xlab=colnames(estimates)[j],ylab=colnames(estimates)[k],pch=20,cex=.5,col=adjustcolor('black',.5), xlim=range(c(mrun$batch[,j],estimates[c("truth","ans"),j])), ylim=range(c(mrun$batch[,k],estimates[c("truth","ans"),k])))
+#         points( estimates["truth",j], estimates["truth",k], pch=20, col='green' )
+#         points( estimates["ans",j], estimates["ans",k], pch=20, col='red' )
+#     }
+# }
+# legend("bottomright",pch=20,col=c('green','red'),legend=c("truth","estimated"))
+# matplot( mrun$batch, type='l', col=1:length(truth), xlab="mcmc gens" )
+# abline(h=truth, col=adjustcolor(1:length(truth),.5), lwd=2)
+# abline(h=estimates["ans",], col=1:length(truth) )
+# legend("topright",col=c(1:length(truth),1,adjustcolor(1,.5)), lwd=c(rep(1,length(truth)),1,2),legend=c(colnames(estimates)[1:length(truth)],"point estimate","truth"))
+# dev.off()
 
 
 print(format(Sys.time(),"%Y-%m-%d-%H-%M"))
