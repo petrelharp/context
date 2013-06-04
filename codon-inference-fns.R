@@ -1,11 +1,12 @@
 #!/usr/bin/R
-require(Matrix,warn.conflicts=FALSE)
-require(expm,warn.conflicts=FALSE)
+require(Matrix)
+require(expm)
 # find what dir we're in
 frame_files <- lapply(sys.frames(), function(x) x$ofile)
 frame_files <- Filter(Negate(is.null), frame_files)
 PATH <- dirname(frame_files[[length(frame_files)]])
 source(paste(PATH,"/expm-simple.R",sep=''))
+source(paste(PATH,"/expAtv.R",sep=''))
 
 getpatterns <- function(winlen) {
     patterns <- do.call( expand.grid, rep( list(bases), winlen ) )
