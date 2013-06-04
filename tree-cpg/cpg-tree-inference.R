@@ -32,11 +32,11 @@ if (gmfile=="TRUE") { gmfile <- paste(paste("genmatrices/genmatrix",winlen,bound
 
 if (is.null(infile)) { cat("Run\n  cpg-tree-inference.R -h\n for help.") }
 
-if (logfile!="" & !interactive()) { 
+if (logfile!="") {
     logfile <- gsub(".RData",".Rout",infile,fixed=TRUE)
     logcon <- if (logfile=="-") { stdout() } else { file(logfile,open="wt") }
-    sink(file=logcon, type="message") 
-    sink(file=logcon, type="output")   # send both to log file
+    sink(file=logcon, type="message", split=interactive()) 
+    sink(file=logcon, type="output", split=interactive())   # send both to log file
 }
 
 scriptdir <- "../"
@@ -134,7 +134,7 @@ lud <- function (params) {
 rand.initfreqs <- 5*rexp(length(initfreqs)); rand.initfreqs <- rand.initfreqs/sum(rand.initfreqs)
 initpar <- c( runif(1), 2 * runif( nmuts ) * mean(mutrates) * sum(tlen), rand.initfreqs ) # random init
 truth <- c( tlen[1]/sum(tlen), mutrates * sum(tlen), initfreqs )  # truth
-lbs <- c( 1e-6, rep(1e-6,nmuts), rep(1e-6,length(initfreqs)) )
+lbs <- c( 1e-6, rep(0,nmuts), rep(1e-6,length(initfreqs)) )
 ubs <- c( 1, rep(20,nmuts), rep(1,length(initfreqs)) )
 # # do in parallel:
 # cheating.parjob <- mcparallel( optim( par=truth, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(trace=3,fnscale=likfun(truth)) ) ),
