@@ -80,21 +80,25 @@ nfreqs <- length(initfreqs)
 npats <- nrow(genmatrix)
 patcomp <- apply( do.call(rbind, strsplit(rownames(genmatrix),'') ), 2, match, bases )  # which base is at each position in each pattern
 likfun <- function (params) {
-    # params are: tlen[1]/sum(tlen), sum(tlen)*mutrates, basefreqs
+    # params are: tlen[1]/sum(tlen), sum(tlen)*mutrates, initfreqs
     branchlens <- c(params[1],1-params[1])
     mutrates <- params[1+(1:nmuts)]
-    initfreqs <- params[1+nmuts+(1:(nfreqs-1))]
-    initfreqs <- c(1-sum(initfreqs),initfreqs)
+    initfreqs <- params[1+nmuts+(1:nfreqs)]
+    initfreqs <- initfreqs/sum(initfreqs)
     patfreqs <- initfreqs[patcomp]
     dim(patfreqs) <- dim(patcomp)
     patfreqs <- apply( patfreqs, 1, prod )
     # these are collapsed transition matrix
-    updownbranch <- list(
-            getupdowntrans( genmatrix, projmatrix, mutrates=list(mutrates,mutrates), selcoef=list(numeric(0),numeric(0)), initfreqs=patfreqs, tlens=branchlens ),
-            getupdowntrans( genmatrix, projmatrix, mutrates=list(mutrates,mutrates), selcoef=list(numeric(0),numeric(0)), initfreqs=patfreqs, tlens=rev(branchlens) )
+    updownbranch <- list(  # note "up" branch is from simpler summaries
+            getupdowntrans( genmatrix, projmatrix, mutrates=list(mutrates,mutrates), selcoef=list(numeric(0),numeric(0)), initfreqs=patfreqs, tlens=rev(branchlens) ),
+            getupdowntrans( genmatrix, projmatrix, mutrates=list(mutrates,mutrates), selcoef=list(numeric(0),numeric(0)), initfreqs=patfreqs, tlens=branchlens )
         )
-    # return negative log-likelihood 
-    (-1) * ( sum( counts[[1]] * log(updownbranch[[1]]) ) + sum( counts[[2]] * log(updownbranch[[2]]) ) )
+    if (any(sapply(updownbranch,function(x) any(!is.numeric(x))|any(x<0)))) { browser() }
+    # return negative log-likelihood plus a penalty to keep initfreqs summing to (almost) 1
+    return( 
+                (-1) * ( sum( counts[[1]] * log(updownbranch[[1]]) ) + sum( counts[[2]] * log(updownbranch[[2]]) ) ) 
+                + 100*(sum(initfreqs)-1)^2
+            )
 }
 
 # using only nonoverlapping counts, plus priors -- indep't poisson.
@@ -102,11 +106,11 @@ mmeans <- c( rep(mmean,nmuts-1), cpgmean )
 ppriors <- rep( pprior, nfreqs )
 tpriors <- rep( tprior, 2 )
 lud <- function (params) {
-    # params are: tlen[1]/sum(tlen), sum(tlen)*mutrates, basefreqs
+    # params are: tlen[1]/sum(tlen), sum(tlen)*mutrates, initfreqs[-length(initfreqs)]
     branchlens <- c(params[1],1-params[1])
     mutrates <- params[1+(1:nmuts)]
     initfreqs <- params[1+nmuts+(1:(nfreqs-1))]
-    initfreqs <- c(1-sum(initfreqs),initfreqs)
+    initfreqs <- c(initfreqs,1-sum(initfreqs))
     patfreqs <- initfreqs[patcomp]
     dim(patfreqs) <- dim(patcomp)
     patfreqs <- apply( patfreqs, 1, prod )
@@ -114,7 +118,7 @@ lud <- function (params) {
         return( -Inf )
     } else {
         # only do in one direction... ?
-        updownbranch <- getupdowntrans( genmatrix, projmatrix, mutrates=list(mutrates,mutrates), selcoef=list(numeric(0),numeric(0)), initfreqs=patfreqs, tlens=branchlens )
+        updownbranch <- getupdowntrans( genmatrix, projmatrix, mutrates=list(mutrates,mutrates), selcoef=list(numeric(0),numeric(0)), initfreqs=patfreqs, tlens=rev(branchlens) )
         # return (positive) log-posterior
         return( 
                 (-1)*sum(updownbranch[nonoverlapping[[1]]]) 
@@ -127,20 +131,32 @@ lud <- function (params) {
 }
 
 # point estimates
-initpar <- c( runif(1), 2 * runif( nmuts ) * mean(mutrates) * sum(tlen), runif(length(initfreqs)-1)/length(initfreqs) ) # random init
-truth <- c( tlen[1]/sum(tlen), mutrates * sum(tlen), initfreqs[-1] )  # truth
-lbs <- c( 1e-6, rep(1e-6,nmuts), rep(1e-6,length(initfreqs)-1) )
+rand.initfreqs <- 5*rexp(length(initfreqs)); rand.initfreqs <- rand.initfreqs/sum(rand.initfreqs)
+initpar <- c( runif(1), 2 * runif( nmuts ) * mean(mutrates) * sum(tlen), rand.initfreqs ) # random init
+truth <- c( tlen[1]/sum(tlen), mutrates * sum(tlen), initfreqs )  # truth
+lbs <- c( 1e-6, rep(1e-6,nmuts), rep(1e-6,length(initfreqs)) )
 ubs <- c( 1, rep(20,nmuts), rep(1,length(initfreqs)) )
+# # do in parallel:
+# cheating.parjob <- mcparallel( optim( par=truth, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(trace=3,fnscale=likfun(truth)) ) ),
+# random.parjob <- mcparallel( optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(trace=3,fnscale=likfun(truth)) ) )
+# cheating.ans <- mccollect( cheating.parjob, wait=TRUE )
+# random.ans <- mccollect( random.parjob, wait=TRUE )
 cheating.ans <- optim( par=truth, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(trace=3,fnscale=likfun(truth)) )
 random.ans <- optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(trace=3,fnscale=likfun(truth)) )
+# renormalize the initial frequencies
+cheating.ans.par <- cheating.ans$par; cheating.ans.par[1+nmuts+(1:nfreqs)] <- cheating.ans.par[1+nmuts+(1:nfreqs)] / sum( cheating.ans.par[1+nmuts+(1:nfreqs)] )
+random.ans.par <- random.ans$par; random.ans.par[1+nmuts+(1:nfreqs)] <- random.ans.par[1+nmuts+(1:nfreqs)] / sum( random.ans.par[1+nmuts+(1:nfreqs)] )
 
-estimates <- data.frame( rbind(init=initpar, ans=random.ans$par, cheating=cheating.ans$par, truth=truth ) )
-colnames(estimates) <- paste("muttime",seq_along(mutrates),sep='')
+estimates <- data.frame( rbind(init=initpar, ans=random.ans.par, cheating=cheating.ans.par, truth=truth ) )
+colnames(estimates) <- c( "branchlen", paste("muttime",seq_along(mutrates),sep=''), names(initfreqs) )
 estimates$likfun <- apply( estimates, 1, likfun )
 write.table( estimates, file=resultsfile, quote=FALSE, sep="\t" )
 
 # bayesian
-mrun <- metrop( lud, initial=random.ans$par, nbatch=nbatches, blen=blen, scale=stepscale )
+#  note we deal with initial freqs not summing to 1 differently from in optim( ) -- need to remove last entry.
+#  mrun.parjob <- mcparallel( metrop( lud, initial=random.ans.par[-length(random.ans.par)], nbatch=nbatches, blen=blen, scale=stepscale ) )
+#  mrun <- mccollect(mcrun.parjob)
+mrun <- metrop( lud, initial=random.ans.par[-length(random.ans.par)], nbatch=nbatches, blen=blen, scale=stepscale )
 
 # look at observed/expected counts
 if (is.null(names(initfreqs))) { names(initfreqs) <- bases }
@@ -148,55 +164,72 @@ all.expected <- lapply( 1:nrow(estimates), function (k) {
             x <- unlist(estimates[k,])
             branchlens <- c(x[1],1-x[1])
             mutrates <- x[1+(1:nmuts)]
-            initfreqs <- x[1+nmuts+(1:(nfreqs-1))]
-            initfreqs <- c(1-sum(initfreqs),initfreqs)
+            initfreqs <- x[1+nmuts+(1:nfreqs)]
+            initfreqs <- initfreqs/sum(initfreqs)
             list( 
-                predictcounts( win, lwin, rwin, initcounts=rowSums(counts[[1]]), mutrates=mutrates, selcoef=numeric(0), genmatrix=genmatrix, projmatrix=projmatrix, initfreqs=initfreqs, tlens=branchlens ),
-                predictcounts( win, lwin, rwin, initcounts=rowSums(counts[[2]]), mutrates=mutrates, selcoef=numeric(0), genmatrix=genmatrix, projmatrix=projmatrix, initfreqs=initfreqs, tlens=rev(branchlens) ) )
+                    predicttreecounts( win, lwin, rwin, initcounts=rowSums(counts[[1]]), mutrates=list(mutrates,mutrates), selcoef=list(numeric(0),numeric(0)), genmatrix=genmatrix, projmatrix=projmatrix, initfreqs=initfreqs, tlens=rev(branchlens) ),
+                    predicttreecounts( win, lwin, rwin, initcounts=rowSums(counts[[2]]), mutrates=list(mutrates,mutrates), selcoef=list(numeric(0),numeric(0)), genmatrix=genmatrix, projmatrix=projmatrix, initfreqs=initfreqs, tlens=branchlens )
+                )
     } )
 names(all.expected) <- rownames(estimates)
 
 # look at observed/expected counts in smaller windows
 cwin <- min(2,win); lrcwin <- min(1,lwin,rwin)
-subcounts <- lapply( counts, function (x) projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=x ) )
-all.subexpected <- lapply( all.expected, function (x) { 
-        list( projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=x[[1]] ),
-                projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=x[[2]] ) ) 
-    } )
+subcounts <- lapply( counts, function (x) 
+        projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=x ) )
+all.subexpected <- lapply( all.expected, lapply, function (x)
+        projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=x ) )
 
 save( opt, counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, truth, cheating.ans, random.ans, estimates, initpar, nonoverlapping, nov.counts, mmeans, all.expected, cwin, subcounts, all.subexpected, mrun, win, lwin, rwin, nmuts, file=datafile )
 
-pdf(file=paste(plotfile,"-1.pdf",sep=''),width=6, height=4, pointsize=10)
-layout(matrix(1:4,nrow=2))
-for (k in 1:ncol(counts[[k]])) {
-    lord <- order( all.expected[["truth"]][[1]][,k] )
-    plot( counts[[1]][lord,k], type='n', xaxt='n', xlab='', ylim=range(c(unlist(all.expected[["truth"]]),unlist(lapply(counts,as.matrix)),unlist(all.expected[["ans"]]))), ylab='counts' )
-    axis(1,at=1:nrow(counts[[k]]),labels=rownames(counts[[k]])[lord],las=3)
-    for (j in 1:length(counts)) {
+# plot (long) counts
+pdf(file=paste(plotfile,"-longcounts.pdf",sep=''),width=6, height=4, pointsize=10)
+layout(matrix(1:sum(sapply(counts,ncol)),nrow=2))
+for (j in seq_along(counts)) {
+    for (k in 1:ncol(counts[[j]])) {
+        lord <- order( all.expected[["truth"]][[j]][,k] )
+        plot( counts[[j]][lord,k], type='n', xaxt='n', xlab='', ylim=range(c(unlist(all.expected[["truth"]]),unlist(as.matrix(counts[[j]])),unlist(all.expected[["ans"]]))), ylab='counts', main=colnames(counts[[j]])[k] )
+        axis(1,at=1:nrow(counts[[j]]),labels=rownames(counts[[j]])[lord],las=3)
         points( counts[[j]][lord,k], pch=j )
         lines(all.expected[["truth"]][[j]][lord,k],col='red', lty=j)
         lines(all.expected[["ans"]][[j]][lord,k],col='green', lty=j, lwd=2)
         lines(all.expected[["cheating"]][[j]][lord,k],col='blue',lty=j)
+        if (k==1) legend("topleft",legend=c("expected","estimated","cheating"),lty=1,col=c("red","green","blue"))
     }
-    legend("topleft",legend=c("expected","estimated","cheating"),lty=1,col=c("red","green","blue"))
 }
 dev.off()
 
-pdf(file=paste(plotfile,"-2.pdf",sep=''),width=6, height=4, pointsize=10)
-layout(matrix(1:ncol(all.subexpected[["truth"]][[1]]),nrow=2))
+# plot (shorter) counts 
+pdf(file=paste(plotfile,"-shortcounts.pdf",sep=''),width=6, height=4, pointsize=10)
+layout(matrix(1:sum(sapply(subcounts,ncol)),nrow=2))
 cols <- rainbow(2+length(all.expected))[1:length(all.expected)]
-for (j in seq_along(counts)) {
-    for (k in 1:ncol(all.subexpected[["truth"]][[j]])) {
+for (j in seq_along(subcounts)) {
+    for (k in 1:ncol(subcounts[[j]])) {
         lord <- order( all.subexpected[["truth"]][[j]][,k] )
-        plot( subcounts[lord,k], xaxt='n', xlab='', main=colnames(subcounts)[k], log='y' )
-        axis(1,at=1:nrow(subcounts),labels=rownames(subcounts)[lord],las=3)
+        plot( subcounts[[j]][lord,k], xaxt='n', xlab='', main=colnames(subcounts[[j]])[k], log='y' )
+        axis(1,at=1:nrow(subcounts[[j]]),labels=rownames(subcounts[[j]])[lord],las=3)
         invisible( lapply(seq_along(all.subexpected),function(y) { lines(all.subexpected[[y]][[j]][lord,k],col=cols[y]) } ) )
         legend("topleft",legend=names(all.subexpected),lty=1,col=cols)
     }
 }
 dev.off()
 
-pdf(file=paste(plotfile,"-3.pdf",sep=''),width=6, height=4, pointsize=10)
+# residuals of (shorter) counts 
+pdf(file=paste(plotfile,"-shortresids.pdf",sep=''),width=6, height=4, pointsize=10)
+layout(matrix(seq_along(subcounts)))
+cols <- rainbow(2+length(all.expected))[1:length(all.expected)]
+all.subresids <- lapply( all.subexpected, function (x) mapply(function(u,v) (u-v)/sqrt(v),x,subcounts) )
+for (j in seq_along(counts)) {
+    z <- sapply( lapply( all.subresids[c("truth","ans","cheating")], "[[", j ), as.vector )
+    rownames(z) <- paste( rownames(subcounts[[j]])[row(subcounts[[j]])], colnames(subcounts[[j]])[col(subcounts[[j]])], sep="->" )
+    plot( 0, type='n', xlab="", ylab="normalized residuals", xlim=c(0,ncol(z)+1), ylim=range(z), xaxt='n' )
+    text( jitter(col(z),fac=2), z, labels=rownames(z), col=col(z) )
+    axis(1, at=1:ncol(z), labels=colnames(z) )
+}
+dev.off()
+
+# observed vs expected
+pdf(file=paste(plotfile,"-obs-exp.pdf",sep=''),width=6, height=4, pointsize=10)
 layout(seq_along(counts))
 for (j in seq_along(counts)) {
     plot( as.vector(all.expected[["truth"]][[j]]), as.vector(counts[[j]]), log='xy', xlab="true expected counts", ylab="counts" )

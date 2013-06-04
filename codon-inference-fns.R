@@ -249,7 +249,6 @@ predicttreecounts <- function (win, lwin=0, rwin=0, initcounts, mutrates, selcoe
     # Compute expected counts of paired patterns:
     winlen <- lwin+win+rwin
     if (missing(genmatrix)) { genmatrix <- makegenmatrix(patlen=lwin+win+rwin,mutpats=mutpats,selpats=selpats, ...) }
-    if (!missing(mutrates)) { genmatrix@x <- update(genmatrix,mutrates=mutrates,selcoef=selcoef,...) }
     if (missing(projmatrix)) { projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin ) }
     patcomp <- apply( do.call(rbind, strsplit(rownames(genmatrix),'') ), 2, match, names(initfreqs) )  # which base is at each position in each pattern
     patfreqs <- initfreqs[patcomp]
@@ -257,7 +256,8 @@ predicttreecounts <- function (win, lwin=0, rwin=0, initcounts, mutrates, selcoe
     patfreqs <- apply( patfreqs, 1, prod )
     updownbranch <- getupdowntrans( genmatrix, projmatrix, mutrates=mutrates, selcoef=selcoef, initfreqs=patfreqs, tlens=tlens )
     if (missing(initcounts)) { initcounts <- 1 }
-    fullcounts <- initcounts * subtransmatrix
+    fullcounts <- initcounts * updownbranch
+    dimnames(fullcounts) <- dimnames( projmatrix )
     return( fullcounts )
 }
 
