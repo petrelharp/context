@@ -100,10 +100,11 @@ lud <- function (params) {
     } else {
         # only do in one direction... ?
         updownbranch <- getupdowntrans( genmatrix, projmatrix, mutrates=list(mutrates,mutrates), selcoef=list(numeric(0),numeric(0)), initfreqs=patfreqs, tlens=rev(branchlens) )
+        meancounts <- initcounts[[1]] * updownbranch
         # return (positive) log-posterior
         return( 
-                (-1)*sum(updownbranch[nonoverlapping[[1]]]) 
-                + sum( nov.counts[[1]] * log(updownbranch[nonoverlapping[[1]]]) ) 
+                (-1)*sum(meancounts[nonoverlapping[[1]]]) 
+                + sum( nov.counts[[1]] * log(meancounts[nonoverlapping[[1]]]) ) 
                 + sum( (tpriors-1)*log(branchlens) )
                 - sum(mmeans*mutrates) 
                 + sum( (ppriors-1)*log(initfreqs) )

@@ -22,11 +22,15 @@ option_list <- list(
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 attach(opt)
 
-if (interactive()) { win <- 1; lwin <- rwin <- 1; nbatches <- 100; blen <- 10; restart <- FALSE; gmfile <- TRUE }
+if (interactive()) { nbatches <- 100; blen <- 10; restart <- FALSE; gmfile <- TRUE }
 
 if (!'infile'%in%names(opt)) { stop("Run\n  cpg-inference.R -h\n for help.") }
 
-options(error=traceback)
+# options(error=traceback)
+scriptdir <- "../"
+source(paste(scriptdir,"codon-inference-fns.R",sep=''))
+source(paste(scriptdir,"sim-context-fns.R",sep=''))
+require(mcmc)
 
 basedir <- gsub(".RData","",infile,fixed=TRUE)
 load(infile)
@@ -35,10 +39,6 @@ if (!file.exists(basedir)) {
 }
 
 
-scriptdir <- "../"
-source(paste(scriptdir,"codon-inference-fns.R",sep=''))
-source(paste(scriptdir,"sim-context-fns.R",sep=''))
-require(mcmc)
 
 basename <- paste(basedir,"/win-",lwin,"-",win,"-",rwin,sep='')
 datafile <- paste( basename ,"-results.RData",sep='')
@@ -46,11 +46,11 @@ plotfile <- paste( basename ,"-plot",sep='')
 mcmcdatafiles <- list.files(path=basedir,pattern="-mcmc.*RData",full.names=TRUE)
 mcmcnum <- 1+max(c(0,as.numeric(gsub(".*-mcmc-","",gsub(".RData","",mcmcdatafiles)))),na.rm=TRUE)
 
-if (logfile=="" & !interactive()) { logfile <- paste(basename,"-mcmc-run-",mcmcnum,".Rout",sep='') }
+if (logfile=="") { logfile <- paste(basename,"-mcmc-run-",mcmcnum,".Rout",sep='') }
 if (!is.null(logfile)) { 
     logcon <- if (logfile=="-") { stdout() } else { file(logfile,open="wt") }
-    sink(file=logcon, type="message") 
-    sink(file=logcon, type="output") 
+    if (!interactive()) { sink(file=logcon, type="message") }
+    sink(file=logcon, type="output", split=interactive()) 
 }
 
 load(datafile)  # has mrun and previous things
@@ -87,7 +87,10 @@ lud <- function (mutrates) {
         # this is collapsed transition matrix
         meancounts <- initcounts * computetransmatrix( genmatrix, projmatrix )
         # return (positive) log-posterior
-        return( (-1)*sum(meancounts[nonoverlapping]) + sum( nov.counts * log(meancounts[nonoverlapping]) ) - sum(mmeans*mutrates) )
+        return( 
+            (-1)*sum(meancounts[nonoverlapping]) 
+            + sum( nov.counts * log(meancounts[nonoverlapping]) ) 
+            - sum(mmeans*mutrates) )
     }
 }
 

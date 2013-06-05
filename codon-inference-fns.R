@@ -5,8 +5,8 @@ require(expm)
 frame_files <- lapply(sys.frames(), function(x) x$ofile)
 frame_files <- Filter(Negate(is.null), frame_files)
 PATH <- dirname(frame_files[[length(frame_files)]])
-source(paste(PATH,"/expm-simple.R",sep=''))
-source(paste(PATH,"/expAtv.R",sep=''))
+# source(paste(PATH,"/expm-simple.R",sep=''))  # expAtv is faster
+# source(paste(PATH,"/expAtv.R",sep=''))  # fixed upstream
 
 getpatterns <- function(winlen) {
     patterns <- do.call( expand.grid, rep( list(bases), winlen ) )
