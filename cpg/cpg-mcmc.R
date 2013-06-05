@@ -98,7 +98,7 @@ if (restart) {
 }
 
 
-save( lwin, win, rwin, lud, mrun, initcounts, nov.counts, meancounts, nonoverlapping, file=paste(basename,"-mcmc-",mcmcnum,".RData",sep='') )
+save( lwin, win, rwin, lud, mrun, initcounts, nov.counts, nonoverlapping, file=paste(basename,"-mcmc-",mcmcnum,".RData",sep='') )
 
 pdf(file=paste(plotfile,"-mcmc-",mcmcnum,".pdf",sep=''),width=6, height=4, pointsize=10)
 matplot( mrun$batch, type='l', col=1:length(truth) )
