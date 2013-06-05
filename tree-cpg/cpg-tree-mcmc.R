@@ -113,7 +113,12 @@ lud <- function (params) {
 }
 
 if (restart) {
-    mrun <- metrop( lud, initial=random.ans$par[-length(random.ans$par)], nbatch=nbatches, blen=blen, scale=stepscale )
+    # mrun <- metrop( lud, initial=random.ans$par[-length(random.ans$par)], nbatch=nbatches, blen=blen, scale=stepscale )
+    if (is.finite(lud(random.ans$par[-length(random.ans$par)]))) {
+        mrun <- metrop( lud, initial=random.ans$par[-length(random.ans$par)], nbatch=nbatches, blen=blen, scale=stepscale )
+    } else {  # the point estimate broke; cheat to get a good starting point
+        mrun <- metrop( lud, initial=truth[-length(truth)], nbatch=nbatches, blen=blen, scale=stepscale )
+    }
 } else {
     mrun <- metrop( mrun, nbatch=nbatches, blen=blen, scale=stepscale )
 }
