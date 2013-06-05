@@ -180,7 +180,7 @@ subcounts <- lapply( counts, function (x)
 all.subexpected <- lapply( all.expected, lapply, function (x)
         projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=x ) )
 
-save( opt, counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, truth, cheating.ans, random.ans, estimates, initpar, nonoverlapping, nov.counts, mmeans, all.expected, cwin, subcounts, all.subexpected, mrun, win, lwin, rwin, nmuts, file=datafile )
+save( opt, counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, truth, cheating.ans, random.ans, estimates, initpar, nonoverlapping, nov.counts, mmeans, ppriors, tpriors, all.expected, cwin, subcounts, all.subexpected, mrun, win, lwin, rwin, nmuts, nfreqs, npats, patcomp, file=datafile )
 
 # plot (long) counts
 pdf(file=paste(plotfile,"-longcounts.pdf",sep=''),width=6, height=4, pointsize=10)
