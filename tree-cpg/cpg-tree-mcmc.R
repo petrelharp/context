@@ -113,7 +113,7 @@ lud <- function (params) {
 }
 
 if (restart) {
-    mrun <- metrop( mrun, initial=random.ans.par[-length(random.ans.par)], nbatch=nbatches, blen=blen, scale=stepscale )
+    mrun <- metrop( lud, initial=random.ans$par[-length(random.ans$par)], nbatch=nbatches, blen=blen, scale=stepscale )
 } else {
     mrun <- metrop( mrun, nbatch=nbatches, blen=blen, scale=stepscale )
 }
