@@ -23,7 +23,7 @@ names(resultsfiles) <- names(simfiles) <- names(mcmcdatafiles) <- gsub(".*/","",
 truths <- lapply( resultsfiles, function (x) { load(x); truth } )
 
 mcmcruns <- lapply( mcmcdatafiles, function (dfs) {
-        lapply(dfs, function (x) { tmp <- load(x);  list( lwin=lwin, win=win, rwin=rwin, mrun=mrun, truth=truth ) } ) } )
+        lapply(dfs, function (x) { tmp <- load(x);  list( lwin=lwin, win=win, rwin=rwin, mrun=mrun ) } ) } )
 mcmcbatches <- lapply( mcmcruns, function (dfs) {
         do.call( rbind, lapply(dfs,function(x)x$mrun$batch) ) } )
 hasmcmc <- (! sapply(mcmcbatches,is.null) )
