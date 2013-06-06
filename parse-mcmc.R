@@ -60,7 +60,7 @@ mcmcinfo <- lapply( names(mcmcruns[hasmcmc]), function (x) {
             } ) 
        do.call(rbind, lapply(bleh, function (x) { names(x) <- names(bleh[[1]]); x } ) )
    } )
-mcmcinfo <- lapply( mcmcinfo, function (x) { names(x) <- names(mcmcinfo[[1]]); x } )
+mcmcinfo <- do.call( rbind, lapply( mcmcinfo, function (x) { names(x) <- names(mcmcinfo[[1]]); x } ) )
 rownames(mcmcinfo) <- NULL
 
 pdf(file="all-mcmc-runs.pdf",height=7,width=10)
