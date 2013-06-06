@@ -41,15 +41,16 @@ mcmcinfo <- do.call(rbind, lapply( names(mcmcruns[hasmcmc]), function (x) { do.c
                 with( y, do.call( cbind, c( list( z ), 
                         lapply( 1:ncol(mrun$batch), function (k) {
                             thistruth <- truth[match(colnames(mrun$batch),names(truth))]
-                            browser()
-                            data.frame( 
-                                q.truth=mean(mrun$batch[,k]<=thistruth[k]),
-                                q05=quantile(mrun$batch[,k],.05), q25=quantile(mrun$batch[,k],.25), 
-                                med=quantile(mrun$batch[,k],.50), 
-                                truth=thistruth[k],
-                                mean=mean(mrun$batch[,k]),
-                                q75=quantile(mrun$batch[,k],.75), q95=quantile(mrun$batch[,k],.95)
-                            ) } )
+                            tmp <- data.frame( 
+                                    q.truth=mean(mrun$batch[,k]<=thistruth[k]),
+                                    q05=quantile(mrun$batch[,k],.05), q25=quantile(mrun$batch[,k],.25), 
+                                    med=quantile(mrun$batch[,k],.50), 
+                                    truth=thistruth[k],
+                                    mean=mean(mrun$batch[,k]),
+                                    q75=quantile(mrun$batch[,k],.75), q95=quantile(mrun$batch[,k],.95)
+                                ) 
+                            names(tmp) <- paste(colnames(mrun$batch)[k],names(tmp),sep="-")
+                        } )
                     ) ) )
             } ) ) } ) )
 rownames(mcmcinfo) <- NULL
