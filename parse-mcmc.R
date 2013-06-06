@@ -30,7 +30,6 @@ hasmcmc <- (! sapply(mcmcbatches,is.null) )
 
 mcmcinfo <- do.call(rbind, lapply( names(mcmcruns[hasmcmc]), function (x) { do.call( rbind, lapply( mcmcruns[[x]], function (y) {
                 truth <- truths[[x]]
-                truth <- truth[match(colnames(mrun$batch),names(truth))]
                 # tlens <- siminfo[[x]]$tlen
                 # muttimes <- siminfo[[x]]$muttime
                 # selcoef <- siminfo[[x]]$selcoef
@@ -41,10 +40,11 @@ mcmcinfo <- do.call(rbind, lapply( names(mcmcruns[hasmcmc]), function (x) { do.c
                         ) )
                 with( y, do.call( cbind, c( list( z ), 
                         lapply( seq_along(truth), function (k) {
-                            data.frame( q.truth=mean(mrun$batch[,k]<=truth[k]),
+                            thistruth <- truth[match(colnames(mrun$batch),names(truth))]
+                            data.frame( q.truth=mean(mrun$batch[,k]<=thistruth[k]),
                             q05=quantile(mrun$batch[,k],.05), q25=quantile(mrun$batch[,k],.25), 
                             med=quantile(mrun$batch[,k],.50), 
-                            truth=truth[k],
+                            truth=thistruth[k],
                             mean=mean(mrun$batch[,k]),
                             q75=quantile(mrun$batch[,k],.75), q95=quantile(mrun$batch[,k],.95)
                         ) } )
