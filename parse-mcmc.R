@@ -39,7 +39,7 @@ mcmcinfo <- do.call(rbind, lapply( names(mcmcruns[hasmcmc]), function (x) { do.c
                         accept=mrun$accept, user.time=mrun$time[1], nbatch=mrun$nbatch, blen=mrun$blen, nspac=mrun$nspac
                         ) )
                 with( y, do.call( cbind, c( list( z ), 
-                        lapply( seq_along(truth), function (k) {
+                        lapply( 1:ncol(mrun$batch), function (k) {
                             thistruth <- truth[match(colnames(mrun$batch),names(truth))]
                             data.frame( q.truth=mean(mrun$batch[,k]<=thistruth[k]),
                             q05=quantile(mrun$batch[,k],.05), q25=quantile(mrun$batch[,k],.25), 
