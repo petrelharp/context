@@ -38,8 +38,9 @@ mcmcinfo <- do.call(rbind, lapply( names(mcmcruns[hasmcmc]), function (x) { do.c
                         lwin=lwin, win=win, rwin=rwin, 
                         accept=mrun$accept, user.time=mrun$time[1], nbatch=mrun$nbatch, blen=mrun$blen, nspac=mrun$nspac
                         ) )
-                with( y, do.call( cbind, c( list( z ), 
+                ret <- with( y, do.call( cbind, c( list( z ), 
                         lapply( 1:ncol(mrun$batch), function (k) {
+                            if (is.null(colnames(mrun$batch))) { colnames(mrun$batch) <- paste("param",1:ncol((mrun$batch)),sep='') }
                             thistruth <- truth[match(colnames(mrun$batch),names(truth))]
                             tmp <- data.frame( 
                                     q.truth=mean(mrun$batch[,k]<=thistruth[k]),
@@ -49,10 +50,11 @@ mcmcinfo <- do.call(rbind, lapply( names(mcmcruns[hasmcmc]), function (x) { do.c
                                     mean=mean(mrun$batch[,k]),
                                     q75=quantile(mrun$batch[,k],.75), q95=quantile(mrun$batch[,k],.95)
                                 ) 
-                            if (!is.null(colnames(mrun$batch)[k])>0) { names(tmp) <- paste(colnames(mrun$batch)[k],names(tmp),sep="-") }
+                            names(tmp) <- paste(colnames(mrun$batch)[k],names(tmp),sep="-")
                             return(tmp)
                         } )
                     ) ) )
+                return(ret)
             } ) ) } ) )
 rownames(mcmcinfo) <- NULL
 
