@@ -122,7 +122,7 @@ if (restart) {
 } else {
     mrun <- metrop( mrun, nbatch=nbatches, blen=blen, scale=stepscale )
 }
-
+colnames(mrun$batch) <- names(truth[-length(truth)])
 
 save( lwin, win, rwin, lud, mrun, initcounts, nov.counts, nonoverlapping, file=paste(basename,"-mcmc-",mcmcnum,".RData",sep='') )
 
