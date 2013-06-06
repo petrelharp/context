@@ -28,7 +28,8 @@ mcmcbatches <- lapply( mcmcruns, function (dfs) {
         do.call( rbind, lapply(dfs,function(x)x$mrun$batch) ) } )
 hasmcmc <- (! sapply(mcmcbatches,is.null) )
 
-mcmcinfo <- lapply( names(mcmcruns[hasmcmc]), function (x) { do.call( rbind, lapply( mcmcruns[[x]], function (y) {
+mcmcinfo <- lapply( names(mcmcruns[hasmcmc]), function (x) { 
+        bleh <- lapply( mcmcruns[[x]], function (y) {
                 truth <- truths[[x]]
                 # tlens <- siminfo[[x]]$tlen
                 # muttimes <- siminfo[[x]]$muttime
@@ -56,8 +57,10 @@ mcmcinfo <- lapply( names(mcmcruns[hasmcmc]), function (x) { do.call( rbind, lap
                         } )
                     ) ) )
                 return(ret)
-            } ) ) } )
-mcmcinfo <- do.call(rbind, lapply( mcmcinfo, function (x) { names(x) <- names(mcmcinfo[[1]]) } ) )
+            } ) 
+       do.call(rbind, lapply(bleh, function (x) { names(x) <- names(bleh[[1]]) } )) 
+   } )
+mcmcinfo <- lapply( mcmcinfo, function (x) { names(x) <- names(mcmcinfo[[1]]) } )
 rownames(mcmcinfo) <- NULL
 
 pdf(file="all-mcmc-runs.pdf",height=7,width=10)
