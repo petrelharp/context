@@ -50,6 +50,7 @@ mcmcinfo <- do.call(rbind, lapply( names(mcmcruns[hasmcmc]), function (x) { do.c
                                     q75=quantile(mrun$batch[,k],.75), q95=quantile(mrun$batch[,k],.95)
                                 ) 
                             if (!is.null(colnames(mrun$batch)[k])>0) { names(tmp) <- paste(colnames(mrun$batch)[k],names(tmp),sep="-") }
+                            return(tmp)
                         } )
                     ) ) )
             } ) ) } ) )
