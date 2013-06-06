@@ -133,7 +133,7 @@ abline(h=estimates["ans",], col=1:(length(truth)-1) )
 legend("topright", col=c(1:length(truth),1,adjustcolor(1,.5)), lwd=c(rep(1,length(truth)-1),1,2),legend=c(colnames(estimates)[1:(length(truth)-1)],"point estimate","truth"))
 dev.off()
 
-mutlabels <- paste("mut:", unlist( sapply( sapply( mutpats, lapply, paste, collapse="->" ), paste, collapse=" | " ) ) )
+mutlabels <- c("branchlen", paste("mut:", unlist( sapply( sapply( mutpats, lapply, paste, collapse="->" ), paste, collapse=" | " ) ) ), names(initfreqs) )
 pdf(file=paste(plotfile,"-mcmc-",mcmcnum,"-pairwise.pdf",sep=''),width=6,height=6,pointsize=10)
 pairs( rbind( mrun$batch, truth ), col=c( rep(adjustcolor("black",.1),nrow(mrun$batch)), adjustcolor("red",1)), pch=20, cex=c( rep(.25,nrow(mrun$batch)), 2), labels=mutlabels, gap=.1 )
 dev.off()
