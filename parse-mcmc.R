@@ -67,26 +67,14 @@ pdf(file="all-mcmc-runs.pdf",height=7,width=10)
 # nmuts <- length(siminfo[[1]]$muttime)
 # mutlabels <- paste("mut:", unlist( sapply( sapply( mutpats, lapply, paste, collapse="->" ), paste, collapse=" | " ) ) )
 par(mar=c(4,4,1,0)+.1)
-for (k in seq_along(siminfo[[1]]$muttime)) {
+for (k in 1:ncol(mcmcbatches[[1]])) {
     layout(matrix(1:(2*(sum(hasmcmc)+1)%/%2),nrow=2))
     for (x in names(mcmcbatches[hasmcmc])) {
-        truth <- siminfo[[x]]$muttime[k]
+        truth <- truths[[x]][k]
         est <- hist( mcmcbatches[[x]][,k], breaks=50, plot=FALSE )
         xrange <- range(c(truth,est$breaks))
         xrange <- mean(xrange) + 1.2*(xrange-mean(xrange))
-        plot( est, xlim=xrange, col=adjustcolor("blue",.4), xlab=x, border=grey(.6), main=if(k==1){mutlabels[k]} )
-        abline(v=truth,lwd=2,col=adjustcolor('black',.75))
-    }
-}
-sellabels <- paste("sel:", unlist(sapply(selpats,paste,collapse=" | ")) )
-for (k in seq_along(siminfo[[1]]$selcoef)) {
-    layout(matrix(1:(2*(sum(hasmcmc)+1)%/%2),nrow=2))
-    for (x in names(mcmcbatches[hasmcmc])) {
-        truth <- siminfo[[x]]$selcoef[k]
-        est <- hist( mcmcbatches[[x]][,k+nmuts], breaks=50, plot=FALSE )
-        xrange <- range(c(truth,est$breaks))
-        xrange <- mean(xrange) + 1.2*(xrange-mean(xrange))
-        plot( est, xlim=xrange, col=adjustcolor("red",.4), xlab=x, border=grey(.6), main=if(k==1){sellabels[k]} )
+        plot( est, xlim=xrange, col=adjustcolor("blue",.4), xlab=x, border=grey(.6), main=if(k==1){names(truths[[x]])[k]} )
         abline(v=truth,lwd=2,col=adjustcolor('black',.75))
     }
 }
