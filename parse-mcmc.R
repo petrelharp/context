@@ -49,8 +49,7 @@ mcmcinfo <- do.call(rbind, lapply( names(mcmcruns[hasmcmc]), function (x) { do.c
                                     mean=mean(mrun$batch[,k]),
                                     q75=quantile(mrun$batch[,k],.75), q95=quantile(mrun$batch[,k],.95)
                                 ) 
-                            browser()
-                            names(tmp) <- paste(colnames(mrun$batch)[k],names(tmp),sep="-")
+                            if (nchar(colnames(mrun$batch)[k])>0) { names(tmp) <- paste(colnames(mrun$batch)[k],names(tmp),sep="-") }
                         } )
                     ) ) )
             } ) ) } ) )
