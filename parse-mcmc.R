@@ -41,20 +41,22 @@ mcmcinfo <- do.call(rbind, lapply( names(mcmcruns[hasmcmc]), function (x) { do.c
                 with( y, do.call( cbind, c( list( z ), 
                         lapply( 1:ncol(mrun$batch), function (k) {
                             thistruth <- truth[match(colnames(mrun$batch),names(truth))]
-                            data.frame( q.truth=mean(mrun$batch[,k]<=thistruth[k]),
-                            q05=quantile(mrun$batch[,k],.05), q25=quantile(mrun$batch[,k],.25), 
-                            med=quantile(mrun$batch[,k],.50), 
-                            truth=thistruth[k],
-                            mean=mean(mrun$batch[,k]),
-                            q75=quantile(mrun$batch[,k],.75), q95=quantile(mrun$batch[,k],.95)
-                        ) } )
+                            browser()
+                            data.frame( 
+                                q.truth=mean(mrun$batch[,k]<=thistruth[k]),
+                                q05=quantile(mrun$batch[,k],.05), q25=quantile(mrun$batch[,k],.25), 
+                                med=quantile(mrun$batch[,k],.50), 
+                                truth=thistruth[k],
+                                mean=mean(mrun$batch[,k]),
+                                q75=quantile(mrun$batch[,k],.75), q95=quantile(mrun$batch[,k],.95)
+                            ) } )
                     ) ) )
             } ) ) } ) )
 rownames(mcmcinfo) <- NULL
 
 pdf(file="all-mcmc-runs.pdf",height=7,width=10)
-nmuts <- length(siminfo[[1]]$muttime)
-mutlabels <- paste("mut:", unlist( sapply( sapply( mutpats, lapply, paste, collapse="->" ), paste, collapse=" | " ) ) )
+# nmuts <- length(siminfo[[1]]$muttime)
+# mutlabels <- paste("mut:", unlist( sapply( sapply( mutpats, lapply, paste, collapse="->" ), paste, collapse=" | " ) ) )
 par(mar=c(4,4,1,0)+.1)
 for (k in seq_along(siminfo[[1]]$muttime)) {
     layout(matrix(1:(2*(sum(hasmcmc)+1)%/%2),nrow=2))
