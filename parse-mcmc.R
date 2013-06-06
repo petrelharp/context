@@ -16,42 +16,39 @@ if (!file.exists(simdir)) { stop(paste(simdir, "does not exist.\n")) }
 simfiles <- list.files(simdir,"selsims-.*RData",full.names=TRUE)
 basedirs <- gsub(".RData","",simfiles,fixed=TRUE)
 mcmcdatafiles <- lapply(basedirs, function (x) list.files(path=x,pattern=".*-mcmc.*RData",full.names=TRUE) )
-names(simfiles) <- names(mcmcdatafiles) <- gsub(".*/","",basedirs)
+resultsfiles <- lapply(basedirs, function (x) list.files(path=x,pattern=".*-results.RData",full.names=TRUE) )
+names(resultsfiles) <- names(simfiles) <- names(mcmcdatafiles) <- gsub(".*/","",basedirs)
 
-siminfo <- lapply( simfiles, function (x) { load(x); list(muttime=mutrates*tlen,selcoef=selcoef) } )
+# siminfo <- lapply( simfiles, function (x) { load(x); list(tlen=tlen/sum(tlen),muttime=mutrates*sum(tlen),selcoef=selcoef) } )
+truths <- lapply( resultsfiles, function (x) { load(x); truth } )
 
 mcmcruns <- lapply( mcmcdatafiles, function (dfs) {
-        lapply(dfs, function (x) { tmp <- load(x);  list( lwin=lwin, win=win, rwin=rwin, mrun=mrun ) } ) } )
+        lapply(dfs, function (x) { tmp <- load(x);  list( lwin=lwin, win=win, rwin=rwin, mrun=mrun, truth=truth ) } ) } )
 mcmcbatches <- lapply( mcmcruns, function (dfs) {
         do.call( rbind, lapply(dfs,function(x)x$mrun$batch) ) } )
 hasmcmc <- (! sapply(mcmcbatches,is.null) )
 
 mcmcinfo <- do.call(rbind, lapply( names(mcmcruns[hasmcmc]), function (x) { do.call( rbind, lapply( mcmcruns[[x]], function (y) {
-                muttimes <- siminfo[[x]]$muttime
-                selcoef <- siminfo[[x]]$selcoef
+                truth <- truths[[x]]
+                truth <- truth[match(colnames(mrun$batch),names(truth))]
+                # tlens <- siminfo[[x]]$tlen
+                # muttimes <- siminfo[[x]]$muttime
+                # selcoef <- siminfo[[x]]$selcoef
                 z <- with(y, data.frame( 
                         fname=x, 
                         lwin=lwin, win=win, rwin=rwin, 
                         accept=mrun$accept, user.time=mrun$time[1], nbatch=mrun$nbatch, blen=mrun$blen, nspac=mrun$nspac
                         ) )
                 with( y, do.call( cbind, c( list( z ), 
-                        lapply( seq_along(muttimes), function (k) {
-                            data.frame( q.truth=mean(mrun$batch[,k]<=muttimes[k]),
+                        lapply( seq_along(truth), function (k) {
+                            data.frame( q.truth=mean(mrun$batch[,k]<=truth[k]),
                             q05=quantile(mrun$batch[,k],.05), q25=quantile(mrun$batch[,k],.25), 
                             med=quantile(mrun$batch[,k],.50), 
-                            truth=muttimes[k],
+                            truth=truth[k],
                             mean=mean(mrun$batch[,k]),
                             q75=quantile(mrun$batch[,k],.75), q95=quantile(mrun$batch[,k],.95)
-                        ) } ),
-                        lapply( seq_along(selcoef), function (k) {
-                            data.frame( q.truth=mean(mrun$batch[,k]<=selcoef[k]),
-                            q05=quantile(mrun$batch[,k],.05), q25=quantile(mrun$batch[,k],.25), 
-                            med=quantile(mrun$batch[,k],.50), 
-                            truth=selcoef[k],
-                            mean=mean(mrun$batch[,k]),
-                            q75=quantile(mrun$batch[,k],.75), q95=quantile(mrun$batch[,k],.95)
-                        ) } ) )
-                ) )
+                        ) } )
+                    ) ) )
             } ) ) } ) )
 rownames(mcmcinfo) <- NULL
 
@@ -66,7 +63,7 @@ for (k in seq_along(siminfo[[1]]$muttime)) {
         est <- hist( mcmcbatches[[x]][,k], breaks=50, plot=FALSE )
         xrange <- range(c(truth,est$breaks))
         xrange <- mean(xrange) + 1.2*(xrange-mean(xrange))
-        plot( est, xlim=xrange, col=adjustcolor("blue",.4), main='', xlab=x, border=grey(.6), main=if(k==1){mutlabels[k]} )
+        plot( est, xlim=xrange, col=adjustcolor("blue",.4), xlab=x, border=grey(.6), main=if(k==1){mutlabels[k]} )
         abline(v=truth,lwd=2,col=adjustcolor('black',.75))
     }
 }
@@ -78,7 +75,7 @@ for (k in seq_along(siminfo[[1]]$selcoef)) {
         est <- hist( mcmcbatches[[x]][,k+nmuts], breaks=50, plot=FALSE )
         xrange <- range(c(truth,est$breaks))
         xrange <- mean(xrange) + 1.2*(xrange-mean(xrange))
-        plot( est, xlim=xrange, col=adjustcolor("red",.4), main='', xlab=x, border=grey(.6), main=if(k==1){sellabels[k]} )
+        plot( est, xlim=xrange, col=adjustcolor("red",.4), xlab=x, border=grey(.6), main=if(k==1){sellabels[k]} )
         abline(v=truth,lwd=2,col=adjustcolor('black',.75))
     }
 }

@@ -134,6 +134,7 @@ lud <- function (params) {
 rand.initfreqs <- 5*rexp(length(initfreqs)); rand.initfreqs <- rand.initfreqs/sum(rand.initfreqs)
 initpar <- c( runif(1), 2 * runif( nmuts ) * mean(mutrates) * sum(tlen), rand.initfreqs ) # random init
 truth <- c( tlen[1]/sum(tlen), mutrates * sum(tlen), initfreqs )  # truth
+names(truth) <- c( "rel.branchlen", paste("tmut:", unlist( sapply( sapply( mutpats, lapply, paste, collapse="->" ), paste, collapse=" | " ) ) ), names(initfreqs) )
 lbs <- c( 1e-6, rep(0,nmuts), rep(1e-6,length(initfreqs)) )
 ubs <- c( 1, rep(20,nmuts), rep(1,length(initfreqs)) )
 # # do in parallel:
