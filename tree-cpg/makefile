@@ -34,3 +34,18 @@ info :
 
 %/mcmc-run-5.Rout : %.RData %/mcmc-run-4.Rout 
 	Rscript cpg-tree-mcmc.R -i $< -o $@ ${ARGS}
+
+%/mcmc-run-6.Rout : %.RData %/mcmc-run-5.Rout 
+	Rscript cpg-tree-mcmc.R -i $< -o $@ ${ARGS}
+
+%/mcmc-run-7.Rout : %.RData %/mcmc-run-6.Rout 
+	Rscript cpg-tree-mcmc.R -i $< -o $@ ${ARGS}
+
+%/mcmc-run-8.Rout : %.RData %/mcmc-run-7.Rout 
+	Rscript cpg-tree-mcmc.R -i $< -o $@ ${ARGS}
+
+%/mcmc-run-9.Rout : %.RData %/mcmc-run-8.Rout 
+	Rscript cpg-tree-mcmc.R -i $< -o $@ ${ARGS}
+
+%/mcmc-run-10.Rout : %.RData %/mcmc-run-9.Rout 
+	Rscript cpg-tree-mcmc.R -i $< -o $@ ${ARGS}

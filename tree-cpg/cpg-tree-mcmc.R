@@ -48,8 +48,8 @@ mcmcnum <- 1+max(c(0,as.numeric(gsub(".*-mcmc-","",gsub(".RData","",mcmcdatafile
 if (logfile=="") { logfile <- paste(basename,"-mcmc-run-",mcmcnum,".Rout",sep='') }
 if (!is.null(logfile)) { 
     logcon <- if (logfile=="-") { stdout() } else { file(logfile,open="wt") }
-    if (!interactive()) { sink(file=logcon, type="message") }
     sink(file=logcon, type="output", split=interactive()) 
+    if (!interactive()) { sink(file=logcon, type="message",append=TRUE) }
 }
 
 load(datafile)  # has mrun and previous things
@@ -127,13 +127,15 @@ colnames(mrun$batch) <- names(truth[-length(truth)])
 save( lwin, win, rwin, lud, mrun, initcounts, nov.counts, nonoverlapping, file=paste(basename,"-mcmc-",mcmcnum,".RData",sep='') )
 
 pdf(file=paste(plotfile,"-mcmc-",mcmcnum,".pdf",sep=''),width=6, height=4, pointsize=10)
-matplot( mrun$batch, type='l', col=1:length(truth) )
+subs <- seq.int(1, nrow(mrun$batch), by=max(1,floor(nrow(mrun$batch)/1000)) )
+matplot( mrun$batch[subs,], type='l', col=1:length(truth) )
 abline(h=truth[-length(truth)], col=adjustcolor(1:length(truth),.5), lwd=2)
 abline(h=estimates["ans",], col=1:(length(truth)-1) )
 legend("topright", col=c(1:length(truth),1,adjustcolor(1,.5)), lwd=c(rep(1,length(truth)-1),1,2),legend=c(colnames(estimates)[1:(length(truth)-1)],"point estimate","truth"))
 dev.off()
 
-mutlabels <- c("branchlen", paste("mut:", unlist( sapply( sapply( mutpats, lapply, paste, collapse="->" ), paste, collapse=" | " ) ) ), names(initfreqs) )
 pdf(file=paste(plotfile,"-mcmc-",mcmcnum,"-pairwise.pdf",sep=''),width=6,height=6,pointsize=10)
-pairs( rbind( mrun$batch, truth ), col=c( rep(adjustcolor("black",.1),nrow(mrun$batch)), adjustcolor("red",1)), pch=20, cex=c( rep(.25,nrow(mrun$batch)), 2), labels=mutlabels, gap=.1 )
+mutlabels <- c("branchlen", paste("mut:", unlist( sapply( sapply( mutpats, lapply, paste, collapse="->" ), paste, collapse=" | " ) ) ), names(initfreqs) )
+subs <- seq.int(1, nrow(mrun$batch), by=max(1,floor(nrow(mrun$batch)/1000)) )
+pairs( rbind( mrun$batch[subs,], truth[-length(truth)] ), col=c( rep(adjustcolor("black",.1),length(subs)), adjustcolor("red",1)), pch=20, cex=c( rep(.25,length(subs)), 2), labels=mutlabels, gap=.1 )
 dev.off()
