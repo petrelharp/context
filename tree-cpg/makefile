@@ -19,6 +19,7 @@ mcmcs : $(mcmcfiles)
 info : 
 	Rscript ../siminfo.R cpg-tree-sims > $@
 	Rscript ../parse-mcmc.R  >> $@
+	Rscript ../pairplots-mcmc.R cpg-tree-sims
 
 %/mcmc-run-1.Rout : %.RData
 	Rscript cpg-tree-mcmc.R -i $< -o $@ ${ARGS}

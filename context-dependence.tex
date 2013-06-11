@@ -557,7 +557,7 @@ as the posterior is too sharp.
   \begin{center}
     \includegraphics[width=\textwidth]{tasep/all-mcmc-runs}
   \end{center}
-  \caption{ Results from MCMC estimates of the parameter in TASEP (mutation rate multiplied by time).  
+  \caption{ Results from MCMC estimates for six different data sets of the parameter in TASEP (mutation rate multiplied by time).  
   Vertical line shows the true value.
   }
 \end{figure}
@@ -575,7 +575,8 @@ In this case, the true parameter values have good distribution within the estima
   \begin{center}
     \includegraphics[width=\textwidth,page=1]{ising/all-mcmc-runs}
   \end{center}
-  \caption{ Results from MCMC estimates of the mutation rate parameter in the Ising model (scaled by amount of time). 
+  \caption{ Results from MCMC estimates of the time-scaled mutation rate parameter $\lambda t$,
+  in ten different simulated datasets under the Ising model.
   Vertical line shows the true value.
   }
 \end{figure}
@@ -593,10 +594,16 @@ In this case, the true parameter values have good distribution within the estima
   \begin{center}
     \includegraphics[width=\textwidth,page=3]{ising/all-mcmc-runs}
   \end{center}
-  \caption{ Results from MCMC estimates of the magenization parameter in the Ising model. 
+  \caption{ Results from MCMC estimates of the magnetization parameter $\beta$ in the Ising model. 
   Vertical line shows the true value.
   }
 \end{figure}
+
+%%%
+\subsection{CpG mutation}
+
+Nucleotide sequences of length $10^6$ were simulated with various 
+
 
 %%%%%%%%
 \section{What next}

@@ -1,12 +1,28 @@
-# mess around with stuff
+# make colored pairplots of combined mcmc runs
+
+args <- commandArgs(TRUE)
+simdir <- args[1]
 
 scriptdir <- "../"
 source(paste(scriptdir,"codon-inference-fns.R",sep=''))
 source(paste(scriptdir,"sim-context-fns.R",sep=''))
 require(mcmc)
 
+if (interactive()) {
+    simdir <- "cpg-tree-sims"
+}
+
+varnames <- switch( simdir,
+        "cpg-tree-sims" = c(
+                "branchlen", 
+                paste("mut:", unlist( sapply( sapply( mutpats, lapply, paste, collapse="->" ), paste, collapse=" | " ) ) ), 
+                names(initfreqs)[-length(initfreqs)] 
+            ),
+        "cpg-sims" = c(paste("mut:", unlist( sapply( sapply( mutpats, lapply, paste, collapse="->" ), paste, collapse=" | " ) ) ) )
+    )
+
 # infile <- "cpg-tree-sims/selsims-2013-06-03-13-17-0356374.RData"
-for (infile in list.files("cpg-tree-sims","*RData",full.names=TRUE)) {
+for (infile in list.files(simdir,"*RData",full.names=TRUE)) {
 
     basedir <- gsub(".RData","",infile,fixed=TRUE)
     load(infile)
@@ -23,7 +39,7 @@ for (infile in list.files("cpg-tree-sims","*RData",full.names=TRUE)) {
     all.mrun <- do.call( rbind, lapply( seq_along(mcmcdatafiles), function (k) {
                 load(mcmcdatafiles[[k]])
                 tmp <- data.frame( mrun$batch )
-                names(tmp) <- c("branchlen", paste("mut:", unlist( sapply( sapply( mutpats, lapply, paste, collapse="->" ), paste, collapse=" | " ) ) ), names(initfreqs)[-length(initfreqs)] )
+                names(tmp) <- varnames
                 tmp$mcmcnum <- k
                 tmp
             } ) )

@@ -20,8 +20,9 @@ test : check-cpg.R
 	Rscript --vanilla $<
 
 info : 
-	Rscript ../siminfo.R cpg-sims
-	Rscript ../parse-mcmc.R 
+	Rscript ../siminfo.R cpg-sims > $@
+	Rscript ../parse-mcmc.R  >> $@
+	Rscript ../pairplots-mcmc.R cpg-sims
 
 %/mcmc-run-1.Rout : %.RData
 	Rscript cpg-mcmc.R -i $< -o $@ ${ARGS}
