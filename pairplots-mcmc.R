@@ -12,15 +12,6 @@ if (interactive()) {
     simdir <- "cpg-tree-sims"
 }
 
-varnames <- switch( simdir,
-        "cpg-tree-sims" = c(
-                "branchlen", 
-                paste("mut:", unlist( sapply( sapply( mutpats, lapply, paste, collapse="->" ), paste, collapse=" | " ) ) ), 
-                names(initfreqs)[-length(initfreqs)] 
-            ),
-        "cpg-sims" = c(paste("mut:", unlist( sapply( sapply( mutpats, lapply, paste, collapse="->" ), paste, collapse=" | " ) ) ) )
-    )
-
 # infile <- "cpg-tree-sims/selsims-2013-06-03-13-17-0356374.RData"
 for (infile in list.files(simdir,"*RData",full.names=TRUE)) {
 
@@ -35,6 +26,16 @@ for (infile in list.files(simdir,"*RData",full.names=TRUE)) {
     mcmcnum <- 1+max(c(0,as.numeric(gsub(".*-mcmc-","",gsub(".RData","",mcmcdatafiles)))),na.rm=TRUE)
 
     load(datafile)
+
+    varnames <- switch( simdir,
+            "cpg-tree-sims" = c(
+                    "branchlen", 
+                    paste("mut:", unlist( sapply( sapply( mutpats, lapply, paste, collapse="->" ), paste, collapse=" | " ) ) ), 
+                    names(initfreqs)[-length(initfreqs)] 
+                ),
+            "cpg-sims" = c(paste("mut:", unlist( sapply( sapply( mutpats, lapply, paste, collapse="->" ), paste, collapse=" | " ) ) ) )
+        )
+
 
     all.mrun <- do.call( rbind, lapply( seq_along(mcmcdatafiles), function (k) {
                 load(mcmcdatafiles[[k]])
