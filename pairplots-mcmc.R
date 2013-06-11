@@ -33,7 +33,8 @@ for (infile in list.files(simdir,"*RData",full.names=TRUE)) {
                     paste("mut:", unlist( sapply( sapply( mutpats, lapply, paste, collapse="->" ), paste, collapse=" | " ) ) ), 
                     names(initfreqs)[-length(initfreqs)] 
                 ),
-            "cpg-sims" = c(paste("mut:", unlist( sapply( sapply( mutpats, lapply, paste, collapse="->" ), paste, collapse=" | " ) ) ) )
+            "cpg-sims" = c(paste("mut:", unlist( sapply( sapply( mutpats, lapply, paste, collapse="->" ), paste, collapse=" | " ) ) ) ),
+            "ising-sims" = c("lambda","beta","gamma")
         )
 
 

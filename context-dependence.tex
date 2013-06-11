@@ -435,9 +435,10 @@ but requires the frequencies at the root.
 
 We clearly don't want to add an extra parameter $\pi(z)$ for all $z \in \calS^{m+2\ell}$. 
 If nothing else, it would make the inference depend on $m$ and $\ell$, which we'd like to avoid.
-One approach would be to put a Dirichlet distribution on $\pi(z)$,
-but this would destroy many of the nice computational properties of the likelihoods,
-since making the frequencies of patterns at the root random introduces correlations between counts.
+One approach would be to put a Dirichlet distribution on $\pi(z)$.
+This has the nice property that you can choose priors that are consistent across different values of $m$ and $\ell$.
+We'd have to still MCMC around in the space of $\pi(z)$, thought, so they'd be nuisance parameters from that point of view.
+Also, making the frequencies at the root random introduces correlations between counts, which we want to avoid.
 An alternative is to specify $\pi$ through lower-dimensional statistics,
 for instance to model the root state as a sample from a Markov random field
 with parameters for the marginal frequencies of each state, and pairwise (or higher) correlations between them.
@@ -571,6 +572,18 @@ As for TASEP, unning 10,000 MCMC iterations with window sizes of $\ell=w=3$ (tot
 In this case, the true parameter values have good distribution within the estimated posterior distributions.
 
 
+
+\begin{figure}
+  \begin{center}
+    \includegraphics{writeup-plots/selsims-2013-05-28-17-12-0275615-traces}
+  \end{center}
+  \caption{ 
+  MCMC traces of the parameters in the Ising model across 100,000 iterations.
+  The units of $\lambda$ are in mean number of changes per site.
+  Vertical line shows the true value.
+  }
+\end{figure}
+
 \begin{figure}
   \begin{center}
     \includegraphics[width=\textwidth,page=1]{ising/all-mcmc-runs}
@@ -600,9 +613,40 @@ In this case, the true parameter values have good distribution within the estima
 \end{figure}
 
 %%%
-\subsection{CpG mutation}
+\subsection{CpG mutation, on a tree}
 
-Nucleotide sequences of length $10^6$ were simulated with various 
+Nucleotide sequences of length $10^6$ were simulated down two (unequal) branches of a tree,
+with all single-base substitution rates $m_{xy}$ set equal (varying from a total of .01 to .1 across the tree)
+and an additional CpG rate $\gamma$ set to either 0 or three times the single-base rate.
+Analysis was done with $\ell=2$ and $w=1$ (a five-to-one window).
+
+The state at the root of the tree was independently chosen bases with equal frequencies, 
+and these frequencies at the root were added as parameters to the model (with a Dirichlet prior).
+
+The point estimates are good, 
+as are the MCMC estimates,
+but there seems to be mixing trouble having to do with the root frequencies.
+
+\begin{figure}
+  \begin{center}
+    \includegraphics{writeup-plots/selsims-2013-06-03-13-17-0790276-initfreqs}
+  \end{center}
+  \caption{ 
+  MCMC traces across 660,000 iterations of the frequencies at the root of the (two-taxon) tree in the CpG model.
+  Vertical line shows the true value.
+  }
+\end{figure}
+
+\begin{figure}
+  \begin{center}
+    \includegraphics{writeup-plots/selsims-2013-06-03-13-17-0790276-mutrates}
+  \end{center}
+  \caption{ 
+  MCMC traces across 660,000 iterations of several mutation rate parameters in the CpG model.
+  Units are in mean number of substitutions per base across the entire tree.
+  Vertical line shows the true value.
+  }
+\end{figure}
 
 
 %%%%%%%%
@@ -610,13 +654,19 @@ Nucleotide sequences of length $10^6$ were simulated with various
 
 \begin{enumerate}
 
-  \item Do inference along a tree.
+  \item Allow more than single-base distribution at the root.
+
+  \item What's up with the mixing problem in root frequencies?
 
   \item See if counting in nonoverlapping windows fixes the peakiness problem with TASEP.
 
-  \item See what's feasible with a larger alphabet -- 4 bases, or 20 amino acids -- and more parameters.
+  \item See what's feasible with a larger alphabet -- 60 codons -- and more parameters.
 
-  \item Show that taking $\ell=0$ can be positively misleading (when?).
+  \item Show that taking no context ($\ell=0$) can be positively misleading in some context.
+
+  \item Do a three-taxa tree.
+
+  \item How to identify motifs in the residuals?
 
 \end{enumerate}
 

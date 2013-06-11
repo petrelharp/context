@@ -20,7 +20,7 @@ resultsfiles <- lapply(basedirs, function (x) list.files(path=x,pattern=".*-resu
 names(resultsfiles) <- names(simfiles) <- names(mcmcdatafiles) <- gsub(".*/","",basedirs)
 
 # siminfo <- lapply( simfiles, function (x) { load(x); list(tlen=tlen/sum(tlen),muttime=mutrates*sum(tlen),selcoef=selcoef) } )
-truths <- lapply( resultsfiles, function (x) { load(x); truth } )
+truths <- lapply( resultsfiles, function (x) { load(x[1]); truth } )
 
 mcmcruns <- lapply( mcmcdatafiles, function (dfs) {
         lapply(dfs, function (x) { tmp <- load(x);  list( lwin=lwin, win=win, rwin=rwin, mrun=mrun ) } ) } )
