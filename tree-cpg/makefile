@@ -17,8 +17,8 @@ mcmcs : $(mcmcfiles)
 	Rscript cpg-tree-inference.R -i $< -o $@ ${ARGS} 
 
 info : 
-	Rscript ../siminfo.R cpg-tree-sims
-	Rscript ../parse-mcmc.R 
+	Rscript ../siminfo.R cpg-tree-sims > $@
+	Rscript ../parse-mcmc.R  >> $@
 
 %/mcmc-run-1.Rout : %.RData
 	Rscript cpg-tree-mcmc.R -i $< -o $@ ${ARGS}
