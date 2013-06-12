@@ -554,6 +554,19 @@ Running 10,000 MCMC iterations with window sizes of $\ell=w=3$ (total length 9) 
 Apparently, the patterns used were not sufficiently independent in this case,
 as the posterior is too sharp.
 
+Here's a short example sequence with $\lambda=1$:
+\begin{center}
+ \setlength{\tabcolsep}{0pt}
+\begin{tabular}{cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc}
+X&X&X&O&O&X&O&O&O&O&X&O&X&O&X&X&O&O&X&O&O&X&O&X&X&X&O&X&O&O&O&X&X&O&X&O&O&O&X&X&O&O&O&X&O&O&O&O&X&O&X&X&O&X&X&O&O&X&O&O \\
+$\centerdot$&O&X&O&X&O&O&O&X&$\centerdot$&O&X&O&O&X&X&X&o&x&$\centerdot$&o&O&X&x&x&O&X&O&X&o&o&O&X&X&$\centerdot$&$\centerdot$&o&o&O&X&X&o&$\centerdot$&O&X&$\centerdot$&o&o&$\centerdot$&$\centerdot$&O&X&X&x&O&X&o&O&X&$\centerdot$
+\end{tabular}
+\end{center}
+here particles are X's, moving to the right; and spaces are O's; 
+in the second line, 
+$\centerdot$ is a position that has not considered a change; lowercase letters are positions that considered a change but did not;
+and upper case are positions that did change.
+
 \begin{figure}
   \begin{center}
     \includegraphics[width=\textwidth]{tasep/all-mcmc-runs}
@@ -571,7 +584,16 @@ and pattern occurrences counted.
 As for TASEP, unning 10,000 MCMC iterations with window sizes of $\ell=w=3$ (total length 9) on these takes around 40 minutes.
 In this case, the true parameter values have good distribution within the estimated posterior distributions.
 
-
+Here is an example, with all parameters equal to 1, for $t=.5$:
+\begin{center}
+ \setlength{\tabcolsep}{0pt}
+\begin{tabular}{cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc}
+X&X&O&X&X&O&O&X&O&X&O&X&X&O&O&X&O&O&O&O&X&X&X&O&X&O&X&O&X&O&O&O&X&X&O&X&X&X&X&X&O&X&O&X&O&X&X&X&X&O&O&X&X&X&X&X&X&O&O&O \\
+x&x&o&x&X&X&O&x&o&x&$\centerdot$&x&x&O&X&X&$\centerdot$&O&X&O&X&x&x&o&x&o&x&o&x&O&X&O&$\centerdot$&$\centerdot$&O&O&X&X&O&X&X&X&o&x&o&$\centerdot$&X&O&X&o&o&x&X&X&X&O&X&o&$\centerdot$&$\centerdot$ 
+\end{tabular}
+\end{center}
+The notation is as above; except that the entire matched pattern involved in a change is uppercase:
+to simulate, we look in windows of size 3; so if XOO changes to XXO, the whole thing is uppercase, not just the middle X.
 
 \begin{figure}
   \begin{center}
@@ -622,6 +644,17 @@ Analysis was done with $\ell=2$ and $w=1$ (a five-to-one window).
 
 The state at the root of the tree was independently chosen bases with equal frequencies, 
 and these frequencies at the root were added as parameters to the model (with a Dirichlet prior).
+
+Here is a short example, with all parameters equal to 1, with each branch of the tree having length $0.1$:
+\begin{center}
+ \setlength{\tabcolsep}{0pt}
+\begin{tabular}{cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc}
+T&G&G&A&G&A&G&G&T&C&T&G&C&C&A&T&A&G&A&C&G&G&G&C&G&C&C&G&C&C&T&A&G&G&A&G&C&C&G&C&G&T&T&T&T&G&C&G&T&G&G&T&G&T&T&G&T&G&G&C \\
+$\centerdot$&$\centerdot$&g&C&G&a&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&T&A&C&A&$\centerdot$&$\centerdot$&$\centerdot$&T&A&T&$\centerdot$&$\centerdot$&$\centerdot$&T&G&c&C&C&A&C&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&G&G&G&t&A&T&$\centerdot$&$\centerdot$&G&A&g&C&G&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&t&T&G&A \\
+$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&A&T&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&T&T&G&T&$\centerdot$&$\centerdot$&G&A&T&$\centerdot$&$\centerdot$&$\centerdot$&G&G&c&t&A&A&G&C&$\centerdot$&$\centerdot$&$\centerdot$&G&T&G&A&t&t&t&g&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&G&A&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&A&C 
+\end{tabular}
+\end{center}
+Top is ancestral sequence (``unobserved''); bottom two are at the tips.
 
 The point estimates are good, 
 as are the MCMC estimates,
