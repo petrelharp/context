@@ -12,7 +12,9 @@ option_list <- list(
         make_option( c("-r","--rwin"), type="integer", default=2, help="Size of left-hand context. [default \"%default\"]" ),
         make_option( c("-n","--nbatches"), type="integer", default=1000, help="Number of MCMC batches. [default \"%default\"]" ),
         make_option( c("-b","--blen"), type="integer", default=10, help="Length of each MCMC batch. [default \"%default\"]" ),
-        make_option( c("-c","--stepscale"), type="numeric", default=1e-4, help="Scale of proposal steps for Metropolis algorithm. [default \"%default\"]" ),
+        make_option( c("-c","--stepscale"), type="character", default="1e-4", help="Scale of proposal steps for mutation*time parameters for Metropolis algorithm. [default \"%default\"]" ),
+        make_option( c("-e","--initscale"), type="character", default="3e-3", help="Scale of proposal steps for initial frequencies for Metropolis algorithm. [default \"%default\"]" ),
+        make_option( c("-f","--treescale"), type="character", default="1e-4", help="Scale of proposal steps for relative tree branch lengths for Metropolis algorithm. [default \"%default\"]" ),
         make_option( c("-s","--restart"), action="store_true", default=FALSE, help="Start a whole new MCMC run?" ),
         make_option( c("-d","--boundary"), type="character", default="none", help="Boundary conditions for generator matrix. [default \"%default\"]"),
         make_option( c("-y","--meanboundary"), type="integer", default=0, help="Average over this many neighboring bases in computing generator matrix. [default \"%default\"]" ),
@@ -20,6 +22,9 @@ option_list <- list(
         make_option( c("-o","--logfile"), type="character", default="", help="Direct output to this file. [default appends .Rout]" )
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
+if (is.character(opt$stepscale)) { opt$stepscale <- eval(parse(text=opt$stepscale)) }
+if (is.character(opt$initscale)) { opt$initscale <- eval(parse(text=opt$initscale)) }
+if (is.character(opt$treescale)) { opt$treescale <- eval(parse(text=opt$treescale)) }
 attach(opt)
 
 if (interactive()) { nbatches <- 100; blen <- 10; restart <- FALSE; gmfile <- TRUE }
@@ -112,15 +117,18 @@ lud <- function (params) {
     }
 }
 
+stepscale <- rep_len( stepscale, nmuts )
+initscale <- rep_len( initscale, nfreqs-1 )
+
 if (restart) {
-    # mrun <- metrop( lud, initial=random.ans$par[-length(random.ans$par)], nbatch=nbatches, blen=blen, scale=stepscale )
+    # mrun <- metrop( lud, initial=random.ans$par[-length(random.ans$par)], nbatch=nbatches, blen=blen, scale=c(treescale,stepscale,initscale) )
     if (is.finite(lud(random.ans$par[-length(random.ans$par)]))) {
-        mrun <- metrop( lud, initial=random.ans$par[-length(random.ans$par)], nbatch=nbatches, blen=blen, scale=stepscale )
+        mrun <- metrop( lud, initial=random.ans$par[-length(random.ans$par)], nbatch=nbatches, blen=blen, scale=c(treescale,stepscale,initscale) )
     } else {  # the point estimate broke; cheat to get a good starting point
-        mrun <- metrop( lud, initial=truth[-length(truth)], nbatch=nbatches, blen=blen, scale=stepscale )
+        mrun <- metrop( lud, initial=truth[-length(truth)], nbatch=nbatches, blen=blen, scale=c(treescale,stepscale,initscale) )
     }
 } else {
-    mrun <- metrop( mrun, nbatch=nbatches, blen=blen, scale=stepscale )
+    mrun <- metrop( mrun, nbatch=nbatches, blen=blen, scale=c(treescale,stepscale,initscale) )
 }
 colnames(mrun$batch) <- names(truth[-length(truth)])
 
