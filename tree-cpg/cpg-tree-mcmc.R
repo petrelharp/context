@@ -27,7 +27,7 @@ if (is.character(opt$initscale)) { opt$initscale <- eval(parse(text=opt$initscal
 if (is.character(opt$treescale)) { opt$treescale <- eval(parse(text=opt$treescale)) }
 attach(opt)
 
-if (interactive()) { nbatches <- 100; blen <- 10; restart <- FALSE; gmfile <- TRUE }
+if (interactive()) { nbatches <- 100; blen <- 10; restart <- FALSE }
 
 if (!'infile'%in%names(opt)) { stop("Run\n  cpg-inference.R -h\n for help.") }
 
@@ -92,11 +92,10 @@ npats <- nrow(genmatrix)
 patcomp <- apply( do.call(rbind, strsplit(rownames(genmatrix),'') ), 2, match, bases )  # which base is at each position in each pattern
 # using only nonoverlapping counts, plus priors -- indep't poisson.
 lud <- function (params) {
-    # params are: tlen[1]/sum(tlen), sum(tlen)*mutrates, initfreqs[-length(initfreqs)]
+    # params are: tlen[1]/sum(tlen), sum(tlen)*mutrates, initfreqs
     branchlens <- c(params[1],1-params[1])
     mutrates <- params[1+(1:nmuts)]
-    initfreqs <- params[1+nmuts+(1:(nfreqs-1))]
-    initfreqs <- c(initfreqs,1-sum(initfreqs))
+    initfreqs <- params[1+nmuts+(1:nfreqs)]
     patfreqs <- initfreqs[patcomp]
     dim(patfreqs) <- dim(patcomp)
     patfreqs <- apply( patfreqs, 1, prod )
@@ -117,18 +116,32 @@ lud <- function (params) {
     }
 }
 
-stepscale <- rep_len( stepscale, nmuts )
-initscale <- rep_len( initscale, nfreqs-1 )
+# construct matrix for proposal distribution for mcmc steps:
+#  First, need base frequencies to sum to 1.
+# we want (root distr'n for x) * (transition rate x -> y) to stay the same,
+#  so adjust proposed changes to transition rates
+#  by the proposed changes in root distr'n.
+# The proposals are, in metrop( ), controlled by scale %*% (standard normal vector).
+scalemat <- diag(1+nmuts+nfreqs)
+# proposed base freq changes will have zero sum:
+scalemat[1+nmuts+(1:nfreqs),1+nmuts+(1:nfreqs)] <- ( diag(nfreqs) - 1/nfreqs )
+changes <- mutpatchanges(mutpats)
+fac <- 1 / ( mean(truth[1+nmuts+1:nfreqs]) / mean( truth[1+1:nmuts] ) )
+for (k in seq_along(mutpats)) {
+    frombases <- match( changes[[k]][,1], bases )
+    scalemat[1+k,1+nmuts+frombases] <- (-1)*fac
+}
+scalemat <- scalemat * c( treescale, rep_len( stepscale, nmuts ), rep_len( initscale, nfreqs ) )
 
 if (restart) {
-    # mrun <- metrop( lud, initial=random.ans$par[-length(random.ans$par)], nbatch=nbatches, blen=blen, scale=c(treescale,stepscale,initscale) )
+    # mrun <- metrop( lud, initial=random.ans$par[-length(random.ans$par)], nbatch=nbatches, blen=blen, scale=scalemat )
     if (is.finite(lud(random.ans$par[-length(random.ans$par)]))) {
-        mrun <- metrop( lud, initial=random.ans$par[-length(random.ans$par)], nbatch=nbatches, blen=blen, scale=c(treescale,stepscale,initscale) )
+        mrun <- metrop( lud, initial=random.ans$par, nbatch=nbatches, blen=blen, scale=scalemat )
     } else {  # the point estimate broke; cheat to get a good starting point
-        mrun <- metrop( lud, initial=truth[-length(truth)], nbatch=nbatches, blen=blen, scale=c(treescale,stepscale,initscale) )
+        mrun <- metrop( lud, initial=truth, nbatch=nbatches, blen=blen, scale=scalemat )
     }
 } else {
-    mrun <- metrop( mrun, nbatch=nbatches, blen=blen, scale=c(treescale,stepscale,initscale) )
+    mrun <- metrop( mrun, nbatch=nbatches, blen=blen, scale=scalemat )
 }
 colnames(mrun$batch) <- names(truth[-length(truth)])
 
