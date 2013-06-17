@@ -53,8 +53,8 @@ for (infile in list.files(simdir,"*RData",full.names=TRUE)) {
     # # color by run
     # cols <- c( adjustcolor(rainbow(7),.2)[all.mrun$mcmcnum[subseq]], "black" )
     # color by time
-    cols <- c( adjustcolor(rainbow(64),.2)[1+floor(65*(1:(nrow(x)-1))/nrow(x))], adjustcolor("black",.5) )
     pdf(file=paste(plotfile,".pdf",sep=''),width=12,height=12,pointsize=10)
+    cols <- c( adjustcolor(rainbow(64),.2)[1+floor(65*(1:(nrow(x)-1))/nrow(x))], adjustcolor("black",.5) )
     pairs( x, col=cols, pch=20, cex=c(rep(.5,nrow(x)-1),2) )
     dev.off()
 }
