@@ -59,8 +59,9 @@ Transition rates are assumed to be local and homogeneous, so for example saying 
 means that if $(X_i(t), \ldots, X_{i+\ell}(t)) = (u_1, \ldots, u_\ell)$ (where $\ell=|u|=|v|$),
 then $\P\{(X_i(t+dt), \ldots, X_{i+\ell}(t+dt)) = (v_1, \ldots, v_\ell) = \mu dt + o(dt)$,
 regardless of the location $i$ along the sequence.
+If more than one pattern would match to cause the same change, their rates add.
 We call such a $(\mu,u,v)$ a ``transition triple''.
-The set of all transition triples $\calT = \{ (\mu_j,u_j,v_j) \}_{j=1}^{n_T}$ 
+The set of all transition triples $\calT = \{ (\mu^j,u^j,v^j) \}_{j=1}^{n_T}$ 
 determines the time evolution of the process.
 
 It will often be convenient, notationally and computationally, to avoid edge effects
@@ -148,28 +149,31 @@ by treating the $n$ sites as a circle, and treating all indices $\mod n$.
 For clarity, we should define how the set of transition rates determines the transition rate matrix,
 the $|\calS|^n \times |\calS|^n$ matrix $G(n)$ whose $(x,y)^\text{th}$ entry gives the instantaneous rate 
 with which the process in state $x$ jumps to state $y$.
-Let $x_i^{(\ell)} = (x_i, x_{i+1}, \ldots, x_{i+\ell-1})$ be the subsequence of length $\ell$ beginning at location $i$,
-and for each $1\le i \le n$, and patterns $u,v \in \calS^\ell$ define the relation
+% Let $x_i^{(\ell)} = (x_i, x_{i+1}, \ldots, x_{i+\ell-1})$ be the subsequence of length $\ell$ beginning at location $i$, and 
+For each $1\le i \le n$, pattern length $\ell \ge 0$, and patterns $u,v \in \calS^\ell$ define the relation
 \[
 x \xrightarrow{i,u,v} y \qquad \text{iff} \qquad \begin{cases}
-  x_j = y_j \quad &\text{for } j<i \\
-  x_{i+k} = u_k \quad &\text{for } k < \ell \\
-  y_{i+k} = v_k \quad &\text{for } k < \ell, and \\
-  x_j = y_j \quad &\text{for } j\ge i+\ell ,
+  x_k = y_k \quad &\text{for } k<i \\
+  x_{i+k} = u_k \quad &\text{for } 0 \le k < \ell \\
+  y_{i+k} = v_k \quad &\text{for } 0 \le k < \ell, and \\
+  x_k = y_k \quad &\text{for } k\ge i+\ell ,
 \end{cases}
 \]
-i.e.\ if $x$ and $y$ match except for in $i,i+1,\ldots,i+\ell$, where $x$ matches with $u$ and $y$ matches with $v$.
-Interpet these indices $\mod n$, even for short sequences, a point we will come back to.
-We'll also need the set of transitions that can move from $x$ to $y$ at a given location: let  $J(i,x,y) = \{ j \st x \xrightarrow{i,u_j,v_j} y \}$.
+i.e.\ if $x$ and $y$ match except for in $i,i+1,\ldots,i+\ell-1$, where $x$ matches with $u$ and $y$ matches with $v$.
+(Interpet these indices modulo $n$, even for short sequences, a point we will come back to.)
+We'll also need the set of defined transitions in $\calT$ 
+that can move from $x$ to $y$ at a given location: let  $J(i,x,y) = \{ (\mu^j,u^j,v^j) \in \calT \st x \xrightarrow{i,u^j,v^j} y \}$.
 Then, the rate $G(n)_{x,y}$ is the sum of all matching transition rates,
 namely
 \begin{align} \label{eqn:G_defn}
-  G(n)_{x,y} = \sum_{i=1}^n \sum_{j \in J(i,x,y)}  \mu_j ,
+  G(n)_{x,y} = \sum_{i=1}^n \sum_{J(i,x,y)}  \mu^j ,
 \end{align}
 and if there are no triples $(\mu,u,v)$ with $x \xrightarrow{i,u,v} y$ for some $i$, then $G(n)_{x,y}=0$.
+This is just to say that the transition rate from $x$ to $y$ is the sum of the mutation rates of all transition triples
+that could change $x$ into $y$.
 In principle, this gives us the transition probabilities for the process:
 \begin{align} \label{eqn:full_likelihood}
-  p_n(t;x,y) := \P\{ X(t) = y \mid X(0) = x \} = (e^{tG_n})_{xy} .
+    p_n(t;x,y) := \P\{ X(t) = y \mid X(0) = x \} = (e^{tG(n)})_{xy} .
 \end{align}
 
 
