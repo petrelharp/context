@@ -1,36 +1,40 @@
-#!/usr/bin/Rscript
-# Simulate up the process
+#!/usr/bin/Rscript --vanilla
+require(optparse)
 
 usage <- "\
 Simulate from the process.\
-\
-Usage:\
-   Rscript sim-ising.R seqlen tlen interaction external_field [Xfreq] \
 "
 
-args <- commandArgs(TRUE)
-if (length(args)<2) {
-    stop(usage)
-} else {
-    seqlen <- as.numeric(args[1])  # e.g. 1e4
-    tlen <- as.numeric(args[2]) # total length 6e7 gives lots of transitions (but still signal); 1e7 not so many
-    interaction <- as.numeric(args[3])
-    external.field <- as.numeric(args[4])
-    if (length(args)>=5) {
-        Xfreq <- as.numeric(args[5]) # density of Xs
-    } else {
-        Xfreq <- 0.5
-    }
-}
+option_list <- list(
+        make_option( c("-t","--tlen"), type="numeric", default=NULL, help="Time to simulate for." ),
+        make_option( c("-s","--seqlen"), type="numeric", default=NULL, help="Number of bases to simulate." ),
+        make_option( c("-b","--interaction"), type="numeric", default=NULL, help="Interaction (beta)."),
+        make_option( c("-g","--field"), type="numeric", default=0.0, help="External field (gamma)."),
+        make_option( c("-f","--initfreq"), type="numeric", default=.5, help="Initial frequency of X. [default \"%default\"]"),
+        make_option( c("-d","--simdir"), type="character", default="ising-sims/", help="Write simulated sequence in this directory [default \"%default\"]" ),
+        make_option( c("-o","--logfile"), type="character", default="", help="Direct logging output to this file. [default appends -simrun.Rout]" )
+    )
+opt <- parse_args(OptionParser(option_list=option_list,description=usage))
+if (interactive()) { opt$tlen <- .1; opt$seqlen <- 150 }
+if ( (is.null(opt$tlen) | is.null(opt$seqlen)) ) { stop("Rscript sim-ising.R -h for help.") }
+attach(opt)
 
-if (interactive()) { seqlen <- 1e3; tlen <- .1; interaction <- 1; external.field <- .5; Xfreq <- 0.5 }
+if (interactive()) { seqlen <- 1e3; tlen <- .1; interaction <- 1; field <- .5; Xfreq <- 0.5 }
+
+if (!file.exists(simdir)) { dir.create(simdir,recursive=TRUE) }
 
 # identifiers
 thisone <- formatC( floor(runif(1)*1e6) , digits=6,flag='0')
 now <- Sys.time()
 
-simdir <- "ising-sims/"
-if (!file.exists(simdir)) { dir.create(simdir,recursive=TRUE) }
+basename <- paste(simdir,"selsims-",format(now,"%Y-%m-%d-%H-%M"),"-",thisone,sep='')
+outfile <- paste(basename,".RData",sep='')
+if (logfile=="" & !interactive()) { logfile <- paste(basename,"-simrun.Rout",sep='') }
+if (logfile != "" & !interactive()) { 
+    logcon <- if (logfile=="-") { stdout() } else { file(logfile,open="wt") }
+    sink(file=logcon, type="message") 
+    sink(file=logcon, type="output") 
+}
 
 bases <- c("X","O")
 
@@ -46,7 +50,7 @@ selpats <- list(
         c("OX","XO"),
         c("X")
     )
-selcoef <- c(interaction,external.field)
+selcoef <- c(interaction,field)
 
 fixfn <- ising.fixfn
 
@@ -58,6 +62,5 @@ system.time(
             )
     )
 
-save( thisone, now, bases, patlen, mutpats, mutrates, selpats, selcoef, fixfn, seqlen, tlen, initfreqs, simseqs, file=paste(simdir,"selsims-",format(now,"%Y-%m-%d-%H-%M"),"-",thisone,".RData",sep='') )
-
+save( thisone, now, bases, patlen, mutpats, mutrates, selpats, selcoef, fixfn, seqlen, tlen, initfreqs, simseqs, file=outfile )
 

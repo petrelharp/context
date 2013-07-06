@@ -102,24 +102,31 @@ countpats <- function (patterns, simseq ) {
     return( sapply( patterns, countPattern, simseq ) )
 }
 
-counttrans <- function (ipatterns, fpatterns, initseq=simseqs[["initseq"]], finalseq=simseqs[["finalseq"]], simseqs, lwin=0) {
+counttrans <- function (ipatterns, fpatterns, initseq=simseqs[["initseq"]], finalseq=simseqs[["finalseq"]], simseqs, lwin=0, shift=0) {
     # count number of times initseq matches ipatterns while finalseq matches fpatterns
-    # again, cyclical
+    #   again, cyclical
+    # if shift is nonzero, return a list  with the counts in each of (shift) frames
     patlen <- nchar(ipatterns[1])
     seqlen <- nchar(initseq)
     stopifnot( seqlen == nchar(finalseq) )
     # cyclic-ize
     initseq <- xscat( initseq, subseq(initseq,1,patlen-1) )
     finalseq <- xscat( finalseq, subseq(finalseq,1,patlen-1) )
-    # Ok, count occurrences.  
+    # Ok, count occurrences.  uses bioconductor stuff.
     initmatches <- lapply( ipatterns, matchPattern, initseq )
     finalmatches <- lapply( fpatterns, matchPattern, finalseq )
-    counts <- Matrix( 0, nrow=length(initmatches), ncol=length(finalmatches), dimnames=list(ipatterns,fpatterns) )
+    counts <- lapply( 1:max(1,shift), function (k) Matrix( 0, nrow=length(initmatches), ncol=length(finalmatches), dimnames=list(ipatterns,fpatterns) ) )
     for (x in seq_along(initmatches))  {
         for (y in seq_along(finalmatches)) {
-            counts[x,y] <- length(intersect(start(initmatches[[x]]),(-lwin)+start(finalmatches[[y]])))
+            xycounts <- intersect(start(initmatches[[x]]),(-lwin)+start(finalmatches[[y]]))
+            if (length(xycounts)>0) {
+                for (k in 0:max(0,shift-1)) {
+                    counts[[k+1]][x,y] <- sum( ( ( xycounts+k ) %% max(shift,1) ) == 0 )
+                }
+            }
         } 
     }
+    if (shift==0) { counts <- counts[[1]] }
     return(counts)
 }
 

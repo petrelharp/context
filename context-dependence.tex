@@ -681,6 +681,32 @@ but there seems to be mixing trouble having to do with the root frequencies.
   }
 \end{figure}
 
+%%%%%%%%
+\section{Power sims}
+
+Assess power and accuracy in the Ising model, by running replicates at these parameters:
+
+\begin{tabular}{|rlllrrr|}
+  \hline
+  seqlen   &  $\lambda t$   &  $\beta$  &  $\gamma$  &  $w$ &  $\ell$   & \# reps \\
+  \hline
+  $10^4$    &   .2  &   1   &   .5  &   3   &   3   &   10  \\
+  $10^3$    &   .2  &   1   &   .5  &   3   &   3   &   10  \\
+  $10^2$    &   .2  &   1   &   .5  &   3   &   3   &   10  \\
+  \hline
+  $10^4$    &   .4  &   1   &   .5  &   3   &   3   &   10  \\
+  $10^4$    &   .1  &   1   &   .5  &   3   &   3   &   10  \\
+  $10^4$    &   .05  &   1   &   .5  &   3   &   3   &   10  \\
+  \hline
+  $10^4$    &   .2  &   1   &   0  &   3   &   3   &   10  \\
+  \hline
+  $10^4$    &   .2  &   1   &   .5  &   3   &   2   &   10  \\
+  $10^4$    &   .2  &   1   &   .5  &   3   &   1   &   10  \\
+  $10^4$    &   .2  &   1   &   .5  &   3   &   0   &   10  \\
+  \hline
+\end{tabular}
+
+
 
 %%%%%%%%
 \section{What next}

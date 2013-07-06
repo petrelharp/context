@@ -46,7 +46,7 @@ mcmcdatafiles <- list.files(path=basedir,pattern="-mcmc.*RData",full.names=TRUE)
 mcmcnum <- 1+max(c(0,as.numeric(gsub(".*-mcmc-","",gsub(".RData","",mcmcdatafiles)))),na.rm=TRUE)
 
 if (logfile=="" & !interactive()) { logfile <- paste(basename,"-mcmc-run-",mcmcnum,".Rout",sep='') }
-if (!is.null(logfile)) { 
+if (logfile != '' & !is.null(logfile)) { 
     logcon <- if (logfile=="-") { stdout() } else { file(logfile,open="wt") }
     sink(file=logcon, type="message") 
     sink(file=logcon, type="output") 
@@ -61,31 +61,32 @@ if (length(mcmcdatafiles)) { load(grep(paste("-mcmc-",mcmcnum-1,".RData",sep='')
 winlen <- lwin+win+rwin
 genmatrix <- meangenmatrix( lwin=1, rwin=1, patlen=winlen, mutpats=mutpats, selpats=selpats, mutrates=mutrates*tlen, selcoef=selcoef, boundary="none" )
 projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
-counts <- list( counttrans( rownames(projmatrix), colnames(projmatrix), simseqs[[1]]$initseq, simseqs[[1]]$finalseq, lwin=lwin ) )
-# want only patterns with leftmost possible position changed
-nonoverlapping <- leftchanged(rownames(counts[[1]]),colnames(counts[[1]]),lwin=lwin,win=win)
-nov.counts <- counts[[1]][nonoverlapping]
-initcounts <- rowSums(counts[[1]])
+counts <- list( counttrans( rownames(projmatrix), colnames(projmatrix), simseqs[[1]]$initseq, simseqs[[1]]$finalseq, lwin=lwin, shift=win ) )
+# look only every (win)-th window
+initcounts <- lapply( counts[[1]], rowSums )
 nmuts <- length(mutpats)
 nsel <- length(selpats)
 # using only nonoverlapping counts, plus priors -- indep't poisson.
-lud <- function (mutrates) {
+lud <- function (mutrates,k=1,...) {
     # params are: mutrates*tlen, selcoef
     if (any(mutrates<0)) {
         return( -Inf )
     } else {
         genmatrix@x <- update(genmatrix,mutrates=mutrates,selcoef=numeric(0))
         # this is collapsed transition matrix
-        meancounts <- initcounts * computetransmatrix( genmatrix, projmatrix )
+        meancounts <- initcounts[[k]] * computetransmatrix( genmatrix, projmatrix )
         # return (positive) log-posterior
-        return( (-1)*sum(meancounts[nonoverlapping]) + sum( nov.counts * log(meancounts[nonoverlapping]) ) - sum(mmean*mutrates) )
+        return( (-1)*sum(meancounts) + sum( counts[[1]][[k]] * log(meancounts) ) - sum(mmean*mutrates) )
     }
 }
 
+# choose randomly which window position to use?
+shiftpos <- sample( 1:length(counts[[1]]), 1 )
 if (restart) {
-    mrun <- metrop( mrun, initial=random.ans$par, nbatch=nbatches, blen=blen, scale=stepscale )
+    initval <- runif(nmuts) * 2 
+    mrun <- metrop( lud, initial=initval, nbatch=nbatches, blen=blen, scale=stepscale, k=shiftpos )
 } else {
-    mrun <- metrop( mrun, nbatch=nbatches, blen=blen, scale=stepscale )
+    mrun <- metrop( mrun, nbatch=nbatches, blen=blen, scale=stepscale, k=shiftpos )
 }
 
 
