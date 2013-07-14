@@ -429,8 +429,62 @@ The probability that we see $x$ and $y$ at the random location $I$ is
     \P\{X_{I-\ell}^{m+2\ell}(t_X)=x \text{ and } Y_I^\ell(t_Y)=y \} = \sum_{z \in \calS^{m+2\ell}} \pi(z) p_{m+2\ell}(t_X,z,x) p_{m,\ell}(t_Y,z,y) .
 \end{align}
 This can be computed without much more effort than the simpler case above,
-but requires the frequencies at the root.
+given the frequencies at the root, as described in greater generality below.
 
+%%%%
+\subsection{Peeling}
+
+\begin{center}
+\includegraphics{peeling-schematic}
+\end{center}
+
+To compute the likelihood on a more complicated tree, consider the following,
+with the three-taxon tree above as an example,
+where we are counting occurrences of (long) $m+2\ell$-tuples in taxon $X$,
+and (shorter) $m$-tuples in taxa $Y$ and $Z$.
+
+We can compute the likelihood in a similar way, summing over the root state (the summation over $u$)
+and the interior node ($v$):
+\begin{align} \label{eqn:three_taxa_likelihood}
+  \begin{split}
+    & \P\{X_{I-\ell}^{m+2\ell}=x \text{ and } Y_I^\ell=y \text{ and } Z_I^\ell=z \} \\
+    &\qquad = \sum_{u \in \calS^{m+2\ell}} \pi(u) p_{m,\ell}(t_C,u,z) \sum_{v \in \calS^{m+2\ell}} p_{m+2\ell}(t_{AB},u,v) p_{m+2\ell}(t_{A},v,x) p_{m,\ell}(t_B,v,y) 
+  \end{split}
+\end{align}
+The steps for computing this are then:
+\begin{enumerate}
+
+  \item Compute $M_1(u,z) = p_{m,\ell}(t_C,u,z)$ (a $|\calS|^{m+2\ell} \times |\calS|^m$ matrix)
+
+  \item Compute $M_2(v,z) = \sum_{v \in \calS^{m+2\ell}}  p_{m+2\ell}(t_{AB},u,v) \pi(u) M_1(u,z)$ (still a $|\calS|^{m+2\ell} \times |\calS|^m$ matrix)
+
+  \item Compute $M_3(v,y) = p_{m,\ell}(t_B,v,y)$ (a $|\calS|^{m+2\ell} \times |\calS|^m$ matrix) 
+
+  \item Compute $M_4(x,(y,z)) = \sum_{v \in \calS^{m+2\ell}} p_{m+2\ell}(t_{A},v,x) M_3(v,z) M_4(v,y)$ (stored as a $|\calS|^{m+2\ell} \times |\calS|^{2m}$ matrix).
+
+\end{enumerate}
+Then $M_4$ gives all the likelihoods.
+This is depicted in the figure, writing $\left(e^{tG}\right)_{ab}$ for the matrix $p_{m+2\ell}(t,a,b)$,
+and $P$ for the projection matrix that gives $p_{m,\ell}(t,a,b) = \left( e^{tG} P\right)_{ab}$.
+
+
+In total there are $|\calS|^{3m+2\ell}$ possible data combinations.  
+However, we can reduce dimensionality by replacing the last step with
+\begin{enumerate}
+
+  \item[4'.] Compute $M_4(x,w) = \sum_{v \in \calS^{m+2\ell}} p_{m+2\ell}(t_{A},v,x) M_3(v,w) M_4(v,w)$ (stored as a $|\calS|^{m+2\ell} \times |\calS|^{m}$ matrix).
+
+\end{enumerate}
+and only computing the likelihood for cases with $y=z=w$.
+On a three-taxon tree it is not clear that this is desireable, since missing out on double transitions 
+might be a significant loss of information,
+but on larger trees it seems likely that we'd want to restrict to combinations with most sites agreeing across the tree.
+(Note, however, that one should not first look at the data, observe which combinations $(y,z)$ were most common, and then restrict to only those!)
+
+
+
+
+%%%%
 \subsection{The root distribution}
 
 We clearly don't want to add an extra parameter $\pi(z)$ for all $z \in \calS^{m+2\ell}$. 
@@ -458,6 +512,40 @@ so we just compute \eqref{eqn:root_mrf} for all possible $z$, and divide by the 
 and finding the distribution of patterns within this.)
 
 
+%%%%%
+\subsubsection{Mixing}
+
+There can be significant confounding of the frequencies at the root with the other parameters,
+which results in poor mixing.
+(See CpG results, below.)
+To see why this is, consider the following back-of-the-envelope calculation.
+Take $x \neq y$ to be single bases (so, set $\ell=0$ and $w=1$),
+so that $N(x,y)$ gives the number of times an $x$ and a $y$ are homologous.
+Let $q(x,y)$ be the instantaneous rate that $x \to y$ (averaged somehow over context?),
+so that $N(x,y)$ should be, roughly,
+\begin{align*}
+  \sum_z \pi(z) q(z,x) q(z,y) &\approx t \pi(x) (1+q(x,x)) q(x,y) + t \pi(y) q(y,x) (1+q(y,y)) ,  
+\end{align*}
+where as usual $q(x,x) = (-1) \sum_{z \neq x} q(x,z)$ is (minus) the total jump rate out of $x$.
+
+So, when we propose a change to $\pi$ we might want to also adjust the rates accordingly to keep this more-or-less constant:
+if we chnage $\pi(x) \mapsto \pi(x) + \epsilon_x$, we want $\delta_{xy}$ to satisfy
+\begin{align*}
+  \sum_z \pi(z) q(z,x) q(z,y) = \sum_z (\pi(z) + \epsilon_z) ( q(z,x) + \delta_{zx} ) ( q(z,y) + \delta_{zy} ) ,
+\end{align*}
+or, to first order in $\delta$,
+\begin{align*}
+  0 &\approx \sum_z \epsilon_z q(z,x) q(z,y) + \sum_z \pi(z) \delta_{zx} q(z,y) + \sum_z \pi(z) q(z,x) \delta_{zy} \\
+   &\approx \sum_z \epsilon_z q(z,x) q(z,y) + \sum_z (\pi(z)+\epsilon_z) \delta_{zx} q(z,y) + \sum_z (\pi(z)+\epsilon_z) q(z,x) \delta_{zy} \\
+   &\approx \epsilon_x (1+q(x,x)) q(x,y) + \epsilon_y q(y,x) (1+q(y,y)) + (\pi(y)+\epsilon_y) \delta_{yx} (1+q(y,y)) + (\pi(x)+\epsilon_x) (1+q(x,x)) \delta_{xy} \\
+   &= \left( \epsilon_x q(x,y) + (\pi(x)+\epsilon_x) \delta_{xy} \right)(1+q(x,x)) + \left( \epsilon_y q(y,x) + (\pi(y)+\epsilon_y) \delta_{yx} \right)(1+q(y,y)) 
+\end{align*}
+One solution to this is to let $\delta_{xy} = - \epsilon_x q(x,y) / \pi(x)$.
+
+Suppose each change is a single-base change, so that changes $\delta \mu_i$ in $\mu$ contribute to $q$ by
+$\delta_{xy} = \sum_{i: x \to y} \delta \mu_i$.
+Given $\delta_{xy}$, this gives a linear equation for $\delta \mu_i$ that may or may not be solvable,
+but certainly is if we have all the single-base transitions as paramters.
 
 %%%%%%%%%%%
 \section{Computation}
@@ -495,6 +583,9 @@ sparse matrix representations of $G$ store only $g$ along with information about
 Each $g_i$ is a linear combination of mutation rates $\mu_j$, say $g_i = \sum_j a_{ij} \mu_j$;
 so by precomputing $a_{ij}$ we can efficiently update $G$.
 This is true if the boundary conditions are circular, mean-value, or neither.
+
+We can do similar precomputations to help with the case of selective differences:
+XXX describe
 
 
 \subsection{Phylogenetic peeling}
@@ -537,6 +628,10 @@ and so the negative log likelihood is, up to a constant,
 \[
 \sum_{x,y} N(x,y) \log p_{m,\ell}(x,y) .
 \]
+
+
+
+
 
 %%%%%%%
 \section{Simulation results}
@@ -717,7 +812,7 @@ Assess power and accuracy in the Ising model, by running replicates at these par
 
   \item What's up with the mixing problem in root frequencies?
 
-  \item See if counting in nonoverlapping windows fixes the peakiness problem with TASEP.
+  \item See if counting in nonoverlapping windows fixes the peakiness problem with TASEP. \emph{Yes, it does.}
 
   \item See what's feasible with a larger alphabet -- 60 codons -- and more parameters.
 

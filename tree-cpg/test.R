@@ -1,3 +1,33 @@
+# xx <- seq(quantile(mrun$batch[,2],.2),quantile(mrun$batch[,2],.8),length.out=30)
+names(truth) <- c('tree',sapply(lapply(mutpats,"[[",1),paste,collapse='.'))
+mpairs <- list( AT=c(1,7), AC=c(2,8), AG=c(3,9), TC=c(4,10), TG=c(5,11), CG=c(6,12) )
+xx <- seq(-.005,.005,length.out=30)
+yy <- seq(.245,.255,length.out=30) 
+xy <- expand.grid( x=xx, y=yy )
+
+tmp <- mclapply( mpairs, function (ij) {
+        params <- truth
+        apply( xy, 1, function (z) {
+                params[17:18] <- c(.5-z[2], z[2])
+                params[ij] <- truth[ij] + c( z[1], -z[1] )
+                mrun$lud( params )
+            } )
+    }, mc.cores=4 )
+tmp <- lapply( tmp, matrix, nrow=length(xx) )
+
+pdf(file="ridgey-or-not.pdf",width=10,height=6,pointsize=10)
+layout(matrix(seq_along(mpairs),nrow=2))
+for ( k in seq_along(mpairs) ) { 
+    image( x=xx, y=yy, z=tmp[[k]], main=names(mpairs)[k] )
+    contour( x=xx, y=yy, z=tmp[[k]], add=TRUE )
+}
+dev.off()
+
+# typical lud values
+tluds <- sapply( sample( 1:nrow(mrun$batch), 20 ), function(k) mrun$lud(mrun$batch[k,]) )
+
+#########
+
 f <- function(params) {
     branchlens <- c(params[1],1-params[1])
     mutrates <- params[1+(1:nmuts)]

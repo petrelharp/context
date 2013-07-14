@@ -78,7 +78,7 @@ getselmatches <- function (selpats, patterns, boundary=c("none","wrap"), names=F
 }
 
 
-popgen.fixfn <- function (ds,Ne) { 
+popgen.fixfn <- function (ds,Ne,...) { 
     # total influx of fixation given selection coefficient (s[to] - s[from]) difference ds
     if (length(ds)==0) { 1 } else { ifelse( ds==0, 1, Ne*expm1(-2*ds)/expm1(-2*Ne*ds) ) } 
 }
@@ -139,6 +139,7 @@ makegenmatrix <- function (mutpats,selpats=list(),patlen=nchar(patterns[1]),patt
 
 update <- function (G, mutrates=G@mutrates, selcoef=G@selcoef, ...) {
     # use like: genmatrix@x <- update(genmatrix,...)
+    #   note that fixfn is defined GLOBALLY
     fixprob <- if (length(selcoef)>0) { fixfn( as.vector(G@seltrans%*%selcoef), ... ) } else { 1 }
     as.vector( G@muttrans %*% mutrates ) * fixprob 
 }

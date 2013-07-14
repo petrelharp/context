@@ -13,10 +13,12 @@ option_list <- list(
         make_option( c("-n","--nbatches"), type="integer", default=1000, help="Number of MCMC batches. [default \"%default\"]" ),
         make_option( c("-b","--blen"), type="integer", default=10, help="Length of each MCMC batch. [default \"%default\"]" ),
         make_option( c("-c","--stepscale"), type="numeric", default=3e-3, help="Scale of proposal steps for Metropolis algorithm. [default \"%default\"]" ),
+        make_option( c("-f","--shift"), type="integer", default=NULL, help="Number of bases to skip between window starting positions. [default equal to win]" ),
         make_option( c("-s","--restart"), action="store_true", default=FALSE, help="Start a whole new MCMC run?" ),
         make_option( c("-o","--logfile"), type="character", default="", help="Direct output to this file. [default appends .Rout]" )
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
+if (is.null(opt$shift)) { opt$shift <- opt$win }
 attach(opt)
 
 if (interactive()) { win <- lwin <- rwin <- 3; nbatches <- 100; blen <- 10; restart <- FALSE }

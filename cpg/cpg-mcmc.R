@@ -79,7 +79,7 @@ initcounts <- rowSums(counts[[1]])
 nmuts <- length(mutpats)
 # using only nonoverlapping counts, plus priors -- indep't poisson.
 lud <- function (mutrates) {
-    # params are: mutrates*tlen, selcoef
+    # params are: mutrates*tlen
     if (any(mutrates<0)) {
         return( -Inf )
     } else {

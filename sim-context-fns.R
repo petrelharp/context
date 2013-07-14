@@ -33,7 +33,7 @@ simseq <- function (seqlen, tlen, mutpats, mutrates, selpats=list(), selcoef=num
     if (patlen<mutlen) { stop("patlen too short") }
     pad.patlen <- patlen+2*max(0,(sellen-1))
     # construct generator matrix for (sellen-1,patlen,sellen-1) but with outer padding not changing
-    full.genmatrix <- makegenmatrix( mutpats, selpats, patlen=pad.patlen, boundary="none" )
+    full.genmatrix <- makegenmatrix( mutpats, selpats, patlen=pad.patlen, boundary="none", ... )
     if (! all( sapply(mutpatlens,length)==1 ) ) { stop("need each list in mutpats to have patterns of the same length") }
     mutrates <- mutrates / (patlen-mutpatlens+1)  # avoid overcounting (see above)
     full.genmatrix@x <- update(full.genmatrix,mutrates,selcoef,...)
@@ -100,6 +100,46 @@ countpats <- function (patterns, simseq ) {
     seqlen <- nchar(simseq)
     simseq <- xscat( simseq, subseq(simseq,1,patlen-1) ) # cyclic-ize
     return( sapply( patterns, countPattern, simseq ) )
+}
+
+counttrans.list <- function (lpatterns, seqlist=lapply(simseqs,"[[","finalseq"), simseqs, lwin=0, shift=0) {
+    # count number of times each of seqlist matches corresponding lpatterns 
+    #   again, cyclical
+    # if shift is nonzero, return a list  with the counts in each of (shift) frames
+    patlen <- max( sapply( lapply( lpatterns, "[", 1 ), nchar ) )
+    seqlen <- unique( sapply(seqlist, nchar) )
+    stopifnot(length(seqlen)==1)
+    if (length(lwin)<length(seqlist)) { lwin <- c(0,rep(lwin,length.out=length(seqlist)-1)) }
+    # cyclic-ize
+    seqlist <- lapply( seqlist, function (x) { xscat( x, subseq(x,1,patlen-1) ) } )
+    # Ok, count occurrences.  uses bioconductor stuff.
+    lmatches <- lapply( seq_along(seqlist), function (k) { 
+            lapply( lpatterns[[k]], matchPattern, seqlist[[k]] )
+        } )
+    npats <- sapply(lmatches,length)
+    if (length(seqlist)==2) {
+        counts <- lapply( 1:max(1,shift), function (k) Matrix( 0, nrow=length(initmatches), ncol=length(finalmatches), dimnames=list(ipatterns,fpatterns) ) ) 
+    } else {
+        counts <- lapply( 1:max(1,shift), function (k) array( 0, dim=npats, dimnames=lpatterns ) )
+    } 
+    ii <- matrix( rep(1,length(npats)), nrow=1 )
+    while( ii[1] <= npats[1] ) {
+        xycounts <- start(lmatches[[1]][[ii[1]]]) - lwin[1]
+        for (j in seq_along(ii)[-1]) {
+            stopifnot( j %in% seq_along(lmatches) & ii[j] %in% seq_along(lmatches[[j]]) )
+            xycounts <- intersect( xycounts, (-lwin[j]) + start(lmatches[[j]][[ii[j]]]) )
+        }
+        if (length(xycounts)>0) {
+            for (k in 0:max(0,shift-1)) {
+                    counts[[k+1]][ii] <- sum( ( ( xycounts+k ) %% max(shift,1) ) == 0 )
+            }
+        }
+        ii[length(ii)] <- ii[length(ii)]+1 
+        for (j in rev(seq_along(ii)[-1])) { ii[j-1] <- ii[j-1] + ( ii[j] > npats[j] ) }
+        ii[-1] <- 1 + ( (ii[-1]-1) %% npats[-1] )
+    }
+    if (shift==0) { counts <- counts[[1]] }
+    return(counts)
 }
 
 counttrans <- function (ipatterns, fpatterns, initseq=simseqs[["initseq"]], finalseq=simseqs[["finalseq"]], simseqs, lwin=0, shift=0) {

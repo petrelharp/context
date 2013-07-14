@@ -43,6 +43,7 @@ mcmcinfo <- lapply( names(mcmcruns[hasmcmc]), function (x) {
                         lapply( 1:ncol(mrun$batch), function (k) {
                             if (is.null(colnames(mrun$batch))) { colnames(mrun$batch) <- paste("param",1:ncol(mrun$batch),sep='') }
                             colnames(mrun$batch)[is.na(colnames(mrun$batch))] <- paste("param",(1:ncol(mrun$batch))[is.na(colnames(mrun$batch))], sep='')
+                            if (is.null(names(truth))) { names(truth) <- colnames(mrun$batch) }
                             thistruth <- truth[match(colnames(mrun$batch),names(truth))]
                             tmp <- data.frame( 
                                     q.truth=mean(mrun$batch[,k]<=thistruth[k]),
@@ -71,7 +72,10 @@ for (k in 1:ncol(mcmcbatches[[1]])) {
     layout(matrix(1:(2*(sum(hasmcmc)+1)%/%2),nrow=2))
     for (x in names(mcmcbatches[hasmcmc])) {
         truth <- truths[[x]][k]
-        est <- hist( mcmcbatches[[x]][,k], breaks=50, plot=FALSE )
+        z <- mcmcbatches[[x]][,k]
+        norm.z <- ( z - mean(z,trim=.1) ) / sqrt(mean((z-mean(z,trim=.1))^2,trim=.1) )
+        z <- z[ abs(norm.z) < 4 ]
+        est <- hist( z, breaks=50, plot=FALSE )
         xrange <- range(c(truth,est$breaks))
         xrange <- mean(xrange) + 1.2*(xrange-mean(xrange))
         plot( est, xlim=xrange, col=adjustcolor("blue",.4), xlab=x, border=grey(.6), main=if(k==1){names(truths[[x]])[k]} )
