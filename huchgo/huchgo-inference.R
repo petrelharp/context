@@ -60,34 +60,39 @@ if (file.exists(gmfile)) {
     load(gmfile)
 } else {
     if (meanboundary>0) {
-        genmatrix <- meangenmatrix( lwin=1, rwin=1, patlen=winlen, mutpats=mutpats, selpats=list(), mutrates=mutrates*tlen[1], selcoef=numeric(0), boundary=boundary )
+        genmatrix <- meangenmatrix( lwin=1, rwin=1, patlen=winlen, mutpats=mutpats, selpats=selpats, mutrates=mutrates*tlen[1], selcoef=selcoef, boundary=boundary )
     } else {
-        genmatrix <- makegenmatrix( patlen=winlen, mutpats=mutpats, selpats=list(), mutrates=mutrates*tlen[1], selcoef=numeric(0), boundary=boundary )
+        genmatrix <- makegenmatrix( patlen=winlen, mutpats=mutpats, selpats=selpats, mutrates=mutrates*tlen[1], selcoef=selcoef, boundary=boundary )
     }
 }
 projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
 subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE )
 
 counts <- list(
-            "go.ch.hu"=counttrans.list( list(rownames(projmatrix),colnames(projmatrix),colnames(projmatrix)),  simseqs=simseqs, lwin=lwin ),
-            "ch.hu.go"=counttrans.list( list(rownames(projmatrix),colnames(projmatrix),colnames(projmatrix)),  simseqs=simseqs[c(2,3,1)], lwin=lwin ),
-            "hu.go.ch"=counttrans.list( list(rownames(projmatrix),colnames(projmatrix),colnames(projmatrix)),  simseqs=simseqs[c(3,1,2)], lwin=lwin )
+            "go.ch.hu"=counttrans.list( list(rownames(projmatrix),colnames(projmatrix),colnames(projmatrix)), simseqs=simseqs, lwin=lwin ),
+            "ch.hu.go"=counttrans.list( list(rownames(projmatrix),colnames(projmatrix),colnames(projmatrix)), simseqs=simseqs[c(2,3,1)], lwin=lwin ),
+            "hu.go.ch"=counttrans.list( list(rownames(projmatrix),colnames(projmatrix),colnames(projmatrix)), simseqs=simseqs[c(3,1,2)], lwin=lwin )
         )
 # want only patterns that overlap little
 initcounts <- lapply( counts, rowSums )
-nonoverlapping <- lapply( seq_along(counts), function (k) ( leftchanged(rownames(counts[[k]]),colnames(counts[[k]]),lwin=lwin,win=win) & (initcounts[[k]]>0) ) )
-nov.counts <- lapply(seq_along(counts), function (k) counts[[k]][nonoverlapping[[k]]] )
+# nonoverlapping <- lapply( seq_along(counts), function (k) ( leftchanged(rownames(counts[[k]]),colnames(counts[[k]]),lwin=lwin,win=win) & (initcounts[[k]]>0) ) )
+# nov.counts <- lapply(seq_along(counts), function (k) counts[[k]][nonoverlapping[[k]]] )
+nov.counts <- initcounts
 
 # move from base frequencies (what we estimate) to pattern frequencies
 nmuts <- length(mutpats)
 nfreqs <- length(initfreqs)
 npats <- nrow(genmatrix)
+ntimes <- length(tlen)
+nsel <- 1
 patcomp <- apply( do.call(rbind, strsplit(rownames(genmatrix),'') ), 2, match, bases )  # which base is at each position in each pattern
 likfun <- function (params) {
-    # params are: tlen[1]/sum(tlen), sum(tlen)*mutrates, initfreqs
-    branchlens <- c(params[1],1-params[1])
-    mutrates <- params[1+(1:nmuts)]
-    initfreqs <- params[1+nmuts+(1:nfreqs)]
+    # tlens are: (Root->Go), (Root->HuCh), (HuCh->Ch), (HuCh->Hu)
+    # params are: tlen[-1]/sum(tlen), sum(tlen)*mutrates, selcoef, initfreqs
+    branchlens <- c(1-sum(params[1:(ntimes-1)]),params[1:(ntimes-1)])
+    mutrates <- params[ntimes-1+(1:nmuts)]
+    selcoef <- params[ntimes-1+nsel]
+    initfreqs <- params[ntimes-1+nmuts+nsel+(1:nfreqs)]
     initfreqs <- initfreqs/sum(initfreqs)
     patfreqs <- initfreqs[patcomp]
     dim(patfreqs) <- dim(patcomp)

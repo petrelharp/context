@@ -431,57 +431,6 @@ The probability that we see $x$ and $y$ at the random location $I$ is
 This can be computed without much more effort than the simpler case above,
 given the frequencies at the root, as described in greater generality below.
 
-%%%%
-\subsection{Peeling}
-
-\begin{center}
-\includegraphics{peeling-schematic}
-\end{center}
-
-To compute the likelihood on a more complicated tree, consider the following,
-with the three-taxon tree above as an example,
-where we are counting occurrences of (long) $m+2\ell$-tuples in taxon $X$,
-and (shorter) $m$-tuples in taxa $Y$ and $Z$.
-
-We can compute the likelihood in a similar way, summing over the root state (the summation over $u$)
-and the interior node ($v$):
-\begin{align} \label{eqn:three_taxa_likelihood}
-  \begin{split}
-    & \P\{X_{I-\ell}^{m+2\ell}=x \text{ and } Y_I^\ell=y \text{ and } Z_I^\ell=z \} \\
-    &\qquad = \sum_{u \in \calS^{m+2\ell}} \pi(u) p_{m,\ell}(t_C,u,z) \sum_{v \in \calS^{m+2\ell}} p_{m+2\ell}(t_{AB},u,v) p_{m+2\ell}(t_{A},v,x) p_{m,\ell}(t_B,v,y) 
-  \end{split}
-\end{align}
-The steps for computing this are then:
-\begin{enumerate}
-
-  \item Compute $M_1(u,z) = p_{m,\ell}(t_C,u,z)$ (a $|\calS|^{m+2\ell} \times |\calS|^m$ matrix)
-
-  \item Compute $M_2(v,z) = \sum_{v \in \calS^{m+2\ell}}  p_{m+2\ell}(t_{AB},u,v) \pi(u) M_1(u,z)$ (still a $|\calS|^{m+2\ell} \times |\calS|^m$ matrix)
-
-  \item Compute $M_3(v,y) = p_{m,\ell}(t_B,v,y)$ (a $|\calS|^{m+2\ell} \times |\calS|^m$ matrix) 
-
-  \item Compute $M_4(x,(y,z)) = \sum_{v \in \calS^{m+2\ell}} p_{m+2\ell}(t_{A},v,x) M_3(v,z) M_4(v,y)$ (stored as a $|\calS|^{m+2\ell} \times |\calS|^{2m}$ matrix).
-
-\end{enumerate}
-Then $M_4$ gives all the likelihoods.
-This is depicted in the figure, writing $\left(e^{tG}\right)_{ab}$ for the matrix $p_{m+2\ell}(t,a,b)$,
-and $P$ for the projection matrix that gives $p_{m,\ell}(t,a,b) = \left( e^{tG} P\right)_{ab}$.
-
-
-In total there are $|\calS|^{3m+2\ell}$ possible data combinations.  
-However, we can reduce dimensionality by replacing the last step with
-\begin{enumerate}
-
-  \item[4'.] Compute $M_4(x,w) = \sum_{v \in \calS^{m+2\ell}} p_{m+2\ell}(t_{A},v,x) M_3(v,w) M_4(v,w)$ (stored as a $|\calS|^{m+2\ell} \times |\calS|^{m}$ matrix).
-
-\end{enumerate}
-and only computing the likelihood for cases with $y=z=w$.
-On a three-taxon tree it is not clear that this is desireable, since missing out on double transitions 
-might be a significant loss of information,
-but on larger trees it seems likely that we'd want to restrict to combinations with most sites agreeing across the tree.
-(Note, however, that one should not first look at the data, observe which combinations $(y,z)$ were most common, and then restrict to only those!)
-
-
 
 
 %%%%
@@ -604,6 +553,56 @@ with four possible states and $\ell=2$ and $m=1$, so that $G(m+2\ell)$ is a $102
 computing $e^{t G(5) }$ takes 13 seconds, while computing $e^{t G(5)} U$ takes only 0.3 seconds.
 Increasing to $\ell=4$ and $m=1$ or $\ell=3$ and $m=2$ is still feasible, taking $e^{t G(8)} U$ in 42 and 47 seconds, respectively
 (and much longer for the whole matrix $e^{t G(8)}$).
+
+More generally\dots
+
+\begin{center}
+\includegraphics{peeling-schematic}
+\end{center}
+
+To compute the likelihood on a more complicated tree, consider the following,
+with the three-taxon tree above as an example,
+where we are counting occurrences of (long) $m+2\ell$-tuples in taxon $X$,
+and (shorter) $m$-tuples in taxa $Y$ and $Z$.
+
+We can compute the likelihood in a similar way, summing over the root state (the summation over $u$)
+and the interior node ($v$):
+\begin{align} \label{eqn:three_taxa_likelihood}
+  \begin{split}
+    & \P\{X_{I-\ell}^{m+2\ell}=x \text{ and } Y_I^\ell=y \text{ and } Z_I^\ell=z \} \\
+    &\qquad = \sum_{u \in \calS^{m+2\ell}} \pi(u) p_{m,\ell}(t_C,u,z) \sum_{v \in \calS^{m+2\ell}} p_{m+2\ell}(t_{AB},u,v) p_{m+2\ell}(t_{A},v,x) p_{m,\ell}(t_B,v,y) 
+  \end{split}
+\end{align}
+The steps for computing this are then:
+\begin{enumerate}
+
+  \item Compute $M_1(u,z) = p_{m,\ell}(t_C,u,z)$ (a $|\calS|^{m+2\ell} \times |\calS|^m$ matrix)
+
+  \item Compute $M_2(v,z) = \sum_{v \in \calS^{m+2\ell}}  p_{m+2\ell}(t_{AB},u,v) \pi(u) M_1(u,z)$ (still a $|\calS|^{m+2\ell} \times |\calS|^m$ matrix)
+
+  \item Compute $M_3(v,y) = p_{m,\ell}(t_B,v,y)$ (a $|\calS|^{m+2\ell} \times |\calS|^m$ matrix) 
+
+  \item Compute $M_4(x,(y,z)) = \sum_{v \in \calS^{m+2\ell}} p_{m+2\ell}(t_{A},v,x) M_3(v,z) M_4(v,y)$ (stored as a $|\calS|^{m+2\ell} \times |\calS|^{2m}$ matrix).
+
+\end{enumerate}
+Then $M_4$ gives all the likelihoods.
+This is depicted in the figure, writing $\left(e^{tG}\right)_{ab}$ for the matrix $p_{m+2\ell}(t,a,b)$,
+and $P$ for the projection matrix that gives $p_{m,\ell}(t,a,b) = \left( e^{tG} P\right)_{ab}$.
+
+
+In total there are $|\calS|^{3m+2\ell}$ possible data combinations.  
+However, we can reduce dimensionality by replacing the last step with
+\begin{enumerate}
+
+  \item[4'.] Compute $M_4(x,w) = \sum_{v \in \calS^{m+2\ell}} p_{m+2\ell}(t_{A},v,x) M_3(v,w) M_4(v,w)$ (stored as a $|\calS|^{m+2\ell} \times |\calS|^{m}$ matrix).
+
+\end{enumerate}
+and only computing the likelihood for cases with $y=z=w$.
+On a three-taxon tree it is not clear that this is desireable, since missing out on double transitions 
+might be a significant loss of information,
+but on larger trees it seems likely that we'd want to restrict to combinations with most sites agreeing across the tree.
+(Note, however, that one should not first look at the data, observe which combinations $(y,z)$ were most common, and then restrict to only those!)
+
 
 
 
