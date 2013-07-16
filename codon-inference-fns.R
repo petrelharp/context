@@ -182,7 +182,7 @@ meangenmatrix <- function (lwin,rwin,patlen,...) {
     meangenmat <- new( "genmatrix", i=ii[nondiag], p=pp, x=pgenmat@x[nondiag], Dim=pgenmat@Dim, Dimnames=pgenmat@Dimnames,
         muttrans = (pnonz %*% genmat@muttrans), seltrans = (pnonz %*% genmat@seltrans),
         mutrates=genmat@mutrates, selcoef=genmat@selcoef )
-    meangenmat@x <- update(meangenmat)
+    meangenmat@x <- update(meangenmat, ...)
     return( meangenmat )
 }
 
@@ -216,6 +216,23 @@ getupdowntrans <- function ( genmatrix, projmatrix, mutrates, selcoef, initfreqs
     return( computetransmatrix( genmatrix.down, upbranch, transpose=TRUE ) / as.vector(downbranch) )  # conditional prob of y given x
 }
 
+upbranch <- function ( genmatrix, tipmatrix, rootfreqs, mutrates, selcoef, tlen, ... ) {
+    # "prune" a dangling edge in the "up" direction --
+    #    return diag(rootfreqs) * e^( tlen * genmatrix(mut,sel) ) %*% tipmatrix .
+    # So, result has
+    #   upbranch[i,j] = rootfreqs[i] * E[ tipmatrix[X(tlen),j] | X(0) = i ]
+    if (!missing(mutrates)) { genmatrix@x <- update( G=genmatrix, mutrates=mutrates*tlen, selcoef=selcoef, ... ) }
+    upbranch <- rootfreqs * computetransmatrix( genmatrix, projmatrix )   #  prob of root, y
+    return( upbranch )
+}
+
+downbranch <- function ( genmatrix, rootmatrix, mutrates, selcoef, tlen, ... ) {
+    # Collapse down branches, rather than up -- like upbranch, but transposed --
+    #   return e^( tlen * t(genmatrix(mut,sel)) ) %*% rootmatrix
+    if (!missing(mutrates)) { genmatrix@x <- update( G=genmatrix, mutrates=mutrates*tlen, selcoef=selcoef, ... ) }
+    downbranch <- computetransmatrix( genmatrix.down, rootmatrix, transpose=TRUE )  # marginal prob of x
+    return(downbranch)
+}
 
 predictcounts <- function (win, lwin=0, rwin=0, initcounts, mutrates, selcoef, mutpats, selpats, genmatrix, projmatrix, ... ) {
     # Compute expected counts of paired patterns:
