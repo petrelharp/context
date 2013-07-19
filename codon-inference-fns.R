@@ -234,6 +234,11 @@ downbranch <- function ( genmatrix, rootmatrix, mutrates, selcoef, tlen, ... ) {
     return(downbranch)
 }
 
+treetrans <- function ( genmatrix, tree, rootfreqs, reftaxon, mutrates, selcoef, ... ) {
+    # First, compute transition 
+
+}
+
 predictcounts <- function (win, lwin=0, rwin=0, initcounts, mutrates, selcoef, mutpats, selpats, genmatrix, projmatrix, ... ) {
     # Compute expected counts of paired patterns:
     winlen <- lwin+win+rwin
