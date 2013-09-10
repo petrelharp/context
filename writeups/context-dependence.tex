@@ -444,7 +444,7 @@ We clearly don't want to add an extra parameter $\pi(z)$ for all $z \in \calS^{m
 If nothing else, it would make the inference depend on $m$ and $\ell$, which we'd like to avoid.
 One approach would be to put a Dirichlet distribution on $\pi(z)$.
 This has the nice property that you can choose priors that are consistent across different values of $m$ and $\ell$.
-We'd have to still MCMC around in the space of $\pi(z)$, thought, so they'd be nuisance parameters from that point of view.
+We'd have to still MCMC around in the space of $\pi(z)$, so they'd be nuisance parameters from that point of view.
 Also, making the frequencies at the root random introduces correlations between counts, which we want to avoid.
 An alternative is to specify $\pi$ through lower-dimensional statistics,
 for instance to model the root state as a sample from a Markov random field
