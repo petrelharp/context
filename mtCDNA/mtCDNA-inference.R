@@ -63,13 +63,16 @@ datafile <- paste( basename ,"-results.RData",sep='')
 resultsfile <- paste( basename ,"-results.tsv",sep='')
 plotfile <- paste( basename ,"-plot",sep='')
 
-lwin <- rwin <- 1
-win <- 2
-winlen <- lwin+win+rwin
-boundary <- "none"; meanboundary <- 0
-gmfile <- paste(paste("genmatrices/genmatrix",winlen,boundary,meanboundary,sep="-"),".RData",sep='')
-load(gmfile)
 
+if (file.exists(gmfile)) {
+    load(gmfile)
+} else {
+    if (meanboundary>0) {
+        genmatrix <- meangenmatrix( lwin=1, rwin=1, patlen=winlen, mutpats=mutpats, selpats=selpats, mutrates=mutrates*tlen[1], selcoef=numeric(0), boundary=boundary )
+    } else {
+        genmatrix <- makegenmatrix( patlen=winlen, mutpats=mutpats, selpats=selpats, mutrates=mutrates*tlen[1], selcoef=numeric(0), boundary=boundary )
+    }
+}
 projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
 subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE )
 
@@ -80,6 +83,34 @@ counts <- lapply( names( mtCDNA ), function (x) {
             } ) } )
 
 initcounts <- lapply( counts, rowSums )
+
+# move from base frequencies (what we estimate) to pattern frequencies
+nmuts <- length(mutpats)
+nfreqs <- length(initfreqs)
+npats <- nrow(genmatrix)
+patcomp <- apply( do.call(rbind, strsplit(rownames(genmatrix),'') ), 2, match, bases )  # which base is at each position in each pattern
+likfun <- function (params) {
+    # params are: tlen[1]/sum(tlen), sum(tlen)*mutrates, initfreqs
+    branchlens <- c(params[1],1-params[1])
+    mutrates <- params[1+(1:nmuts)]
+    initfreqs <- params[1+nmuts+(1:nfreqs)]
+    initfreqs <- initfreqs/sum(initfreqs)
+    patfreqs <- initfreqs[patcomp]
+    dim(patfreqs) <- dim(patcomp)
+    patfreqs <- apply( patfreqs, 1, prod )
+    # these are collapsed transition matrix
+    updownbranch <- list(  # note "up" branch is from simpler summaries
+            getupdowntrans( genmatrix, projmatrix, mutrates=list(mutrates,mutrates), selcoef=list(numeric(0),numeric(0)), initfreqs=patfreqs, tlens=rev(branchlens) ),
+            getupdowntrans( genmatrix, projmatrix, mutrates=list(mutrates,mutrates), selcoef=list(numeric(0),numeric(0)), initfreqs=patfreqs, tlens=branchlens )
+        )
+    # if (any(sapply(updownbranch,function(x) any(!is.numeric(x))|any(x<0)))) { browser() }
+    # return negative log-likelihood plus a penalty to keep initfreqs summing to (almost) 1
+    return( 
+                (-1) * ( sum( counts[[1]] * log(updownbranch[[1]]) ) + sum( counts[[2]] * log(updownbranch[[2]]) ) ) 
+                + 100*(sum(initfreqs)-1)^2
+            )
+}
+
 
 save( lwin, rwin, win, winlen, boundary, meanboundary, gmfile, projmatrix, subtransmatrix, counts, initcounts, file=countfile )
 

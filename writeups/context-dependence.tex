@@ -454,7 +454,7 @@ A Markov random field with interactions between sites no more than distance two 
 is determined by the energy function $\phi(a,b,c)$ which gives the ``energy'' of the configuration $abc$ for each $a,b,c \in \calS$.
 We use this to define the distribution on root patterns $\pi$ by
 \begin{align}  \label{eqn:root_mrf}
-    \pi(z) = \frac{1}{Z} \exp\left( - \sum_{i=1}^{|z|} h(z_{i-1},z_i,z_{i+1}) \right),
+    \pi(z) = \frac{1}{Z} \exp\left( - \sum_{i=1}^{|z|} \phi(z_{i-1},z_i,z_{i+1}) \right),
 \end{align}
 i.e.\ the exponential of the total energy of each three adjacent sites,
 where $Z$ is the normalizing constant.
@@ -812,6 +812,16 @@ graham:
 \item estimating freq spectrum [Hernandez]
 
 \item probabilistic ancestral states for common ancestor of e.g. humans 4N generations ago [Siepel] -- would widely used for primates
+
+\end{itemize}
+
+
+sergey:
+\begin{itemize}
+
+  \item ancestral CpG
+
+  \item ancient DNA
 
 \end{itemize}
 
