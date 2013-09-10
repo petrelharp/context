@@ -1,0 +1,69 @@
+General-purpose machinery is in this directory.  
+Code using this to simulate, then do inference on, various models is in subdirectories,
+for instance
+  ising/    --  Ising model
+  tasep/    --  TASEP model
+  cpg/      --  nucleotide sequence with extra CpG mutation rate
+  tree-cpg/ --  CpG model above, but rather than inference using before-after observations, 
+                    observations evolve along a two-taxon tree.
+  huchgo/   --  Three-taxa tree, modeled after human-chimp-gorilla, with CpG and GC bias
+                    (in progress)
+
+
+Most of the scripts have help: do
+  Rscript (scriptname) --help
+to get a list of options.
+
+Workflow, for example in the ising/ directory:
+
+  Rscript sim-ising.R ( options )
+
+will simulate from the process, recording parameters and results in an .RData file in the ising-sims/ directory, e.g. in
+
+  ising-sims/selsims-2013-05-26-14-12-0717215.RData
+
+To get point estimates of the parameters and start out an mcmc run, do
+
+  Rscript ising-inference.R -i ising-sims/selsims-2013-05-26-14-12-0717215.RData [... more params ...]
+
+which records a log file at 
+
+  ising-sims/selsims-2013-05-26-14-12-0717215.Rout
+
+and plots, point estimates, and a .RData file with mcmc output in the directory of the same name with the suffix stripped, here
+
+  ising-sims/selsims-2013-05-26-14-12-0717215
+
+This can also be done by doing
+
+  make ising-sims/selsims-2013-05-26-14-12-0717215.Rout
+
+To change default parameters, e.g. to do it with lwin=rwin=4, run
+
+  make ARGS="-l 4 -r 4" ising-sims/selsims-2013-05-26-14-12-0717215.Rout
+
+The analysis can be run on everything with 
+
+  make -j 4 analyses
+
+To extend all the mcmc runs,
+
+  make -j 4 mcmcs
+
+or to extend a particular one,
+
+  Rscript ising-mcmc.R -i ising-sims/selsims-2013-05-26-14-12-0717215.RData
+
+which adds more files to
+
+  ising-sims/selsims-2013-05-26-14-12-0717215
+
+Then, 
+
+  make info
+
+will glean some statistics from the runs, as well as producing the file
+
+  all-mcmc-runs.pdf
+
+which has trace plots of all the mcmc runs.
