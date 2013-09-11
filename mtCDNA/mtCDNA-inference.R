@@ -7,7 +7,7 @@ Infer parameters from output of sim-tree-cpg.R .\
 
 option_list <- list(
         make_option( c("-c","--infile"), type="character", default="mtCDNApri-sub.nuc", help=".RData file containing simulation." ),
-        make_option( c("-w","--win"), type="integer", default=1, help="Size of matching window. [default \"%default\"]" ),
+        make_option( c("-w","--win"), type="integer", default=2, help="Size of matching window. [default \"%default\"]" ),
         make_option( c("-l","--lwin"), type="integer", default=2, help="Size of left-hand context. [default \"%default\"]" ),
         make_option( c("-r","--rwin"), type="integer", default=2, help="Size of left-hand context. [default \"%default\"]" ),
         make_option( c("-n","--nbatches"), type="integer", default=20, help="Number of MCMC batches. [default \"%default\"]" ),
@@ -25,13 +25,12 @@ option_list <- list(
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 attach(opt)
-options(error=traceback)
 
 winlen <- lwin+win+rwin
 
 if (gmfile=="TRUE") { gmfile <- paste(paste("genmatrices/genmatrix",winlen,boundary,meanboundary,sep="-"),".RData",sep='') }
 
-if (is.null(infile)) { cat("Run\n  cpg-tree-inference.R -h\n for help.") }
+if (is.null(infile)) { cat("Run\n  mtCDNA-inference.R -h\n for help.") }
 
 if (logfile!="") {
     logfile <- gsub(".RData",".Rout",infile,fixed=TRUE)
@@ -59,9 +58,6 @@ mtCDNA <- as( readDNAMultipleAlignment(infile, format="phylip" ), "DNAStringSet"
 basedir <- gsub(".nuc","",infile,fixed=TRUE)
 if (!file.exists(basedir)) { dir.create(basedir) }
 basename <- paste(basedir,"/win-",lwin,"-",win,"-",rwin,sep='')
-datafile <- paste( basename ,"-results.RData",sep='')
-resultsfile <- paste( basename ,"-results.tsv",sep='')
-plotfile <- paste( basename ,"-plot",sep='')
 
 
 if (file.exists(gmfile)) {
@@ -77,18 +73,21 @@ projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=
 subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE )
 
 # all pairwise counts
-counts <- lapply( names( mtCDNA ), function (x) {
+require(parallel)
+counts <- mclapply( names( mtCDNA ), function (x) {
         lapply( names( mtCDNA ), function (y) {
                 counttrans( rownames(projmatrix), colnames(projmatrix), mtCDNA[[x]],  mtCDNA[[y]],  lwin=lwin ) 
-            } ) } )
+            } ) }, mc.cores=3 )
+save( counts, file=countfile )
 
 initcounts <- lapply( counts, rowSums )
 
-# move from base frequencies (what we estimate) to pattern frequencies
+# set up root distribution
 nmuts <- length(mutpats)
-nfreqs <- length(initfreqs)
+nfreqs <- length(bases)
 npats <- nrow(genmatrix)
 patcomp <- apply( do.call(rbind, strsplit(rownames(genmatrix),'') ), 2, match, bases )  # which base is at each position in each pattern
+
 likfun <- function (params) {
     # params are: tlen[1]/sum(tlen), sum(tlen)*mutrates, initfreqs
     branchlens <- c(params[1],1-params[1])

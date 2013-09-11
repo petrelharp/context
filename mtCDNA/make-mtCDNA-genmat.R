@@ -44,6 +44,7 @@ mutpats <- c(
     ) 
 selpats <- as.list(codonstrings)
 fixfn <- function (...) { 1 }
+
 if (meanboundary>0) {
     genmatrix <- makegenmatrix( patlen=winlen, mutpats=mutpats, selpats=selpats, boundary=boundary )
 } else {

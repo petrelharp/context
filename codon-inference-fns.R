@@ -109,9 +109,10 @@ makegenmatrix <- function (mutpats,selpats=list(),patlen=nchar(patterns[1]),patt
         # transfer selection coefficients to selective differences involved in each mutation
         #    these are ( transitions ) x ( mutpats ) matrix
         #     ... make these sparse?
-        fromsel <- selmatches[,  allmutmats$i, drop=FALSE ]
-        tosel <- selmatches[,  allmutmats$j, drop=FALSE ]
-        seltrans <- Matrix(t( (tosel - fromsel)[,dgCord,drop=FALSE] ))
+        # combine into one line to reduce memory usage?
+        # fromsel <- selmatches[,  allmutmats$i, drop=FALSE ] 
+        # tosel <- selmatches[,  allmutmats$j, drop=FALSE ] 
+        seltrans <- Matrix(t( ( selmatches[,  allmutmats$i, drop=FALSE ] - selmatches[,  allmutmats$j, drop=FALSE ] )[,dgCord,drop=FALSE] ))
     } else {
         seltrans <- Matrix(numeric(0),nrow=nrow(muttrans),ncol=0)
     }
