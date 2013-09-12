@@ -46,9 +46,9 @@ selpats <- as.list(codonstrings)
 fixfn <- function (...) { 1 }
 
 if (meanboundary>0) {
-    genmatrix <- makegenmatrix( patlen=winlen, mutpats=mutpats, selpats=selpats, boundary=boundary )
-} else {
     genmatrix <- meangenmatrix( lwin=meanboundary, rwin=meanboundary, patlen=winlen, mutpats=mutpats, selpats=selpats, boundary=boundary )
+} else {
+    genmatrix <- makegenmatrix( patlen=winlen, mutpats=mutpats, selpats=selpats, boundary=boundary )
 }
 
 save( opt, winlen, boundary, meanboundary, bases, mutpats, selpats, fixfn, genmatrix, file=outfile )

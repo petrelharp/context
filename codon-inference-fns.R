@@ -99,7 +99,7 @@ makegenmatrix <- function (mutpats,selpats=list(),patlen=nchar(patterns[1]),patt
     allmutmats <- do.call( rbind, mutmats )
     # convert to dgCMatrix format
     dgCord <- order( allmutmats$j, allmutmats$i )
-    # function to transfer these to list of values in mutation matrix
+    # use this to transfer these to list of values in mutation matrix
     nmutswitches <- sapply(mutmats,NROW)
     muttrans <- dgTtodgC( new( "dgTMatrix", i=1:sum(nmutswitches)-1L, j=rep(seq_along(mutrates),times=nmutswitches)-1L, x=rep(1,sum(nmutswitches)), Dim=c(sum(nmutswitches),length(mutrates)) ) )
     muttrans <- muttrans[ dgCord , , drop=FALSE ]
@@ -109,9 +109,9 @@ makegenmatrix <- function (mutpats,selpats=list(),patlen=nchar(patterns[1]),patt
         # transfer selection coefficients to selective differences involved in each mutation
         #    these are ( transitions ) x ( mutpats ) matrix
         #     ... make these sparse?
-        # combine into one line to reduce memory usage?
-        # fromsel <- selmatches[,  allmutmats$i, drop=FALSE ] 
-        # tosel <- selmatches[,  allmutmats$j, drop=FALSE ] 
+        ##  the following hsa (fromsel-tosel); combined to reduce memory usage 
+        ##  fromsel <- selmatches[,  allmutmats$i, drop=FALSE ] 
+        ##  tosel <- selmatches[,  allmutmats$j, drop=FALSE ] 
         seltrans <- Matrix(t( ( selmatches[,  allmutmats$i, drop=FALSE ] - selmatches[,  allmutmats$j, drop=FALSE ] )[,dgCord,drop=FALSE] ))
     } else {
         seltrans <- Matrix(numeric(0),nrow=nrow(muttrans),ncol=0)
@@ -162,6 +162,9 @@ meangenmatrix <- function (lwin,rwin,patlen,...) {
     # create a generator matrix that averages over possible adjacent states
     longpatlen <- patlen+lwin+rwin
     genmat <- makegenmatrix(...,patlen=longpatlen)  # this is G
+    if (longpatlen == patlen) {  # no need to do anything else...
+        return(genmat)
+    }
     projmat <- collapsepatmatrix(ipatterns=rownames(genmat),lwin=lwin,rwin=rwin)  # this is P
     meanmat <- t( sweep( projmat, 2, colSums(projmat), "/" ) )  # this is M
     pgenmat <- meanmat %*% genmat %*% projmat   # this is H = M G P
