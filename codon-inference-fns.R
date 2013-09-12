@@ -238,10 +238,42 @@ downbranch <- function ( genmatrix, rootmatrix, mutrates, selcoef, tlen, ... ) {
     return(downbranch)
 }
 
-treetrans <- function ( genmatrix, tree, rootfreqs, reftaxon, mutrates, selcoef, ... ) {
-    # First, compute transition 
+##
+# pruning-ish algorithm
+#
+# outline: 
+#   1) begin at the root, with initial frequencies.
+#   2) we'll move down, towards the focal (longest-pattern) tip
+#   3) before moving, resolve up the the other, non-focal branch, recursive in the same way.
+
+treetrans <- function (  ) {
+    # First, compute a good order to 
 
 }
+
+###
+# tree miscellany
+
+get.descendants  <- function (tree) {
+    # return the node-by-node matrix with [i,j] TRUE meaning that j is below i
+    adjacency <- matrix( 0, nrow=Nnode(tree)+Ntip(tree), ncol=Nnode(tree)+Ntip(tree) ) 
+    adjacency[ tree$edge ] <- 1  # adjacency matrix: [i,j] means that node j is directly below node i
+    # descendants is indexed by NODES
+    descendants <- apower <- adjacency  # [i,j] means that node j is somewhere below node i
+    while ( any(apower>0) ) {
+        apower <- apower %*% adjacency
+        descendants <- descendants + apower
+    }
+    stopifnot( all( descendants %in% c(0,1) ) )
+    descendants <- ( descendants > 0 )
+    diag(descendants) <- TRUE
+    return(descendants)
+}
+
+
+
+###
+#
 
 predictcounts <- function (win, lwin=0, rwin=0, initcounts, mutrates, selcoef, mutpats, selpats, genmatrix, projmatrix, ... ) {
     # Compute expected counts of paired patterns:
@@ -363,6 +395,7 @@ dgTtodgC <- function (M) {
     ijx <- ijx[ order( ijx$j, ijx$i ), ]
     with(ijx, new( "dgCMatrix", i=i, p=sapply(0:ncol(M), function(k) sum(j<k)), x=x, Dim=dim(M) ) )
 }
+
 
 # Unused? 
 if (FALSE ){

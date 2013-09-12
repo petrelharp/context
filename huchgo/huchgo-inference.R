@@ -68,16 +68,15 @@ if (file.exists(gmfile)) {
 projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
 subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE )
 
-counts <- list(
-            "go.ch.hu"=counttrans.list( list(rownames(projmatrix),colnames(projmatrix),colnames(projmatrix)), simseqs=simseqs, lwin=lwin ),
-            "ch.hu.go"=counttrans.list( list(rownames(projmatrix),colnames(projmatrix),colnames(projmatrix)), simseqs=simseqs[c(2,3,1)], lwin=lwin ),
-            "hu.go.ch"=counttrans.list( list(rownames(projmatrix),colnames(projmatrix),colnames(projmatrix)), simseqs=simseqs[c(3,1,2)], lwin=lwin )
+shifted.counts <- list(
+            "go.ch.hu"=counttrans.list( list(rownames(projmatrix),colnames(projmatrix),colnames(projmatrix)), simseqs=simseqs, lwin=lwin, shift=winlen ),
+            "ch.hu.go"=counttrans.list( list(rownames(projmatrix),colnames(projmatrix),colnames(projmatrix)), simseqs=simseqs[c(2,3,1)], lwin=lwin, shift=winlen ),
+            "hu.go.ch"=counttrans.list( list(rownames(projmatrix),colnames(projmatrix),colnames(projmatrix)), simseqs=simseqs[c(3,1,2)], lwin=lwin, shift=winlen )
         )
-# want only patterns that overlap little
-initcounts <- lapply( counts, rowSums )
-# nonoverlapping <- lapply( seq_along(counts), function (k) ( leftchanged(rownames(counts[[k]]),colnames(counts[[k]]),lwin=lwin,win=win) & (initcounts[[k]]>0) ) )
-# nov.counts <- lapply(seq_along(counts), function (k) counts[[k]][nonoverlapping[[k]]] )
-nov.counts <- initcounts
+first.counts <- lapply( shifted.counts, "[[", 1 )
+first.initcounts <- lapply(first.counts, rowSums )
+all.counts <- lapply( shifted.counts, function (x) Reduce("+",x) )
+all.initcounts <- lapply( all.counts, rowSums )
 
 # move from base frequencies (what we estimate) to pattern frequencies
 nmuts <- length(mutpats)
@@ -86,6 +85,7 @@ npats <- nrow(genmatrix)
 ntimes <- length(tlen)
 nsel <- 1
 patcomp <- apply( do.call(rbind, strsplit(rownames(genmatrix),'') ), 2, match, bases )  # which base is at each position in each pattern
+# likelhood function
 likfun <- function (params) {
     # tlens are: (Root->Go), (Root->HuCh), (HuCh->Ch), (HuCh->Hu)
     # params are: tlen[-1]/sum(tlen), sum(tlen)*mutrates, selcoef, initfreqs
@@ -146,6 +146,10 @@ truth <- c( tlen[1]/sum(tlen), mutrates * sum(tlen), initfreqs )  # truth
 names(truth) <- c( "rel.branchlen", paste("tmut:", unlist( sapply( sapply( mutpats, lapply, paste, collapse="->" ), paste, collapse=" | " ) ) ), names(initfreqs) )
 lbs <- c( 1e-6, rep(0,nmuts), rep(1e-6,length(initfreqs)) )
 ubs <- c( 1, rep(20,nmuts), rep(1,length(initfreqs)) )
+
+stopifnot( is.finite(lud(truth)) )
+stopifnot( is.finite(likfun(truth)) )
+
 # # do in parallel:
 # cheating.parjob <- mcparallel( optim( par=truth, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(trace=3,fnscale=likfun(truth)) ) ),
 # random.parjob <- mcparallel( optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(trace=3,fnscale=likfun(truth)) ) )
