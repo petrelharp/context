@@ -1,0 +1,102 @@
+\documentclass[smaller]{beamer}
+\usepackage{colortbl}
+
+\include{slide-macros}
+
+% This file is a solution template for:
+
+% - Giving a talk on some subject.
+% - The talk is between 15min and 45min long.
+% - Style is ornate.
+
+
+
+% Copyright 2004 by Till Tantau <tantau@users.sourceforge.net>.
+%
+% In principle, this file can be redistributed and/or modified under
+% the terms of the GNU Public License, version 2.
+%
+% However, this file is supposed to be a template to be modified
+% for your own needs. For this reason, if you use this file as a
+% template and not specifically distribute it as part of a another
+% package/program, I grant the extra permission to freely copy and
+% modify this file as you see fit and even to delete this copyright
+% notice. 
+
+\def\typezero{\circ}
+\def\typeone{\bullet}
+
+\setbeamertemplate{blocks}[default]
+\usecolortheme{rose}
+
+\mode<presentation>
+{
+  % \usetheme{default}
+  \usetheme{boxes}
+  % or ...
+  \usefonttheme[options]{structuresmallcapsserif}
+
+  \setbeamercovered{transparent}
+  % or whatever (possibly just delete it)
+}
+
+
+\usepackage[english]{babel}
+% or whatever
+
+\usepackage[latin1]{inputenc}
+% or whatever
+
+\usepackage{times}
+\usepackage[T1]{fontenc}
+% Or whatever. Note that the encoding and the font should match. If T1
+% does not look nice, try deleting the line with the fontenc.
+
+
+\title[Context-dependent models] % (optional, use only with long paper titles)
+{Context-dependent models of nucleotide substitution}
+
+\author % (optional, use only with lots of authors)
+{Peter Ralph}
+% - Use the \inst{?} command only if the authors have different
+%   affiliation.
+
+\institute[USC]
+{
+  USC -- Computational Biology and Bioinformatics
+  }
+% - Use the \inst command only if there are several affiliations.
+% - Keep it simple, no one is interested in your street address.
+
+\date % (optional)
+{October 14, 2013}
+
+
+\begin{document}
+
+
+% Abstract: 
+% It is well-known that the nucleotide mutation process is context-dependent:
+% the probability of change at a particular base depends not only on the
+% nucleotide at that position, but also at its neighbors; CpG hypermutability
+% is the most well-known such effect.  Selection for or against particular
+% motifs adds more layers of context dependencies to the nucleotide
+% substitution process.  Incorporating context dependence is difficult, because
+% this in principle requires summing over all possible substitutions at all
+% sites.  I will present a computaionally feasible method to do these
+% calculations correctly, which enables Bayesian inference of phylogenetic
+% branch lengths, mutation rates, and selection coefficients of short motifs.
+% I will also illustrate with examples to some models of statistical physics,
+% such as estimation of the magnetization and temperature in the Ising model.
+
+%%%%
+% OUTLINE
+%
+% Intro to the problem
+%
+% Method
+%
+% Applications
+%
+
+\end{document}
