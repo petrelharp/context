@@ -6,17 +6,18 @@ Infer parameters from output of sim-tree-cpg.R .\
 "
 
 option_list <- list(
-        make_option( c("-i","--infile"), type="character", default="mtCDNApri-sub.nuc", help=".RData file containing simulation." ),
+        make_option( c("-c","--infile"), type="character", default="mtCDNApri-sub.nuc", help=".nuc file with data."),
         make_option( c("-w","--win"), type="integer", default=2, help="Size of matching window. [default \"%default\"]" ),
         make_option( c("-l","--lwin"), type="integer", default=1, help="Size of left-hand context. [default \"%default\"]" ),
         make_option( c("-r","--rwin"), type="integer", default=1, help="Size of left-hand context. [default \"%default\"]" ),
-        make_option( c("-n","--nbatches"), type="integer", default=20, help="Number of MCMC batches. [default \"%default\"]" ),
-        make_option( c("-b","--blen"), type="integer", default=10, help="Length of each MCMC batch. [default \"%default\"]" ),
-        make_option( c("-s","--stepscale"), type="numeric", default=1e-4, help="Scale of proposal steps for Metropolis algorithm. [default \"%default\"]" ),
-        make_option( c("-m","--mmean"), type="double", default=1, help="Prior mean on single base mutation rates. [default \"%default\"]" ),
-        make_option( c("-c","--cpgmean"), type="double", default=1, help="Prior variance on CpG rate. [default \"%default\"]" ),
-        make_option( c("-p","--pprior"), type="double", default=1, help="Parameter for Dirichlet prior on base frequencies. [default \"%default\"]" ),
-        make_option( c("-v","--tprior"), type="double", default=.5, help="Parameter for Beta prior on branch length. [default \"%default\"]" ),
+        make_option( c("-x","--maxit"), type="integer", default=1000, help="Maximum number of iterates in optim for point estimate. [default \"%default\"]" ),
+        # make_option( c("-n","--nbatches"), type="integer", default=20, help="Number of MCMC batches. [default \"%default\"]" ),
+        # make_option( c("-b","--blen"), type="integer", default=10, help="Length of each MCMC batch. [default \"%default\"]" ),
+        # make_option( c("-s","--stepscale"), type="numeric", default=1e-4, help="Scale of proposal steps for Metropolis algorithm. [default \"%default\"]" ),
+        # make_option( c("-m","--mmean"), type="double", default=1, help="Prior mean on single base mutation rates. [default \"%default\"]" ),
+        # make_option( c("-c","--cpgmean"), type="double", default=1, help="Prior variance on CpG rate. [default \"%default\"]" ),
+        # make_option( c("-p","--pprior"), type="double", default=1, help="Parameter for Dirichlet prior on base frequencies. [default \"%default\"]" ),
+        # make_option( c("-v","--tprior"), type="double", default=.5, help="Parameter for Beta prior on branch length. [default \"%default\"]" ),
         make_option( c("-d","--boundary"), type="character", default="none", help="Boundary conditions for generator matrix. [default \"%default\"]"),
         make_option( c("-y","--meanboundary"), type="integer", default=0, help="Average over this many neighboring bases in computing generator matrix. [default \"%default\"]" ),
         make_option( c("-g","--gmfile"), type="character", default="TRUE", help="File with precomputed generator matrix, or TRUE [default] to look for one. (otherwise, will compute)"),
@@ -29,8 +30,6 @@ attach(opt)
 winlen <- lwin+win+rwin
 
 if (gmfile=="TRUE") { gmfile <- paste(paste("genmatrices/genmatrix",winlen,boundary,meanboundary,sep="-"),".RData",sep='') }
-
-if (is.null(infile)) { cat("Run\n  mtCDNA-inference.R -h\n for help.") }
 
 if (logfile!="") {
     logfile <- gsub(".RData",".Rout",infile,fixed=TRUE)
@@ -128,14 +127,14 @@ likfun <- function (params) {
 }
 
 initparams <- c( rel.tlen=0.5, 6e6*rep(1e-8,nmuts)/30, rep(1/nfreqs,nfreqs) )  # reasonable for hu-ch?
-stopifnot( is.finite( likfun(initparams) ) )
+stopifnot( all( sapply( seq_along( counts[[1]][[1]] ), function (which.frame) { is.finite( likfun(initparams) ) } ) ) )
 
 lbs <- c( 1e-6, rep(0,nmuts), rep(1e-6,nfreqs) )
 ubs <- c( 1, rep(20,nmuts), rep(1,nfreqs) )
 
 frame.ans <- mclapply( seq_along( counts[[1]][[1]] ), function (which.frame) {
             # uses which.frame implicitly in likfun
-            ans <- optim( par=initparams, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(trace=3,fnscale=abs(likfun(initparams))) )
+            ans <- optim( par=initparams, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(trace=3,fnscale=abs(likfun(initparams)),maxit=maxit) )
          }, mc.cores=3 )
 
 save( lwin, rwin, win, winlen, boundary, meanboundary, gmfile, projmatrix, subtransmatrix, counts, initcounts, frame.ans, file=countfile )
