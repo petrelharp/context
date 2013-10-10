@@ -17,4 +17,4 @@ selpats <- list()
 fixfn <- function (...) { 1 }
 
 mutrates <- rep(1e-8,length(mutpats))
-selcof <- numeric(0)
+selcoef <- numeric(0)
