@@ -47,7 +47,7 @@ mutpats <- c(
 nchanges <- sapply( lapply( lapply( changepos(mutpats), lapply, length ), unlist ), max )  # there would be a less elegant way to do this
 mutpats <- mutpats[ nchanges==1 ]
 
-selpats <- as.list(codonstrings)
+selpats <- list()
 fixfn <- function (...) { 1 }
 
 if (meanboundary>0) {
