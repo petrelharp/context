@@ -120,7 +120,9 @@ likfun <- function (params) {
     # if (any(sapply(updownbranch,function(x) any(!is.numeric(x))|any(x<0)))) { browser() }
     # return negative log-likelihood plus a penalty to keep initfreqs summing to (almost) 1
     return( 
-                (-1) * ( sum( counts[[which.taxa[[1]]]][[which.taxa[[2]]]][[which.frame]] * log(updownbranch[[1]]) ) + sum( counts[[which.taxa[[2]]]][[which.taxa[[1]]]][[which.frame]] * log(updownbranch[[2]]) ) ) 
+                (-1) * ( 
+                    sum( counts[[which.taxa[[1]]]][[which.taxa[[2]]]][[which.frame]] * log(updownbranch[[1]]) ) + 
+                    sum( counts[[which.taxa[[2]]]][[which.taxa[[1]]]][[which.frame]] * log(updownbranch[[2]]) ) ) 
                 + 100*(sum(initfreqs)-1)^2
             )
 }
@@ -128,5 +130,13 @@ likfun <- function (params) {
 initparams <- c( rel.tlen=0.5, 6e6*rep(1e-8,nmuts)/30, rep(1/nfreqs,nfreqs) )  # reasonable for hu-ch?
 stopifnot( is.finite( likfun(initparams) ) )
 
-save( lwin, rwin, win, winlen, boundary, meanboundary, gmfile, projmatrix, subtransmatrix, counts, initcounts, file=countfile )
+lbs <- c( 1e-6, rep(0,nmuts), rep(1e-6,nfreqs) )
+ubs <- c( 1, rep(20,nmuts), rep(1,nfreqs) )
+
+frame.ans <- mclapply( seq_along( counts[[1]][[1]] ), function (which.frame) {
+            # uses which.frame implicitly in likfun
+            ans <- optim( par=initparams, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(trace=3,fnscale=abs(likfun(initparams))) )
+         }, mc.cores=3 )
+
+save( lwin, rwin, win, winlen, boundary, meanboundary, gmfile, projmatrix, subtransmatrix, counts, initcounts, frame.ans, file=countfile )
 
