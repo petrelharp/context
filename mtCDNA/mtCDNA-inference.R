@@ -10,7 +10,7 @@ option_list <- list(
         make_option( c("-w","--win"), type="integer", default=2, help="Size of matching window. [default \"%default\"]" ),
         make_option( c("-l","--lwin"), type="integer", default=1, help="Size of left-hand context. [default \"%default\"]" ),
         make_option( c("-r","--rwin"), type="integer", default=1, help="Size of left-hand context. [default \"%default\"]" ),
-        make_option( c("-x","--maxit"), type="integer", default=1000, help="Maximum number of iterates in optim for point estimate. [default \"%default\"]" ),
+        make_option( c("-x","--maxit"), type="integer", default=10, help="Maximum number of iterates in optim for point estimate. [default \"%default\"]" ),
         # make_option( c("-n","--nbatches"), type="integer", default=20, help="Number of MCMC batches. [default \"%default\"]" ),
         # make_option( c("-b","--blen"), type="integer", default=10, help="Length of each MCMC batch. [default \"%default\"]" ),
         # make_option( c("-s","--stepscale"), type="numeric", default=1e-4, help="Scale of proposal steps for Metropolis algorithm. [default \"%default\"]" ),
@@ -83,6 +83,7 @@ if (!file.exists(countfile)) {
             return(x)
         }, mc.cores=6 )
     names(counts) <- names( mtCDNA )
+    if (!file.exists(dirname(countfile))) { dir.create(dirname(countfile)) }
     save( counts, file=countfile )
 } else {
     load( countfile )
@@ -102,7 +103,7 @@ which.taxa <- c("human","chimpanzee")
 # which.frame will denote which element of counts[[x]][[y]] to use
 
 # composite likelihood with taxa x->y + y->x
-likfun <- function (params) {
+likfun <- function (params,which.frame) {
     # params are: tlen[1]/sum(tlen), sum(tlen)*mutrates, initfreqs
     branchlens <- c(params[1],1-params[1])
     mutrates <- params[1+(1:nmuts)]
@@ -121,20 +122,20 @@ likfun <- function (params) {
     return( 
                 (-1) * ( 
                     sum( counts[[which.taxa[[1]]]][[which.taxa[[2]]]][[which.frame]] * log(updownbranch[[1]]) ) + 
-                    sum( counts[[which.taxa[[2]]]][[which.taxa[[1]]]][[which.frame]] * log(updownbranch[[2]]) ) ) 
-                + 100*(sum(initfreqs)-1)^2
+                    sum( counts[[which.taxa[[2]]]][[which.taxa[[1]]]][[which.frame]] * log(updownbranch[[2]]) ) ) +
+                100*(sum(initfreqs)-1)^2
             )
 }
 
 initparams <- c( rel.tlen=0.5, 6e6*rep(1e-8,nmuts)/30, rep(1/nfreqs,nfreqs) )  # reasonable for hu-ch?
-stopifnot( all( sapply( seq_along( counts[[1]][[1]] ), function (which.frame) { is.finite( likfun(initparams) ) } ) ) )
+stopifnot( all( sapply( seq_along( counts[[1]][[1]] ), function (which.frame) { is.finite( likfun(initparams,which.frame=which.frame) ) } ) ) )
 
 lbs <- c( 1e-6, rep(0,nmuts), rep(1e-6,nfreqs) )
 ubs <- c( 1, rep(20,nmuts), rep(1,nfreqs) )
 
 frame.ans <- mclapply( seq_along( counts[[1]][[1]] ), function (which.frame) {
-            # uses which.frame implicitly in likfun
-            ans <- optim( par=initparams, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(trace=3,fnscale=abs(likfun(initparams)),maxit=maxit) )
+            ans <- optim( par=initparams, fn=likfun, which.frame=which.frame, method="L-BFGS-B", lower=lbs, upper=ubs, 
+                    control=list(fnscale=abs(likfun(initparams,which.frame=1)), maxit=maxit, parscale=initparams ) )
          }, mc.cores=3 )
 
 save( lwin, rwin, win, winlen, boundary, meanboundary, gmfile, projmatrix, subtransmatrix, counts, initcounts, frame.ans, file=countfile )
