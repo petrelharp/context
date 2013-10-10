@@ -6,18 +6,18 @@ Infer parameters from output of sim-tree-cpg.R .\
 "
 
 option_list <- list(
-        make_option( c("-c","--infile"), type="character", default="mtCDNApri-sub.nuc", help=".nuc file with data."),
+        make_option( c("-i","--infile"), type="character", default="mtCDNApri-sub.nuc", help=".nuc file with data. [default \"%default\"]"),
         make_option( c("-w","--win"), type="integer", default=2, help="Size of matching window. [default \"%default\"]" ),
         make_option( c("-l","--lwin"), type="integer", default=1, help="Size of left-hand context. [default \"%default\"]" ),
         make_option( c("-r","--rwin"), type="integer", default=1, help="Size of left-hand context. [default \"%default\"]" ),
         make_option( c("-x","--maxit"), type="integer", default=10, help="Maximum number of iterates in optim for point estimate. [default \"%default\"]" ),
-        # make_option( c("-n","--nbatches"), type="integer", default=20, help="Number of MCMC batches. [default \"%default\"]" ),
-        # make_option( c("-b","--blen"), type="integer", default=10, help="Length of each MCMC batch. [default \"%default\"]" ),
-        # make_option( c("-s","--stepscale"), type="numeric", default=1e-4, help="Scale of proposal steps for Metropolis algorithm. [default \"%default\"]" ),
-        # make_option( c("-m","--mmean"), type="double", default=1, help="Prior mean on single base mutation rates. [default \"%default\"]" ),
-        # make_option( c("-c","--cpgmean"), type="double", default=1, help="Prior variance on CpG rate. [default \"%default\"]" ),
-        # make_option( c("-p","--pprior"), type="double", default=1, help="Parameter for Dirichlet prior on base frequencies. [default \"%default\"]" ),
-        # make_option( c("-v","--tprior"), type="double", default=.5, help="Parameter for Beta prior on branch length. [default \"%default\"]" ),
+        make_option( c("-n","--nbatches"), type="integer", default=200, help="Number of MCMC batches. [default \"%default\"]" ),
+        make_option( c("-b","--blen"), type="integer", default=1, help="Length of each MCMC batch. [default \"%default\"]" ),
+        make_option( c("-s","--stepscale"), type="numeric", default=1e-4, help="Scale of proposal steps for Metropolis algorithm. [default \"%default\"]" ),
+        make_option( c("-m","--mmean"), type="double", default=1, help="Prior mean on triplet time-scaled mutation rates. [default \"%default\"]" ),
+        make_option( c("-c","--cpgmean"), type="double", default=1, help="Prior variance on CpG time-scaled rate. [default \"%default\"]" ),
+        make_option( c("-p","--pprior"), type="double", default=1, help="Parameter for Dirichlet prior on base frequencies. [default \"%default\"]" ),
+        make_option( c("-v","--tprior"), type="double", default=.5, help="Parameter for Beta prior on branch length. [default \"%default\"]" ),
         make_option( c("-d","--boundary"), type="character", default="none", help="Boundary conditions for generator matrix. [default \"%default\"]"),
         make_option( c("-y","--meanboundary"), type="integer", default=0, help="Average over this many neighboring bases in computing generator matrix. [default \"%default\"]" ),
         make_option( c("-g","--gmfile"), type="character", default="TRUE", help="File with precomputed generator matrix, or TRUE [default] to look for one. (otherwise, will compute)"),
@@ -55,6 +55,7 @@ source(paste(scriptdir,"sim-context-fns.R",sep=''))
 basedir <- gsub(".nuc","",infile,fixed=TRUE)
 if (!file.exists(basedir)) { dir.create(basedir) }
 basename <- paste(basedir,"/win-",lwin,"-",win,"-",rwin,sep='')
+datafile <- paste( basename ,"-results.RData",sep='')
 
 
 if (file.exists(gmfile)) {
@@ -138,5 +139,39 @@ frame.ans <- mclapply( seq_along( counts[[1]][[1]] ), function (which.frame) {
                     control=list(fnscale=abs(likfun(initparams,which.frame=1)), maxit=maxit, parscale=initparams ) )
          }, mc.cores=3 )
 
-save( lwin, rwin, win, winlen, boundary, meanboundary, gmfile, projmatrix, subtransmatrix, counts, initcounts, frame.ans, file=countfile )
 
+#####
+# set up mcmc
+mmeans <- c( rep(mmean,nmuts-1), cpgmean )
+ppriors <- rep( pprior, nfreqs )
+tpriors <- rep( tprior, 2 )
+lud <- function (params) {
+    # params are: tlen[1]/sum(tlen), sum(tlen)*mutrates, initfreqs[-length(initfreqs)]
+    branchlens <- c(params[1],1-params[1])
+    mutrates <- params[1+(1:nmuts)]
+    initfreqs <- params[1+nmuts+(1:(nfreqs-1))]
+    initfreqs <- c(initfreqs,1-sum(initfreqs))
+    patfreqs <- initfreqs[patcomp]
+    dim(patfreqs) <- dim(patcomp)
+    patfreqs <- apply( patfreqs, 1, prod )
+    if (any(mutrates<0) | any(initfreqs<0) | any(branchlens<0) ) {
+        return( -Inf )
+    } else {
+        # only do in one direction... ?
+        updownbranch <- getupdowntrans( genmatrix, projmatrix, mutrates=list(mutrates,mutrates), selcoef=list(numeric(0),numeric(0)), initfreqs=patfreqs, tlens=rev(branchlens) )
+        # return (positive) log-posterior
+        return( 
+                (-1)*sum(updownbranch[nonoverlapping[[1]]]) 
+                + sum( nov.counts[[1]] * log(updownbranch[nonoverlapping[[1]]]) ) 
+                + sum( (tpriors-1)*log(branchlens) )
+                - sum(mmeans*mutrates) 
+                + sum( (ppriors-1)*log(initfreqs) )
+            )
+    }
+}
+
+# bayesian
+#  note we deal with initial freqs not summing to 1 differently from in optim( ) -- need to remove last entry.
+mrun <- metrop( lud, initial=initparams, nbatch=nbatches, blen=blen, scale=stepscale )
+
+save( opt, lwin, rwin, win, winlen, boundary, meanboundary, mmeans, ppriors, tpriors, gnmuts, nfreqs, npats, patcomp, mfile, projmatrix, subtransmatrix, counts, initcounts, frame.ans, mcrun, file=datafile )
