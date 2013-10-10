@@ -6,7 +6,7 @@ Infer parameters from output of sim-tree-cpg.R .\
 "
 
 option_list <- list(
-        make_option( c("-c","--infile"), type="character", default="mtCDNApri-sub.nuc", help=".RData file containing simulation." ),
+        make_option( c("-i","--infile"), type="character", default="mtCDNApri-sub.nuc", help=".RData file containing simulation." ),
         make_option( c("-w","--win"), type="integer", default=2, help="Size of matching window. [default \"%default\"]" ),
         make_option( c("-l","--lwin"), type="integer", default=1, help="Size of left-hand context. [default \"%default\"]" ),
         make_option( c("-r","--rwin"), type="integer", default=1, help="Size of left-hand context. [default \"%default\"]" ),
