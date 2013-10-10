@@ -8,8 +8,8 @@ Infer parameters from output of sim-tree-cpg.R .\
 option_list <- list(
         make_option( c("-c","--infile"), type="character", default="mtCDNApri-sub.nuc", help=".RData file containing simulation." ),
         make_option( c("-w","--win"), type="integer", default=2, help="Size of matching window. [default \"%default\"]" ),
-        make_option( c("-l","--lwin"), type="integer", default=2, help="Size of left-hand context. [default \"%default\"]" ),
-        make_option( c("-r","--rwin"), type="integer", default=2, help="Size of left-hand context. [default \"%default\"]" ),
+        make_option( c("-l","--lwin"), type="integer", default=1, help="Size of left-hand context. [default \"%default\"]" ),
+        make_option( c("-r","--rwin"), type="integer", default=1, help="Size of left-hand context. [default \"%default\"]" ),
         make_option( c("-n","--nbatches"), type="integer", default=20, help="Number of MCMC batches. [default \"%default\"]" ),
         make_option( c("-b","--blen"), type="integer", default=10, help="Length of each MCMC batch. [default \"%default\"]" ),
         make_option( c("-s","--stepscale"), type="numeric", default=1e-4, help="Scale of proposal steps for Metropolis algorithm. [default \"%default\"]" ),
@@ -53,8 +53,6 @@ scriptdir <- "../"
 source(paste(scriptdir,"codon-inference-fns.R",sep=''))
 source(paste(scriptdir,"sim-context-fns.R",sep=''))
 
-mtCDNA <- as( readDNAMultipleAlignment(infile, format="phylip" ), "DNAStringSet" )
-
 basedir <- gsub(".nuc","",infile,fixed=TRUE)
 if (!file.exists(basedir)) { dir.create(basedir) }
 basename <- paste(basedir,"/win-",lwin,"-",win,"-",rwin,sep='')
@@ -73,30 +71,47 @@ projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=
 subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE )
 
 # all pairwise counts
-require(parallel)
-counts <- mclapply( names( mtCDNA ), function (x) {
-        lapply( names( mtCDNA ), function (y) {
-                counttrans( rownames(projmatrix), colnames(projmatrix), mtCDNA[[x]],  mtCDNA[[y]],  lwin=lwin ) 
-            } ) }, mc.cores=3 )
-save( counts, file=countfile )
+if (!file.exists(countfile)) {
+    mtCDNA <- as( readDNAMultipleAlignment(infile, format="phylip" ), "DNAStringSet" )
+    mtCDNA <- mtCDNA[ c("human", "chimpanzee", "bonobo", "gorilla") ]
 
-initcounts <- lapply( counts, rowSums )
+    require(parallel)
+    counts <- mclapply( names( mtCDNA ), function (x) {
+            x <- lapply( names( mtCDNA ), function (y) {
+                    counttrans( rownames(projmatrix), colnames(projmatrix), mtCDNA[[x]],  mtCDNA[[y]],  lwin=lwin, shift=3 ) 
+                } ) 
+            names(x) <- names( mtCDNA )
+            return(x)
+        }, mc.cores=6 )
+    names(counts) <- names( mtCDNA )
+    save( counts, file=countfile )
+} else {
+    load( countfile )
+}
+
+# not used in likelihood:
+initcounts <- lapply( lapply(counts,"[[",1), lapply, rowSums )  # initial counts for (x,y) only depends on x
 
 # set up root distribution
 nmuts <- length(mutpats)
 nfreqs <- length(bases)
 npats <- nrow(genmatrix)
 patcomp <- apply( do.call(rbind, strsplit(rownames(genmatrix),'') ), 2, match, bases )  # which base is at each position in each pattern
+patcomp <- t(patcomp) # column-wise more efficient
 
+which.taxa <- c("human","chimpanzee")
+# which.frame will denote which element of counts[[x]][[y]] to use
+
+# composite likelihood with taxa x->y + y->x
 likfun <- function (params) {
     # params are: tlen[1]/sum(tlen), sum(tlen)*mutrates, initfreqs
     branchlens <- c(params[1],1-params[1])
     mutrates <- params[1+(1:nmuts)]
     initfreqs <- params[1+nmuts+(1:nfreqs)]
     initfreqs <- initfreqs/sum(initfreqs)
-    patfreqs <- initfreqs[patcomp]
+    patfreqs <- log(initfreqs)[patcomp]
     dim(patfreqs) <- dim(patcomp)
-    patfreqs <- apply( patfreqs, 1, prod )
+    patfreqs <- exp( colSums( patfreqs ) )
     # these are collapsed transition matrix
     updownbranch <- list(  # note "up" branch is from simpler summaries
             getupdowntrans( genmatrix, projmatrix, mutrates=list(mutrates,mutrates), selcoef=list(numeric(0),numeric(0)), initfreqs=patfreqs, tlens=rev(branchlens) ),
@@ -105,11 +120,13 @@ likfun <- function (params) {
     # if (any(sapply(updownbranch,function(x) any(!is.numeric(x))|any(x<0)))) { browser() }
     # return negative log-likelihood plus a penalty to keep initfreqs summing to (almost) 1
     return( 
-                (-1) * ( sum( counts[[1]] * log(updownbranch[[1]]) ) + sum( counts[[2]] * log(updownbranch[[2]]) ) ) 
+                (-1) * ( sum( counts[[which.taxa[[1]]]][[which.taxa[[2]]]][[which.frame]] * log(updownbranch[[1]]) ) + sum( counts[[which.taxa[[2]]]][[which.taxa[[1]]]][[which.frame]] * log(updownbranch[[2]]) ) ) 
                 + 100*(sum(initfreqs)-1)^2
             )
 }
 
+initparams <- c( rel.tlen=0.5, 6e6*rep(1e-8,nmuts)/30, rep(1/nfreqs,nfreqs) )  # reasonable for hu-ch?
+stopifnot( is.finite( likfun(initparams) ) )
 
 save( lwin, rwin, win, winlen, boundary, meanboundary, gmfile, projmatrix, subtransmatrix, counts, initcounts, file=countfile )
 
