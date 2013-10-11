@@ -10,7 +10,7 @@ option_list <- list(
         make_option( c("-w","--win"), type="integer", default=2, help="Size of matching window. [default \"%default\"]" ),
         make_option( c("-l","--lwin"), type="integer", default=1, help="Size of left-hand context. [default \"%default\"]" ),
         make_option( c("-r","--rwin"), type="integer", default=1, help="Size of left-hand context. [default \"%default\"]" ),
-        make_option( c("-x","--maxit"), type="integer", default=10, help="Maximum number of iterates in optim for point estimate. [default \"%default\"]" ),
+        make_option( c("-x","--maxit"), type="integer", default=0, help="Maximum number of iterates in optim for point estimate. [default \"%default\"]" ),
         make_option( c("-n","--nbatches"), type="integer", default=200, help="Number of MCMC batches. [default \"%default\"]" ),
         make_option( c("-b","--blen"), type="integer", default=1, help="Length of each MCMC batch. [default \"%default\"]" ),
         make_option( c("-s","--stepscale"), type="numeric", default=1e-4, help="Scale of proposal steps for Metropolis algorithm. [default \"%default\"]" ),
@@ -31,7 +31,7 @@ winlen <- lwin+win+rwin
 
 if (gmfile=="TRUE") { gmfile <- paste(paste("genmatrices/genmatrix",winlen,boundary,meanboundary,sep="-"),".RData",sep='') }
 
-if (logfile!="") {
+if (!interactive() & logfile!="") {
     logfile <- gsub(".RData",".Rout",infile,fixed=TRUE)
     logcon <- if (logfile=="-") { stdout() } else { file(logfile,open="wt") }
     sink(file=logcon, type="message", split=interactive()) 
@@ -134,26 +134,32 @@ stopifnot( all( sapply( seq_along( counts[[1]][[1]] ), function (which.frame) { 
 lbs <- c( 1e-6, rep(0,nmuts), rep(1e-6,nfreqs) )
 ubs <- c( 1, rep(20,nmuts), rep(1,nfreqs) )
 
-frame.ans <- mclapply( seq_along( counts[[1]][[1]] ), function (which.frame) {
-            ans <- optim( par=initparams, fn=likfun, which.frame=which.frame, method="L-BFGS-B", lower=lbs, upper=ubs, 
-                    control=list(fnscale=abs(likfun(initparams,which.frame=1)), maxit=maxit, parscale=initparams ) )
-         }, mc.cores=3 )
+if (maxit>0) {
+    frame.ans <- mclapply( seq_along( counts[[1]][[1]] ), function (which.frame) {
+                ans <- optim( par=initparams, fn=likfun, which.frame=which.frame, method="L-BFGS-B", lower=lbs, upper=ubs, 
+                        control=list(fnscale=abs(likfun(initparams,which.frame=1)), maxit=maxit, parscale=initparams ) )
+             }, mc.cores=3 )
+} else  {
+    frame.ans <- NULL
+}
 
 
 #####
 # set up mcmc
+require(mcmc)
 mmeans <- c( rep(mmean,nmuts-1), cpgmean )
 ppriors <- rep( pprior, nfreqs )
 tpriors <- rep( tprior, 2 )
-lud <- function (params) {
+patfreqmat <- log(initparams[1+nmuts+(1:(nfreqs-1))])[patcomp]
+dim(patfreqmat) <- dim(patcomp)
+lud <- function (params,which.frame) {
     # params are: tlen[1]/sum(tlen), sum(tlen)*mutrates, initfreqs[-length(initfreqs)]
     branchlens <- c(params[1],1-params[1])
     mutrates <- params[1+(1:nmuts)]
     initfreqs <- params[1+nmuts+(1:(nfreqs-1))]
     initfreqs <- c(initfreqs,1-sum(initfreqs))
-    patfreqs <- initfreqs[patcomp]
-    dim(patfreqs) <- dim(patcomp)
-    patfreqs <- apply( patfreqs, 1, prod )
+    patfreqmat[] <- log(initfreqs)[patcomp]
+    patfreqs <- exp( colSums( patfreqmat ) )
     if (any(mutrates<0) | any(initfreqs<0) | any(branchlens<0) ) {
         return( -Inf )
     } else {
@@ -161,8 +167,7 @@ lud <- function (params) {
         updownbranch <- getupdowntrans( genmatrix, projmatrix, mutrates=list(mutrates,mutrates), selcoef=list(numeric(0),numeric(0)), initfreqs=patfreqs, tlens=rev(branchlens) )
         # return (positive) log-posterior
         return( 
-                (-1)*sum(updownbranch[nonoverlapping[[1]]]) 
-                + sum( nov.counts[[1]] * log(updownbranch[nonoverlapping[[1]]]) ) 
+                sum( counts[[ which.taxa[[1]] ]][[ which.taxa[[2]] ]][[which.frame]] * log(updownbranch) )
                 + sum( (tpriors-1)*log(branchlens) )
                 - sum(mmeans*mutrates) 
                 + sum( (ppriors-1)*log(initfreqs) )
@@ -172,6 +177,8 @@ lud <- function (params) {
 
 # bayesian
 #  note we deal with initial freqs not summing to 1 differently from in optim( ) -- need to remove last entry.
-mrun <- metrop( lud, initial=initparams, nbatch=nbatches, blen=blen, scale=stepscale )
+frame.mrun <- mclapply( seq_along( counts[[1]][[1]] ), function (which.frame) {
+            metrop( lud, initial=initparams[-length(initparams)], nbatch=nbatches, blen=blen, scale=stepscale, which.frame=which.frame )
+        }, mc.cores=3 )
 
-save( opt, lwin, rwin, win, winlen, boundary, meanboundary, mmeans, ppriors, tpriors, gnmuts, nfreqs, npats, patcomp, mfile, projmatrix, subtransmatrix, counts, initcounts, frame.ans, mcrun, file=datafile )
+save( opt, lwin, rwin, win, winlen, boundary, meanboundary, mmeans, ppriors, tpriors, nmuts, nfreqs, npats, patcomp, gmfile, projmatrix, subtransmatrix, counts, initcounts, frame.ans, frame.mrun, file=datafile )

@@ -101,7 +101,7 @@ likfun <- function (params) {
             )
 }
 
-# using only nonoverlapping counts, plus priors -- indep't poisson.
+# using only nonoverlapping counts, plus priors -- indep't trials. (multinomial)
 mmeans <- c( rep(mmean,nmuts-1), cpgmean )
 ppriors <- rep( pprior, nfreqs )
 tpriors <- rep( tprior, 2 )
@@ -121,8 +121,8 @@ lud <- function (params) {
         updownbranch <- getupdowntrans( genmatrix, projmatrix, mutrates=list(mutrates,mutrates), selcoef=list(numeric(0),numeric(0)), initfreqs=patfreqs, tlens=rev(branchlens) )
         # return (positive) log-posterior
         return( 
-                (-1)*sum(updownbranch[nonoverlapping[[1]]]) 
-                + sum( nov.counts[[1]] * log(updownbranch[nonoverlapping[[1]]]) ) 
+                # (-1)*sum(updownbranch[nonoverlapping[[1]]]) +
+                sum( nov.counts[[1]] * log(updownbranch[nonoverlapping[[1]]]) ) 
                 + sum( (tpriors-1)*log(branchlens) )
                 - sum(mmeans*mutrates) 
                 + sum( (ppriors-1)*log(initfreqs) )
