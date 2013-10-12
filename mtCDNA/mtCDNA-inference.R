@@ -181,4 +181,4 @@ frame.mrun <- mclapply( seq_along( counts[[1]][[1]] ), function (which.frame) {
             metrop( lud, initial=initparams[-length(initparams)], nbatch=nbatches, blen=blen, scale=stepscale, which.frame=which.frame )
         }, mc.cores=3 )
 
-save( opt, lwin, rwin, win, winlen, boundary, meanboundary, mmeans, ppriors, tpriors, nmuts, nfreqs, npats, patcomp, gmfile, projmatrix, subtransmatrix, counts, initcounts, frame.ans, frame.mrun, file=datafile )
+save( opt, which.taxa, lwin, rwin, win, winlen, boundary, meanboundary, mmeans, ppriors, tpriors, nmuts, nfreqs, npats, patcomp, gmfile, projmatrix, subtransmatrix, counts, initcounts, frame.ans, frame.mrun, file=datafile )
