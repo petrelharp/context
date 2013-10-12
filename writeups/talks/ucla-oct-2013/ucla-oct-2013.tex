@@ -116,4 +116,169 @@
 %   real data?
 %   ancestral state reconstruction
 
+
+%%%%%%%%% INTRO
+\section{Introduction \& Background}
+
+\begin{frame}{The problem: context dependence}
+
+  {\struct Data:} Long (nucleotide) sequences separated by (evolutionary) time \\
+    with known (phylogenetic) relationship.
+
+  {\struct Question:} Infer properties of the model:\\
+    substitution rates; relative amounts of time.
+
+  {\struct Example:} Each site evolves independently \ldots
+
+\end{frame}
+
+
+\begin{frame}{Substitution is mutation \& selection}
+
+  formal description
+
+}
+
+% TASEP; propagation of uncertainty
+\begin{frame}{Extreme example: TASEP}
+
+
+
+\end{frame}
+
+
+\begin{frame}{Propagation of dependency}
+
+\end{frame}
+
+
+% e^tG; previous work
+\begin{frame}{Idealized solution}
+
+  $e^{tG}$
+
+\end{frame}
+
+\begin{frame}{Previous work}
+
+  list these
+
+\end{frame}
+
+% Assumptions and not
+\begin{frame}{Assumptions}
+
+  Assume:
+
+    homogeneity
+
+
+  Do not assume:
+
+    stationarity
+
+    reversibility
+
+\end{frame}
+
+
+%%%%%%%%% METHODS
+\section{Statistical \& Computational Methods}
+
+%   restrict to pattern frequencies: partial likelihood
+\begin{frame}{Larger windows?}
+
+  Pattern counting
+
+  Partial/pseudo-likelihood.
+
+\end{frame}
+
+
+%   still missing edge effects: marginalize over window
+%     node average boundary
+\begin{frame}{Still missing those edge effects}
+
+  Trim the bottom window.
+
+\end{frame}
+
+
+%   asymptotically correct: propagation of dependency
+\begin{frame}{Asymptotic correctness}
+  picture proof
+\end{frame}
+
+%   likelihood function
+\begin{frame}{Inference framework: likelihood function}
+
+  single branch; time is confounded with mutation
+
+  given parameters:
+    
+    mutation patterns
+
+    selection patterns (and form)
+
+
+  and:
+
+    set of patterns
+
+    set of positions
+
+
+  likelihood is: (multinomial)
+
+\end{frame}
+
+%   computation: sparse matrices
+\begin{frame}{Computation: using sparseness}
+
+\end{frame}
+
+%   phylogenetic peeling (?)
+\begin{frame}{Larger phylogenies}
+
+\end{frame}
+
+
+%%%%%%%%% APPLICATIONS
+\section{Applications}
+
+%   CpG
+\begin{frame}{Nucleotide sequence}
+
+\end{frame}
+
+%   TASEP
+\begin{frame}{Propagation of dependency: TASEP}
+
+\end{frame}
+
+%   Ising
+\begin{frame}{Statistical physics: the Ising model}
+
+\end{frame}
+
+%   real data?
+%   ancestral state reconstruction
+
+
+%%%%% ok all done
+
+\begin{frame}{Thanks}
+
+  Matt Dean
+  
+  Rasmus Nielsen
+
+  Simon Tavar\'e
+
+  Graham Coop
+
+  Sergey Nudzhin
+
+\end{frame}
+
 \end{document}
