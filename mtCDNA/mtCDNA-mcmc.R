@@ -94,16 +94,17 @@ lud <- function (params,which.frame) {
     }
 }
 
-if (length(stepscale) == 1) {
-    # steps for tlen and freqs should be larger than for mutations
-    stepscale <- stepscale * c( rel.tlen=1, 6e6*rep(1e-8,nmuts)/30, rep(1,nfreqs) )  # reasonable for hu-ch?
-}
+## SEEMS TO WORK WELL WITHOUT THIS
+# if (length(stepscale) == 1) {
+#     # steps for tlen and freqs should be larger than for mutations
+#     stepscale <- stepscale * c( rel.tlen=1, 6e6*rep(1e-8,nmuts)/30, rep(1,nfreqs-1) )  # reasonable for hu-ch?
+# }
 
 frame.mrun <- mclapply( seq_along( counts[[1]][[1]] ), function (which.frame) {
             metrop( lud, initial=initparams, nbatch=nbatches, blen=blen, scale=stepscale, which.frame=which.frame )
         }, mc.cores=3 )
 
-save( which.taxa, lwin, win, rwin, boundary, meanboundary, mmeans, ppriors, tpriors, patcomp, gmfile, frame.mrun, file=outfile )
+save( opt, which.taxa, lwin, win, rwin, boundary, meanboundary, mmeans, ppriors, tpriors, patcomp, gmfile, frame.mrun, file=outfile )
 
 if (FALSE) {
     # rejigger this
