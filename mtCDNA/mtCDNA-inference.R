@@ -31,13 +31,6 @@ winlen <- lwin+win+rwin
 
 if (gmfile=="TRUE") { gmfile <- paste(paste("genmatrices/genmatrix",winlen,boundary,meanboundary,sep="-"),".RData",sep='') }
 
-if (!interactive() & logfile!="") {
-    logfile <- gsub(".RData",".Rout",infile,fixed=TRUE)
-    logcon <- if (logfile=="-") { stdout() } else { file(logfile,open="wt") }
-    sink(file=logcon, type="message", split=interactive()) 
-    sink(file=logcon, type="output", split=interactive())   # send both to log file
-}
-
 if (countfile=="") { countfile <- paste(paste("countdata/counts",lwin,win,rwin,sep="-"),".RData",sep="") }
 
 
@@ -56,6 +49,13 @@ basedir <- gsub(".nuc","",infile,fixed=TRUE)
 if (!file.exists(basedir)) { dir.create(basedir) }
 basename <- paste(basedir,"/win-",lwin,"-",win,"-",rwin,sep='')
 datafile <- paste( basename ,"-results.RData",sep='')
+
+if (logfile=="") {
+    logfile <- gsub(".RData",".Rout",datafile,fixed=TRUE)
+    logcon <- if (logfile=="-") { stdout() } else { file(logfile,open="wt") }
+    sink(file=logcon, type="message", split=interactive()) 
+    sink(file=logcon, type="output", split=interactive())   # send both to log file
+}
 
 
 if (file.exists(gmfile)) {
