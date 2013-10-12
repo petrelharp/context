@@ -10,8 +10,9 @@ option_list <- list(
         make_option( c("-s","--seqlen"), type="numeric", default=NULL, help="Number of bases to simulate." ),
         make_option( c("-m","--baserates"), type="character", default=NULL, help="Single base transition rate (or list of twelve rates for A->T A->C A->G T->C T->G C->G T->A C->A G->A C->T G->T G->C). [default indep't Uniform[0,1]]" ),
         make_option( c("-c","--cpgrate"), type="numeric", default=NULL, help="Additional CpG rate. [default 20*Uniform[0,1]]"),
-        make_option( c("-f","--initfreqs"), type="character", default="c(.25,.25,.25,.25)", help="Initial base frequencies. [default \"%default\"]"),
-        make_option( c("-o","--logfile"), type="character", default="", help="Direct output to this file. [default appends -simrun.Rout]" )
+        make_option( c("-f","--initfreqs"), type="character", default="c(.25,.25,.25,.25)", help="Initial base frequencies, (A,T,C,G). [default \"%default\"]"),
+        make_option( c("-d","--simdir"), type="character", default="cpg-sims/", help="Direct output to this directory [default \"%default\"]"),
+        make_option( c("-o","--logfile"), type="character", default="", help="Direct loggin output to this file. [default appends -simrun.Rout]" )
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 if (interactive()) { opt$tlen <- .1; opt$seqlen <- 150 }
@@ -24,7 +25,6 @@ if (is.null(names(opt$cpgrate))) { names(opt$cpgrate) <- "CpG" }
 opt$initfreqs <- eval(parse(text=opt$initfreqs))
 attach(opt)
 
-simdir <- "cpg-sims/"
 if (!file.exists(simdir)) { dir.create(simdir,recursive=TRUE) }
 
 # identifiers
