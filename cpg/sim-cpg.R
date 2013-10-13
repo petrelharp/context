@@ -26,6 +26,8 @@ if (is.null(names(opt$cpgrate))) { names(opt$cpgrate) <- "CpG" }
 opt$initfreqs <- eval(parse(text=opt$initfreqs))
 attach(opt)
 
+stopifnot( length( baserates ) == length( baserate.names ) & ( length(cpgrate) == 1 ) )
+
 if (!file.exists(simdir)) { dir.create(simdir,recursive=TRUE) }
 
 # identifiers
