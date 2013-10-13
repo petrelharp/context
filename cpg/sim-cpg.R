@@ -17,9 +17,10 @@ option_list <- list(
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 if (interactive()) { opt$tlen <- .1; opt$seqlen <- 150 }
 if ( (is.null(opt$tlen) | is.null(opt$seqlen)) ) { stop("Rscript sim-cpg.R -h for help.") }
-if (is.null(opt$baserates)) { opt$baserates <- runif(12); names(opt$baserates) <- c("A->T", "A->C", "A->G", "T->C", "T->G", "C->G", "T->A", "C->A", "G->A", "C->T", "G->T", "G->C") }
+baserate.names <- c("A->T", "A->C", "A->G", "T->C", "T->G", "C->G", "T->A", "C->A", "G->A", "C->T", "G->T", "G->C")
+if (is.null(opt$baserates)) { opt$baserates <- runif(length(baserate.names)); names(opt$baserates) <- baserate.names }
 if (is.character(opt$baserates)) { opt$baserates <- eval(parse(text=opt$baserates)) }
-if (length(opt$baserates)==1) { opt$baserates <- rep(opt$baserates,6) }
+if (length(opt$baserates)==1) { opt$baserates <- rep(opt$baserates,12); names(opt$baserates) <- baserate.names }
 if (is.null(opt$cpgrate)) { opt$cpgrate <- 20*runif(1) }
 if (is.null(names(opt$cpgrate))) { names(opt$cpgrate) <- "CpG" }
 opt$initfreqs <- eval(parse(text=opt$initfreqs))

@@ -47,8 +47,8 @@ plotfile <- paste( basename ,"-plot",sep='')
 singlebase <- ( sapply( lapply( lapply( mutpats, lapply, nchar ), unlist ), max ) == 1 )
 orig.mutpats <- mutpats
 orig.mutrates <- mutrates
-c.to.t <- ( sapply( lapply(mutpats, "[[", 1), "[", 1 ) == "C" ) & ( sapply( lapply(mutpats, "[[", 1), "[", 1 ) == "T" )
-g.to.a <- ( sapply( lapply(mutpats, "[[", 1), "[", 1 ) == "G" ) & ( sapply( lapply(mutpats, "[[", 1), "[", 1 ) == "A" )
+c.to.t <- ( sapply( lapply(mutpats, "[[", 1), "[", 1 ) == "C" ) & ( sapply( lapply(mutpats, "[[", 1), "[", 2 ) == "T" )
+g.to.a <- ( sapply( lapply(mutpats, "[[", 1), "[", 1 ) == "G" ) & ( sapply( lapply(mutpats, "[[", 1), "[", 2 ) == "A" )
 mutrates[ c.to.t ] <- mutrates[ c.to.t ] + mutrates[ !singlebase ] * initfreqs[match("C",bases)]
 mutrates[ g.to.a ] <- mutrates[ g.to.a ] + mutrates[ !singlebase ] * initfreqs[match("G",bases)]
 mutpats <- mutpats[ singlebase ]
