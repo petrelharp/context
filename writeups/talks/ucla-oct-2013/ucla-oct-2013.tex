@@ -7,6 +7,11 @@
 \newcommand\tLL[1]{\multicolumn{1}{|c}{#1}}
 \newcommand\tRR[1]{\multicolumn{1}{c|}{#1}}
 \newcommand\tLR[1]{\multicolumn{1}{|c|}{#1}}
+% nucleotides:
+\newcommand{\nA}{\mbox{A}}  
+\newcommand{\nC}{\mbox{C}}
+\newcommand{\nG}{\mbox{G}}
+\newcommand{\nT}{\mbox{T}}
 
 % This file is a solution template for:
 
@@ -585,33 +590,149 @@ O&O&O&O&X&O&O&X&X&X&O&O&X&O&X&X&O&O&X&O&O&O&O&O&O&O&O&O&O&O&O&O&O&X&O&X&X&O&X&O&
 %   likelihood function
 \begin{frame}{Inference framework: recap}
 
-  single branch; time is confounded with mutation
+  {\struct So far:} 
+  can compute a partial likelihood for time series observations. \\
+  (i.e.\ a single branch; total time confounded with overall mutation rate)
 
-  given parameters:
-    
-    mutation patterns
+  \vspace{1em}
 
-    selection patterns (and form)
+  {\struct Goal:} 
+  Infer mutation rates, selection coefficients, time (confounded).
 
+  \vspace{1em}
 
-  and:
+  {\struct Options:} \\
+  \begin{itemize}
 
-    set of patterns
+    \item Count patterns at all positions, \\
+      do maximum likelihood \\
+      $\longrightarrow$ uses all the data, faster
 
-    set of positions
+    \item Only count in nonoverlapping windows, \\
+      add priors, MCMC \\
+      $\longrightarrow$ obtains credible intervals
 
+  \end{itemize}
 
-  likelihood is: (multinomial)
+  {\struct Questions:} \\
+  \begin{itemize}
+
+    \item How large a window $(w,r)$ is feasible?
+
+    \item What about phylogenetics?
+
+  \end{itemize}
+  
 
 \end{frame}
 
 %   computation: sparse matrices
 \begin{frame}{Computation: using sparseness}
 
+  Likelihood requires, for $a \in \{A,C,G,T\}^w$ and $c \in \{A,C,G,T\}^r$,
+  \[
+  \sum_{b \supset c} \left( e^{tG} \right)_{ab} = ( \underset{\scriptstyle 4^w \times 4^w}{e^{tG}} \quad  \underset{\scriptstyle 4^w \times 4^r}{P} )_{ac} 
+  \]
+  where:
+  \begin{itemize}
+    \item $G$ is matrix of mutation rates --\\
+      each row has $w$ nonzero entries if only single-base changes
+    \item $P$ is projection matrix --\\
+      each row has exactly one `1' .
+  \end{itemize}
+
+  {\struct Tools:} 
+  \begin{itemize}
+
+    \item Krylov methods for matrix exponentiation --\\
+      evaluates $e^{tA} v$ with only 5--10 multiplications of a vector by $A$ \\
+      {\aside (Sidje 1998; expm in R)}
+
+    \item sparse matrix methods 
+      {\aside (Matrix package in R)}
+
+    \item efficient updating of $G$ with new parameters --\\
+      nonzero entries are linear combinations of mutation rates.
+    
+  \end{itemize}
+
 \end{frame}
 
 %   phylogenetic peeling (?)
-\begin{frame}{Larger phylogenies}
+\begin{frame}{What about phylogenetics?}
+
+  \begin{columns}[c]
+    \begin{column}{.5\textwidth}
+
+  If observations are on the tips of a tree, 
+  add root frequencies to parameters,
+  and peel towards tip with ``long'' observations:
+  \begin{align*}
+    M^1_{u,z} &= \pi_u \left( e^{t_C G} P \right)_{uz} \\
+    M^2_{v,z} &= \sum_u \left( e^{t_{AB} G} \right)_{uv} M^1_{u,z} \\
+    M^3_{v,y,z} &= \left( e^{t_B G} P \right)_{vy} M^2_{v,z} \\
+    M^4_{x,y,z} &= \sum_v \left( e^{t_A G} P \right)_{vx} M^3_{v,y,z} \\
+    \mathcal{L} &= \sum_{x,y,z} n(x,y,z) \log M^4_{x,y,z}
+  \end{align*}
+
+  \vspace{1em}
+
+  {\newthing Note:} Need not use all $(x,y,z)$.
+
+    \end{column}
+    \begin{column}{.5\textwidth}
+
+  \includegraphics[width=\textwidth]{../../peeling-schematic}
+
+  \vspace{2em}
+
+  \begin{center}
+  \small
+  \begin{tabular}{cccc}
+    $x$ & $y$ & $z$ & $n(x,y,z)$ \\
+    \hline
+    AAA & $\cdot$A$\cdot$ & $\cdot$A$\cdot$ & 1023 \\
+    AAA & $\cdot$A$\cdot$ & $\cdot$C$\cdot$ & 42 \\
+    AAA & $\cdot$C$\cdot$ & $\cdot$A$\cdot$ & 5  \\
+    \vdots & \vdots & \vdots & \vdots 
+  \end{tabular}
+  \end{center}
+
+    \end{column}
+  \end{columns}
+
+\end{frame}
+
+\begin{frame}{Computation: upshot}
+
+  $G$ is sparse and large; $e^{tG}$ is dense, and large -- \\
+  \hspace{3em} but, only ever compute smaller dense matrices.
+
+  \vspace{1em}
+
+  {\struct Choices:}
+  \begin{itemize}
+    \item Long ($w$) and short ($r$) pattern sizes
+    \item Set of short patterns: maximize information
+  \end{itemize}
+
+  \vspace{1em}
+
+  {\struct Memory usage:} constant times the (pattern count) data.
+
+  \vspace{1em}
+
+  {\struct Computational time:} $O(w 4^{w} (\#\text{short patterns}))$ operations 
+  \begin{itemize}
+    \item $(w=5,r=1) \longrightarrow$  a second
+    \item $(w=8,r=2) \longrightarrow$  a minute
+  \end{itemize}
+
+  \vspace{1em}
+
+  {\struct Feasible:} window sizes, nearest neighbor context \\
+  \hspace{3em} $w=4$: mean density of mutations ${} < 0.5$ per site\\
+  \hspace{3em}   $w=8$: mean density of mutations ${} < 2$ per site
 
 \end{frame}
 
@@ -619,18 +740,120 @@ O&O&O&O&X&O&O&X&X&X&O&O&X&O&X&X&O&O&X&O&O&O&O&O&O&O&O&O&O&O&O&O&O&X&O&X&X&O&X&O&
 %%%%%%%%% APPLICATIONS
 \section{Applications}
 
-%   CpG
-\begin{frame}{Nucleotide sequence}
+\begin{frame}{Applications}
+
+  Simulation:
+  \begin{itemize}
+    \item phylogenetics: single-base rates $+$ CpG 
+    \item statistical physics: Ising model
+  \end{itemize}
+
+  \vspace{3em}
+
+  Real data:
+  \begin{itemize}
+    \item now running
+    \item \ldots ideas.
+  \end{itemize}
 
 \end{frame}
 
-%   TASEP
-\begin{frame}{Propagation of dependency: TASEP}
+%   CpG
+\begin{frame}{Nucleotide sequence: model}
+
+  Simulated $10^6$ bases on a tree of length 1, \\
+  with one branch twice as long as the other,\\
+  equal base frequencies at the root,
+  and mutation rates
+  {\small
+  \begin{center}
+    \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }c}
+      $u$  &  $v$  &  $\mu$  \\
+      \hline
+       A & T   &  0.15  \\
+       A & C   &  0.15  \\
+       \vdots & \vdots & \vdots \\
+       G & C &  0.15  \\
+      CG   &  TG   &  0.45 \\
+      CG   &  CA   &  0.45 
+    \end{tabular}
+  \end{center}
+  }
+
+  \vspace{2em}
+
+  $\longrightarrow$ sequence divergence above 15\% $\longleftarrow$
+  
+  \vspace{2em}
+
+  ({\struct note:} CpG rate is 5--30 times background rate\ldots\\
+  \hspace{3em} but, not modeling methylation.)
+
+\end{frame}
+
+\begin{frame}{Nucleotide sequence: results}
+
+  Priors on the 17 parameters; MCMC to get posterior distribution;\\
+  \hspace{2em} length-two windows: $w=5$ and $r=1$
+
+  \begin{center}
+\includegraphics[width=\textwidth]{../../../writeup-plots/selsims-2013-06-03-13-17-0187525-estimate-boxplots}
+\end{center}
 
 \end{frame}
 
 %   Ising
-\begin{frame}{Statistical physics: the Ising model}
+\begin{frame}{Statistical physics: model}
+
+  Ising model, with Glauber dynamics: \\
+  \hspace{2em} sites are $\pm $ ``magnetic dipoles''; \\
+  \hspace{2em}   energy of a configuration $x$ is $s(x) = - \beta \sum_i x_i x_{i+1} - \gamma \sum_i x_i$; \\
+   \hspace{2em}  local perturbations resolve proportional to $e^{-\Delta s}$
+
+   \vspace{2em}
+
+   Mutations: $(+ \to -)$ and $(- \to +)$ at rate 1
+
+   \vspace{2em}
+
+  Selection: probability of fixation $f(s) = 1/(1+e^{-s})$, \\
+  \hspace{3em} ``selection'' coefficients
+  \begin{center}
+    \begin{tabular}{c|c}
+      $u$  &  $s(u)$ \\
+      \hline
+      $+$ & $+\gamma$ \\
+      $-$ & $-\gamma$ \\
+      $--$, $++$  & $+\beta$ \\
+      $-+$, $+-$  & $-\beta$ 
+    \end{tabular}
+  \end{center}
+
+\end{frame}
+
+
+\begin{frame}{Statistical physics: results}
+  \begin{columns}[c]
+    \begin{column}{.4\textwidth}
+
+      With $\lambda = \beta = \gamma = 1$ and $t = 0.1$  ($\approx$ 13\% sites differ), $10^6$ sites; \\
+
+      \vspace{1em}
+
+      $w=9$ and $r=3$;
+
+      \vspace{1em}
+
+      MCMC over posterior distribution:
+
+
+    \end{column}
+    \begin{column}{.6\textwidth}
+
+  \includegraphics[width=\textwidth]{../../../writeup-plots/selsims-2013-05-28-17-12-0275615-estimate-hists}
+
+    \end{column}
+  \end{columns}
 
 \end{frame}
 
@@ -644,9 +867,20 @@ O&O&O&O&X&O&O&X&X&X&O&O&X&O&X&X&O&O&X&O&O&O&O&O&O&O&O&O&O&O&O&O&O&X&O&X&X&O&X&O&
 %   ancestral state reconstruction
 \begin{frame}{Other applications}
 
-  Ancestral state reconstruction
+  Ancestral state reconstruction \\
+  \hspace{2em} deep in the tree
+    
+  \vspace{3em}
 
-  Ancestral methylation inference
+  Ancestral methylation inference\\
+  \hspace{2em} CG $\to$ TG or CA rate depends on methylation state \\
+  \hspace{2em} \ldots so branch-specific mutation rate infers methylation
+    
+  \vspace{3em}
+
+  Context-dependent effects:\\
+  \hspace{2em} transcription or repair machinery effects? \\
+  \hspace{2em} {\aside (recently, Harris \& Nielsen 2013; Schrider et al 2011; Terekhanova et al 2013)}
 
 \end{frame}
 

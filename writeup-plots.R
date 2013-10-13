@@ -5,7 +5,7 @@ require(mcmc)
 
 
 ##########
-## Tree CpG, with CpG = 0
+## Ising
 infile <- "ising/ising-sims/selsims-2013-05-28-17-12-0275615.RData"
 
 basedir <- gsub(".RData","",infile,fixed=TRUE)
@@ -47,6 +47,18 @@ for (k in 1:3) {
     hist( all.mrun[,thisone], main='', xlab=paste("posterior distribution of",plotthese[k]) )
     abline(v=truth[thisone], col='red')
 }
+dev.off()
+
+# for talk
+pdf(file=paste(plotfile,"-estimate-hists.pdf",sep=''),width=3,height=3,pointsize=10)
+par(mar=c(4,3,.3,0)+.1,mgp=c(2.1,1,0))
+tmp <- sweep(all.mrun[,1:3],2,truth,"/")
+names(tmp) <- varnames
+hist(tmp[,1],breaks=50,col=adjustcolor('grey',.5), border=adjustcolor("black",.5), xlim=c(.95,1.05), main='', ylab='posterior density', freq=FALSE)
+hist(tmp[,2],breaks=50,col=adjustcolor("blue",.5),border=adjustcolor("black",.25), add=TRUE, freq=FALSE)
+hist(tmp[,3],breaks=50,col=adjustcolor("red",.5),border=adjustcolor("black",.5), add=TRUE, freq=FALSE)
+abline(v=1,lwd=2)
+legend( "topleft", fill=c(adjustcolor('grey',.5),adjustcolor("blue",.5),adjustcolor("red",.5)), legend=as.expression(varnames) )
 dev.off()
 
 ##########
@@ -114,4 +126,52 @@ for (k in 1:3) {
     hist( all.mrun[,thisone], main='', xlab=paste("posterior distribution of",plotthese[k]) )
     abline(v=truth[thisone], col='red')
 }
+dev.off()
+
+##########
+## Tree CpG with CpG larger
+infile <- "tree-cpg/cpg-tree-sims/selsims-2013-06-03-13-17-0187525.RData"
+
+basedir <- gsub(".RData","",infile,fixed=TRUE)
+load(infile)
+
+lwin <- rwin <- 2; win <- 1
+basename <- paste(basedir,"/win-",lwin,"-",win,"-",rwin,sep='')
+datafile <- paste( basename ,"-results.RData",sep='')
+plotfile <- paste( "writeup-plots/", basename(basedir), sep='')
+mcmcdatafiles <- list.files(path=basedir,pattern="-mcmc.*RData",full.names=TRUE)
+mcmcnum <- 1+max(c(0,as.numeric(gsub(".*-mcmc-","",gsub(".RData","",mcmcdatafiles)))),na.rm=TRUE)
+
+load(datafile)
+
+varnames <- c( "branchlen", 
+                paste("mut:", unlist( sapply( sapply( mutpats, lapply, paste, collapse="->" ), paste, collapse=" | " ) ) ), 
+                names(initfreqs)[-length(initfreqs)] 
+            )
+
+all.mrun <- do.call( rbind, lapply( seq_along(mcmcdatafiles), function (k) {
+            load(mcmcdatafiles[[k]])
+            tmp <- data.frame( mrun$batch )
+            names(tmp) <- varnames
+            tmp$mcmcnum <- k
+            tmp
+        } ) )
+
+subseq <- seq(1,nrow(all.mrun),by=max(1,floor(nrow(all.mrun)/1000)))
+
+x <- rbind( all.mrun[subseq,(-1)*match("mcmcnum",colnames(all.mrun))], truth ) 
+cols <- c( adjustcolor(rainbow(64),.3)[1+floor(65*(1:(nrow(x)-1))/nrow(x))], adjustcolor("black",.5) )
+
+
+pdf(file=paste(plotfile,"-estimate-boxplots.pdf",sep=''),width=5,height=3,pointsize=10)
+layout(t(1:2))
+par(mar=c(6,3,.3,0)+.1,mgp=c(2.1,1,0))
+tmp <- subset(all.mrun,mcmcnum==5)
+names(tmp) <- gsub("mut: ","",names(tmp))
+names(tmp)[1+13] <- "CG->TG/CA"
+names(tmp)[1] <- "branch len"
+boxplot( tmp[,2:13], las=3, ylab="scaled mutation rate", ylim=c(0,.2) )
+abline(h=.15,col='red',lwd=2)
+boxplot( tmp[,c(1+13,1,1+14:16)] ,las=3, ylim=c(.2,.5))
+segments(x0=(1:5)-.5,x1=(1:5)+.5,y0=truth[c(1+13,1,1+14:16)],col='red',lwd=2)
 dev.off()
