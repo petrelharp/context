@@ -175,7 +175,7 @@ changepos <- function (mutpats) {
     lapply( mutpats, lapply, function (x) { which(do.call("!=",strsplit(x,"")) ) } )
 }
 
-show.simseq <- function (x,printit=FALSE,maxchar=1e8) { 
+show.simseq <- function (x,printit=FALSE,maxchar=min(nchar(x$initseq),200),latex=FALSE) { 
     # display the output of simulation by lowercasing or replacing with "." bases that didn't change
     x$initseq <- subseq(x$initseq,1,maxchar)
     fseq <- BString( subseq(x$finalseq,1,maxchar) )
@@ -191,11 +191,21 @@ show.simseq <- function (x,printit=FALSE,maxchar=1e8) {
         }
         fseq[!eventlocs] <- "."
     }
-    if (printit) {
-        cat(paste(as.character(x$initseq),"\n",sep=''))
-        cat(paste(as.character(fseq),"\n",sep=''))
+    outstrings <- c( 
+            paste(as.character(x$initseq),"\n",sep=''), 
+            paste(as.character(fseq),"\n",sep='')
+        )
+    if (latex) {
+        outstrings <- gsub("&\n&$", "\\\\\\\\\n", gsub( "^&", "", gsub("\\.","\\$\\\\centerdot\\$", gsub("","&", outstrings ) ) ) )
+        outstrings <- paste( c( 
+                paste( "\\begin{center} \\setlength{\\tabcolsep}{0pt} \\begin{tabular}{",
+                    paste(rep('c',nchar(outstrings[[1]])),collapse=''), "}\n", sep='' ),
+                outstrings,
+                "\\end{tabular} \\end{center} \n" 
+            ), collapse="" )
     }
-    return(invisible(fseq))
+    if (printit) { lapply( outstrings, cat ) }
+    return(invisible(outstrings))
 } 
 
 print.simseq <- function (x,...) {
