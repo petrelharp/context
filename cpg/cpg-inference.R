@@ -29,7 +29,7 @@ if (gmfile=="TRUE") { gmfile <- paste(paste("genmatrices/genmatrix",winlen,bound
 
 if (is.null(infile)) { cat("Run\n  cpg-inference.R -h\n for help.") }
 
-if (logfile!="" & !interactive()) { 
+if (logfile=="" & !interactive()) { 
     logfile <- gsub(".RData",".Rout",infile,fixed=TRUE)
     logcon <- if (logfile=="-") { stdout() } else { file(logfile,open="wt") }
     sink(file=logcon, type="message") 
