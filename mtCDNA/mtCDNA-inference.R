@@ -7,6 +7,7 @@ Infer parameters from output of sim-tree-cpg.R .\
 
 option_list <- list(
         make_option( c("-i","--infile"), type="character", default="mtCDNApri-sub.nuc", help=".nuc file with data. [default \"%default\"]"),
+        make_option( c("-f","--basedir"), type="character", default="", help="Directory for output. [default infile with suffix removed]"),
         make_option( c("-w","--win"), type="integer", default=2, help="Size of matching window. [default \"%default\"]" ),
         make_option( c("-l","--lwin"), type="integer", default=1, help="Size of left-hand context. [default \"%default\"]" ),
         make_option( c("-r","--rwin"), type="integer", default=1, help="Size of left-hand context. [default \"%default\"]" ),
@@ -33,6 +34,8 @@ if (gmfile=="TRUE") { gmfile <- paste(paste("genmatrices/genmatrix",winlen,bound
 
 if (countfile=="") { countfile <- paste(paste("countdata/counts",lwin,win,rwin,sep="-"),".RData",sep="") }
 
+if (basedir=="") { basedir <- gsub(".nuc","",infile,fixed=TRUE) }
+
 
 # took mtCDNApri.nuc from paml/examples/mtCDNA
 #  and: removed extra spaces on first line (only one space between numbers)
@@ -45,7 +48,6 @@ scriptdir <- "../"
 source(paste(scriptdir,"codon-inference-fns.R",sep=''))
 source(paste(scriptdir,"sim-context-fns.R",sep=''))
 
-basedir <- gsub(".nuc","",infile,fixed=TRUE)
 if (!file.exists(basedir)) { dir.create(basedir) }
 basename <- paste(basedir,"/win-",lwin,"-",win,"-",rwin,sep='')
 datafile <- paste( basename ,"-results.RData",sep='')
