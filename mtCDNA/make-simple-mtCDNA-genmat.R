@@ -6,7 +6,7 @@ Pre-compute a generator matrix for the process with codon -> codon transitions.\
 "
 
 option_list <- list(
-        make_option( c("-s","--outfile"), type="character", default="", help="Save resulting matrix in this file.  [default: genmatrix-winlen-boundary-meanboundary.RData]" ),
+        make_option( c("-s","--outfile"), type="character", default="", help="Save resulting matrix in this file.  [default: simple-genmatrices/genmatrix-winlen-boundary-meanboundary.RData]" ),
         make_option( c("-w","--winlen"), type="integer", default=3, help="Size of matching window. [default \"%default\"]" ),
         make_option( c("-b","--boundary"), type="character", default="none", help="Boundary conditions. [default \"%default\"]" ),
         make_option( c("-m","--meanboundary"), type="integer", default=0, help="Average over this many neighboring bases. [default \"%default\"]" ),
@@ -17,8 +17,8 @@ attach(opt)
 options(error=traceback)
 
 if (outfile=="") { 
-    if (!file.exists("genmatrices")) { dir.create("genmatrices") }; 
-    outfile <- paste(paste("genmatrices/genmatrix",winlen,boundary,meanboundary,sep="-"),".RData",sep='') 
+    if (!file.exists("simple-genmatrices")) { dir.create("simple-genmatrices") }; 
+    outfile <- paste(paste("simple-genmatrices/genmatrix",winlen,boundary,meanboundary,sep="-"),".RData",sep='') 
 }
 basename <- gsub(".RData",'',outfile)
 if (logfile=="" & !interactive()) { logfile <- paste(basename,"-simrun.Rout",sep='') }
