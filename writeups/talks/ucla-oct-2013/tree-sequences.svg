@@ -14,7 +14,7 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.48.4 r9939"
-   sodipodi:docname="tree-sequences-4.pdf">
+   sodipodi:docname="tree-sequences-5.pdf">
   <defs
      id="defs4">
     <marker
@@ -82,10 +82,10 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="2.8"
-     inkscape:cx="128.00817"
+     inkscape:cx="64.25817"
      inkscape:cy="117.91579"
      inkscape:document-units="px"
-     inkscape:current-layer="layer4"
+     inkscape:current-layer="layer6"
      showgrid="false"
      units="in"
      fit-margin-top="0"
@@ -93,10 +93,10 @@
      fit-margin-right="0"
      fit-margin-bottom="0"
      inkscape:window-width="1600"
-     inkscape:window-height="841"
+     inkscape:window-height="900"
      inkscape:window-x="0"
-     inkscape:window-y="27"
-     inkscape:window-maximized="1" />
+     inkscape:window-y="0"
+     inkscape:window-maximized="0" />
   <metadata
      id="metadata7">
     <rdf:RDF>
@@ -113,7 +113,8 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-3.2487411,-799.29725)">
+     transform="translate(-3.2487411,-799.29725)"
+     style="display:none">
     <path
        style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="M 237.38585,189.69287 117.68277,29.583694 27.779195,155.34769"
@@ -179,12 +180,24 @@
          id="tspan2993"
          x="130.30969"
          y="820.02466">GTCATTACGC</tspan></text>
+    <text
+       transform="translate(-3.2487411,-799.29725)"
+       sodipodi:linespacing="125%"
+       id="text3243"
+       y="1017.3191"
+       x="82.350304"
+       style="display:inline;font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+       xml:space="preserve"><tspan
+         y="1017.3191"
+         x="82.350304"
+         id="tspan3245"
+         sodipodi:role="line">GACATAAGGC</tspan></text>
   </g>
   <g
      inkscape:groupmode="layer"
      id="layer2"
      inkscape:label="single base"
-     style="display:inline">
+     style="display:none">
     <rect
        style="fill:#97cafe;fill-opacity:0.56372549;stroke:#0e00f5;stroke-width:1;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:3, 1;stroke-dashoffset:0"
        id="rect5587"
@@ -233,7 +246,7 @@
      inkscape:groupmode="layer"
      id="layer3"
      inkscape:label="context"
-     style="display:inline">
+     style="display:none">
     <rect
        style="fill:#97cafe;fill-opacity:0.56372549;stroke:#0e00f5;stroke-width:1;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:3, 1;stroke-dashoffset:0"
        id="rect5605"
@@ -277,5 +290,26 @@
        d="M 127.27922,22.278804 81.569818,84.150647"
        id="path5607"
        inkscape:connector-curvature="0" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer6"
+     inkscape:label="twoseqs">
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend)"
+       d="m 136.07143,27.176969 0,169.642861"
+       id="path3250"
+       inkscape:connector-curvature="0" />
+    <text
+       xml:space="preserve"
+       style="font-size:10px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="116.42857"
+       y="104.31983"
+       id="text4420"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan4422"
+         x="116.42857"
+         y="104.31983">t</tspan></text>
   </g>
 </svg>

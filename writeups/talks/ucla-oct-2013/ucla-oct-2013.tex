@@ -161,6 +161,7 @@
       \includegraphics<2>[width=\textwidth]{tree-sequences-2}
       \includegraphics<3>[width=\textwidth]{tree-sequences-3}
       \includegraphics<4>[width=\textwidth]{tree-sequences-4}
+      \includegraphics<5>[width=\textwidth]{tree-sequences-5}
 
     \end{column}
   \end{columns}
@@ -182,14 +183,14 @@
       \begin{align*}
         f(s(\text{new}) - s(\text{old})) ,
       \end{align*}
-      e.g.\ $f(x) = N_e (1-e^{-2 ds})/(1-e^{-2 N_e ds})$
+      e.g.\ $f(ds) = N_e (1-e^{-2 ds})/(1-e^{-2 N_e ds})$
 
     \item {\newthing Selection} is additive (and abstract):\\
-      given rules $(u_i,s_i)$,
+      given rules $(a_i,s_i)$,
       \begin{align*}
         s(x) = \sum_i s_i n_i(x),
       \end{align*}
-      with $n_i(x)$ number of times $u_i$ matches in $x$
+      with $n_i(x)$ number of times $a_i$ matches in $x$
       
 
   \end{itemize}
@@ -213,7 +214,7 @@
 
       Rate at which OXO $\to$ OXX is
       \begin{align*}
-      \gamma \, f( s(\text{OOX}) - s(\text{OXX}) ) &= \gamma \, f( -1 ) 
+      f( s(\text{OOX}) - s(\text{OXX}) ) &= f( -1 ) 
       \end{align*}
       and OXO $\to$ OOX is
       \begin{align*}
@@ -258,10 +259,10 @@ O&O&O&O&X&O&O&X&X&X&O&O&X&O&X&X&O&O&X&O&O&O&O&O&O&O&O&O&O&O&O&O&O&X&O&X&X&O&X&O&
       \begin{tabular}{c|cccc}
         & OO & OX & XO & XX \\
         \hline
-        OO & {\color{red} $\gamma$} & 1 & 1 & 0 \\
-        OX & 1 & {\color{red} 0} & $\gamma$ & 1 \\
-        XO & 1 & 0 & {\color{red} $\gamma$} & 1 \\
-        XX & 0 & 1 & 1 & {\color{red} $\gamma$} 
+        OO & -- & $f(-1)$ & $f(-1)$ & 0 \\
+        OX & $f(1)$ & -- & $\gamma f(0)$ & $f(-1)$ \\
+        XO & $f(1)$ & 0 & -- & $f(-1)$ \\
+        XX & 0 & $f(1)$ & $f(1)$ & --
       \end{tabular}
 
     \end{column}
@@ -297,7 +298,7 @@ O&O&O&O&X&O&O&X&X&X&O&O&X&O&X&X&O&O&X&O&O&O&O&O&O&O&O&O&O&O&O&O&O&X&O&X&X&O&X&O&
   \end{itemize}
   or,
   \begin{itemize}
-    \item $\text{OX} \to \text{XO}$ at rate $\gamma$
+    \item $\text{XO} \to \text{OX}$ at rate $\gamma$
   \end{itemize}
   and no selection ($s(\text{O}) = s(\text{X})$).
 
@@ -335,7 +336,11 @@ O&O&O&O&X&O&O&X&X&X&O&O&X&O&X&X&O&O&X&O&O&O&O&O&O&O&O&O&O&O&O&O&O&X&O&X&X&O&X&O&
 
       \vspace{1em}
 
-      a site is unlikely to be affected by context further way than, say, $k^2 \mu t$ .
+      a site is unlikely to be affected by context further way than, say, $k^2 \mu t$.
+
+      \vspace{1em}
+
+      i.e.\ the probability of a particular transition at a site is almost unaffected by changes further away.
 
     \end{column}
     \begin{column}{.5\textwidth}
@@ -359,7 +364,7 @@ O&O&O&O&X&O&O&X&X&X&O&O&X&O&X&X&O&O&X&O&O&O&O&O&O&O&O&O&O&O&O&O&O&X&O&X&X&O&X&O&
   Exact likelihood function, \\
   \hspace{2em} for observing sequnce $x$ evolve into $y$ in time $t$:
   \begin{align*}
-    \P\{ X_t = y | X_0 = x \} = \left( e^{tG} \right)_{xy} .
+    \mathcal{L}(\theta) = \log \P\{ X_t = y | X_0 = x, \theta \} = \log \left( e^{tG(\theta)} \right)_{xy} .
   \end{align*}
 
   \vspace{1em}
@@ -589,7 +594,7 @@ O&O&O&O&X&O&O&X&X&X&O&O&X&O&X&X&O&O&X&O&O&O&O&O&O&O&O&O&O&O&O&O&O&X&O&X&X&O&X&O&
 
   \vspace{2em}
 
-  so if $w-r$ is large enough, the number of sites for which we should have included information from sites outside $w$ is small.
+  so if $w-r$ is large enough, our computed substitution probabilities are nearly correct.
 
     \end{column}
     \begin{column}{.6\textwidth}
@@ -609,7 +614,7 @@ O&O&O&O&X&O&O&X&X&X&O&O&X&O&X&X&O&O&X&O&O&O&O&O&O&O&O&O&O&O&O&O&O&X&O&X&X&O&X&O&
 \begin{frame}{Inference framework: recap}
 
   {\struct So far:} 
-  can compute a partial likelihood for time series observations. \\
+  can compute a likelihood function for time series observations. \\
   (i.e.\ a single branch; total time confounded with overall mutation rate)
 
   \vspace{1em}
@@ -649,7 +654,7 @@ O&O&O&O&X&O&O&X&X&X&O&O&X&O&X&X&O&O&X&O&O&O&O&O&O&O&O&O&O&O&O&O&O&X&O&X&X&O&X&O&
 
   Likelihood requires, for $a \in \{A,C,G,T\}^w$ and $c \in \{A,C,G,T\}^r$,
   \[
-  \sum_{b \supset c} \left( e^{tG} \right)_{ab} = ( \underset{\scriptstyle 4^w \times 4^w}{e^{tG}} \quad  \underset{\scriptstyle 4^w \times 4^r}{P} )_{ac} 
+  \sum_{b \supset c} \left( e^{tG_w} \right)_{ab} = ( \underset{\scriptstyle 4^w \times 4^w}{e^{tG_w}} \quad  \underset{\scriptstyle 4^w \times 4^r}{P} )_{ac} 
   \]
   where:
   \begin{itemize}
@@ -709,7 +714,7 @@ O&O&O&O&X&O&O&X&X&X&O&O&X&O&X&X&O&O&X&O&O&O&O&O&O&O&O&O&O&O&O&O&O&X&O&X&X&O&X&O&
   \begin{tabular}{cccc}
     $x$ & $y$ & $z$ & $n(x,y,z)$ \\
     \hline
-    AAA & $\cdot$A$\cdot$ & $\cdot$A$\cdot$ & 1023 \\
+    AAA & $\cdot$A$\cdot$ & $\cdot$A$\cdot$ & 1073 \\
     AAA & $\cdot$A$\cdot$ & $\cdot$C$\cdot$ & 42 \\
     AAA & $\cdot$C$\cdot$ & $\cdot$A$\cdot$ & 5  \\
     \vdots & \vdots & \vdots & \vdots 
@@ -771,7 +776,6 @@ O&O&O&O&X&O&O&X&X&X&O&O&X&O&X&X&O&O&X&O&O&O&O&O&O&O&O&O&O&O&O&O&O&X&O&X&X&O&X&O&
   Real data:
   \begin{itemize}
     \item now running
-    \item \ldots ideas.
   \end{itemize}
 
 \end{frame}
@@ -781,7 +785,7 @@ O&O&O&O&X&O&O&X&X&X&O&O&X&O&X&X&O&O&X&O&O&O&O&O&O&O&O&O&O&O&O&O&O&X&O&X&X&O&X&O&
 
   Simulated $10^6$ bases on a tree of length 1, \\
   with one branch twice as long as the other,\\
-  equal base frequencies at the root,
+  % equal base frequencies at the root,
   and mutation rates
   {\small
   \begin{center}
@@ -830,7 +834,7 @@ O&O&O&O&X&O&O&X&X&X&O&O&X&O&X&X&O&O&X&O&O&O&O&O&O&O&O&O&O&O&O&O&O&X&O&X&X&O&X&O&
 
    \vspace{2em}
 
-   Mutations: $(+ \to -)$ and $(- \to +)$ at rate 1
+   Mutations: $(+ \to -)$ and $(- \to +)$ at rate $\lambda$
 
    \vspace{2em}
 
@@ -862,13 +866,16 @@ O&O&O&O&X&O&O&X&X&X&O&O&X&O&X&X&O&O&X&O&O&O&O&O&O&O&O&O&O&O&O&O&O&X&O&X&X&O&X&O&
 
       \vspace{1em}
 
-      MCMC over posterior distribution:
+      MCMC over posterior distribution
 
+      \vspace{2em}
+
+      No context $\longrightarrow$ underestimate both selection coefficients.
 
     \end{column}
     \begin{column}{.6\textwidth}
 
-  \includegraphics[width=\textwidth]{../../../writeup-plots/selsims-2013-05-28-17-12-0275615-estimate-hists}
+  \includegraphics[width=\textwidth]{../../../writeup-plots/selsims-2013-05-28-17-12-0275615-estimate-boxplots}
 
     \end{column}
   \end{columns}
@@ -896,7 +903,7 @@ O&O&O&O&X&O&O&X&X&X&O&O&X&O&X&X&O&O&X&O&O&O&O&O&O&O&O&O&O&O&O&O&O&X&O&X&X&O&X&O&
     
   \vspace{3em}
 
-  Context-dependent effects:\\
+  Multinucleotide mutations: \\
   \hspace{2em} transcription or repair machinery effects? \\
   \hspace{2em} {\aside (recently, Harris \& Nielsen 2013; Schrider et al 2011; Terekhanova et al 2013)}
 
@@ -939,6 +946,8 @@ O&O&O&O&X&O&O&X&X&X&O&O&X&O&X&X&O&O&X&O&O&O&O&O&O&O&O&O&O&O&O&O&O&X&O&X&X&O&X&O&
   Matt Dean
   
   Rasmus Nielsen
+
+  Mehmet Somel
 
   Simon Tavar\'e
 

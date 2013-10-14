@@ -53,10 +53,9 @@ for (k in 1:3) {
 }
 dev.off()
 
-# for talk
 pdf(file=paste(plotfile,"-estimate-hists.pdf",sep=''),width=3,height=3,pointsize=10)
 par(mar=c(4,3,.3,0)+.1,mgp=c(2.1,1,0))
-
+layout(t(1:3))
 for (mcnums in list( win.3.3, win.3.0, win.1.1 ) ) {
 tmp <- sweep(abs(all.mrun)[all.mrun$mcmcnum %in% mcnums,1:3],2,truth,"/")
 names(tmp) <- varnames
@@ -66,8 +65,25 @@ hist(tmp[,3],breaks=50,col=adjustcolor("red",.5),border=adjustcolor("black",.5),
 abline(v=1,lwd=2)
 legend( "topleft", fill=c(adjustcolor('grey',.5),adjustcolor("blue",.5),adjustcolor("red",.5)), legend=as.expression(c(substitute(lambda),substitute(beta),substitute(gamma))) )
 }
-
 dev.off()
+
+# for talk
+pdf(file=paste(plotfile,"-estimate-boxplots.pdf",sep=''),width=3,height=3,pointsize=10)
+par(mar=c(5,3,.3,0)+.1,mgp=c(2.1,1,0))
+tmp <- with( subset(all.mrun,mcmcnum%in%c(win.3.3, win.3.0, win.1.1)), 
+    data.frame( val=abs(c(10*lambda,beta,gamma)), mcmcnum=rep(mcmcnum,3), var=rep(c("lambda","beta","gamma"),each=length(lambda)) ) )
+tmp$window <- ""; 
+tmp$window[tmp$mcmcnum %in% win.3.3] <- "3-3-3"
+tmp$window[tmp$mcmcnum %in% win.1.1] <- "1-1-1"
+tmp$window[tmp$mcmcnum %in% win.3.0] <- "0-3-0"
+tmp$window <- factor(tmp$window,levels=c("0-3-0","1-1-1","3-3-3"))
+boxplot( val ~ var + window, at=c(1:3,5:7,9:11), data=tmp, las=3, col=adjustcolor(c("black","blue","red"),.5), xaxt='n', ylim=c(.85,1.1) )
+axis(1, at=c(2,6,9), labels=levels(tmp$window), tick=FALSE)
+abline(h=1,col='red',lwd=2)
+abline(v=c(4,8),lty=2,col='grey')
+legend( "topleft", fill=c(adjustcolor('grey',.5),adjustcolor("blue",.5),adjustcolor("red",.5)), legend=as.expression(c(substitute(lambda),substitute(beta),substitute(gamma))), bg='white' )
+dev.off()
+
 
 ##########
 ## Tree CpG, with CpG = 0
@@ -183,3 +199,4 @@ abline(h=.15,col='red',lwd=2)
 boxplot( tmp[,c(1+13,1,1+14:16)] ,las=3, ylim=c(.2,.5))
 segments(x0=(1:5)-.5,x1=(1:5)+.5,y0=truth[c(1+13,1,1+14:16)],col='red',lwd=2)
 dev.off()
+
