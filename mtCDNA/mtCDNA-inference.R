@@ -63,11 +63,7 @@ if (logfile=="") {
 if (file.exists(gmfile)) {
     load(gmfile)
 } else {
-    if (meanboundary>0) {
-        genmatrix <- meangenmatrix( lwin=1, rwin=1, patlen=winlen, mutpats=mutpats, selpats=selpats, mutrates=mutrates*tlen[1], selcoef=numeric(0), boundary=boundary )
-    } else {
-        genmatrix <- makegenmatrix( patlen=winlen, mutpats=mutpats, selpats=selpats, mutrates=mutrates*tlen[1], selcoef=numeric(0), boundary=boundary )
-    }
+    stop("Precompute generator matrix file.")
 }
 projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
 subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE )
