@@ -145,17 +145,22 @@
 
         \vspace{2em}
 
-      {\struct Goal:} Infer properties of the model:\\
-        substitution rates; relative amounts of time.
+      {\struct Process:} Sequence substitution rates depend on local context.
 
         \vspace{2em}
 
-      {\struct Example:} Each site evolves independently \ldots
+      {\struct Goal:} \\
+      Infer substitution motifs;\\
+        mutation rates; \\
+        relative amounts of time.
 
     \end{column}
     \begin{column}{.6\textwidth}
 
-      schematic of sequences evolving on the tree
+      \includegraphics<1>[width=\textwidth]{tree-sequences-1}
+      \includegraphics<2>[width=\textwidth]{tree-sequences-2}
+      \includegraphics<3>[width=\textwidth]{tree-sequences-3}
+      \includegraphics<4>[width=\textwidth]{tree-sequences-4}
 
     \end{column}
   \end{columns}
@@ -170,14 +175,21 @@
   \begin{itemize}
 
     \item {\newthing Mutation} rules $(a_i,b_i,r_i)$: \\
-      locations matching $a_i$ mutate to $b_i$ at rate $r_i$
+      locations matching $a_i$ mutate to $b_i$ at rate $r_i$ \\
 
     \item {\newthing Fixation} function: \\
-      mutations take effect with probability $f(s(\text{new}) - s(\text{old}))$, \\
-      e.g.\ $f(x) = N_e (1-e^{-2 ds})/(1-\exp{-2 N_e ds})$
+      mutations take effect with probability 
+      \begin{align*}
+        f(s(\text{new}) - s(\text{old})) ,
+      \end{align*}
+      e.g.\ $f(x) = N_e (1-e^{-2 ds})/(1-e^{-2 N_e ds})$
 
-    \item {\newthing Selection} rules $(u_i,s_i)$: for sequence $x$,\\
-      $s(x) = \sum_i s_i n_i(x)$, with $n_i(x)$ number of times $u_i$ matches in $x$
+    \item {\newthing Selection} is additive (and abstract):\\
+      given rules $(u_i,s_i)$,
+      \begin{align*}
+        s(x) = \sum_i s_i n_i(x),
+      \end{align*}
+      with $n_i(x)$ number of times $u_i$ matches in $x$
       
 
   \end{itemize}
@@ -289,6 +301,10 @@ O&O&O&O&X&O&O&X&X&X&O&O&X&O&X&X&O&O&X&O&O&O&O&O&O&O&O&O&O&O&O&O&O&X&O&X&X&O&X&O&
   \end{itemize}
   and no selection ($s(\text{O}) = s(\text{X})$).
 
+  \vspace{3em}
+
+  \uncover<3>{Speed of cars determines propagation of dependency.}
+
     \end{column}
     \begin{column}{.5\textwidth}
 
@@ -315,11 +331,11 @@ O&O&O&O&X&O&O&X&X&X&O&O&X&O&X&X&O&O&X&O&O&O&O&O&O&O&O&O&O&O&O&O&O&X&O&X&X&O&X&O&
 
       \vspace{1em}
 
-      and the expected number of such mutations per site is $n = \mu t$
+      and the expected number of such mutations per site is $\mu t$
 
       \vspace{1em}
 
-      a site is unlikely to be affected by context further way than, say, $k^2 n$ .
+      a site is unlikely to be affected by context further way than, say, $k^2 \mu t$ .
 
     \end{column}
     \begin{column}{.5\textwidth}
@@ -341,7 +357,7 @@ O&O&O&O&X&O&O&X&X&X&O&O&X&O&X&X&O&O&X&O&O&O&O&O&O&O&O&O&O&O&O&O&O&X&O&X&X&O&X&O&
   \vspace{1em}
 
   Exact likelihood function, \\
-  for observing sequnce $x$ evolve into $y$ in time $t$:
+  \hspace{2em} for observing sequnce $x$ evolve into $y$ in time $t$:
   \begin{align*}
     \P\{ X_t = y | X_0 = x \} = \left( e^{tG} \right)_{xy} .
   \end{align*}
@@ -366,6 +382,8 @@ O&O&O&O&X&O&O&X&X&X&O&O&X&O&X&X&O&O&X&O&O&O&O&O&O&O&O&O&O&O&O&O&O&X&O&X&X&O&X&O&
     \item Data augmentation: MCMC over true mutational path \\
       -- Hobolth 2008, Baele et al 2010
 
+    \item various others
+
   \end{itemize}
 
 \end{frame}
@@ -373,7 +391,7 @@ O&O&O&O&X&O&O&X&X&X&O&O&X&O&X&X&O&O&X&O&O&O&O&O&O&O&O&O&O&O&O&O&O&X&O&X&X&O&X&O&
 % Assumptions and not
 \begin{frame}{Assumptions}
 
-  I assume:
+  We are assuming:
   \begin{itemize}
 
     \item homogeneity along the sequence
@@ -382,7 +400,7 @@ O&O&O&O&X&O&O&X&X&X&O&O&X&O&X&X&O&O&X&O&O&O&O&O&O&O&O&O&O&O&O&O&O&X&O&X&X&O&X&O&
 
   \vspace{2em}
 
-  I do not assume:
+  We are not assuming:
   \begin{itemize}
 
     \item stationarity

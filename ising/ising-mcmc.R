@@ -45,10 +45,10 @@ bases <- c("X","O")
 basename <- paste(basedir,"/win-",lwin,"-",win,"-",rwin,sep='')
 datafile <- paste( basename ,"-results.RData",sep='')
 plotfile <- paste( basename ,"-plot",sep='')
-mcmcdatafiles <- list.files(path=basedir,pattern="-mcmc.*RData",full.names=TRUE)
+mcmcdatafiles <- list.files(path=basedir,pattern=paste(basename(basename),"-mcmc.*RData",sep=''),full.names=TRUE)
 mcmcnum <- 1+max(c(0,as.numeric(gsub(".*-mcmc-","",gsub(".RData","",mcmcdatafiles)))),na.rm=TRUE)
 
-if (logfile=="" & !interactive()) { logfile <- paste(basedir,"/mcmc-run-",mcmcnum,".Rout",sep='') }
+if (logfile=="" & !interactive()) { logfile <- paste(basename,"-mcmc-run-",mcmcnum,".Rout",sep='') }
 if (!is.null(logfile)) { 
     logcon <- if (logfile=="-") { stdout() } else { file(logfile,open="wt") }
     sink(file=logcon, type="message") 

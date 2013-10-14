@@ -30,7 +30,11 @@ all.mrun <- do.call( rbind, lapply( seq_along(mcmcdatafiles), function (k) {
             tmp
         } ) )
 
-subseq <- seq(1,nrow(all.mrun),by=max(1,floor(nrow(all.mrun)/1000)))
+win.1.1 <- which( grepl("1-1-1",mcmcdatafiles) & table( all.mrun$mcmcnum ) >= 10000 )
+win.3.0 <- which( grepl("0-3-0",mcmcdatafiles) & table( all.mrun$mcmcnum ) >= 10000 )
+win.3.3 <- which( grepl("3-3-3",mcmcdatafiles) & table( all.mrun$mcmcnum ) >= 10000 )
+
+subseq <- seq( min(which(all.mrun$mcmcnum %in% win.3.3)), max(which(all.mrun$mcmcnum %in% win.3.3)), by=max(1,floor(sum(all.mrun$mcmcnum %in% win.3.3)/1000)) )
 
 x <- rbind( all.mrun[subseq,(-1)*match("mcmcnum",colnames(all.mrun))], truth ) 
 cols <- c( adjustcolor(rainbow(64),.3)[1+floor(65*(1:(nrow(x)-1))/nrow(x))], adjustcolor("black",.5) )
@@ -44,7 +48,7 @@ for (k in 1:3) {
     thatone <- match(plotthese[1+k%%3],names(x))
     plot( x[,thisone], x[,thatone], xlab=plotthese[k], ylab=plotthese[1+k%%3], col=cols, cex=c(rep(.5,nrow(x)-1),2), pch=20 )
     text(truth[thisone],truth[thatone],"truth", pos=4)
-    hist( all.mrun[,thisone], main='', xlab=paste("posterior distribution of",plotthese[k]) )
+    hist( all.mrun[all.mrun$mcmcnum %in% win.3.3,thisone], main='', xlab=paste("posterior distribution of",plotthese[k]) )
     abline(v=truth[thisone], col='red')
 }
 dev.off()
@@ -52,13 +56,17 @@ dev.off()
 # for talk
 pdf(file=paste(plotfile,"-estimate-hists.pdf",sep=''),width=3,height=3,pointsize=10)
 par(mar=c(4,3,.3,0)+.1,mgp=c(2.1,1,0))
-tmp <- sweep(all.mrun[,1:3],2,truth,"/")
+
+for (mcnums in list( win.3.3, win.3.0, win.1.1 ) ) {
+tmp <- sweep(abs(all.mrun)[all.mrun$mcmcnum %in% mcnums,1:3],2,truth,"/")
 names(tmp) <- varnames
-hist(tmp[,1],breaks=50,col=adjustcolor('grey',.5), border=adjustcolor("black",.5), xlim=c(.95,1.05), main='', ylab='posterior density', freq=FALSE)
+hist(tmp[,1],breaks=50,col=adjustcolor('grey',.5), border=adjustcolor("black",.5), main='', xlim=c(.9,1.1), ylab='posterior density', freq=FALSE, xlab="" )
 hist(tmp[,2],breaks=50,col=adjustcolor("blue",.5),border=adjustcolor("black",.25), add=TRUE, freq=FALSE)
 hist(tmp[,3],breaks=50,col=adjustcolor("red",.5),border=adjustcolor("black",.5), add=TRUE, freq=FALSE)
 abline(v=1,lwd=2)
-legend( "topleft", fill=c(adjustcolor('grey',.5),adjustcolor("blue",.5),adjustcolor("red",.5)), legend=as.expression(varnames) )
+legend( "topleft", fill=c(adjustcolor('grey',.5),adjustcolor("blue",.5),adjustcolor("red",.5)), legend=as.expression(c(substitute(lambda),substitute(beta),substitute(gamma))) )
+}
+
 dev.off()
 
 ##########
