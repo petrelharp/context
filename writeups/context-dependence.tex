@@ -55,7 +55,7 @@ and each site is labeled with one of a finite set of states.
 These change with time -- so, write $X_i(t)$ for the state of the $i^\mathrm{th}$ site at time $t$,
 where each $X_i(t) \in \calS$, the set of possible states.
 (To avoid edge effects, we sometimes arrange these sites in a circle, so the indices are interpreted $\mod n$.)
-The time evolution is Markov, and is determined by a set of transition rates and associated patterns.  
+The time evolution is Markov, and is determined by a set of transition rates and associated patterns.
 ``Patterns'' are sequences of states, and we let $|u|$ denote the length of the pattern $u$.
 Transition rates are assumed to be local and homogeneous, so for example saying ``pattern $u$ changes to $v$ at rate $\mu$''
 means that if $(X_i(t), \ldots, X_{i+\ell}(t)) = (u_1, \ldots, u_\ell)$ (where $\ell=|u|=|v|$),
@@ -63,16 +63,16 @@ then $\P\{(X_i(t+dt), \ldots, X_{i+\ell}(t+dt)) = (v_1, \ldots, v_\ell) = \mu dt
 regardless of the location $i$ along the sequence.
 If more than one pattern would match to cause the same change, their rates add.
 We call such a $(\mu,u,v)$ a ``transition triple''.
-The set of all transition triples $\calT = \{ (\mu^j,u^j,v^j) \}_{j=1}^{n_T}$ 
+The set of all transition triples $\calT = \{ (\mu^j,u^j,v^j) \}_{j=1}^{n_T}$
 determines the time evolution of the process.
 
 It will often be convenient, notationally and computationally, to avoid edge effects
 by treating the $n$ sites as a circle, and treating all indices $\mod n$.
 
 \begin{example}[TASEP]
-  The \emph{Totally Asymmetric Simple Exclusion Process} labels each site as ``empty'' or ``occupied'' (0 or 1, respectively), 
+  The \emph{Totally Asymmetric Simple Exclusion Process} labels each site as ``empty'' or ``occupied'' (0 or 1, respectively),
   and says that each occupied site, independently at rate $\lambda$, checks the site to the right to see if it is empty,
-  and if it is, moves there.  
+  and if it is, moves there.
   This process therefore has only one transition triple:
 
   \begin{center}
@@ -83,7 +83,7 @@ by treating the $n$ sites as a circle, and treating all indices $\mod n$.
     \end{tabular}
   \end{center}
 
-  This only has one parameter, the speed.  
+  This only has one parameter, the speed.
   Note, however, that it may not be entirely trivial to estimate the speed,
   since (on the circle) it may not be obvious which particle moved where.
 
@@ -92,7 +92,7 @@ by treating the $n$ sites as a circle, and treating all indices $\mod n$.
 \begin{example}[CpG mutation]
   A sequence of genome can be written using A, C, G, and T;
   in the most general model of single-site mutation, each of the 12 possible transitions occurs at its own rate.
-  Furthermore, it is a well-known observation that in many species, and certain contexts, 
+  Furthermore, it is a well-known observation that in many species, and certain contexts,
   a C followed by a G has an additional, higher rate with either the C changing to a T or the G changing to an A.
   This simplest model of context-dependent substitution rates in a genome sequence has rates
 
@@ -102,7 +102,7 @@ by treating the $n$ sites as a circle, and treating all indices $\mod n$.
       \hline
       $x$  &  $y$  &  $m_{xy}$ & \qquad $x \neq y \in \{\nA,\nC,\nG,\nT\}$  \\
       CG   &  TG   &  $\gamma$ & \\
-      CG   &  CA   &  $\gamma$ &  
+      CG   &  CA   &  $\gamma$ &
     \end{tabular}
   \end{center}
 
@@ -119,9 +119,9 @@ by treating the $n$ sites as a circle, and treating all indices $\mod n$.
   imagined as magnetic dipoles,
   and the energy associated with a given state $x$ is $H(x) = - \beta \sum_i x_i x_{i+1} - \gamma \sum_i x_i$.
   The associated stationary distribution on configurations is proportional to $\exp(-H(x))$.
-  One way to add temporal dynamics that preserve the distribution 
+  One way to add temporal dynamics that preserve the distribution
   is to say that each site, independently at rate $\lambda$,
-  forgets its spin, 
+  forgets its spin,
   and reconfigures to a state chosen with probability proportional to the stationary probability of the resulting configuration.
   This is known as ``Glauber dynamics'', and ignoring transitions that don't change the state,
   we get that if patterns $u$ and $v$ differ at only one site, then $u$ changes to $v$ at rate $1/(1+\exp(H(u)-H(v)))$, so
@@ -137,7 +137,7 @@ by treating the $n$ sites as a circle, and treating all indices $\mod n$.
       $-++$  &   $--+$   &  $\lambda/(1+e^{-\gamma})$ \\
       $-+-$  &   $---$   &  $\lambda/(1+e^{-2\beta - \gamma})$ \\
       $--+$  &   $-++$   &  $\lambda/(1+e^{\gamma})$ \\
-      $---$  &   $-+-$   &  $\lambda/(1+e^{2\beta + \gamma})$ 
+      $---$  &   $-+-$   &  $\lambda/(1+e^{2\beta + \gamma})$
     \end{tabular}
   \end{center}
 
@@ -149,9 +149,9 @@ by treating the $n$ sites as a circle, and treating all indices $\mod n$.
 
 \paragraph{The generator matrix}
 For clarity, we should define how the set of transition rates determines the transition rate matrix,
-the $|\calS|^n \times |\calS|^n$ matrix $G(n)$ whose $(x,y)^\text{th}$ entry gives the instantaneous rate 
+the $|\calS|^n \times |\calS|^n$ matrix $G(n)$ whose $(x,y)^\text{th}$ entry gives the instantaneous rate
 with which the process in state $x$ jumps to state $y$.
-% Let $x_i^{(\ell)} = (x_i, x_{i+1}, \ldots, x_{i+\ell-1})$ be the subsequence of length $\ell$ beginning at location $i$, and 
+% Let $x_i^{(\ell)} = (x_i, x_{i+1}, \ldots, x_{i+\ell-1})$ be the subsequence of length $\ell$ beginning at location $i$, and
 For each $1\le i \le n$, pattern length $\ell \ge 0$, and patterns $u,v \in \calS^\ell$ define the relation
 \[
 x \xrightarrow{i,u,v} y \qquad \text{iff} \qquad \begin{cases}
@@ -163,7 +163,7 @@ x \xrightarrow{i,u,v} y \qquad \text{iff} \qquad \begin{cases}
 \]
 i.e.\ if $x$ and $y$ match except for in $i,i+1,\ldots,i+\ell-1$, where $x$ matches with $u$ and $y$ matches with $v$.
 (Interpet these indices modulo $n$, even for short sequences, a point we will come back to.)
-We'll also need the set of defined transitions in $\calT$ 
+We'll also need the set of defined transitions in $\calT$
 that can move from $x$ to $y$ at a given location: let  $J(i,x,y) = \{ (\mu^j,u^j,v^j) \in \calT \st x \xrightarrow{i,u^j,v^j} y \}$.
 Then, the rate $G(n)_{x,y}$ is the sum of all matching transition rates,
 namely
@@ -217,7 +217,7 @@ The problem at hand is to infer the parameters of the model, given the state at 
 If $n$ is large enough and $t$ is not too large,
 this should be feasible.
 (If $t$ is too large, the process may ``saturate'' --
-if there are many changes at most sites, then in at least most models, 
+if there are many changes at most sites, then in at least most models,
 we will lost most of the information about the dynamics,
 retaining information only about the parameters that affect the stationary distribution.
 In TASEP, we lose all information as it approaches stationarity,
@@ -226,7 +226,7 @@ and in the CpG model it is not immediately clear.
 
 
 But, how can we extract the information?
-These are Markov processes, on the state space $\calS^n$, 
+These are Markov processes, on the state space $\calS^n$,
 so the full likelihood function is given by \eqref{eqn:full_likelihood},
 but doing anything with the $|\calS|^n \times |\calS|^n$ matrix $G_n$ is clearly infeasible.
 We can, however, compute \eqref{eqn:full_likelihood} for smaller $n$,
@@ -242,7 +242,7 @@ Variations are possible (what do we do about the edge effects for $p_m$?),
 but in any case there is no guarentee that this is close to correct,
 as it ignore dependencies between neighboring blocks.
 
-Intuitively, we want to increase the size of the context 
+Intuitively, we want to increase the size of the context
 -- but increasing $m$ does not do this, as there are always edge effects.
 However, we could look at the context in the initial sequence but not in the final sequence,
 including the states of an additional $\ell$ and $r$ sites on the left and right, respectively.
@@ -251,7 +251,7 @@ Concretely, define the marginal probabilities
   p_{\ell,m,r}(t;x,y) &= \sum_{a \in \calS^\ell} \sum_{b \in \calS^r} p_{\ell+m+r}(t;x,a \join y \join b) , \quad \text{for}\; x \in \calS^{\ell+m+r}, \; y \in \calS^m ,
 \end{align}
 where $a \join y \join b$ is the sequence composed of concatenating $a$, $y$, and $b$ together in that order.
-This is the probability that if we begin with a sequence $x$ of length $\ell+m+r$, 
+This is the probability that if we begin with a sequence $x$ of length $\ell+m+r$,
 then after time $t$ we will see at the middle $m$ positions the pattern $y$,
 ignoring what is present in the leftmost $\ell$ and rightmost $r$ positions.
 In a long sequence, $p_m(x,z)$ might not be a very good approximation for $\P\{ X_i^{(m)}(t) = z | X_i(0)^{(m)} = x \}$,
@@ -272,13 +272,13 @@ For instance, if $x$ is ACTCAC, $y$ is CGC, and $\ell=3$, this looks like:
 \begin{center}
 \begin{tabular}{c|ccccccc}
  $x$ &  C  & A & C & T & C & A & C \\
- $y$ &  $\centerdot$  & $\centerdot$  & C & G & C & $\centerdot$  & $\centerdot$  
+ $y$ &  $\centerdot$  & $\centerdot$  & C & G & C & $\centerdot$  & $\centerdot$
 \end{tabular}
 \end{center}
 where $\cdot$ could be any base.
 Let $N(x)$ and $N_\ell(x,y)$ count these events, respectively.
 
-From the definitions above, 
+From the definitions above,
 the expected number of times $y$ would appear juxtaposed with $x$ is approximately $N(x)p_{\ell,m,r}(x,y)$.
 Covariances are also easy to compute.
 If we define $M_i(x,y)$ to be 1 if $X_{i-\ell}^{|x|}(0)=x$ and $X_i^({|y|})(t)=y$, and 0 otherwise,
@@ -295,7 +295,7 @@ For this to be nonzero, the joint pattern $(x,y)$ must allow self-overlaps.
 Similarly, if $(x_1,y_1) \neq (x_2,y_2)$ then
 \begin{align}
   \begin{split}
-    \cov[N(x_1,y_1),N(x_2,y_2)] 
+    \cov[N(x_1,y_1),N(x_2,y_2)]
     & \approx - n (2m+4\ell) p_{\ell,m}(x_1,y_1)p_{\ell,m}(x_2,y_2) \\
     & \qquad {} + n\sum_{k=1}^{m+2\ell} \E[M_1(x_1,y_1) M_{k+1}(x_2,y_2) + M_1(x_2,y_2) M_{k+1}(x_1,y_1)] .
   \end{split}
@@ -318,9 +318,9 @@ the entire collection $\{N(x_k,y_k)\}$ will be close to independent Poisson.
 (using Stein's method)
 Then we'll have the correct likelihood function for (this subset of) data.
 If changes are rare, then one way to get a set of patterns with this property is to only choose ones such that going from $x$ to $y$ entails a change;
-and any overlapping patterns must require additional changes, 
-i.e.\ if $(x_1,y_1)$ matches at $i_1$, 
-then for $(x_2,y_2)$ to match at $i_2$, 
+and any overlapping patterns must require additional changes,
+i.e.\ if $(x_1,y_1)$ matches at $i_1$,
+then for $(x_2,y_2)$ to match at $i_2$,
 there must be additional changes outside $(i_1,\ldots,i_1+\ell-1)$.
 
 Here is one way to obtain such a set.
@@ -330,7 +330,7 @@ For example, in the example above with $m=3$ and $\ell=2$,
 \begin{center}
 \begin{tabular}{c|ccccccc}
  $x$ &  C  & A & C & T & C & A & C \\
- $y$ &  $\centerdot$  & $\centerdot$  & C & G & C & $\centerdot$  & $\centerdot$  
+ $y$ &  $\centerdot$  & $\centerdot$  & C & G & C & $\centerdot$  & $\centerdot$
 \end{tabular}
 \end{center}
 $x$ and $y$ differ only at (relative) position $i_1=2$.
@@ -340,7 +340,7 @@ As another example,
 \begin{center}
 \begin{tabular}{c|ccccccc}
  $x$ &  A & C & T & C & A & C & G \\
- $y$ &  $\centerdot$  & $\centerdot$  & G & C & A & $\centerdot$  & $\centerdot$  
+ $y$ &  $\centerdot$  & $\centerdot$  & G & C & A & $\centerdot$  & $\centerdot$
 \end{tabular}
 \end{center}
 has $i_1 = \bar i = 1$.
@@ -361,7 +361,7 @@ Suppose the maximum length of any transition pattern is $R = \max\{ |u| : (\mu,u
 The transition rate at site $i$ at time $s$ is determined if we know $X_{i-R}^{(2R+1)}(s)$;
 this can be determined from $X_{i-R}^{2R+1}(0)$ and the outcome of all changes happening before time $s$ at sites in $(i-R-1, \ldots, i+R)$.
 These will depend in turn on the outcome of previous possible changes.
-For each site $i$ and times $s_1 < s_2$, define the set of states $H(i,s_1,s_2)$ 
+For each site $i$ and times $s_1 < s_2$, define the set of states $H(i,s_1,s_2)$
 so that if one knows the possible change points $s_{ij}$,
 then changes outside of $H(i,s_1,s_2)$ do not affect the distribution of $X_i(s_2)$.
 Concretely, define $H(i,s_1,s_2)$ by the property that $i \in H(i,s_1,s_2)$, and
@@ -374,7 +374,7 @@ Formally, the state $X_i(s_2)$ is conditionally independent of $\{X_j(s_1) \st j
 Informally, the approximation \eqref{eqn:window_approx} will be good if $H$ does note expand beyond the flanking context.
 Now, MAKE THIS EASIER TO READ
 \begin{multline}
-  \P\{ X_i^{(m)}(t) = y \mid X(0) \} 
+  \P\{ X_i^{(m)}(t) = y \mid X(0) \}
   = \P\left\{ H(\{i,\ldots,i+m\},0,t)\subseteq\{i-\ell,\ldots,i+m+r\} \right\} \\
    \qquad \qquad {} \times \P\left\{ X_i^{(m)}(t) = y \mid X_{i-\ell}^{(\ell+m+r)}(0), \; H(\{i,\ldots,i+m\},0,t)\subseteq\{i-\ell,\ldots,i+m+r\} \right\} \\
      \qquad {} + \P\left\{ H(\{i,\ldots,i+m\},0,t)\nsubseteq\{i-\ell,\ldots,i+m+r\} \right\}  \\
@@ -404,7 +404,7 @@ We want to use $G(\ell+m+r)$ to compute the chance that a given $(\ell+m+r)$-seq
 and if $\ell$ and $r$ are big enough relative to $t$, this will be a good approximation regardless of what we do at the edges.
 One answer would be to not allow patterns hanging off of either end to match,
 resulting in a slight underestimate of the chance of change.
-A better approximation would be to use the marginal frequencies in some way to average over surroudning sequence 
+A better approximation would be to use the marginal frequencies in some way to average over surroudning sequence
 -- but, this requires marginal frequencies to be known, and these are not stationary.
 However, the leftmost site in a randomly chosen window is a sample from the marginal distribution,
 and if sites separated by distance $\ell+m+r$ are sufficiently uncorrelated,
@@ -442,7 +442,7 @@ given the frequencies at the root, as described in greater generality below.
 %%%%
 \subsection{The root distribution}
 
-We clearly don't want to add an extra parameter $\pi(z)$ for all $z \in \calS^{m+2\ell}$. 
+We clearly don't want to add an extra parameter $\pi(z)$ for all $z \in \calS^{m+2\ell}$.
 If nothing else, it would make the inference depend on $m$ and $\ell$, which we'd like to avoid.
 One approach would be to put a Dirichlet distribution on $\pi(z)$.
 This has the nice property that you can choose priors that are consistent across different values of $m$ and $\ell$.
@@ -452,7 +452,7 @@ An alternative is to specify $\pi$ through lower-dimensional statistics,
 for instance to model the root state as a sample from a Markov random field
 with parameters for the marginal frequencies of each state, and pairwise (or higher) correlations between them.
 
-A Markov random field with interactions between sites no more than distance two away 
+A Markov random field with interactions between sites no more than distance two away
 is determined by the energy function $\phi(a,b,c)$ which gives the ``energy'' of the configuration $abc$ for each $a,b,c \in \calS$.
 We use this to define the distribution on root patterns $\pi$ by
 \begin{align}  \label{eqn:root_mrf}
@@ -461,7 +461,7 @@ We use this to define the distribution on root patterns $\pi$ by
 i.e.\ the exponential of the total energy of each three adjacent sites,
 where $Z$ is the normalizing constant.
 Note that it is often difficult to compute $Z$ in applications of Markov random fields,
-but here we are working with relatively short sequences, 
+but here we are working with relatively short sequences,
 so we just compute \eqref{eqn:root_mrf} for all possible $z$, and divide by the sum.
 (However, for this same reason this is not equivalent to saying that $X(0)$ is a sample from the Markov random field
 and finding the distribution of patterns within this.)
@@ -479,7 +479,7 @@ so that $N(x,y)$ gives the number of times an $x$ and a $y$ are homologous.
 Let $q(x,y)$ be the instantaneous rate that $x \to y$ (averaged somehow over context?),
 so that $N(x,y)$ should be, roughly,
 \begin{align*}
-  \sum_z \pi(z) q(z,x) q(z,y) &\approx t \pi(x) (1+q(x,x)) q(x,y) + t \pi(y) q(y,x) (1+q(y,y)) ,  
+  \sum_z \pi(z) q(z,x) q(z,y) &\approx t \pi(x) (1+q(x,x)) q(x,y) + t \pi(y) q(y,x) (1+q(y,y)) ,
 \end{align*}
 where as usual $q(x,x) = (-1) \sum_{z \neq x} q(x,z)$ is (minus) the total jump rate out of $x$.
 
@@ -493,7 +493,7 @@ or, to first order in $\delta$,
   0 &\approx \sum_z \epsilon_z q(z,x) q(z,y) + \sum_z \pi(z) \delta_{zx} q(z,y) + \sum_z \pi(z) q(z,x) \delta_{zy} \\
    &\approx \sum_z \epsilon_z q(z,x) q(z,y) + \sum_z (\pi(z)+\epsilon_z) \delta_{zx} q(z,y) + \sum_z (\pi(z)+\epsilon_z) q(z,x) \delta_{zy} \\
    &\approx \epsilon_x (1+q(x,x)) q(x,y) + \epsilon_y q(y,x) (1+q(y,y)) + (\pi(y)+\epsilon_y) \delta_{yx} (1+q(y,y)) + (\pi(x)+\epsilon_x) (1+q(x,x)) \delta_{xy} \\
-   &= \left( \epsilon_x q(x,y) + (\pi(x)+\epsilon_x) \delta_{xy} \right)(1+q(x,x)) + \left( \epsilon_y q(y,x) + (\pi(y)+\epsilon_y) \delta_{yx} \right)(1+q(y,y)) 
+   &= \left( \epsilon_x q(x,y) + (\pi(x)+\epsilon_x) \delta_{xy} \right)(1+q(x,x)) + \left( \epsilon_y q(y,x) + (\pi(y)+\epsilon_y) \delta_{yx} \right)(1+q(y,y))
 \end{align*}
 One solution to this is to let $\delta_{xy} = - \epsilon_x q(x,y) / \pi(x)$.
 
@@ -522,7 +522,7 @@ so in fact we don't need the entire matrix $e^{t G(m+2\ell)}$,
 just the product of this matrix with each of the columns of $U$.
 
 Modern techniques in sparse matrix computation (Krylov methods) provide efficient ways to do this
-by only multiplying $G$ and $U$ some number of times, 
+by only multiplying $G$ and $U$ some number of times,
 which is much more efficient because $G$ is sparse.
 
 \subsection{Updating $G$}
@@ -548,7 +548,7 @@ XXX describe
 Furthermore, note that the further calculations in the phylogenetic case can be done using these methods.
 To compute
 \[
-    \sum_z \pi(z) p_{m+2\ell}(t_X,z,x) p_{m,\ell}(t_Y,z,y) 
+    \sum_z \pi(z) p_{m+2\ell}(t_X,z,x) p_{m,\ell}(t_Y,z,y)
     = \sum_z \left( e^{t_X G(m+2\ell)} \right)_{zx} \pi(z) \sum_w \left( e^{t_X G(m+2\ell)} \right)_{zw} U_{wy} ,
 \]
 we can first compute $\sum_w \left( e^{t_X G(m+2\ell)} \right)_{zw} U_{wy}$ as above,
@@ -576,7 +576,7 @@ and the interior node ($v$):
 \begin{align} \label{eqn:three_taxa_likelihood}
   \begin{split}
     & \P\{X_{I-\ell}^{m+2\ell}=x \text{ and } Y_I^\ell=y \text{ and } Z_I^\ell=z \} \\
-    &\qquad = \sum_{u \in \calS^{m+2\ell}} \pi(u) p_{m,\ell}(t_C,u,z) \sum_{v \in \calS^{m+2\ell}} p_{m+2\ell}(t_{AB},u,v) p_{m+2\ell}(t_{A},v,x) p_{m,\ell}(t_B,v,y) 
+    &\qquad = \sum_{u \in \calS^{m+2\ell}} \pi(u) p_{m,\ell}(t_C,u,z) \sum_{v \in \calS^{m+2\ell}} p_{m+2\ell}(t_{AB},u,v) p_{m+2\ell}(t_{A},v,x) p_{m,\ell}(t_B,v,y)
   \end{split}
 \end{align}
 The steps for computing this are then:
@@ -586,7 +586,7 @@ The steps for computing this are then:
 
   \item Compute $M_2(v,z) = \sum_{v \in \calS^{m+2\ell}}  p_{m+2\ell}(t_{AB},u,v) \pi(u) M_1(u,z)$ (still a $|\calS|^{m+2\ell} \times |\calS|^m$ matrix)
 
-  \item Compute $M_3(v,y) = p_{m,\ell}(t_B,v,y)$ (a $|\calS|^{m+2\ell} \times |\calS|^m$ matrix) 
+  \item Compute $M_3(v,y) = p_{m,\ell}(t_B,v,y)$ (a $|\calS|^{m+2\ell} \times |\calS|^m$ matrix)
 
   \item Compute $M_4(x,(y,z)) = \sum_{v \in \calS^{m+2\ell}} p_{m+2\ell}(t_{A},v,x) M_2(v,z) M_3(v,y)$ (stored as a $|\calS|^{m+2\ell} \times |\calS|^{2m}$ matrix).
 
@@ -596,7 +596,7 @@ This is depicted in the figure, writing $\left(e^{tG}\right)_{ab}$ for the matri
 and $P$ for the projection matrix that gives $p_{m,\ell}(t,a,b) = \left( e^{tG} P\right)_{ab}$.
 
 
-In total there are $|\calS|^{3m+2\ell}$ possible data combinations.  
+In total there are $|\calS|^{3m+2\ell}$ possible data combinations.
 However, we can reduce dimensionality by replacing the last step with
 \begin{enumerate}
 
@@ -604,7 +604,7 @@ However, we can reduce dimensionality by replacing the last step with
 
 \end{enumerate}
 and only computing the likelihood for cases with $y=z=w$.
-On a three-taxon tree it is not clear that this is desireable, since missing out on double transitions 
+On a three-taxon tree it is not clear that this is desireable, since missing out on double transitions
 might be a significant loss of information,
 but on larger trees it seems likely that we'd want to restrict to combinations with most sites agreeing across the tree.
 (Note, however, that one should not first look at the data, observe which combinations $(y,z)$ were most common, and then restrict to only those!)
@@ -625,7 +625,7 @@ Parameters $\theta$ enter implicitly through $p_{m,\ell}$.
 
 
 In the case that we observe the initial sequence, $N(x,y)$ are binomial with sample size $N(x)$.
-and so the likelihood is 
+and so the likelihood is
 \[
 \prod_x N(x)! \prod_y \frac{ p_{m,\ell}(x,y)^{N(x,y)} }{ N(x,y)! } ,
 \]
@@ -662,8 +662,8 @@ X&X&X&O&O&X&O&O&O&O&X&O&X&O&X&X&O&O&X&O&O&X&O&X&X&X&O&X&O&O&O&X&X&O&X&O&O&O&X&X&
 $\centerdot$&O&X&O&X&O&O&O&X&$\centerdot$&O&X&O&O&X&X&X&o&x&$\centerdot$&o&O&X&x&x&O&X&O&X&o&o&O&X&X&$\centerdot$&$\centerdot$&o&o&O&X&X&o&$\centerdot$&O&X&$\centerdot$&o&o&$\centerdot$&$\centerdot$&O&X&X&x&O&X&o&O&X&$\centerdot$
 \end{tabular}
 \end{center}
-here particles are X's, moving to the right; and spaces are O's; 
-in the second line, 
+here particles are X's, moving to the right; and spaces are O's;
+in the second line,
 $\centerdot$ is a position that has not considered a change; lowercase letters are positions that considered a change but did not;
 and upper case are positions that did change.
 
@@ -671,7 +671,7 @@ and upper case are positions that did change.
   \begin{center}
     \includegraphics[width=\textwidth]{../tasep/all-mcmc-runs}
   \end{center}
-  \caption{ Results from MCMC estimates for six different data sets of the parameter in TASEP (mutation rate multiplied by time).  
+  \caption{ Results from MCMC estimates for six different data sets of the parameter in TASEP (mutation rate multiplied by time).
   Vertical line shows the true value.
   }
 \end{figure}
@@ -689,7 +689,7 @@ Here is an example, with all parameters equal to 1, for $t=.5$:
  \setlength{\tabcolsep}{0pt}
 \begin{tabular}{cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc}
 X&X&O&X&X&O&O&X&O&X&O&X&X&O&O&X&O&O&O&O&X&X&X&O&X&O&X&O&X&O&O&O&X&X&O&X&X&X&X&X&O&X&O&X&O&X&X&X&X&O&O&X&X&X&X&X&X&O&O&O \\
-x&x&o&x&X&X&O&x&o&x&$\centerdot$&x&x&O&X&X&$\centerdot$&O&X&O&X&x&x&o&x&o&x&o&x&O&X&O&$\centerdot$&$\centerdot$&O&O&X&X&O&X&X&X&o&x&o&$\centerdot$&X&O&X&o&o&x&X&X&X&O&X&o&$\centerdot$&$\centerdot$ 
+x&x&o&x&X&X&O&x&o&x&$\centerdot$&x&x&O&X&X&$\centerdot$&O&X&O&X&x&x&o&x&o&x&o&x&O&X&O&$\centerdot$&$\centerdot$&O&O&X&X&O&X&X&X&o&x&o&$\centerdot$&X&O&X&o&o&x&X&X&X&O&X&o&$\centerdot$&$\centerdot$
 \end{tabular}
 \end{center}
 The notation is as above; except that the entire matched pattern involved in a change is uppercase:
@@ -699,7 +699,7 @@ to simulate, we look in windows of size 3; so if XOO changes to XXO, the whole t
   \begin{center}
     \includegraphics{../writeup-plots/selsims-2013-05-28-17-12-0275615-traces}
   \end{center}
-  \caption{ 
+  \caption{
   MCMC traces of the parameters in the Ising model across 100,000 iterations.
   The units of $\lambda$ are in mean number of changes per site.
   Vertical line shows the true value.
@@ -720,7 +720,7 @@ to simulate, we look in windows of size 3; so if XOO changes to XXO, the whole t
   \begin{center}
     \includegraphics[width=\textwidth,page=2]{../ising/all-mcmc-runs}
   \end{center}
-  \caption{ Results from MCMC estimates of the inverse temperature $\beta$ in the Ising model. 
+  \caption{ Results from MCMC estimates of the inverse temperature $\beta$ in the Ising model.
   Vertical line shows the true value.
   }
 \end{figure}
@@ -729,7 +729,7 @@ to simulate, we look in windows of size 3; so if XOO changes to XXO, the whole t
   \begin{center}
     \includegraphics[width=\textwidth,page=3]{../ising/all-mcmc-runs}
   \end{center}
-  \caption{ Results from MCMC estimates of the magnetization parameter $\beta$ in the Ising model. 
+  \caption{ Results from MCMC estimates of the magnetization parameter $\beta$ in the Ising model.
   Vertical line shows the true value.
   }
 \end{figure}
@@ -742,7 +742,7 @@ with all single-base substitution rates $m_{xy}$ set equal (varying from a total
 and an additional CpG rate $\gamma$ set to either 0 or three times the single-base rate.
 Analysis was done with $\ell=2$ and $w=1$ (a five-to-one window).
 
-The state at the root of the tree was independently chosen bases with equal frequencies, 
+The state at the root of the tree was independently chosen bases with equal frequencies,
 and these frequencies at the root were added as parameters to the model (with a Dirichlet prior).
 
 Here is a short example, with all parameters equal to 1, with each branch of the tree having length $0.1$:
@@ -751,12 +751,12 @@ Here is a short example, with all parameters equal to 1, with each branch of the
 \begin{tabular}{cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc}
 T&G&G&A&G&A&G&G&T&C&T&G&C&C&A&T&A&G&A&C&G&G&G&C&G&C&C&G&C&C&T&A&G&G&A&G&C&C&G&C&G&T&T&T&T&G&C&G&T&G&G&T&G&T&T&G&T&G&G&C \\
 $\centerdot$&$\centerdot$&g&C&G&a&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&T&A&C&A&$\centerdot$&$\centerdot$&$\centerdot$&T&A&T&$\centerdot$&$\centerdot$&$\centerdot$&T&G&c&C&C&A&C&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&G&G&G&t&A&T&$\centerdot$&$\centerdot$&G&A&g&C&G&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&t&T&G&A \\
-$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&A&T&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&T&T&G&T&$\centerdot$&$\centerdot$&G&A&T&$\centerdot$&$\centerdot$&$\centerdot$&G&G&c&t&A&A&G&C&$\centerdot$&$\centerdot$&$\centerdot$&G&T&G&A&t&t&t&g&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&G&A&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&A&C 
+$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&A&T&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&T&T&G&T&$\centerdot$&$\centerdot$&G&A&T&$\centerdot$&$\centerdot$&$\centerdot$&G&G&c&t&A&A&G&C&$\centerdot$&$\centerdot$&$\centerdot$&G&T&G&A&t&t&t&g&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&G&A&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&A&C
 \end{tabular}
 \end{center}
 Top is ancestral sequence (``unobserved''); bottom two are at the tips.
 
-The point estimates are good, 
+The point estimates are good,
 as are the MCMC estimates,
 but there seems to be mixing trouble having to do with the root frequencies.
 
@@ -764,7 +764,7 @@ but there seems to be mixing trouble having to do with the root frequencies.
   \begin{center}
     \includegraphics{../writeup-plots/selsims-2013-06-03-13-17-0790276-initfreqs}
   \end{center}
-  \caption{ 
+  \caption{
   MCMC traces across 660,000 iterations of the frequencies at the root of the (two-taxon) tree in the CpG model.
   Vertical line shows the true value.
   }
@@ -774,7 +774,7 @@ but there seems to be mixing trouble having to do with the root frequencies.
   \begin{center}
     \includegraphics{../writeup-plots/selsims-2013-06-03-13-17-0790276-mutrates}
   \end{center}
-  \caption{ 
+  \caption{
   MCMC traces across 660,000 iterations of several mutation rate parameters in the CpG model.
   Units are in mean number of substitutions per base across the entire tree.
   Vertical line shows the true value.
