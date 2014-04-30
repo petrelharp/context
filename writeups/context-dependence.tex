@@ -281,7 +281,7 @@ Let $N(x)$ and $N_\ell(x,y)$ count these events, respectively.
 From the definitions above,
 the expected number of times $y$ would appear juxtaposed with $x$ is approximately $N(x)p_{\ell,m,r}(x,y)$.
 Covariances are also easy to compute.
-If we define $M_i(x,y)$ to be 1 if $X_{i-\ell}^{|x|}(0)=x$ and $X_i^({|y|})(t)=y$, and 0 otherwise,
+If we define $M_i(x,y)$ to be 1 if $X_{i-\ell}^{(|x|)}(0)=x$ and $X_i^{(|y|)}(t)=y$, and 0 otherwise,
 so that $N(x,y) = \sum_{i=1}^n M_i(x,y)$, then
 \begin{align}
   \var[N(x,y)] &= \sum_{i=1}^n \var[M_i(x,y)] + \sum_{i\neq j} \cov[M_i(x,y), M_j(x,y)] \\
