@@ -10,3 +10,7 @@ test
 tmp
 */Rplots.pdf
 */all-mcmc-runs.pdf
+*.nav
+*.out
+*.toc
+*.snm

@@ -102,7 +102,7 @@ countpats <- function (patterns, simseq ) {
     return( sapply( patterns, countPattern, simseq ) )
 }
 
-counttrans.list <- function (lpatterns, seqlist=lapply(simseqs,"[[","finalseq"), simseqs, lwin=0, shift=0) {
+counttrans.list <- function (lpatterns, seqlist=lapply(simseqs,"[[","finalseq"), simseqs, lwin=0, shift=0, cyclic=FALSE) {
     # count number of times each of seqlist matches corresponding lpatterns 
     #   again, cyclical
     # if shift is nonzero, return a list  with the counts in each of (shift) frames
@@ -111,7 +111,7 @@ counttrans.list <- function (lpatterns, seqlist=lapply(simseqs,"[[","finalseq"),
     stopifnot(length(seqlen)==1)
     if (length(lwin)<length(seqlist)) { lwin <- c(0,rep(lwin,length.out=length(seqlist)-1)) }
     # cyclic-ize
-    seqlist <- lapply( seqlist, function (x) { xscat( x, subseq(x,1,patlen-1) ) } )
+    if (cyclic) { seqlist <- lapply( seqlist, function (x) { xscat( x, subseq(x,1,patlen-1) ) } ) }
     # Ok, count occurrences.  uses bioconductor stuff.
     lmatches <- lapply( seq_along(seqlist), function (k) { 
             lapply( lpatterns[[k]], matchPattern, seqlist[[k]] )
@@ -142,7 +142,7 @@ counttrans.list <- function (lpatterns, seqlist=lapply(simseqs,"[[","finalseq"),
     return(counts)
 }
 
-counttrans <- function (ipatterns, fpatterns, initseq=simseqs[["initseq"]], finalseq=simseqs[["finalseq"]], simseqs, lwin=0, shift=0) {
+counttrans <- function (ipatterns, fpatterns, initseq=simseqs[["initseq"]], finalseq=simseqs[["finalseq"]], simseqs, lwin=0, shift=0, cyclic=FALSE) {
     # count number of times initseq matches ipatterns while finalseq matches fpatterns
     #   again, cyclical
     # if shift is nonzero, return a list  with the counts in each of (shift) frames
@@ -150,8 +150,10 @@ counttrans <- function (ipatterns, fpatterns, initseq=simseqs[["initseq"]], fina
     seqlen <- nchar(initseq)
     stopifnot( seqlen == nchar(finalseq) )
     # cyclic-ize
-    initseq <- xscat( initseq, subseq(initseq,1,patlen-1) )
-    finalseq <- xscat( finalseq, subseq(finalseq,1,patlen-1) )
+    if (cyclic) {
+        initseq <- xscat( initseq, subseq(initseq,1,patlen-1) )
+        finalseq <- xscat( finalseq, subseq(finalseq,1,patlen-1) )
+    }
     # Ok, count occurrences.  uses bioconductor stuff.
     initmatches <- lapply( ipatterns, matchPattern, initseq )
     finalmatches <- lapply( fpatterns, matchPattern, finalseq )
