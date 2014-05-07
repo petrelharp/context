@@ -1,7 +1,7 @@
 #!/usr/bin/R
 require(Matrix)
 require(expm)
-# # find what directory we're in
+# # find what directory this file is in
 frame_files <- lapply(sys.frames(), function(x) x$ofile)
 frame_files <- Filter(Negate(is.null), frame_files)
 PATH <- dirname(frame_files[[length(frame_files)]])
@@ -16,6 +16,36 @@ getpatterns <- function(winlen) {
 npatterns <- function (winlen) {
     return( length(bases)^winlen )
 }
+
+###
+# Point estimates
+
+countmuts <- function (counts, mutpats, lwin) {
+    # given a table of matched tuples,
+    # return counts of how many of these could be produced by each of mutpats
+    #   out of the total
+    win <- nchar(colnames(counts)[1])
+    return( 
+        sapply( mutpats, function (mutpat) {
+            rowSums( sapply( mutpat, function (mp) {
+                inmatches <- gregexpr( pattern=mp[1], text=rownames(counts), fixed=TRUE )
+                nmatches <- sapply( inmatches, function (x) length(x[x>0]) )
+                matchlocs <- unlist( inmatches )
+                matchlocs <- matchlocs[matchlocs>0]
+                inind <- rep(1:nrow(counts),nmatches)
+                outstr <- instr <- rownames(counts)[inind]
+                substr(outstr,matchlocs,matchlocs+nchar(mp[2])-1) <- mp[2]
+                outstr <- substr(outstr,1+lwin,lwin+win)
+                changed <- ( outstr != substr(instr,1+lwin,lwin+win) )
+                sum.changed <- sum( counts[ cbind( inind[changed], match(outstr[changed],colnames(counts)) ) ] )
+                possible <- sum( counts[ inind[changed], ] )
+                c(sum.changed,possible)
+        } ) ) } )
+    )
+}
+
+
+###
 
 getmutmats <- function(mutpats,patterns,boundary=c("none","wrap")) {
     # given mutation patterns,
@@ -109,7 +139,7 @@ makegenmatrix <- function (mutpats,selpats=list(),patlen=nchar(patterns[1]),patt
         # transfer selection coefficients to selective differences involved in each mutation
         #    these are ( transitions ) x ( mutpats ) matrix
         #     ... make these sparse?
-        ##  the following hsa (fromsel-tosel); combined to reduce memory usage 
+        ##  the following has (fromsel-tosel); combined to reduce memory usage 
         ##  fromsel <- selmatches[,  allmutmats$i, drop=FALSE ] 
         ##  tosel <- selmatches[,  allmutmats$j, drop=FALSE ] 
         seltrans <- Matrix(t( ( selmatches[,  allmutmats$i, drop=FALSE ] - selmatches[,  allmutmats$j, drop=FALSE ] )[,dgCord,drop=FALSE] ))
@@ -247,7 +277,7 @@ downbranch <- function ( genmatrix, rootmatrix, mutrates, selcoef, tlen, ... ) {
 #   3) before moving, resolve up the the other, non-focal branch, recursive in the same way.
 
 treetrans <- function (  ) {
-    # First, compute a good order to 
+    # First, compute a good order 
 
 }
 
@@ -270,6 +300,27 @@ get.descendants  <- function (tree) {
     return(descendants)
 }
 
+
+###
+# genome-ey things
+
+reverse.complement <- function (mutpats) {
+    # return index for each mutpat of the reverse-complement mutation pattern (or NA if none)
+    # throw error if there are multiple matches
+    rmutpats <- lapply( mutpats, lapply, function (x) { chartr(sapply(strsplit(x,''),function(y){paste(rev(y),collapse='')}), old="ACGT", new="TGCA") } )
+    mutpats <- lapply( mutpats, sapply, paste, collapse='->' )
+    rmutpats <- lapply( rmutpats, sapply, paste, collapse='->' )
+    rinds <- rep(NA,length(mutpats))
+    for (k in seq_along(mutpats)) {
+        matches <- c()
+        for (j in seq_along(rmutpats)) {
+            if ( all( mutpats[[k]] %in% rmutpats[[j]] ) ) { matches <- c(j,matches) }
+        }
+        stopifnot(length(matches) <= 1)
+        if (length(matches)==1) { rinds[k] <- matches }
+    }
+    return(rinds)
+}
 
 
 ###

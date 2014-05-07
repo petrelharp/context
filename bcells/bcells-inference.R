@@ -11,6 +11,7 @@ option_list <- list(
         make_option( c("-w","--win"), type="integer", default=1, help="Size of matching window. [default \"%default\"]" ),
         make_option( c("-l","--lwin"), type="integer", default=2, help="Size of left-hand context. [default \"%default\"]" ),
         make_option( c("-r","--rwin"), type="integer", default=2, help="Size of left-hand context. [default \"%default\"]" ),
+        make_option( c("-k","--patlen"), type="integer", default=1, help="Include mutation rates for all tuples of this length. [default \"%default\"]" ),
         make_option( c("-n","--nbatches"), type="integer", default=20, help="Number of MCMC batches. [default \"%default\"]" ),
         make_option( c("-b","--blen"), type="integer", default=10, help="Length of each MCMC batch. [default \"%default\"]" ),
         make_option( c("-s","--stepscale"), type="numeric", default=1e-4, help="Scale of proposal steps for Metropolis algorithm. [default \"%default\"]" ),
@@ -35,10 +36,10 @@ winlen <- lwin+win+rwin
 
 if (is.null(opt$infile)) { infile <- paste(basedir,"/tuples.",winlen,".",lwin,".counts",sep='') }
 
-if (gmfile=="TRUE") { gmfile <- paste(paste("genmatrices/genmatrix",winlen,boundary,meanboundary,sep="-"),".RData",sep='') }
+if (gmfile=="TRUE") { gmfile <- paste(paste("genmatrices/genmatrix",winlen,boundary,meanboundary,patlen,sep="-"),".RData",sep='') }
 
 if (logfile!="") {
-    logfile <- gsub(".RData",".Rout",infile,fixed=TRUE)
+    logfile <- paste(infile,".Rout",sep='')
     logcon <- if (logfile=="-") { stdout() } else { file(logfile,open="wt") }
     sink(file=logcon, type="message", split=interactive()) 
     sink(file=logcon, type="output", split=interactive())   # send both to log file
@@ -59,9 +60,9 @@ if (file.exists(gmfile)) {
     load(gmfile)
 } else {
     if (meanboundary>0) {
-        genmatrix <- meangenmatrix( lwin=1, rwin=1, patlen=winlen, mutpats=mutpats, selpats=selpats, mutrates=mutrates*tlen[1], selcoef=selcoef, boundary=boundary )
+        genmatrix <- meangenmatrix( lwin=1, rwin=1, patlen=winlen, mutpats=mutpats, selpats=selpats, mutrates=rep(1,length(mutpats)), selcoef=rep(1,length(selpats)), boundary=boundary )
     } else {
-        genmatrix <- makegenmatrix( patlen=winlen, mutpats=mutpats, selpats=selpats, mutrates=mutrates*tlen[1], selcoef=selcoef, boundary=boundary )
+        genmatrix <- makegenmatrix( patlen=winlen, mutpats=mutpats, selpats=selpats, mutrates=rep(1,length(mutpats)), selcoef=rep(1,length(selpats)), boundary=boundary )
     }
 }
 projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
@@ -72,46 +73,60 @@ count.table <- read.table(infile,header=TRUE,stringsAsFactors=FALSE)
 counts <- Matrix(0,nrow=nrow(genmatrix),ncol=ncol(projmatrix))
 rownames(counts) <- rownames(genmatrix)
 colnames(counts) <- colnames(projmatrix)
+stopifnot( all( count.table$reference %in% rownames(genmatrix) ) & all(count.table$derived %in% colnames(projmatrix)) ) 
 counts[cbind( match(count.table$reference,rownames(genmatrix)), match(count.table$derived,colnames(projmatrix)) )] <- count.table$count
 
-nmuts <- length(mutrates)
+# ad-hoc estimate
+adhoc <- countmuts(counts=counts,mutpats=mutpats,lwin=lwin)
+adhoc <- adhoc[1,]/adhoc[2,]
+
+nmuts <- length(mutpats)
+nsel <- length(selpats)
+stopifnot(nsel==0)
 # (quasi)-likelihood function using all counts -- binomial
-likfun <- function (mutrates) {
+likfun <- function (params) {
+    cat(".")
     # params are: mutrates*tlen
-    genmatrix@x <- update(genmatrix,mutrates=mutrates,selcoef=numeric(0))
+    genmatrix@x <- update(genmatrix,mutrates=params,selcoef=numeric(0))
     # this is collapsed transition matrix
     subtransmatrix <- computetransmatrix( genmatrix, projmatrix )
     # return negative log-likelihood 
-    (-1) * sum( counts * log(subtransmatrix) )
+    ans <- (-1) * sum( counts * log(subtransmatrix) )
+    if (!is.finite(ans)) { print(params) }
+    return(ans)
 }
 
 
 # point estimates
-rand.initfreqs <- 5*rexp(length(initfreqs)); rand.initfreqs <- rand.initfreqs/sum(rand.initfreqs)
-initpar <- c( runif(1), 2 * runif( nmuts ) * mean(mutrates) * sum(tlen), rand.initfreqs ) # random init
-truth <- c( tlen[1]/sum(tlen), mutrates * sum(tlen), initfreqs )  # truth
-names(truth) <- c( "rel.branchlen", paste("tmut:", unlist( sapply( sapply( mutpats, lapply, paste, collapse="->" ), paste, collapse=" | " ) ) ), names(initfreqs) )
-lbs <- c( 1e-6, rep(0,nmuts), rep(1e-6,length(initfreqs)) )
-ubs <- c( 1, rep(20,nmuts), rep(1,length(initfreqs)) )
+initpar <- .1 + runif( nmuts )/4
+lbs <- rep(1e-8,nmuts)
+ubs <- rep(20,nmuts)
 
-stopifnot( is.finite(lud(truth)) )
-stopifnot( is.finite(likfun(truth)) )
+stopifnot( is.finite(likfun(initpar)) )
 
-# # do in parallel:
-# cheating.parjob <- mcparallel( optim( par=truth, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(trace=3,fnscale=likfun(truth)) ) ),
-# random.parjob <- mcparallel( optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(trace=3,fnscale=likfun(truth)) ) )
-# cheating.ans <- mccollect( cheating.parjob, wait=TRUE )
-# random.ans <- mccollect( random.parjob, wait=TRUE )
-cheating.ans <- optim( par=truth, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(trace=3,fnscale=likfun(truth)) )
-random.ans <- optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(trace=3,fnscale=likfun(truth)) )
-# renormalize the initial frequencies
-cheating.ans.par <- cheating.ans$par; cheating.ans.par[1+nmuts+(1:nfreqs)] <- cheating.ans.par[1+nmuts+(1:nfreqs)] / sum( cheating.ans.par[1+nmuts+(1:nfreqs)] )
-random.ans.par <- random.ans$par; random.ans.par[1+nmuts+(1:nfreqs)] <- random.ans.par[1+nmuts+(1:nfreqs)] / sum( random.ans.par[1+nmuts+(1:nfreqs)] )
+require(parallel)
+pjob <- mcparallel( { optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs ) } )
+random.ans <- mccollect(pjob)[[1]]
 
-estimates <- data.frame( rbind(init=initpar, ans=random.ans.par, cheating=cheating.ans.par, truth=truth ) )
-colnames(estimates) <- c( "branchlen", paste("muttime",seq_along(mutrates),sep=''), names(initfreqs) )
-estimates$likfun <- apply( estimates, 1, likfun )
-write.table( estimates, file=resultsfile, quote=FALSE, sep="\t" )
+random.ans <- optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(trace=3) )
+stopifnot(random.ans$convergence==0)
+
+point.estimate <- random.ans$par
+names(point.estimate) <- sapply(mutpats,function(x){paste(sapply(x,paste,collapse='->'),collapse='/')})
+
+# is it symmetric under reverse-complement?
+revmutrates <- point.estimate[reverse.complement(mutpats)]
+plot(point.estimate,revmutrates)
+
+predicted.counts <- predictcounts(win=win,lwin=lwin,rwin=rwin,initcounts=rowSums(counts),mutrates=point.estimate,selcoef=numeric(0),genmatrix=genmatrix,projmatrix=projmatrix)
+p.vals <- ppois( as.matrix(counts), lambda=as.matrix(predicted.counts) )
+
+# look at residuals
+layout(t(1:2))
+plot( (predicted.counts - counts)/sqrt(predicted.counts), p.vals, cex=pmin(3,predicted.counts/mean(predicted.counts))  )
+plot(as.vector(predicted.counts),as.vector(counts),xlab='predicted',ylab='observed',cex=pmin(3,abs(log(p.vals/(1-p.vals))/10)),col=1+(p.vals>0),log='xy')
+abline(0,1)
+
 
 # bayesian
 #  note we deal with initial freqs not summing to 1 differently from in optim( ) -- need to remove last entry.
