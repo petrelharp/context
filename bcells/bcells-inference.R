@@ -110,6 +110,7 @@ random.ans <- mccollect(pjob)[[1]]
 
 random.ans <- optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(trace=3) )
 stopifnot(random.ans$convergence==0)
+adhoc.ans <- optim( par=adhoc, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(trace=3) )
 
 point.estimate <- random.ans$par
 names(point.estimate) <- sapply(mutpats,function(x){paste(sapply(x,paste,collapse='->'),collapse='/')})
@@ -126,6 +127,8 @@ layout(t(1:2))
 plot( (predicted.counts - counts)/sqrt(predicted.counts), p.vals, cex=pmin(3,predicted.counts/mean(predicted.counts))  )
 plot(as.vector(predicted.counts),as.vector(counts),xlab='predicted',ylab='observed',cex=pmin(3,abs(log(p.vals/(1-p.vals))/10)),col=1+(p.vals>0),log='xy')
 abline(0,1)
+
+ssresids <- countmuts(counts=(predicted.counts-counts)^2,mutpats=mutpats,lwin=lwin)
 
 
 # bayesian
