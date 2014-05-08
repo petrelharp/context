@@ -82,8 +82,6 @@ by treating the $n$ sites as a circle, and treating all indices modulo $n$.
 
   \begin{center}
     \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }c}
-      $u$  &  $v$  &  $\mu$  \\
-      \hline
       10  &   01   &  $\lambda$
     \end{tabular}
   \end{center}
@@ -103,8 +101,6 @@ by treating the $n$ sites as a circle, and treating all indices modulo $n$.
 
   \begin{center}
     \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }cc}
-      $u$  &  $v$  &  $\mu$  & \\
-      \hline
       $x$  &  $y$  &  $m_{xy}$ & \qquad $x \neq y \in \{\nA,\nC,\nG,\nT\}$  \\
       CG   &  TG   &  $\gamma$ & \\
       CG   &  CA   &  $\gamma$ &
@@ -122,7 +118,7 @@ by treating the $n$ sites as a circle, and treating all indices modulo $n$.
 \begin{example}[1-D Ising model with Glauber dynamics]
   In the Ising model, each site is labeled as either ``up'' or ``down'' ($+1$ or $-1$ respectively),
   imagined as magnetic dipoles,
-  and the energy associated with a given state $x$ is $H(x) = - \beta \sum_i x_i x_{i+1} - \gamma \sum_i x_i$.
+  and the energy associated with a given state $x$ is $H(x) = - \beta/2 \sum_i x_i x_{i+1} - \gamma/2 \sum_i x_i$.
   Here $\beta$ represents inverse temperature, and $\gamma$ represents the strength of the magnetic field.
   The associated stationary distribution on configurations is proportional to $\exp(-H(x))$.
   One way to add temporal dynamics that preserve the distribution
@@ -130,20 +126,18 @@ by treating the $n$ sites as a circle, and treating all indices modulo $n$.
   forgets its spin,
   and reconfigures to a state chosen with probability proportional to the stationary probability of the resulting configuration.
   This is known as ``Glauber dynamics'', and ignoring transitions that don't change the state,
-  we get that if patterns $u$ and $v$ differ at only one site, then $u$ changes to $v$ at rate $1/(1+\exp(H(u)-H(v)))$, so
+  we get that if patterns $u$ and $v$ differ at only one site, then $u$ changes to $v$ at rate $1/(1+\exp(H(v)-H(u)))$, so
 
   \begin{center}
     \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }c}
-      $u$  &  $v$  &  $\mu$  \\
-      \hline
-      $+++$  &   $+-+$   &  $\lambda/\,(1+e^{2\beta - \gamma})$ \\
-      $++-$  &   $+--$   &  $\lambda/(1+e^{-\gamma})$ \\
-      $+-+$  &   $+++$   &  $\lambda/(1+e^{-2\beta + \gamma})$ \\
-      $+--$  &   $++-$   &  $\lambda/(1+e^{\gamma})$ \\
-      $-++$  &   $--+$   &  $\lambda/(1+e^{-\gamma})$ \\
-      $-+-$  &   $---$   &  $\lambda/(1+e^{-2\beta - \gamma})$ \\
-      $--+$  &   $-++$   &  $\lambda/(1+e^{\gamma})$ \\
-      $---$  &   $-+-$   &  $\lambda/(1+e^{2\beta + \gamma})$
+      $+++$  &   $+-+$   &  $\lambda/\,(1+e^{2\beta + \gamma})$ \\
+      $++-$  &   $+--$   &  $\lambda/(1+e^{\gamma})$ \\
+      $+-+$  &   $+++$   &  $\lambda/(1+e^{-2\beta - \gamma})$ \\
+      $+--$  &   $++-$   &  $\lambda/(1+e^{-\gamma})$ \\
+      $-++$  &   $--+$   &  $\lambda/(1+e^{\gamma})$ \\
+      $-+-$  &   $---$   &  $\lambda/(1+e^{-2\beta + \gamma})$ \\
+      $--+$  &   $-++$   &  $\lambda/(1+e^{-\gamma})$ \\
+      $---$  &   $-+-$   &  $\lambda/(1+e^{2\beta - \gamma})$
     \end{tabular}
   \end{center}
 
