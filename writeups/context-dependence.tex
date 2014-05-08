@@ -26,8 +26,6 @@
 
 \section*{Introduction}
 
-SEE ERICK'S COMMENTS
-
 Interacting particle systems with neighborhood structure: transition probabilities generally not expressable (except TASEP).
 Markov random fields with Glauber dynamics a case of this.
 
@@ -55,11 +53,13 @@ and each site is labeled with one of a finite set of states.
 These change with time -- so, write $X_i(t)$ for the state of the $i^\mathrm{th}$ site at time $t$,
 where each $X_i(t) \in \calS$, the set of possible states.
 (To avoid edge effects, we sometimes arrange these sites in a circle, so the indices are interpreted $\mod n$.)
-The time evolution is Markov, and is determined by a set of transition rates and associated patterns.
-``Patterns'' are sequences of states, and we let $|u|$ denote the length of the pattern $u$.
-Transition rates are assumed to be local and homogeneous, so for example saying ``pattern $u$ changes to $v$ at rate $\mu$''
-means that if $(X_i(t), \ldots, X_{i+\ell}(t)) = (u_1, \ldots, u_\ell)$ (where $\ell=|u|=|v|$),
-then $\P\{(X_i(t+dt), \ldots, X_{i+\ell}(t+dt)) = (v_1, \ldots, v_\ell) = \mu dt + o(dt)$,
+We define a \textit{pattern} to mean a contiguous sequence of states, and we let $|u|$ denote the length of the pattern $u$.
+The marginal mutation process at every context is continuous time homogeneous Markov, which are thus specified by a set of transition rates between patterns.
+The sequence-level transition process is the independent superposition of all of the individual pattern mutation processes.
+Thus given two patterns $u$ and $v$ of common length $\ell$, saying ``pattern $u$ changes to $v$ at rate $\mu$'' means that if $(X_i(t), \ldots, X_{i+\ell}(t)) = (u_1, \ldots, u_\ell)$ then
+\[
+\P\{(X_i(t+dt), \ldots, X_{i+\ell}(t+dt)) = (v_1, \ldots, v_\ell) = \mu dt + o(dt),
+\]
 regardless of the location $i$ along the sequence.
 If more than one pattern would match to cause the same change, their rates add.
 We call such a $(\mu,u,v)$ a ``transition triple''.
@@ -67,7 +67,7 @@ The set of all transition triples $\calT = \{ (\mu^j,u^j,v^j) \}_{j=1}^{n_T}$
 determines the time evolution of the process.
 
 It will often be convenient, notationally and computationally, to avoid edge effects
-by treating the $n$ sites as a circle, and treating all indices $\mod n$.
+by treating the $n$ sites as a circle, and treating all indices modulo $n$.
 
 \begin{example}[TASEP]
   The \emph{Totally Asymmetric Simple Exclusion Process} labels each site as ``empty'' or ``occupied'' (0 or 1, respectively),
