@@ -1,0 +1,48 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb,amsthm}
+\newcommand{\E}{\mathbb{E}}
+\renewcommand{\P}{\mathbb{P}}
+\newcommand{\given}{\;\vert\;}
+\newcommand{\Beta}{B}
+
+\begin{document}
+
+Suppose that $(X_t)_{t\ge0}$ is a continuous-time Markov process with generator matrix $G$,
+i.e.\ $G_{ij}>0$ if $i\neq j$ and rows of $G$ sum to zero.
+Let $\tau$ be an independent Gamma distributed time with shape parameter $\alpha$ and scale parameter $\beta$.
+We would like to compute the probabilities
+\[
+  Q(x,y;\alpha,\beta) := \P\{ X_\tau = y \given X_0 = x \} 
+\]
+in an efficient manner,
+focusing on the case when $G$ is large and sparse.
+
+Consider the corresponding ``jump chain'',
+which represents $X$ as $X_t = M_{N(\lambda t)}$,
+where $N(t)$ is a unit Poisson process and $M$ is a discrete-time Markov chain.
+Here $\lambda$ is the maximum transition rate $\lambda = \max_i \{ - G_{ii} \}$,
+and the transition matrix for $M$ is given by
+\begin{align}
+    P_{xy} := \P\{M_{k+1} = y \given M_k = x\} \\
+        &= \begin{cases}  
+                G_{xy}/\lambda \qquad & x\neq y \\
+                1+G_{xx}/\lambda \qquad & x=y 
+            \end{cases} .
+\end{align}
+
+Since $N(\lambda \tau)$ has a negative binomial distribution,
+with 
+\begin{align}
+    \P\{ N(\lambda \tau) = n \} = \frac{ \beta^\alpha \lambda^n }{ \Beta(n,\alpha) (\beta+\lambda)^{n+\alpha} }  \qquad \text{for } n \ge 0 ,
+\end{align}
+it follows that
+\begin{align}
+    Q(x,y;\alpha,\beta) = \sum_{n \ge 0} \P\{ N(\lambda \tau) = n \} P^n  ,
+\end{align}
+and the error in approximating this by a finite sum up to $n_0$ is bounded by $\P\{N(\lambda \tau)>n_0\}$.
+Since $\E[\tau] = \alpha/\beta$, this tail probability will decay exponentially once $n_0$ is larger than 
+
+
+
+
+\end{document}
