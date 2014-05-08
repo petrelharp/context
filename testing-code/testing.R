@@ -1,7 +1,7 @@
 #!/usr/bin/R
-source("codons.R")
-source("codon-inference-fns.R")
-source("sim-context-fns.R")
+source("../codons.R")
+source("../codon-inference-fns.R")
+source("../sim-context-fns.R")
 
 # Test suite?
 

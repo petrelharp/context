@@ -4,6 +4,9 @@ chromsomes = 2L 2R 3L 3R 4 X
 codons = GCT GCC GCA GCG CGT CGC CGA CGG AGA AGG AAT AAC GAT GAC TGT TGC CAA CAG GAA GAG GGT GGC GGA GGG CAT CAC ATT ATC ATA TTA TTG CTT CTC CTA CTG AAA AAG ATG TTT TTC CCT CCC CCA CCG TCT TCC TCA TCG AGT AGC ACT ACC ACA ACG TGG TAT TAC GTT GTC GTA GTG
 types = orfcoding nonorfcoding noncoding
 
+all :
+	echo "nothing to see here"
+
 dmel-all-r5.50.gff.gz :
 	wget ftp://ftp.flybase.net/releases/current/dmel_r5.50/gff/dmel-all-r5.50.gff.gz
 
