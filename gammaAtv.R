@@ -11,7 +11,7 @@
 #  and T ~ Gamma(shape=alpha,scale=beta)
 #  then N(T) ~ NegativeBinomial(alpha,lambda/(lambda+beta))
 #  i.e. P(N(T)=n) = Gamma(n+alpha)/(Gamma(alpha)*factorial(n)) * (beta/(beta+lambda))^alpha * (lambda/(beta+lambda))^n
-#                 = 1/Beta(n+alpha) * (beta^alpha * lambda^n)/(beta+lambda)^{n+alpha} .
+#                 = 1/Beta(n,alpha) * (beta^alpha * lambda^n)/(beta+lambda)^{n+alpha} .
 #  and that
 #      P(N(T)=n) = (lambda * (n+alpha-1)) / ( n * (beta+lambda) ) * P(N(T)=n-1) .
 #
@@ -61,8 +61,11 @@ if (FALSE) {
     for (k in 1:nrow(M)) { true.gM <- true.gM + outer(eM$vectors[,k],eM$vectors[,k]) * t^shape / (t-eM$values[k])^shape }
     range(rowSums(true.gM))
 
-    lcoefs <- shape*log(t) + (0:1000)*log(scale.t) - lgamma(shape) - lfactorial(0:1000) + lgamma(0:1000+shape) - (0:1000+shape)*log(t+scale.t)
-    range(exp(lcoefs) - dnbinom(x=1:1000,size=shape,prob=scale.t/(scale.t+t)))
+    dnbinom(x=0:10,size=.5,prob=4/(4+3))
+    4^.5 * 3^(0:10) / ( beta((0:10),4) * (4+3)^(.5+(0:10)) )
+
+    lcoefs <- shape*log(t) + (0:1000)*log(scale.t) - lbeta(0:1000,shape) + lgamma(0:1000+shape) - (0:1000+shape)*log(t+scale.t)
+    range(exp(lcoefs) - dnbinom(x=0:1000,size=shape,prob=scale.t/(scale.t+t)))
     sum(exp(lcoefs))
 
 }
