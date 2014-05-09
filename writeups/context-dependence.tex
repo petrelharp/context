@@ -6,7 +6,7 @@
 \usepackage{bm}
 \usepackage{todonotes}
 
-\newcommand{\peter}[1]{\todo[color=green!40]{Peter #1}}
+\newcommand{\peter}[1]{\todo[color=green!40]{Peter: #1}}
 \newcommand{\erick}[1]{\todo[color=purple!40]{Erick: #1}}
 
 \newcommand{\E}{\mathbb{E}}
@@ -246,16 +246,17 @@ and obtain the approximate likelihood function
 \[
   \prod_{k=0}^{n/m} p_m(x_{km}^{(m)},y_{km}^{(m)}) .
 \]
-\todo{Do you prefer 1-indexing or 0-indexing for the sequences? Seems like 1-indexing before}
+\todo[inline]{Do you prefer 1-indexing or 0-indexing for the sequences? Seems like 1-indexing before}
 Variations are possible, such as modifying edge effects behavior for $p_m$.
 
 However, in any case there is no guarantee that this is close to correct,
 as it ignores dependencies between neighboring blocks.
 Intuitively, we want to increase the size of the context
 -- but increasing $m$ does not do this, as there are always edge effects.
-\todo{I'm a little confused by this use of "edge effects." Are you using it to mean non-independence between blocks generally?}
+\todo[inline]{I'm a little confused by this use of "edge effects." Are you using it to mean non-independence between blocks generally?}
 However, we could look at the context in the initial sequence but not in the final sequence,
 including the states of an additional $\ell$ and $r$ sites on the left and right, respectively.
+We will call these left and right \emph{fringes}.
 Concretely, define the marginal probabilities
 \begin{align}
   p_{\ell,m,r}(t;x,y) &= \sum_{a \in \calS^\ell} \sum_{b \in \calS^r} p_{\ell+m+r}(t;x,a \join y \join b) , \quad \text{for}\; x \in \calS^{\ell+m+r}, \; y \in \calS^m ,
@@ -275,7 +276,7 @@ We provide a precise statement of this approximation later.
 \subsection{Summary statistics}
 
 Now we know how to compute the approximate (marginal) probability that a particular subsequence changes into another subsequence.
-For patterns $x$ and $y$, with offset $\ell$ (so that $|x|=|y|+2\ell$),
+For patterns $x$ and $y$, with both fringe widths equal to $\ell$ (so that $|x|=|y|+2\ell$),
 we can count how many times $x$ appears in $X(0)$,
 and how many times $x$ appears in $X(0)$ while $y$ appears at the same place in $X(t)$, offset by $\ell$.
 For instance, if $x$ is ACTCAC, $y$ is CGC, and $\ell=3$, this looks like:
