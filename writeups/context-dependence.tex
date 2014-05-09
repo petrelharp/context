@@ -185,17 +185,20 @@ First, it will be useful to have a brief description of how to simulate such a p
 Briefly, we can put down a Poisson process of times and locations of possible changes,
 at an appropriate rate $\mu_*$,
 and then resolve each possible change in temporal order.
+\todo{OK, rad.}
 We situate ``changes'' at the beginning of the matching pattern,
 so $\mu_*$ can be defined as the maximum sum of rates matching  the start of a sequence:
 \[
 \mu_* = \max \left\{ \sum_{y \in \calS^n} \sum_{j\in J(1,x,y)} \mu_j \st x \in \calS^n \right\} .
 \]
+\todo[inline]{OK, I'm getting confused now. From the above, I would have thought that $\mu_*$ was the overall rate of mutation, but now it's only happening from pattern x?}
 Now sample possible changes: let $c_{ij}$ denote the $j^\text{th}$ possible change at site $i$,
 so that
 \[
 0 \le c_{i1} < c_{i2} < \cdots < c_{iN_i} \le t
 \]
 is a rate $\mu_*$ Poisson process.
+\todo[inline]{Further confusion: now $\mu_*$ is just the rate at a single site?}
 Then, suppose we have determined the state at time $s$ to be $X(s) = x$,
 and the next event is $s_{ij} = \min \{ s_{k\ell} : s_{k\ell}>s \}$.
 The process then jumps to a new state at times $s_{ij}$ with probability proportional to the corresponding rate.
