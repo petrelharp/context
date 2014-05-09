@@ -61,9 +61,9 @@ where each $X_i(t) \in \calS$, the set of possible states.
 We define a \textit{pattern} to mean a contiguous sequence of states, and we let $|u|$ denote the length of the pattern $u$.
 The marginal mutation process at every context is continuous time homogeneous Markov, which are thus specified by a set of transition rates between patterns.
 The sequence-level transition process is the independent superposition of all of the individual pattern mutation processes.
-Thus given two patterns $u$ and $v$ of common length $\ell$, saying ``pattern $u$ changes to $v$ at rate $\mu$'' means that if $(X_i(t), \ldots, X_{i+\ell}(t)) = (u_1, \ldots, u_\ell)$ then
+Thus given two patterns $u$ and $v$ of common length $h$, saying ``pattern $u$ changes to $v$ at rate $\mu$'' means that if $(X_i(t), \ldots, X_{i+h}(t)) = (u_1, \ldots, u_h)$ then
 \[
-\P\{(X_i(t+dt), \ldots, X_{i+\ell}(t+dt)) = (v_1, \ldots, v_\ell) = \mu dt + o(dt),
+\P\{(X_i(t+dt), \ldots, X_{i+h}(t+dt)) = (v_1, \ldots, v_h) = \mu dt + o(dt),
 \]
 regardless of the location $i$ along the sequence.
 If more than one pattern would match to cause the same change, their rates add.
@@ -149,17 +149,17 @@ by treating the $n$ sites as a circle, and treating all indices modulo $n$.
 For clarity, we should define how the set of transition rates determines the transition rate matrix,
 the $|\calS|^n \times |\calS|^n$ matrix $G(n)$ whose $(x,y)^\text{th}$ entry gives the instantaneous rate
 with which the process in state $x$ jumps to state $y$.
-% Let $x_i^{(\ell)} = (x_i, x_{i+1}, \ldots, x_{i+\ell-1})$ be the subsequence of length $\ell$ beginning at location $i$, and
-For each $1\le i \le n$, pattern length $\ell \ge 0$, and patterns $u,v \in \calS^\ell$ define the relation
+% Let $x_i^{(h)} = (x_i, x_{i+1}, \ldots, x_{i+h-1})$ be the subsequence of length $h$ beginning at location $i$, and
+For each $1\le i \le n$, pattern length $h \ge 0$, and patterns $u,v \in \calS^h$ define the relation
 \[
 x \xrightarrow{i,u,v} y \qquad \text{iff} \qquad \begin{cases}
   x_k = y_k \quad &\text{for } k<i \\
-  x_{i+k} = u_k \quad &\text{for } 0 \le k < \ell \\
-  y_{i+k} = v_k \quad &\text{for } 0 \le k < \ell, and \\
-  x_k = y_k \quad &\text{for } k\ge i+\ell ,
+  x_{i+k} = u_k \quad &\text{for } 0 \le k < h \\
+  y_{i+k} = v_k \quad &\text{for } 0 \le k < h, and \\
+  x_k = y_k \quad &\text{for } k\ge i+h ,
 \end{cases}
 \]
-i.e.\ if $x$ and $y$ match except for in $i,i+1,\ldots,i+\ell-1$, where $x$ matches with $u$ and $y$ matches with $v$.
+i.e.\ if $x$ and $y$ match except for in $i,i+1,\ldots,i+h-1$, where $x$ matches with $u$ and $y$ matches with $v$.
 (Interpet these indices modulo $n$, even for short sequences, a point we will come back to.)
 We'll also need the set of defined transitions in $\calT$
 that can move from $x$ to $y$ at a given location: let  $J(i,x,y) = \{ (\mu^j,u^j,v^j) \in \calT \st x \xrightarrow{i,u^j,v^j} y \}$.
@@ -200,7 +200,7 @@ so that
 is a rate $\mu_*$ Poisson process.
 \todo[inline]{Further confusion: now $\mu_*$ is just the rate at a single site?}
 Then, suppose we have determined the state at time $s$ to be $X(s) = x$,
-and the next event is $s_{ij} = \min \{ s_{k\ell} : s_{k\ell}>s \}$.
+and the next event is $s_{ij} = \min \{ s_{kh} : s_{kh}>s \}$.
 The process then jumps to a new state at times $s_{ij}$ with probability proportional to the corresponding rate.
 In other words, let
 \[
