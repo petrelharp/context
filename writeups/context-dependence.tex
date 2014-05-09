@@ -3,7 +3,7 @@
 \usepackage{amsmath,amssymb}
 \usepackage{amsthm}
 \usepackage{graphicx}
-\usepackage{bf}
+\usepackage{bm}
 \usepackage{todonotes}
 
 \newcommand{\peter}[1]{\todo[color=green!40]{Peter #1}}
@@ -101,11 +101,12 @@ by treating the $n$ sites as a circle, and treating all indices modulo $n$.
 
   \begin{center}
     \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }cc}
-      $x$  &  $y$  &  $m_{xy}$ & \qquad $x \neq y \in \{\nA,\nC,\nG,\nT\}$  \\
+      $x$  &  $y$  &  $m_{xy}$ & when $x \neq y \in \{\nA,\nC,\nG,\nT\}$  \\
       CG   &  TG   &  $\gamma$ & \\
       CG   &  CA   &  $\gamma$ &
     \end{tabular}
   \end{center}
+  in which $\gamma$ is the additional CpG rate above the base mutation rate.
 
   This has 13 parameters.
   Note that there are no conserved quantities here, unlike in TASEP,
@@ -118,8 +119,8 @@ by treating the $n$ sites as a circle, and treating all indices modulo $n$.
 \begin{example}[1-D Ising model with Glauber dynamics]
   In the Ising model, each site is labeled as either ``up'' or ``down'' ($+1$ or $-1$ respectively),
   imagined as magnetic dipoles,
-  and the energy associated with a given state $x$ is $H(x) = - \beta/2 \sum_i x_i x_{i+1} - \gamma/2 \sum_i x_i$.
-  Here $\beta$ represents inverse temperature, and $\gamma$ represents the strength of the magnetic field.
+  and the energy associated with a given state $x$ is $H(x) = - \frac{1}{2} \beta \sum_i x_i x_{i+1} - \frac{1}{2} \gamma \sum_i x_i$.
+  Here $\beta$ represents inverse temperature, and $\gamma$ represents the strength of the magnetic field (here scaled by temperature).
   The associated stationary distribution on configurations is proportional to $\exp(-H(x))$.
   One way to add temporal dynamics that preserve the distribution
   is to say that each site, independently at rate $\lambda$,
@@ -140,9 +141,6 @@ by treating the $n$ sites as a circle, and treating all indices modulo $n$.
       $---$  &   $-+-$   &  $\lambda/(1+e^{2\beta - \gamma})$
     \end{tabular}
   \end{center}
-
-  This has three parameters: the speed $\lambda$, the inverse temperature $\beta$, and the strength of magnetization $\gamma$
-  (here scaled by temperature).
 
 \end{example}
 
@@ -175,8 +173,10 @@ This is just to say that the transition rate from $x$ to $y$ is the sum of the m
 that could change $x$ into $y$.
 In principle, this gives us the transition probabilities for the process:
 \begin{align} \label{eqn:full_likelihood}
-    p_n(t;x,y) := \P\{ X(t) = y \mid X(0) = x \} = (e^{tG(n)})_{xy} .
+    p_n(t;x,y) := \P\{ X(t) = y \mid X(0) = x \} = \left(e^{tG(n)}\right)_{xy} ,
 \end{align}
+but in practice the size of these matrices can make a direct application of this formula inefficient.
+This paper proposes an alternate strategy.
 
 
 \section{Simulation}
@@ -185,13 +185,20 @@ First, it will be useful to have a brief description of how to simulate such a p
 Briefly, we can put down a Poisson process of times and locations of possible changes,
 at an appropriate rate $\mu_*$,
 and then resolve each possible change in temporal order.
+\todo{OK, rad.}
 We situate ``changes'' at the beginning of the matching pattern,
 so $\mu_*$ can be defined as the maximum sum of rates matching  the start of a sequence:
 \[
 \mu_* = \max \left\{ \sum_{y \in \calS^n} \sum_{j\in J(1,x,y)} \mu_j \st x \in \calS^n \right\} .
 \]
-Now sample possible changes: let $s_{ij}$ denote the $j^\text{th}$ possible change at site $i$,
-so that $0 \le s_{i1} < s_{i2} < \cdots < s_{iN_i} \le t$ is a rate $\mu_*$ Poisson process.
+\todo[inline]{OK, I'm getting confused now. From the above, I would have thought that $\mu_*$ was the overall rate of mutation, but now it's only happening from pattern x?}
+Now sample possible changes: let $c_{ij}$ denote the $j^\text{th}$ possible change at site $i$,
+so that
+\[
+0 \le c_{i1} < c_{i2} < \cdots < c_{iN_i} \le t
+\]
+is a rate $\mu_*$ Poisson process.
+\todo[inline]{Further confusion: now $\mu_*$ is just the rate at a single site?}
 Then, suppose we have determined the state at time $s$ to be $X(s) = x$,
 and the next event is $s_{ij} = \min \{ s_{k\ell} : s_{k\ell}>s \}$.
 The process then jumps to a new state at times $s_{ij}$ with probability proportional to the corresponding rate.
