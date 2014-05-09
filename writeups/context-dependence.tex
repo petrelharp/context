@@ -223,19 +223,20 @@ and if so, switch them.
 The problem at hand is to infer the parameters of the model, given the state at time 0 and later at time $t$.
 If $n$ is large enough and $t$ is not too large,
 this should be feasible.
-(If $t$ is too large, the process may ``saturate'' --
+If $t$ is too large, the process may ``saturate'' --
 if there are many changes at most sites, then in at least most models,
 we will lost most of the information about the dynamics,
 retaining information only about the parameters that affect the stationary distribution.
 In TASEP, we lose all information as it approaches stationarity,
-in the Ising model we have information about $\beta$ and $\gamma$ but not $\lambda$,
+in the Ising model we have information about $\beta$ and $\gamma$ but not $\lambda$ from the stationary distribution,
 and in the CpG model it is not immediately clear.
+\todo[inline]{I would think that this is identifiable from the stationary distribution if we know the structure of the model.}
 
 
 But, how can we extract the information?
 These are Markov processes, on the state space $\calS^n$,
 so the full likelihood function is given by \eqref{eqn:full_likelihood},
-but doing anything with the $|\calS|^n \times |\calS|^n$ matrix $G_n$ is clearly infeasible.
+but doing anything with the $|\calS|^n \times |\calS|^n$ matrix $G_n$ is clearly infeasible for even moderately sized $n$.
 We can, however, compute \eqref{eqn:full_likelihood} for smaller $n$,
 so the first thing that one might think to do is to break the sequence up into many blocks of length $m$,
 and treat these as independent, taking $m$ as large as is feasible.
@@ -245,12 +246,14 @@ and obtain the approximate likelihood function
 \[
   \prod_{k=0}^{n/m} p_m(x_{km}^{(m)},y_{km}^{(m)}) .
 \]
-Variations are possible (what do we do about the edge effects for $p_m$?),
-but in any case there is no guarentee that this is close to correct,
-as it ignore dependencies between neighboring blocks.
+\todo{Do you prefer 1-indexing or 0-indexing for the sequences? Seems like 1-indexing before}
+Variations are possible, such as modifying edge effects behavior for $p_m$.
 
+However, in any case there is no guarantee that this is close to correct,
+as it ignores dependencies between neighboring blocks.
 Intuitively, we want to increase the size of the context
 -- but increasing $m$ does not do this, as there are always edge effects.
+\todo{I'm a little confused by this use of "edge effects." Are you using it to mean non-independence between blocks generally?}
 However, we could look at the context in the initial sequence but not in the final sequence,
 including the states of an additional $\ell$ and $r$ sites on the left and right, respectively.
 Concretely, define the marginal probabilities
@@ -262,16 +265,16 @@ This is the probability that if we begin with a sequence $x$ of length $\ell+m+r
 then after time $t$ we will see at the middle $m$ positions the pattern $y$,
 ignoring what is present in the leftmost $\ell$ and rightmost $r$ positions.
 In a long sequence, $p_m(x,z)$ might not be a very good approximation for $\P\{ X_i^{(m)}(t) = z | X_i(0)^{(m)} = x \}$,
-we do expect $p_{\ell,m,r}(x,y)$ to be correct, asymptotically in $\ell$ and $r$:
+we do expect $p_{\ell,m,r}(x,y)$ to asymptotically correct when $\ell$ and $r$ are large:
 \begin{align} \label{eqn:window_approx}
   \P\{ X_i^{(m)}(t) = y | X_i(0)^{(\ell+m+r)} = x \} \approx p_{\ell,m,r}(x,y) .
 \end{align}
-We provide a concrete statement of this approximation later.
+We provide a precise statement of this approximation later.
 
 %%%%
 \subsection{Summary statistics}
 
-Now we know how to compute the (marginal) probability that a particular subsequence changes into another subsequence.
+Now we know how to compute the approximate (marginal) probability that a particular subsequence changes into another subsequence.
 For patterns $x$ and $y$, with offset $\ell$ (so that $|x|=|y|+2\ell$),
 we can count how many times $x$ appears in $X(0)$,
 and how many times $x$ appears in $X(0)$ while $y$ appears at the same place in $X(t)$, offset by $\ell$.
