@@ -276,21 +276,21 @@ We provide a precise statement of this approximation later.
 \subsection{Summary statistics}
 
 Now we know how to compute the approximate (marginal) probability that a particular subsequence changes into another subsequence.
+Let $N(x)$ be the number of occurrences of a pattern $x$ in $X(0)$.
 For patterns $x$ and $y$, with both fringe widths equal to $\ell$ (so that $|x|=|y|+2\ell$),
-we can count how many times $x$ appears in $X(0)$,
+let $N_\ell(x,y)$ count these events, respectively be the number of times $x$ appears in $X(0)$,
 and how many times $x$ appears in $X(0)$ while $y$ appears at the same place in $X(t)$, offset by $\ell$.
-For instance, if $x$ is ACTCAC, $y$ is CGC, and $\ell=3$, this looks like:
+For instance, $N_3(\text{ACTCAC}, \text{CGC})$ counts the number of occurrences of
 \begin{center}
 \begin{tabular}{c|ccccccc}
  $x$ &  C  & A & C & T & C & A & C \\
  $y$ &  $\centerdot$  & $\centerdot$  & C & G & C & $\centerdot$  & $\centerdot$
 \end{tabular}
 \end{center}
-where $\cdot$ could be any base.
-Let $N(x)$ and $N_\ell(x,y)$ count these events, respectively.
+where $\cdot$ represents any base.
 
 From the definitions above,
-the expected number of times $y$ would appear juxtaposed with $x$ is approximately $N(x)p_{\ell,m,r}(x,y)$.
+the expected number of times $y$ would appear juxtaposed with $x$ is approximately $N(x) p_{\ell,m,r}(x,y)$.
 Covariances are also easy to compute.
 If we define $M_i(x,y)$ to be 1 if $X_{i-\ell}^{(|x|)}(0)=x$ and $X_i^{(|y|)}(t)=y$, and 0 otherwise,
 so that $N(x,y) = \sum_{i=1}^n M_i(x,y)$, then
