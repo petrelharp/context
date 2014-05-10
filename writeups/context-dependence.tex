@@ -73,6 +73,7 @@ determines the time evolution of the process.
 
 It will often be convenient, notationally and computationally, to avoid edge effects
 by treating the $n$ sites as a circle, and treating all indices modulo $n$.
+\todo[inline]{So shall we commit to this? I think that would be best, and then explain any deviation from it individually.}
 
 \begin{example}[TASEP]
   The \emph{Totally Asymmetric Simple Exclusion Process} labels each site as ``empty'' or ``occupied'' (0 or 1, respectively),
@@ -289,16 +290,19 @@ For instance, $N_3(\text{ACTCAC}, \text{CGC})$ counts the number of occurrences 
 \end{center}
 where $\cdot$ represents any base.
 
+\newcommand{\lyl}{\ell,|y|,\ell}
+
+Now we will now calculate the mean and covariances of $N_\ell(x,y)$.
 From the definitions above,
-the expected number of times $y$ would appear juxtaposed with $x$ is approximately $N(x) p_{\ell,m,r}(x,y)$.
+the expected number of times $y$ would appear juxtaposed with $x$ is approximately $N(x) p_{\lyl}(x,y)$.
 Covariances are also easy to compute.
 If we define $M_i(x,y)$ to be 1 if $X_{i-\ell}^{(|x|)}(0)=x$ and $X_i^{(|y|)}(t)=y$, and 0 otherwise,
 so that $N(x,y) = \sum_{i=1}^n M_i(x,y)$, then
 \begin{align}
   \var[N(x,y)] &= \sum_{i=1}^n \var[M_i(x,y)] + \sum_{i\neq j} \cov[M_i(x,y), M_j(x,y)] \\
   &= n \var[M_1(x,y)] + 2n\sum_{k=1}^n \cov[M_1(x,y),M_{k+1}(x,y)] \\
-  &\approx n p_{\ell,m}(x,y)(1-p_{\ell,m}(x,y)) + 2n\sum_{k=1}^{m+2\ell} \left( \E[M_1(x,y) M_{k+1}(x,y)] - p_{\ell,m}(x,y)^2 \right) \\
-  &= n p_{\ell,m}(x,y)(1-(1+2m+4\ell)p_{\ell,m}(x,y)) + 2n\sum_{k=1}^{m+2\ell} \E[M_1(x,y) M_{k+1}(x,y)] .
+  &\approx n p_{\lyl}(x,y)(1-p_{\lyl}(x,y)) + 2n\sum_{k=1}^{m+2\ell} \left( \E[M_1(x,y) M_{k+1}(x,y)] - p_{\lyl}(x,y)^2 \right) \\
+  &= n p_{\lyl}(x,y)(1-(1+2m+4\ell)p_{\lyl}(x,y)) + 2n\sum_{k=1}^{m+2\ell} \E[M_1(x,y) M_{k+1}(x,y)] .
 \end{align}
 The term $\E[M_1(x,y) M_{k+1}(x,y)]$ is the probability that $x$ matches at both site 1 and site $k+1$,
 and that $y$ matches both at site $\ell+1$ and at site $\ell+k+1$.
@@ -307,7 +311,7 @@ Similarly, if $(x_1,y_1) \neq (x_2,y_2)$ then
 \begin{align}
   \begin{split}
     \cov[N(x_1,y_1),N(x_2,y_2)]
-    & \approx - n (2m+4\ell) p_{\ell,m}(x_1,y_1)p_{\ell,m}(x_2,y_2) \\
+    & \approx - n (2m+4\ell) p_{\lyl}(x_1,y_1)p_{\lyl}(x_2,y_2) \\
     & \qquad {} + n\sum_{k=1}^{m+2\ell} \E[M_1(x_1,y_1) M_{k+1}(x_2,y_2) + M_1(x_2,y_2) M_{k+1}(x_1,y_1)] .
   \end{split}
 \end{align}
@@ -317,7 +321,7 @@ Similarly, if $(x_1,y_1) \neq (x_2,y_2)$ then
 \subsection{A likelihood function}
 
 The covariance calculations show that
-if $p_{\ell,m}(x,y)$ is small enough (i.e.\ the pattern is not common),
+if $p_{\lyl}(x,y)$ is small enough (i.e.\ the pattern is not common),
 then $N(x,y)$ is close to Poisson.
 Using this observation, we can estimate parameters by composite likelihood,
 using all $N(x,y)$ as data.
@@ -393,7 +397,7 @@ Now, MAKE THIS EASIER TO READ
 \end{multline}
 and so
 \begin{align} \label{eqn:prob_approx}
-  \left| \P\{ X_i^{(m)}(t) = y \mid X(0) \} - p_{\ell,m,r}(t;x,y) \right| \le 2 \P\left\{  H(\{I,\ldots,i+m\},0,t)\subseteq\{i-\ell,\ldots,i+m+r\} \right\}.
+  \left| \P\{ X_i^{(m)}(t) = y \mid X(0) \} - p_{\lyl}(t;x,y) \right| \le 2 \P\left\{  H(\{I,\ldots,i+m\},0,t)\subseteq\{i-\ell,\ldots,i+m+r\} \right\}.
 \end{align}
 
 So, the error is bounded by the probability that $H(I,0,t)$ is larger than the context from $I-\ell$ to $I+r$.
