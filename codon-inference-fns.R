@@ -7,6 +7,7 @@ frame_files <- Filter(Negate(is.null), frame_files)
 PATH <- dirname(frame_files[[length(frame_files)]])
 # source(paste(PATH,"/expm-simple.R",sep=''))  # expAtv is faster
 source(paste(PATH,"/expAtv.R",sep=''))  # fixed upstream
+source(paste(PATH,"/gammaAtv.R",sep=''))  # fixed upstream
 
 getpatterns <- function(winlen) {
     patterns <- do.call( expand.grid, rep( list(bases), winlen ) )
@@ -20,10 +21,22 @@ npatterns <- function (winlen) {
 ###
 # Point estimates
 
+divergence <- function (counts, lwin) {
+    # mean density of nucleotide differences
+    unchanged <- outer(rownames(counts),colnames(counts),function(x,y){ substr(x,lwin+1,lwin+nchar(y[1]))==y })
+    return( sum(counts[!unchanged])/sum(counts) )
+}
+
 countmuts <- function (counts, mutpats, lwin) {
     # given a table of matched tuples,
     # return counts of how many of these could be produced by each of mutpats
     #   out of the total
+    # note that if we estimate rates by
+    #    r.est <- countmuts(...)[1,]/countmuts(...)[2,]
+    # then something like
+    #    sum( r.est ) / 4
+    # should be close to 
+    #    divergence(...)
     win <- nchar(colnames(counts)[1])
     return( 
         sapply( mutpats, function (mutpat) {
@@ -44,6 +57,16 @@ countmuts <- function (counts, mutpats, lwin) {
     )
 }
 
+
+###
+# optimization helper functions
+
+gradest <- function (likfun, params, eps=mean(params)/1000) {
+    # estimate gradient, crudely
+    gradup <- sapply( seq_along(initpar), function (k) { likfun(initpar+ifelse(seq_along(initpar)==k,eps,0)) } )
+    graddown <- sapply( seq_along(initpar), function (k) { likfun(initpar-ifelse(seq_along(initpar)==k,eps,0)) } )
+    return((gradup-graddown)/eps)
+}
 
 ###
 
@@ -220,19 +243,25 @@ meangenmatrix <- function (lwin,rwin,patlen,...) {
     return( meangenmat )
 }
 
-computetransmatrix <- function( genmatrix, projmatrix, tlen=1, names=FALSE, transpose=FALSE, ... ) {
+computetransmatrix <- function( genmatrix, projmatrix, tlen=1, shape=1, names=FALSE, transpose=FALSE, time="fixed", ... ) {
     # Compute the product of exp(tlen*genmatrix) and projmatrix, either on the left or the right (as transpose is true or false)
-    # tlen confounded with mutation parameters... best to leave that out of here...
-    totalrates <- rowSums(genmatrix)
-    scale.t <- mean(totalrates)
-    A <- (1/scale.t) * ( ( if (transpose) { t(genmatrix) } else {genmatrix} ) - Diagonal(nrow(genmatrix),totalrates) )
-    if (is.null(dim(projmatrix))) { dim(projmatrix) <- c(length(projmatrix),1) }
-    subtransmatrix <- sapply( 1:ncol(projmatrix), function (k) { expAtv( A=A, t=tlen*scale.t, v=projmatrix[,k] )$eAtv } )
+    #   either after a fixed time: exp(tlen*genmatrix)
+    #   or after a gamma-distributed time
+    if (time=="gamma") {
+        if (is.null(dim(projmatrix))) { dim(projmatrix) <- c(length(projmatrix),1) }
+        subtransmatrix <- gammaAtv( A=( if (transpose) { t(genmatrix) } else {genmatrix} ), scale=tlen, shape=shape, v=projmatrix )
+    } else {
+        totalrates <- rowSums(genmatrix)
+        scale.t <- mean(totalrates)
+        A <- (1/scale.t) * ( ( if (transpose) { t(genmatrix) } else {genmatrix} ) - Diagonal(nrow(genmatrix),totalrates) )
+        if (is.null(dim(projmatrix))) { dim(projmatrix) <- c(length(projmatrix),1) }
+        subtransmatrix <- sapply( 1:ncol(projmatrix), function (k) { expAtv( A=A, t=tlen*scale.t, v=projmatrix[,k] )$eAtv } )
+    }
     if (names) {
         rownames(subtransmatrix) <- rownames(genmatrix)
         colnames(subtransmatrix) <- colnames(projmatrix)
     }
-    subtransmatrix
+    return( subtransmatrix )
 }
 
 getupdowntrans <- function ( genmatrix, projmatrix, mutrates, selcoef, initfreqs, tlens=c(1,1), ... ) {
@@ -332,7 +361,7 @@ predictcounts <- function (win, lwin=0, rwin=0, initcounts, mutrates, selcoef, m
     if (missing(genmatrix)) { genmatrix <- makegenmatrix(patlen=lwin+win+rwin,mutpats=mutpats,selpats=selpats, ...) }
     if (!missing(mutrates)|!missing(selcoef)) { genmatrix@x <- update(genmatrix,mutrates=mutrates,selcoef=selcoef,...) }
     if (missing(projmatrix)) { projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin ) }
-    subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE )
+    subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE, ... )
     if (missing(initcounts)) { initcounts <- 1 }
     fullcounts <- initcounts * subtransmatrix
     return( fullcounts )

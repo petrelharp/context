@@ -15,7 +15,7 @@
 require(Matrix)
 
 gammaAtv <- function (A,scale,shape,v,tol=1e-6) {
-    # evaluate transition matrix multiplied by the matrix v
+    # evaluate transition matrix after gamma-distributed time multiplied by the matrix v
     # here shape=alpha, scale=beta, scale.t=lambda
     totalrates <- rowSums(A)-diag(A)
     scale.t <- max(totalrates)
@@ -35,6 +35,24 @@ gammaAtv <- function (A,scale,shape,v,tol=1e-6) {
 gammam <- function (A,scale,shape,...) {
     # return whole transition matrix
     gammaAtv(A=A,scale=scale,shape=shape,v=Diagonal(n=nrow(A)))
+}
+
+expAtv.poisson <- function (A,t,v,tol=1e-6) {
+    # use a similar strategy to evaluate exp(Atv) for generator matrices
+    #   for comparison:
+    # number of jumps after time t is Pois( t * scale.t )
+    totalrates <- rowSums(A)-diag(A)
+    scale.t <- max(totalrates)
+    stopifnot(scale.t>0)
+    P <- (1/scale.t) * A
+    diag(P) <- (1-totalrates/scale.t)
+    ans <- kterm <- exp(-scale.t*t) * v
+    m <- qpois(p=1-tol,lambda=scale.t*t)
+    for (n in 1:m) {
+        kterm <- ( t * scale.t / n ) * ( P %*% kterm )
+        ans <- ans + kterm
+    }
+    return(ans)
 }
 
 ## test
@@ -60,5 +78,21 @@ if (FALSE) {
     lcoefs <- shape*log(scale) + (0:1000)*log(scale.t) + lgamma((0:1000)+shape) - lfactorial(0:1000) - lgamma(shape) - ((0:1000)+shape)*log(scale+scale.t)
     stopifnot( any( (exp(lcoefs) - dnbinom(x=0:1000,size=shape,prob=1-scale.t/(scale.t+scale))) < 1e-8 ) )
     stopifnot( abs(sum(exp(lcoefs)) - 1) < 1e-8 )
+
+    # compare expAtv to expAtv.poisson
+    source("codon-inference-fns.R")
+    load("bcells/genmatrices/genmatrix-6-none-0-2.RData")
+    projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=2, rwin=2 )
+    for (tlen in c(.1,1,10)) {
+        show(system.time( {
+                totalrates <- rowSums(genmatrix)
+                scale.t <- mean(totalrates)
+                A <- (1/scale.t) * ( genmatrix - Diagonal(nrow(genmatrix),totalrates) )
+                a <- sapply( 1:ncol(projmatrix), function (k) { expAtv( A=A, t=tlen*scale.t, v=projmatrix[,k] )$eAtv} )
+        } ))
+        show(system.time( b <- expAtv.poisson( A=genmatrix, t=tlen, v=projmatrix ) ))
+        stopifnot(all(abs(a-b)<1e-7))
+    }
+    # slower!! and scales much worse.  better to figure out how to do gamma with krylov...
 
 }
