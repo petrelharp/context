@@ -59,6 +59,7 @@ These change with time -- so, write $X_i(t)$ for the state of the $i^\mathrm{th}
 where each $X_i(t) \in \calS$, the set of possible states.
 (To avoid edge effects, we sometimes arrange these sites in a circle, so the indices are interpreted $\mod n$.)
 We define a \textit{pattern} to mean a contiguous sequence of states, and we let $|u|$ denote the length of the pattern $u$.
+
 The marginal mutation process at every context is continuous time homogeneous Markov, which are thus specified by a set of transition rates between patterns.
 The sequence-level transition process is the independent superposition of all of the individual pattern mutation processes.
 Thus given two patterns $u$ and $v$ of common length $h$, saying ``pattern $u$ changes to $v$ at rate $\mu$'' means that if $(X_i(t), \ldots, X_{i+h}(t)) = (u_1, \ldots, u_h)$ then
@@ -150,7 +151,7 @@ by treating the $n$ sites as a circle, and treating all indices modulo $n$.
 For clarity, we should define how the set of transition rates determines the transition rate matrix,
 the $|\calS|^n \times |\calS|^n$ matrix $G(n)$ whose $(x,y)^\text{th}$ entry gives the instantaneous rate
 with which the process in state $x$ jumps to state $y$.
-% Let $x_i^{(h)} = (x_i, x_{i+1}, \ldots, x_{i+h-1})$ be the subsequence of length $h$ beginning at location $i$, and
+Let $x_i^{(h)} = (x_i, x_{i+1}, \ldots, x_{i+h-1})$ be the subsequence of length $h$ beginning at location $i$.
 For each $1\le i \le n$, pattern length $h \ge 0$, and patterns $u,v \in \calS^h$ define the relation
 \[
 x \xrightarrow{i,u,v} y \qquad \text{iff} \qquad \begin{cases}
@@ -266,10 +267,10 @@ where $a \join y \join b$ is the sequence composed of concatenating $a$, $y$, an
 This is the probability that if we begin with a sequence $x$ of length $\ell+m+r$,
 then after time $t$ we will see at the middle $m$ positions the pattern $y$,
 ignoring what is present in the leftmost $\ell$ and rightmost $r$ positions.
-In a long sequence, $p_m(x,z)$ might not be a very good approximation for $\P\{ X_i^{(m)}(t) = z | X_i(0)^{(m)} = x \}$,
-we do expect $p_{\ell,m,r}(x,y)$ to asymptotically correct when $\ell$ and $r$ are large:
+\todo[inline]{Is the following notation right? It seems like taking it out is a viable option: "In a long sequence, $p_m(x,z)$ might not be a very good approximation for $\P\{ X_i^{(m)}(t) = z \mid X_i^{(m)}(0) = x \}$,"}
+We expect $p_{\ell,m,r}(x,y)$ to be asymptotically correct when $\ell$ and $r$ are large \todo{and $t$ is not} :
 \begin{align} \label{eqn:window_approx}
-  \P\{ X_i^{(m)}(t) = y | X_i(0)^{(\ell+m+r)} = x \} \approx p_{\ell,m,r}(x,y) .
+  p_{\ell,m,r}(x,y) \approx \P\{ X_i^{(m)}(t) = y \mid X_i^{(\ell+m+r)}(0) = x \}.
 \end{align}
 We provide a precise statement of this approximation later.
 
@@ -292,15 +293,16 @@ where $\cdot$ represents any base.
 
 \newcommand{\lyl}{\ell,|y|,\ell}
 
-Now we will now calculate the mean and covariances of $N_\ell(x,y)$.
+Now we will now calculate the expectation and covariances of $N_\ell(x,y)$.
 From the definitions above,
-the expected number of times $y$ would appear juxtaposed with $x$ is approximately $N(x) p_{\lyl}(x,y)$.
-Covariances are also easy to compute.
-If we define $M_i(x,y)$ to be 1 if $X_{i-\ell}^{(|x|)}(0)=x$ and $X_i^{(|y|)}(t)=y$, and 0 otherwise,
-so that $N(x,y) = \sum_{i=1}^n M_i(x,y)$, then
-\begin{align}
+\[
+\E [N_\ell(x,y)] \approx N(x) \, p_{\lyl}(x,y).
+\]
+To compute covariances, define $M_i(x,y)$ to be 1 if $X_{i-\ell}^{(|x|)}(0)=x$ and $X_i^{(|y|)}(t)=y$, and 0 otherwise,
+so that $N(x,y) = \sum_{i=1}^n M_i(x,y)$.
+\begin{align*}
   \var[N(x,y)] &= \sum_{i=1}^n \var[M_i(x,y)] + \sum_{i\neq j} \cov[M_i(x,y), M_j(x,y)] \\
-  &= n \var[M_1(x,y)] + 2n\sum_{k=1}^n \cov[M_1(x,y),M_{k+1}(x,y)] \\
+  &= n \var[M_1(x,y)] + 2n\sum_{k=1}^{n-1} \cov[M_1(x,y),M_{k+1}(x,y)] \\
   &\approx n p_{\lyl}(x,y)(1-p_{\lyl}(x,y)) + 2n\sum_{k=1}^{m+2\ell} \left( \E[M_1(x,y) M_{k+1}(x,y)] - p_{\lyl}(x,y)^2 \right) \\
   &= n p_{\lyl}(x,y)(1-(1+2m+4\ell)p_{\lyl}(x,y)) + 2n\sum_{k=1}^{m+2\ell} \E[M_1(x,y) M_{k+1}(x,y)] .
 \end{align}
@@ -314,7 +316,7 @@ Similarly, if $(x_1,y_1) \neq (x_2,y_2)$ then
     & \approx - n (2m+4\ell) p_{\lyl}(x_1,y_1)p_{\lyl}(x_2,y_2) \\
     & \qquad {} + n\sum_{k=1}^{m+2\ell} \E[M_1(x_1,y_1) M_{k+1}(x_2,y_2) + M_1(x_2,y_2) M_{k+1}(x_1,y_1)] .
   \end{split}
-\end{align}
+\end{align*}
 
 
 %%%%
