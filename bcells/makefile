@@ -1,4 +1,5 @@
 %/countfiles : %.tuples.5.1.counts %.tuples.6.2.counts %.tuples.7.2.counts %.tuples.7.3.counts %.tuples.8.2.counts %.tuples.8.3.counts %.tuples.9.3.counts
+	touch $@
 
 %/tuples.9.3.counts : %.fasta
 	python ../tuple-counting/count-paired-tuples.py -w 5 -l 2 -r 2 -i $< > $@
