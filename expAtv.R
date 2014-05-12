@@ -1,5 +1,6 @@
 # fixes issues in expm:::expAtv
 
+
 expAtv <- function (A, v, t = 1, method = "Sidje98", tol = 1e-07, btol = 1e-07, 
     m.max = 30, mxrej = 10, verbose = getOption("verbose")) 
 {
@@ -35,11 +36,17 @@ expAtv <- function (A, v, t = 1, method = "Sidje98", tol = 1e-07, btol = 1e-07,
     nstep <- n.rej <- 0L
     w <- v
     while (t_now < t_1) {
+        # build up via exp(tA)v = exp(t1 A) exp(t2 A) ... exp(tn A)v with t1 + ... + tn = t
+        #   and tk sufficiently small
         nstep <- nstep + 1L
         t_step <- min(t_1 - t_now, t_new)
         if (verbose) 
             cat(sprintf("while(t_now = %g < ..): nstep=%d, t_step=%g\n", 
                 t_now, nstep, t_step))
+        # construct V and H:
+        #    V is the matrix whose k-th column is A^k %*% v = v_k
+        # from this, let p_k be v_k, projected to be orthogonal to v_0, ..., v_{k-1} and normalized
+        #    H is A in the basis of p, which is in upper Hessenberg form (i.e. upper triangular plus one diagonal)
         V[, 1] <- (1/beta) * w
         for (j in 1:m) {
             p <- as.vector(A %*% V[, j])
