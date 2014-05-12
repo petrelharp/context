@@ -73,9 +73,10 @@ We call such a $(\mu,u,v)$ a ``transition triple''.
 The set of all transition triples $\calT = \{ (\mu^j,u^j,v^j) \}_{j=1}^{n_T}$
 determines the time evolution of the process.
 
-It will often be convenient, notationally and computationally, to avoid edge effects
+It will often be convenient in the notation to avoid edge effects
 by treating the $n$ sites as a circle, and treating all indices modulo $n$.
 \todo[inline]{So shall we commit to this? I think that would be best, and then explain any deviation from it individually.}
+\peter{I think it would be better to remove this, but I need to parse the remainder...}
 
 \begin{example}[TASEP]
   The \emph{Totally Asymmetric Simple Exclusion Process} labels each site as ``empty'' or ``occupied'' (0 or 1, respectively),
@@ -189,22 +190,24 @@ Briefly, we can put down a Poisson process of times and locations of possible ch
 at an appropriate rate $\mu_*$,
 and then resolve each possible change in temporal order.
 \todo{OK, rad.}
-We situate ``changes'' at the beginning of the matching pattern,
-so $\mu_*$ can be defined as the maximum sum of rates matching  the start of a sequence:
+The rate $\mu_*$ should be the maximum ``local'' rate at which transitions occur at any position:
 \[
-\mu_* = \max \left\{ \sum_{y \in \calS^n} \sum_{j\in J(1,x,y)} \mu_j \st x \in \calS^n \right\} .
+\mu_* = \max \left\{ \sum_{y \in \calS^n} \sum_{j\in J(i,x,y)} \mu_j \qquad \st x \in \calS^n, \quad 1 \le i \le n \right\} .
 \]
 \todo[inline]{OK, I'm getting confused now. From the above, I would have thought that $\mu_*$ was the overall rate of mutation, but now it's only happening from pattern x?}
-Now sample possible changes: let $c_{ij}$ denote the $j^\text{th}$ possible change at site $i$,
-so that
+\peter{$\mu_*$ is the maximum transition rate out of any possible pattern $x$.  I think the notation is correct? I have tried to clarify.}
+Note that since mutation is homogeneous, the maximum rate of changes occuring at any position will be the same, except possibly near the ends of the sequence.
+Now sample possible changes: let $c_{ij}$ denote the time of the $j^\text{th}$ possible change at site $i$,
+so that for each site $i$,
 \[
 0 \le c_{i1} < c_{i2} < \cdots < c_{iN_i} \le t
 \]
-is a rate $\mu_*$ Poisson process.
+is a rate $\mu_*$ Poisson process, and these are independent across sites.
 \todo[inline]{Further confusion: now $\mu_*$ is just the rate at a single site?}
+\peter{yes.}
 Then, suppose we have determined the state at time $s$ to be $X(s) = x$,
-and the next event is $s_{ij} = \min \{ s_{kh} : s_{kh}>s \}$.
-The process then jumps to a new state at times $s_{ij}$ with probability proportional to the corresponding rate.
+and the next event is $s_{ij} = \min_{k,h} \{ s_{kh} : s_{kh}>s \}$.
+The process then jumps to a new state with probability proportional to the corresponding rate.
 In other words, let
 \[
 q_k = \begin{cases}
@@ -213,7 +216,7 @@ q_k = \begin{cases}
 \end{cases}
 \]
 and let $q_0 = 1-\sum_{k=1}^{n_T} q_k$.
-By construction of $\mu_*$, $q_0\ge 0$.)
+(By construction of $\mu_*$, $q_0\ge 0$.)
 Now choose transition $k$ with probability $q_k$, and if $k>0$, replace $x_i^{|u_k|}$ with $v_k$.
 
 For instance, to simulate TASEP, one has only to let $\mu_*=\lambda$, and at each $s_{ij}$
@@ -228,7 +231,7 @@ If $n$ is large enough and $t$ is not too large,
 this should be feasible.
 If $t$ is too large, the process may ``saturate'' --
 if there are many changes at most sites, then in at least most models,
-we will lost most of the information about the dynamics,
+we will lose most of the information about the dynamics,
 retaining information only about the parameters that affect the stationary distribution.
 In TASEP, we lose all information as it approaches stationarity,
 in the Ising model we have information about $\beta$ and $\gamma$ but not $\lambda$ from the stationary distribution,
@@ -311,7 +314,7 @@ For example, what if $x$ doesn't appear in $X(0)$?
 I was with you on $\E [N_\ell(x,y)] \approx N(x) \, p_{\lyl}(x,y)$.
 }
 
-\begin{align*}
+\begin{align}
   \var[N(x,y)] &= \sum_{i=1}^n \var[M_i(x,y)] + \sum_{i\neq j} \cov[M_i(x,y), M_j(x,y)] \\
   &= n \var[M_1(x,y)] + 2n\sum_{k=1}^{n-1} \cov[M_1(x,y),M_{k+1}(x,y)] \\
   &\approx n p_{\lyl}(x,y)(1-p_{\lyl}(x,y)) + 2n\sum_{k=1}^{m+2\ell} \left( \E[M_1(x,y) M_{k+1}(x,y)] - p_{\lyl}(x,y)^2 \right) \\
@@ -327,7 +330,7 @@ Similarly, if $(x_1,y_1) \neq (x_2,y_2)$ then
     & \approx - n (2m+4\ell) p_{\lyl}(x_1,y_1)p_{\lyl}(x_2,y_2) \\
     & \qquad {} + n\sum_{k=1}^{m+2\ell} \E[M_1(x_1,y_1) M_{k+1}(x_2,y_2) + M_1(x_2,y_2) M_{k+1}(x_1,y_1)] .
   \end{split}
-\end{align*}
+\end{align}
 
 
 %%%%
