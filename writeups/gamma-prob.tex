@@ -23,25 +23,30 @@ where $N(t)$ is a unit Poisson process and $M$ is a discrete-time Markov chain.
 Here $\lambda$ is the maximum transition rate $\lambda = \max_i \{ - G_{ii} \}$,
 and the transition matrix for $M$ is given by
 \begin{align}
-    P_{xy} := \P\{M_{k+1} = y \given M_k = x\} \\
+    P_{xy} &:= \P\{M_{k+1} = y \given M_k = x\} \\
         &= \begin{cases}  
                 G_{xy}/\lambda \qquad & x\neq y \\
                 1+G_{xx}/\lambda \qquad & x=y 
             \end{cases} .
 \end{align}
 
-Since $N(\lambda \tau)$ has a negative binomial distribution,
-with 
+$N(\lambda \tau)$ has a negative binomial distribution, with parameters $\alpha$ and $\lambda/(\lambda+\beta)$:
 \begin{align}
-    \P\{ N(\lambda \tau) = n \} = \frac{ \beta^\alpha \lambda^n }{ \Beta(n,\alpha) (\beta+\lambda)^{n+\alpha} }  \qquad \text{for } n \ge 0 ,
+  \P\{ N(\lambda \tau) = n \} &= \int_0^\infty \frac{ \beta^\alpha }{\Gamma(\alpha)} t^{\alpha-1} e^{-\beta t} e^{-\lambda t} \frac{ (\lambda t)^n }{ n! } dt \\
+  &= \frac{ \beta^\alpha }{ \Gamma(\alpha) n! } \frac{\lambda^n}{(\lambda+\beta)^{n+\alpha}} \int_0^\infty t^{n+\alpha-1} e^{-t} dt \\
+  &= \frac{ \Gamma(n+\alpha) }{ \Gamma(\alpha) \Gamma(n+1) } \frac{ \beta^\alpha \lambda^n }{(\lambda+\beta)^{n+\alpha}}\qquad \text{for } n \ge 0 .
 \end{align}
-it follows that
+It follows that
 \begin{align}
-    Q(x,y;\alpha,\beta) = \sum_{n \ge 0} \P\{ N(\lambda \tau) = n \} P^n  ,
+    Q(x,y;\alpha,\beta) = \sum_{n \ge 0} \P\{ N(\lambda \tau) = n \} P^n  .
 \end{align}
-and the error in approximating this by a finite sum up to $n_0$ is bounded by $\P\{N(\lambda \tau)>n_0\}$.
-Since $\E[\tau] = \alpha/\beta$, this tail probability will decay exponentially once $n_0$ is larger than 
-
+Note that 
+\begin{align}
+  \frac{ \P\{ N(\lambda \tau) = n+1 \} }{ \P\{ N(\lambda \tau) = n \} } &= \frac{ \Gamma(n+\alpha+1) \Gamma(n+1) }{ \Gamma(n+\alpha) \Gamma(n+2) } \frac{\lambda}{\lambda+\beta} \\
+  &= \frac{ n+\alpha }{ n+1 } \frac{\lambda}{\lambda+\beta} ,
+\end{align}
+which is helpful for computing this.
+The error in approximating this by a finite sum up to $n_0$ is bounded by $\P\{N(\lambda \tau)>n_0\}$.
 
 
 

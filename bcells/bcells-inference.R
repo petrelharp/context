@@ -6,24 +6,26 @@ Infer parameters from paired counts file.
 "
 
 option_list <- list(
+    # input/output
         make_option( c("-u","--basedir"), type="character", default=NULL, help="Directory to look for input in, and write output files to." ),
         make_option( c("-i","--infile"), type="character", default=NULL, help="Input file with tuple counts, tab-separated, with header 'reference', 'derived', 'count'. [default, looks in basedir]" ),
+        make_option( c("-g","--gmfile"), type="character", default="TRUE", help="File with precomputed generator matrix, or TRUE [default] to look for one. (otherwise, will compute)"),
+        make_option( c("-o","--logfile"), type="character", default="", help="Direct output to this file. [default appends .Rout]" ),
+    # context and pattern size
         make_option( c("-w","--win"), type="integer", default=1, help="Size of matching window. [default \"%default\"]" ),
         make_option( c("-l","--lwin"), type="integer", default=2, help="Size of left-hand context. [default \"%default\"]" ),
-        make_option( c("-r","--rwin"), type="integer", default=2, help="Size of left-hand context. [default \"%default\"]" ),
+        make_option( c("-r","--rwin"), type="integer", default=2, help="Size of right-hand context. [default \"%default\"]" ),
         make_option( c("-k","--patlen"), type="integer", default=1, help="Include mutation rates for all tuples of this length. [default \"%default\"]" ),
+        make_option( c("-d","--boundary"), type="character", default="none", help="Boundary conditions for generator matrix. [default \"%default\"]"),
+        make_option( c("-y","--meanboundary"), type="integer", default=0, help="Average over this many neighboring bases in computing generator matrix. [default \"%default\"]" ),
+    # mcmc run lengths
         make_option( c("-n","--nbatches"), type="integer", default=20, help="Number of MCMC batches. [default \"%default\"]" ),
         make_option( c("-b","--blen"), type="integer", default=10, help="Length of each MCMC batch. [default \"%default\"]" ),
         make_option( c("-s","--stepscale"), type="numeric", default=1e-4, help="Scale of proposal steps for Metropolis algorithm. [default \"%default\"]" ),
-        make_option( c("-m","--mmean"), type="double", default=1, help="Prior mean on single base mutation rates. [default \"%default\"]" ),
-        make_option( c("-c","--cpgmean"), type="double", default=1, help="Prior variance on CpG rate. [default \"%default\"]" ),
-        make_option( c("-z","--gcbias"), type="double", default=1, help="Prior mean for strength of GC bias. [default \"%default\"]" ),
-        make_option( c("-p","--pprior"), type="double", default=1, help="Parameter for Dirichlet prior on base frequencies. [default \"%default\"]" ),
-        make_option( c("-v","--tprior"), type="character", default="c(1,1,1,1)", help="Parameters for Dirichlet priors on relative branch lengths. [default \"%default\"]" ),
-        make_option( c("-d","--boundary"), type="character", default="none", help="Boundary conditions for generator matrix. [default \"%default\"]"),
-        make_option( c("-y","--meanboundary"), type="integer", default=0, help="Average over this many neighboring bases in computing generator matrix. [default \"%default\"]" ),
-        make_option( c("-g","--gmfile"), type="character", default="TRUE", help="File with precomputed generator matrix, or TRUE [default] to look for one. (otherwise, will compute)"),
-        make_option( c("-o","--logfile"), type="character", default="", help="Direct output to this file. [default appends .Rout]" )
+    # prior parameters
+        make_option( c("-h","--shapemean"), type="double", default=1, help="Prior mean on shape parameter for gamma time. [default \"%default\"]" ),
+        make_option( c("-m","--singlemean"), type="double", default=1, help="Prior mean on single base mutation rates. [default \"%default\"]" ),
+        make_option( c("-z","--doublemean"), type="double", default=1, help="Prior mean on double base mutation rates. [default \"%default\"]" )
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 if (is.character(opt$tprior)) { opt$tprior <- eval(parse(text=opt$tprior)) }
@@ -47,7 +49,6 @@ if (logfile!="") {
 
 scriptdir <- "../"
 source(paste(scriptdir,"codon-inference-fns.R",sep=''))
-source(paste(scriptdir,"sim-context-fns.R",sep=''))
 
 require(mcmc)
 
@@ -66,7 +67,7 @@ if (file.exists(gmfile)) {
     }
 }
 projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
-subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE )
+subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE, time="gamma" )
 
 # read in counts (produced with count-paired-tuples.py)
 count.table <- read.table(infile,header=TRUE,stringsAsFactors=FALSE)
@@ -85,85 +86,81 @@ nsel <- length(selpats)
 stopifnot(nsel==0)
 # (quasi)-likelihood function using all counts -- binomial
 likfun <- function (params) {
-    cat(".")
-    # params are: mutrates*tlen
-    genmatrix@x <- update(genmatrix,mutrates=params,selcoef=numeric(0))
+    print(params)
+    # params are: mutrates*tlen, shape
+    genmatrix@x <- update(genmatrix,mutrates=params[1:nmuts],selcoef=numeric(0))
     # this is collapsed transition matrix
-    subtransmatrix <- computetransmatrix( genmatrix, projmatrix )
-    # return negative log-likelihood 
+    subtransmatrix <- computetransmatrix( genmatrix, projmatrix, shape=params[length(params)], time="gamma" )
+    # return NEGATIVE log-likelihood 
     ans <- (-1) * sum( counts * log(subtransmatrix) )
     if (!is.finite(ans)) { print(params) }
     return(ans)
 }
 
+mutlens <- sapply( mutpats, function (x) { nchar(x[[1]][1]) } )
+# prior parameters
+priormeans <- rep(NA,length(mutpats))
+priormeans[mutlens==1] <- singlemeans
+priormeans[mutlens==2] <- doublemeans
+# posterior: indep't poisson.
+lud <- function (mutrates) {
+    # params are: mutrates*tlen, shape
+    shape <- params[length(params)]
+    mutrates <- params[1:nmuts]
+    if (any(mutrates<0)) {
+        return( -Inf )
+    } else {
+        genmatrix@x <- update(genmatrix,mutrates=mutrates,selcoef=numeric(0))
+        meancounts <- initcounts * computetransmatrix( genmatrix, projmatrix, shape=shape, time="gamma" )
+        # return POSITIVE log-posterior
+        return( (-1)*sum(meancounts) + sum( counts * log(meancounts) ) - sum(mutrates/mmeans) - shape/shapemean)
+    }
+}
+
 
 # point estimates
-initpar <- .1 + runif( nmuts )/4
-lbs <- rep(1e-8,nmuts)
-ubs <- rep(20,nmuts)
+initpar <- c(adhoc,1)
+lbs <- c( rep(1e-8,nmuts), .01 )
+ubs <- c( rep(20,nmuts), 2 )
 
 stopifnot( is.finite(likfun(initpar)) )
-
-require(parallel)
-pjob <- mcparallel( { optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs ) } )
-random.ans <- mccollect(pjob)[[1]]
-
-random.ans <- optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(trace=3) )
-stopifnot(random.ans$convergence==0)
-adhoc.ans <- optim( par=adhoc, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(trace=3) )
-
-point.estimate <- random.ans$par
+adhoc.ans <- optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(maxit=1,trace=3) ) 
+stopifnot(adhoc.ans$convergence==0)
+point.estimate <- adhoc.ans$par
 names(point.estimate) <- sapply(mutpats,function(x){paste(sapply(x,paste,collapse='->'),collapse='/')})
 
-# is it symmetric under reverse-complement?
-revmutrates <- point.estimate[reverse.complement(mutpats)]
-plot(point.estimate,revmutrates)
+###
 
-predicted.counts <- predictcounts(win=win,lwin=lwin,rwin=rwin,initcounts=rowSums(counts),mutrates=point.estimate,selcoef=numeric(0),genmatrix=genmatrix,projmatrix=projmatrix)
-p.vals <- ppois( as.matrix(counts), lambda=as.matrix(predicted.counts) )
+likfun(initpar)
+likfun(initpar*10)
+gradest(likfun,initpar)
+predictcounts(win, lwin, rwin, initcounts=rowSums(counts), mutrates=mutrates, selcoef=numeric(0), genmatrix=genmatrix, projmatrix=projmatrix )
 
-# look at residuals
-layout(t(1:2))
-plot( (predicted.counts - counts)/sqrt(predicted.counts), p.vals, cex=pmin(3,predicted.counts/mean(predicted.counts))  )
-plot(as.vector(predicted.counts),as.vector(counts),xlab='predicted',ylab='observed',cex=pmin(3,abs(log(p.vals/(1-p.vals))/10)),col=1+(p.vals>0),log='xy')
-abline(0,1)
-
-ssresids <- countmuts(counts=(predicted.counts-counts)^2,mutpats=mutpats,lwin=lwin)
-
+# random.init <- c( .1 + runif( nmuts )/4, shape=1 )
+# require(parallel)
+# pjob <- mcparallel( { optim( par=random.init, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs ) } )
+# ajob <- mcparallel( { optim( par=adhoc, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(trace=3) ) } )
+# adhoc.ans <- mccollect(ajob)[[1]]
+# random.ans <- mccollect(pjob)[[1]]
 
 # bayesian
-#  note we deal with initial freqs not summing to 1 differently from in optim( ) -- need to remove last entry.
 #  mrun.parjob <- mcparallel( metrop( lud, initial=random.ans.par[-length(random.ans.par)], nbatch=nbatches, blen=blen, scale=stepscale ) )
 #  mrun <- mccollect(mcrun.parjob)
-mrun <- metrop( lud, initial=random.ans.par[-length(random.ans.par)], nbatch=nbatches, blen=blen, scale=stepscale )
+mrun <- metrop( lud, initial=point.estimate, nbatch=nbatches, blen=blen, scale=stepscale )
 
 # look at observed/expected counts
-if (is.null(names(initfreqs))) { names(initfreqs) <- bases }
-all.expected <- lapply( 1:nrow(estimates), function (k) {
-            x <- unlist(estimates[k,])
-            branchlens <- c(x[1],1-x[1])
-            mutrates <- x[1+(1:nmuts)]
-            initfreqs <- x[1+nmuts+(1:nfreqs)]
-            initfreqs <- initfreqs/sum(initfreqs)
-            list( 
-                    predicttreecounts( win, lwin, rwin, initcounts=rowSums(counts[[1]]), mutrates=list(mutrates,mutrates), selcoef=list(numeric(0),numeric(0)), genmatrix=genmatrix, projmatrix=projmatrix, initfreqs=initfreqs, tlens=rev(branchlens) ),
-                    predicttreecounts( win, lwin, rwin, initcounts=rowSums(counts[[2]]), mutrates=list(mutrates,mutrates), selcoef=list(numeric(0),numeric(0)), genmatrix=genmatrix, projmatrix=projmatrix, initfreqs=initfreqs, tlens=branchlens )
-                )
-    } )
-names(all.expected) <- rownames(estimates)
+expected <- predictcounts(win, lwin, rwin, initcounts=rowSums(counts), mutrates=mutrates, selcoef=numeric(0), genmatrix=genmatrix, projmatrix=projmatrix )
 
 # look at observed/expected counts in smaller windows
 cwin <- min(2,win); lrcwin <- min(1,lwin,rwin)
-subcounts <- lapply( counts, function (x) 
-        projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=x ) )
-all.subexpected <- lapply( all.expected, lapply, function (x)
-        projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=x ) )
+subcounts <- projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=counts )
+subexpected <- projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=expected )
 
-save( opt, counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, truth, cheating.ans, random.ans, estimates, initpar, nonoverlapping, nov.counts, mmeans, ppriors, tpriors, all.expected, cwin, subcounts, all.subexpected, mrun, win, lwin, rwin, nmuts, nfreqs, npats, patcomp, file=datafile )
+save( opt, counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, anhoc.ans, point.estimate, initpar, singlemeans, doublemeans, shapemean, expected, cwin, subcounts, subexpected, mrun, win, lwin, rwin, nmuts, file=datafile )
 
 # plot (long) counts
 pdf(file=paste(plotfile,"-longcounts.pdf",sep=''),width=6, height=4, pointsize=10)
-layout(matrix(1:sum(sapply(counts,ncol)),nrow=2))
+layout(matrix(1:ncol(counts)),nrow=2))
 for (j in seq_along(counts)) {
     for (k in 1:ncol(counts[[j]])) {
         lord <- order( all.expected[["truth"]][[j]][,k] )
@@ -218,27 +215,6 @@ for (j in seq_along(counts)) {
     legend("topleft",pch=c(1,20,20),col=c('black','red','green'),legend=c('observed','cheating','estimated'))
 }
 dev.off()
-
-# NOT SO USEFUL since we only do a short mcmc run
-# # plot each pairwise posterior marginal density
-# pdf(file=paste(plotfile,"-mcmc.pdf",sep=''),width=6, height=4, pointsize=10)
-# pairs( rbind( mrun$batch, truth ), col=c(rep(1,nrow(x)),2), pch=c(rep(1,nrow(x)),20), cex=c(rep(1,nrow(x)),2) )
-# plot(as.data.frame(mrun$batch))
-# layout(matrix(c(1,4,2,3),nrow=2))
-# par(mar=c(4,4,0,0)+.1)
-# for (k in 1:(ncol(mrun$batch)-1)) { 
-#     for (j in (k+1):ncol(mrun$batch)) {
-#         plot(mrun$batch[,j],mrun$batch[,k],xlab=colnames(estimates)[j],ylab=colnames(estimates)[k],pch=20,cex=.5,col=adjustcolor('black',.5), xlim=range(c(mrun$batch[,j],estimates[c("truth","ans"),j])), ylim=range(c(mrun$batch[,k],estimates[c("truth","ans"),k])))
-#         points( estimates["truth",j], estimates["truth",k], pch=20, col='green' )
-#         points( estimates["ans",j], estimates["ans",k], pch=20, col='red' )
-#     }
-# }
-# legend("bottomright",pch=20,col=c('green','red'),legend=c("truth","estimated"))
-# matplot( mrun$batch, type='l', col=1:length(truth), xlab="mcmc gens" )
-# abline(h=truth, col=adjustcolor(1:length(truth),.5), lwd=2)
-# abline(h=estimates["ans",], col=1:length(truth) )
-# legend("topright",col=c(1:length(truth),1,adjustcolor(1,.5)), lwd=c(rep(1,length(truth)),1,2),legend=c(colnames(estimates)[1:length(truth)],"point estimate","truth"))
-# dev.off()
 
 
 print(format(Sys.time(),"%Y-%m-%d-%H-%M"))

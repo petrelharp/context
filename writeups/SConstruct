@@ -24,6 +24,6 @@ Default(context_dependence)
 Depends(Flatten([context_dependence]),
         Flatten([pdfs, 'context-dependence.bib']))
 
-cont_build = env.Command('.continuous', ['context-dependence.bib', 'context-dependence.tex', 'figures.tex'],
+cont_build = env.Command('.continuous', ['context-dependence.bib', 'context-dependence.tex'],
     'while :; do inotifywait -e modify $SOURCES; scons -Q; done')
 Alias('continuous', cont_build)
