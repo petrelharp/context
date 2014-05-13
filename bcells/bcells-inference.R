@@ -23,7 +23,7 @@ option_list <- list(
         make_option( c("-b","--blen"), type="integer", default=10, help="Length of each MCMC batch. [default \"%default\"]" ),
         make_option( c("-s","--stepscale"), type="numeric", default=1e-4, help="Scale of proposal steps for Metropolis algorithm. [default \"%default\"]" ),
     # prior parameters
-        make_option( c("-h","--shapemean"), type="double", default=1, help="Prior mean on shape parameter for gamma time. [default \"%default\"]" ),
+        make_option( c("-a","--shapemean"), type="double", default=1, help="Prior mean on shape parameter for gamma time. [default \"%default\"]" ),
         make_option( c("-m","--singlemean"), type="double", default=1, help="Prior mean on single base mutation rates. [default \"%default\"]" ),
         make_option( c("-z","--doublemean"), type="double", default=1, help="Prior mean on double base mutation rates. [default \"%default\"]" )
     )
@@ -32,11 +32,14 @@ if (is.character(opt$tprior)) { opt$tprior <- eval(parse(text=opt$tprior)) }
 if (length(opt$tprior)==1) { opt$tprior <- rep(opt$tprior,4) }
 if (is.null(opt$infile) & is.null(opt$basedir)) { cat("Run\n  bcells-inference.R -h\n for help.\n") }
 attach(opt)
-options(error=traceback)
+# options(error=traceback)
 
 winlen <- lwin+win+rwin
 
-if (is.null(opt$infile)) { infile <- paste(basedir,"/tuples.",winlen,".",lwin,".counts",sep='') }
+if (substr(basedir,nchar(basedir),nchar(basedir)) %in% c("/","\\")) { basedir <- substr(basedir,1,nchar(basedir)-1) }
+if (is.null(opt$infile)) { infile <- paste(basedir,"/", basedir, ".tuples.",winlen,".",lwin,".counts",sep='') }
+if (!file.exists(infile)) { stop("Cannot read file ", infile) }
+
 
 if (gmfile=="TRUE") { gmfile <- paste(paste("genmatrices/genmatrix",winlen,boundary,meanboundary,patlen,sep="-"),".RData",sep='') }
 
@@ -56,6 +59,7 @@ basename <- paste(basedir,"/win-",lwin,"-",win,"-",rwin,sep='')
 datafile <- paste( basename ,"-results.RData",sep='')
 resultsfile <- paste( basename ,"-results.tsv",sep='')
 plotfile <- paste( basename ,"-plot",sep='')
+
 
 if (file.exists(gmfile)) {
     load(gmfile)
@@ -86,7 +90,6 @@ nsel <- length(selpats)
 stopifnot(nsel==0)
 # (quasi)-likelihood function using all counts -- binomial
 likfun <- function (params) {
-    print(params)
     # params are: mutrates*tlen, shape
     genmatrix@x <- update(genmatrix,mutrates=params[1:nmuts],selcoef=numeric(0))
     # this is collapsed transition matrix
@@ -100,8 +103,8 @@ likfun <- function (params) {
 mutlens <- sapply( mutpats, function (x) { nchar(x[[1]][1]) } )
 # prior parameters
 priormeans <- rep(NA,length(mutpats))
-priormeans[mutlens==1] <- singlemeans
-priormeans[mutlens==2] <- doublemeans
+priormeans[mutlens==1] <- singlemean
+priormeans[mutlens==2] <- doublemean
 # posterior: indep't poisson.
 lud <- function (mutrates) {
     # params are: mutrates*tlen, shape
@@ -156,11 +159,11 @@ cwin <- min(2,win); lrcwin <- min(1,lwin,rwin)
 subcounts <- projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=counts )
 subexpected <- projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=expected )
 
-save( opt, counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, anhoc.ans, point.estimate, initpar, singlemeans, doublemeans, shapemean, expected, cwin, subcounts, subexpected, mrun, win, lwin, rwin, nmuts, file=datafile )
+save( opt, counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, anhoc.ans, point.estimate, initpar, singlemean, doublemean, shapemean, expected, cwin, subcounts, subexpected, mrun, win, lwin, rwin, nmuts, file=datafile )
 
 # plot (long) counts
 pdf(file=paste(plotfile,"-longcounts.pdf",sep=''),width=6, height=4, pointsize=10)
-layout(matrix(1:ncol(counts)),nrow=2))
+layout(matrix(1:ncol(counts)),nrow=2)
 for (j in seq_along(counts)) {
     for (k in 1:ncol(counts[[j]])) {
         lord <- order( all.expected[["truth"]][[j]][,k] )
