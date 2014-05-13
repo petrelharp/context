@@ -3,6 +3,7 @@
 \usepackage{amsmath,amssymb}
 \usepackage{amsthm}
 \usepackage{graphicx}
+\usepackage{natbib}
 \usepackage{bm}
 \usepackage{todonotes}
 
@@ -21,6 +22,7 @@
 \newcommand{\st}{\colon}  % such that
 \newcommand{\var}{\mathop{\mbox{var}}}
 \newcommand{\cov}{\mathop{\mbox{cov}}}
+\newcommand{\given}{\;\mid\;}
 
 \theoremstyle{plain}
 \newtheorem{theorem}{Theorem}
@@ -53,30 +55,37 @@ to make it easier.
 
 \section{Notation and Examples}
 
-The common framework of the above examples is a one-dimensional grid of $n$ sites,
-and each site is labeled with one of a finite set of states.
-These change with time -- so, write $X_i(t)$ for the state of the $i^\mathrm{th}$ site at time $t$,
-where each $X_i(t) \in \calS$, the set of possible states.
-(To avoid edge effects, we sometimes arrange these sites in a circle, so the indices are interpreted $\mod n$.)
-We define a \textit{pattern} to mean a contiguous sequence of states, and we let $|u|$ denote the length of the pattern $u$.
+Each example above describes a 1-dimensional grid of sites, each of which can take one of a finite set of states,
+and that switch randomly between states according to a local set of rules.
+Concretely, we suppose that we observe a finite collection of these sites at only a few times,
+and that the dynamics are Markov:
+with the set of possible states by $\calS$, 
+and $X_i(t)$ the state of site $i$ at time $t$,
+we assume that $\{X(t)\}_{t \ge 0}$ is a Markov process on $\calS^n$ 
+for which the probability a given site changes state in a small amount of time
+depends only on the sequence of states at nearby sites.
 
-The process starts with an arbitrary specified sequence of states $X(0)$.
-The marginal mutation process at every context is continuous time homogeneous Markov, which are thus specified by a set of transition rates between patterns.
-The sequence-level transition process is the independent superposition of all of the individual pattern mutation processes.
-Thus given two patterns $u$ and $v$ of common length $h$, saying ``pattern $u$ changes to $v$ at rate $\mu$'' means that if $(X_i(t), \ldots, X_{i+h}(t)) = (u_1, \ldots, u_h)$ then
+To make this notion of local dependence formal,
+first define a \textit{pattern} to mean a contiguous sequence of states; 
+let $|u|$ denote the length of the pattern $u$;
+and let $x_i^{(h)} = (x_i, x_{i+1}, \ldots, x_{i+h-1})$ denote the subsequence of $x$ of length $h$ beginning at location $i$.
+The dynamics are determined by the set of allowed transitions and associated rates:
+given two patterns $u$ and $v$ of common length $h$, 
+saying ``pattern $u$ changes to $v$ at rate $\mu$'' means that 
 \[
-\P\{(X_i(t+dt), \ldots, X_{i+h}(t+dt)) = (v_1, \ldots, v_h) = \mu dt + o(dt),
+    \P\{ X_i^{(h)}(t+dt) = v \given X_i^{(h)}(t) = u \} = \mu dt + o(dt),
 \]
 regardless of the location $i$ along the sequence.
 If more than one pattern would match to cause the same change, their rates add.
-We call such a $(\mu,u,v)$ a ``transition triple''.
-The set of all transition triples $\calT = \{ (\mu^j,u^j,v^j) \}_{j=1}^{n_T}$
-determines the time evolution of the process.
+Such a rule is defined by its ``transition triple'' $(\mu,u,v)$.
+The set of all transition triples, $\calT$, determines the time evolution of the process.
 
-It will often be convenient in the notation to avoid edge effects
-by treating the $n$ sites as a circle, and treating all indices modulo $n$.
-\todo[inline]{So shall we commit to this? I think that would be best, and then explain any deviation from it individually.}
-\peter{I think it would be better to remove this, but I need to parse the remainder...}
+A final note: recall we are focusing on finite sequences.
+By default, we do not allow patterns to ``hang off'' the end of the sequence.
+This is natural in many situations, but in others we might want to other boundary conditions,
+modeling extant, but unobserved, neighbors.
+We will mention this when necessary.
+
 
 \begin{example}[TASEP]
   The \emph{Totally Asymmetric Simple Exclusion Process} labels each site as ``empty'' or ``occupied'' (0 or 1, respectively),
@@ -91,31 +100,40 @@ by treating the $n$ sites as a circle, and treating all indices modulo $n$.
   \end{center}
 
   This only has one parameter, the speed.
-  Note, however, that it may not be entirely trivial to estimate the speed,
-  since (on the circle) it may not be obvious which particle moved where.
+  If we allow particles to exit from the right, and new particles to enter from the left
+  (or, arrange them on a circle)
+  then from observing only starting and ending configurations 
+  we cannot tell which particles have moved where,
+  so it is not obvious how to estimate the speed.
 
 \end{example}
 
 \begin{example}[CpG mutation]
   A sequence of genome can be written using A, C, G, and T;
   in the most general model of single-site mutation, each of the 12 possible transitions occurs at its own rate.
-  Furthermore, it is a well-known observation that in many species, and certain contexts,
-  a C followed by a G has an additional, higher rate with either the C changing to a T or the G changing to an A.
-  This simplest model of context-dependent substitution rates in a genome sequence has rates
+  Furthermore, it is a well-known observation that in many species, 
+  adjacent, methylated CG dinucleotides (``CpG sites'') have a much higher mutation rate to TG and CA
+  than either single nucleotide change.
+  Embellishing the single-nucleotide model with this additional rate results in the model defined by
 
   \begin{center}
     \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }cc}
       $x$  &  $y$  &  $m_{xy}$ & when $x \neq y \in \{\nA,\nC,\nG,\nT\}$  \\
       CG   &  TG   &  $\gamma$ & \\
       CG   &  CA   &  $\gamma$ &
-    \end{tabular}
+    \end{tabular} .
   \end{center}
-  in which $\gamma$ is the additional CpG rate above the base mutation rate.
+  Here $\gamma$ is the additional CpG rate above the base mutation rate,
+  and a total of 13 parameters.
+  Note that this model is very different in spirit to TASEP,
+  in which the total number of particles was conserved.
 
-  This has 13 parameters.
-  Note that there are no conserved quantities here, unlike in TASEP,
-  which we could imagine as indestructible particles moving.
-
+  In this model, for a given pair of sequences, there may be more than one way to mutate a given string $x$ to get $y$:
+  for instance, a change $\nA\nC\nG \to \nA\nT\nG$ could have occurred by a single $\nC \to \nT$ mutation,
+  or by a $\nC\nG \to \nT\nG$ mutation; 
+  and hence the total instantaneous rate at which ACG changes to ATG is $\gamma + m_{\nC\nT}$.
+  Although this means there are many possible parameterizations,
+  note that the model is identifiable, not overparameterized.
 
 \end{example}
 
@@ -146,14 +164,16 @@ by treating the $n$ sites as a circle, and treating all indices modulo $n$.
     \end{tabular}
   \end{center}
 
+  Glauber dynamics have been widely studied... XXX
+
 \end{example}
 
 
 \paragraph{The generator matrix}
-For clarity, we should define how the set of transition rates determines the transition rate matrix,
+For clarity, we describe how the set of transition rates determines the transition rate matrix,
 the $|\calS|^n \times |\calS|^n$ matrix $G(n)$ whose $(x,y)^\text{th}$ entry gives the instantaneous rate
 with which the process in state $x$ jumps to state $y$.
-Let $x_i^{(h)} = (x_i, x_{i+1}, \ldots, x_{i+h-1})$ be the subsequence of length $h$ beginning at location $i$.
+Recall that $x_i^{(h)} = (x_i, x_{i+1}, \ldots, x_{i+h-1})$ denotes the subsequence of length $h$ beginning at location $i$.
 For each $1\le i \le n$, pattern length $h \ge 0$, and patterns $u,v \in \calS^h$ define the relation
 \[
 x \xrightarrow{i,u,v} y \qquad \text{iff} \qquad \begin{cases}
@@ -163,63 +183,69 @@ x \xrightarrow{i,u,v} y \qquad \text{iff} \qquad \begin{cases}
   x_k = y_k \quad &\text{for } k\ge i+h ,
 \end{cases}
 \]
-i.e.\ if $x$ and $y$ match except for in $i,i+1,\ldots,i+h-1$, where $x$ matches with $u$ and $y$ matches with $v$.
-(Interpet these indices modulo $n$, even for short sequences, a point we will come back to.)
-We'll also need the set of defined transitions in $\calT$
-that can move from $x$ to $y$ at a given location: let  $J(i,x,y) = \{ (\mu^j,u^j,v^j) \in \calT \st x \xrightarrow{i,u^j,v^j} y \}$.
-Then, the rate $G(n)_{x,y}$ is the sum of all matching transition rates,
+i.e.\ if $x$ and $y$ match except at positions $i,i+1,\ldots,i+h-1$, 
+and in this region $x$ matches with $u$ while $y$ matches with $v$.
+
+As noted above, there may be more than one way to mutate a sequence $x$ to get $y$:
+for each position $i$, these are those transitions in $\calT$ that can be applied at $i$
+to change $x$ into $y$, denoted  $J(i,x,y) = \{ (\mu^j,u^j,v^j) \in \calT \st x \xrightarrow{i,u^j,v^j} y \}$.
+The rate $G(n)_{x,y}$ is then the sum of all matching transition rates,
 namely
 \begin{align} \label{eqn:G_defn}
   G(n)_{x,y} = \sum_{i=1}^n \sum_{J(i,x,y)}  \mu^j ,
 \end{align}
 and if there are no triples $(\mu,u,v)$ with $x \xrightarrow{i,u,v} y$ for some $i$, then $G(n)_{x,y}=0$.
 This is just to say that the transition rate from $x$ to $y$ is the sum of the mutation rates of all transition triples
-that could change $x$ into $y$.
-In principle, this gives us the transition probabilities for the process:
+that would change $x$ into $y$.
+In principle, this gives us the transition probabilities for the process by a matrix exponential:
 \begin{align} \label{eqn:full_likelihood}
     p_n(t;x,y) := \P\{ X(t) = y \mid X(0) = x \} = \left(e^{tG(n)}\right)_{xy} ,
 \end{align}
-but in practice the size of these matrices can make a direct application of this formula inefficient.
+which would then provide a route to parameter estimation.
+In practice, the size of these matrices makes direct application obviously impractical.
 This paper proposes an alternate strategy.
 
 
 \section{Simulation}
 
-First, it will be useful to have a brief description of how to simulate such a process.
-Briefly, we can put down a Poisson process of times and locations of possible changes,
-at an appropriate rate $\mu_*$,
-and then resolve each possible change in temporal order.
-\todo{OK, rad.}
-The rate $\mu_*$ should be the maximum ``local'' rate at which transitions occur at any position:
+First, it will be useful for later proofs to have an explicit construction of the process,
+also used for simulation,
+using a variant of the ``jump chain representation'' (also known as the Gillespie algorithm \citep{vankampen}).
+Briefly, this works by first sampling a homogeneous Poisson process of times and locations of possible changes,
+at an appropriate rate $\mu_*$ per site,
+and then resolving each possible change in temporal order.
+The rate $\mu_*$ should be the maximum ``local'' rate at which transitions occur, per site:
 \[
 \mu_* = \max \left\{ \sum_{y \in \calS^n} \sum_{j\in J(i,x,y)} \mu_j \qquad \st x \in \calS^n, \quad 1 \le i \le n \right\} .
 \]
+Note that since mutation is homogeneous, the maximum rate of changes occuring at any position will be the same, except possibly near the end of the sequence,
+so the maximization over $i$ is unnecessary.
 \todo[inline]{OK, I'm getting confused now. From the above, I would have thought that $\mu_*$ was the overall rate of mutation, but now it's only happening from pattern x?}
-\peter{$\mu_*$ is the maximum transition rate out of any possible pattern $x$.  I think the notation is correct? I have tried to clarify.}
-Note that since mutation is homogeneous, the maximum rate of changes occuring at any position will be the same, except possibly near the ends of the sequence.
+\peter{$\mu_*$ is the maximum transition rate per site.  better now?}
 Now sample possible changes: let $c_{ij}$ denote the time of the $j^\text{th}$ possible change at site $i$,
 so that for each site $i$,
 \[
 0 \le c_{i1} < c_{i2} < \cdots < c_{iN_i} \le t
 \]
-is a rate $\mu_*$ Poisson process, and these are independent across sites.
+is a rate $\mu_*$ Poisson process on $[0,t]$, and these are independent across sites.
 \todo[inline]{Further confusion: now $\mu_*$ is just the rate at a single site?}
 \peter{yes.}
-Then, suppose we have determined the state at time $s$ to be $X(s) = x$,
-and the next event is $s_{ij} = \min_{k,h} \{ s_{kh} : s_{kh}>s \}$.
-The process then jumps to a new state with probability proportional to the corresponding rate.
-In other words, let
+Now, suppose we have determined the state at time $s$ to be $X(s) = x$,
+and the next event is $c_{ij} = \min_{k,h} \{ c_{kh} : c_{kh}>s \}$.
+At $c_{ij}$, 
+a new subsequence is then chosen at position $i$
+with probability proportional to the corresponding rate:
 \[
-q_k = \begin{cases}
-  \mu_k/\mu_* \qquad & \text{if } x_i^{(|u_k|)} = u_k  \\
+q_j = \begin{cases}
+  \mu^j/\mu_* \qquad & \text{if } x_i^{(|u^j|)} = u^j  \\
   0 \qquad & \text{otherwise,}
 \end{cases}
 \]
-and let $q_0 = 1-\sum_{k=1}^{n_T} q_k$.
+is the probability that $x_i^{|u^j|}$ is replaced with $v^j$,
+and no chance is made with the remaining probability $q_0 = 1-\sum_{j=1}^{n_T} q_j$.
 (By construction of $\mu_*$, $q_0\ge 0$.)
-Now choose transition $k$ with probability $q_k$, and if $k>0$, replace $x_i^{|u_k|}$ with $v_k$.
 
-For instance, to simulate TASEP, one has only to let $\mu_*=\lambda$, and at each $s_{ij}$
+For instance, to simulate TASEP, one has only to let $\mu_*=\lambda$, and at each $c_{ij}$
 check if at site $i$ there is a 1 followed by a 0,
 and if so, switch them.
 
@@ -228,15 +254,16 @@ and if so, switch them.
 
 The problem at hand is to infer the parameters of the model, given the state at time 0 and later at time $t$.
 If $n$ is large enough and $t$ is not too large,
-this should be feasible.
+this should be feasible -- there should be enough information in our observations to do this reliably.
 If $t$ is too large, the process may ``saturate'' --
 if there are many changes at most sites, then in at least most models,
-we will lose most of the information about the dynamics,
+we will lose most information about the dynamics,
 retaining information only about the parameters that affect the stationary distribution.
-In TASEP, we lose all information as it approaches stationarity,
-in the Ising model we have information about $\beta$ and $\gamma$ but not $\lambda$ from the stationary distribution,
-and in the CpG model it is not immediately clear.
+In TASEP with any boundary conditions, we lose all information as it approaches stationarity,
+while in the Ising model we have information about the temperature $\beta$ and magnetic field $\gamma$ but not the speed of changes, $\lambda$.
+In the CpG model it is not immediately clear what information is retained.
 \todo[inline]{I would think that this is identifiable from the stationary distribution if we know the structure of the model.}
+\peter{What is identifiable?  The entire model, up to a time change?  I go back and forth on this...}
 
 
 But, how can we extract the information?
@@ -245,41 +272,44 @@ so the full likelihood function is given by \eqref{eqn:full_likelihood},
 but doing anything with the $|\calS|^n \times |\calS|^n$ matrix $G_n$ is clearly infeasible for even moderately sized $n$.
 We can, however, compute \eqref{eqn:full_likelihood} for smaller $n$,
 so the first thing that one might think to do is to break the sequence up into many blocks of length $m$,
-and treat these as independent, taking $m$ as large as is feasible.
-Then we would define $p_m(t;x,y)$ to be the probability that a string $x$ of length $m$ evolves to string $y$ over time $t$,
-denote by $x_i^{(m)}$ the block of length $m$ beginning at index $i$,
-and obtain the approximate likelihood function
+and treat these as independent.
+Then, defining $p_m(t;x,y)$ to be the probability that a string $x$ of length $m$ evolves to string $y$ over time $t$,
+we would obtain the approximate likelihood function
 \[
-  \prod_{k=0}^{n/m} p_m(x_{km}^{(m)},y_{km}^{(m)}) .
+  \prod_{k=0}^{n/m} p_m(x_{km+1}^{(m)},y_{km+1}^{(m)}) .
 \]
-\todo[inline]{Do you prefer 1-indexing or 0-indexing for the sequences? Seems like 1-indexing before}
-Variations are possible, such as modifying edge effects behavior for $p_m$.
-
-However, in any case there is no guarantee that this is close to correct,
+However, there is no guarantee that this is even close to correct,
 as it ignores dependencies between neighboring blocks.
 Intuitively, we want to increase the size of the context
--- but increasing $m$ does not do this, as there are always edge effects.
-\todo[inline]{I'm a little confused by this use of "edge effects." Are you using it to mean non-independence between blocks generally?}
-However, we could look at the context in the initial sequence but not in the final sequence,
-including the states of an additional $\ell$ and $r$ sites on the left and right, respectively.
-We will call these left and right \emph{fringes}.
-Concretely, define the marginal probabilities
+-- and the likelihood thus obtained is asymptotically correct for $m$ large,
+but computationally, we are stuck with small values of $m$.
+
+Alternatively, we could take into account context in the initial sequence only,
+by including the states of an additional $\ell$ sites on both the left and right.
+The probability that an initial sequence $x$ of length $m+2\ell$ after time $t$ 
+is found to match a smaller, middle sequence $y$ of length $m$ is found by marginalizing:
 \begin{align}
-  p_{\ell,m,r}(t;x,y) &= \sum_{a \in \calS^\ell} \sum_{b \in \calS^r} p_{\ell+m+r}(t;x,a \join y \join b) , \quad \text{for}\; x \in \calS^{\ell+m+r}, \; y \in \calS^m ,
+  p_{\ell,m}(t;x,y) &= \sum_{a \in \calS^\ell} \sum_{b \in \calS^\ell} p_{2\ell+m}(t;x,a \join y \join b) , \quad \text{for}\; x \in \calS^{2\ell+m}, \; y \in \calS^m ,
 \end{align}
 where $a \join y \join b$ is the sequence composed of concatenating $a$, $y$, and $b$ together in that order.
-This is the probability that if we begin with a sequence $x$ of length $\ell+m+r$,
+This is the probability that if we begin with a sequence $x$ of length $2\ell+m$,
 then after time $t$ we will see at the middle $m$ positions the pattern $y$,
-ignoring what is present in the leftmost $\ell$ and rightmost $r$ positions.
-\todo[inline]{Is the following notation right? It seems like taking it out is a viable option: "In a long sequence, $p_m(x,z)$ might not be a very good approximation for $\P\{ X_i^{(m)}(t) = z \mid X_i^{(m)}(0) = x \}$,"}
-We expect $p_{\ell,m,r}(x,y)$ to be asymptotically correct when $\ell$ and $r$ are large \todo{and $t$ is not} :
+ignoring what is present in the leftmost and rightmost $\ell$ positions.
+We expect $p_{\ell,m}(x,y)$ to be asymptotically correct when $\ell$ is large (and $t$ is fixed),
+i.e.\ that the probability a given subsequence matching $x$ is later observed to have its center matching $y$
+is close to $p_{\ell,m}(x,y)$, regardless of context:
 \begin{align} \label{eqn:window_approx}
-  p_{\ell,m,r}(x,y) \approx \P\{ X_i^{(m)}(t) = y \mid X_i^{(\ell+m+r)}(0) = x \}.
+  p_{\ell,m}(x,y) \approx \P\{ X_i^{(m)}(t) = y \mid X_i^{(2\ell+m)}(0) = x \}.
 \end{align}
-We provide a precise statement of this approximation later.
+We provide a precise statement of the error in this approximation later.
 
 %%%%
 \subsection{Summary statistics}
+
+Equipped with marginal transition probabilities from length-$m+2\ell$ patterns to length-$m$ patterns
+that correctly account for local dependencies,
+we can now consider inference procedures.
+
 
 Now we know how to compute the approximate (marginal) probability that a particular subsequence changes into another subsequence.
 Let $N(x)$ be the number of occurrences of a pattern $x$ in $X(0)$.
