@@ -306,17 +306,16 @@ We provide a precise statement of the error in this approximation later.
 %%%%
 \subsection{Summary statistics}
 
-Equipped with marginal transition probabilities from length-$m+2\ell$ patterns to length-$m$ patterns
-that correctly account for local dependencies,
-we can now consider inference procedures.
-
-
-Now we know how to compute the approximate (marginal) probability that a particular subsequence changes into another subsequence.
-Let $N(x)$ be the number of occurrences of a pattern $x$ in $X(0)$.
-For patterns $x$ and $y$, with both fringe widths equal to $\ell$ (so that $|x|=|y|+2\ell$),
-let $N_\ell(x,y)$ count these events, respectively be the number of times $x$ appears in $X(0)$,
-and how many times $x$ appears in $X(0)$ while $y$ appears at the same place in $X(t)$, offset by $\ell$.
-For instance, $N_3(\text{ACTCAC}, \text{CGC})$ counts the number of occurrences of
+Since we cannot compute reasonably the full likelihood for the data,
+we will need to choose appropriate summary statistics
+that contain as much information about the process as possible,
+and have a tractable expression for their marginal likelihood.
+Assume here that $\ell$ has been chosen to be sufficiently large that approximation \eqref{eqn:window_approx} holds exactly.
+If $i_1 < \ldots < i_{n(x)}$ are a set of nonoverlapping sites where the initial sequence matches $x$
+-- i.e.\ $X_{i_k}^{(2\ell+m)}(0)=x$ and $i_{k+1} > i_k + 2\ell+m$ for all $k$ --
+then the counts $N(x,y)=\#\{ i_k \st X_{i_k+\ell}^{(m)}(t)=y\}$ (the number of these sites that match the smaller pattern $y$ at time $t$)
+are multinomial, with probabilities $\{p_{\ell,m}(x,y)\st y \in \calS^m\}$.
+For instance, if $\ell=3$ then $N(\text{ACTCAC}, \text{CGC})$ counts the number of occurrences of
 \begin{center}
 \begin{tabular}{c|ccccccc}
  $x$ &  C  & A & C & T & C & A & C \\
@@ -324,41 +323,50 @@ For instance, $N_3(\text{ACTCAC}, \text{CGC})$ counts the number of occurrences 
 \end{tabular}
 \end{center}
 where $\cdot$ represents any base.
+More generally, if we partition the sequence into windows of length $2\ell+m$,
+and let $N(x,y)$ be the number of times we see a window in which $x$ matches $X(0)$ and $y$ matches $X(t)$,
+then these counts are independently multinomial across each $x$.
+% so the marginal likelihood of the statistics $N(x,y)$ is
+% \begin{align}
+%     \prod_{x \in \calS^{2\ell+m}} N(x)! \prod_{y \in \calS^m} \frac{p_{\ell,m}(x,y)^{N(x,y)}}{N(x,y)!} ,
+% \end{align}
+% where $N(x) = \sum_y N(x,y)$.
 
-\newcommand{\lyl}{\ell,|y|,\ell}
+Of course, a drawback to this approach is that we throw away a good fraction of the data.
+In fact, we do not even look at a fraction $2\ell/(2\ell+m)$ of the second sequence, $X(t)$,
+that lies in the fringes of each window.
+As before, let $N(x)$ be the number of occurrences of a pattern $x$ in $X(0)$,
+and $N(x,y)$ the number of times $x$ is seen juxtaposed with $y$ in $X(t)$,
+but this time, count over all positions,
+so that e.g.\ $N(x) = \#\{ 1 \le i \le n - 2\ell - m + 1 \st X_i^{(m+2\ell)}(0)=x\}$.
 
-Now we will now calculate the expectation and covariances of $N_\ell(x,y)$.
-From the definitions above,
+\peter{Ooops, yes.  Previously, I was semi-inconsistently thinking of the initial sequence $X(0)$ as random as well. ,
+    which is why I was talking about Poisson instead of Multinomial counts.}
+
+Now we will now calculate the expectation and covariances of $N(x,y)$.
+\peter{The following is Not Right, but also we don't really use it at the moment.}
+If we assume that \eqref{eqn:window_approx} is exact, then
 \[
-\E [N_\ell(x,y)] \approx N(x) \, p_{\lyl}(x,y).
+    \E [N(x,y)] = N(x) \, p_{\ell,m}(x,y).
 \]
-To compute covariances, define $M_i(x,y)$ to be 1 if $X_{i-\ell}^{(|x|)}(0)=x$ and $X_i^{(|y|)}(t)=y$, and 0 otherwise,
-so that $N(x,y) = \sum_{i=1}^n M_i(x,y)$.
-\todo[inline]{
-In the below, are you are using an equivalence
-\[
-\cov[M_1(x,y),M_{k+1}(x,y)] = \E[M_1(x,y) M_{k+1}(x,y)] - p_{\lyl}(x,y)^2
-\]
-How do you justify this? I don't think that $M_1(x,y)$ is equal to $p_{\lyl}(x,y)$: the former is defined in terms of observed events, whereas the latter is defined starting with "if we have a sequence $x$" without any reference to the frequency of $x$.
-For example, what if $x$ doesn't appear in $X(0)$?
-I was with you on $\E [N_\ell(x,y)] \approx N(x) \, p_{\lyl}(x,y)$.
-}
-
+To compute covariances, define $\chi_i(x,y)$ to be 1 if $X_{i-\ell}^{(|x|)}(0)=x$ and $X_i^{(|y|)}(t)=y$, and 0 otherwise,
+so that $N(x,y) = \sum_{i=1}^n \chi_i(x,y)$.
+Overloading notation, also define $\chi_i(x)$ to be 1 if $X_{i-\ell}^{(|x|)}(0)=x$,
 \begin{align}
-  \var[N(x,y)] &= \sum_{i=1}^n \var[M_i(x,y)] + \sum_{i\neq j} \cov[M_i(x,y), M_j(x,y)] \\
-  &= n \var[M_1(x,y)] + 2n\sum_{k=1}^{n-1} \cov[M_1(x,y),M_{k+1}(x,y)] \\
-  &\approx n p_{\lyl}(x,y)(1-p_{\lyl}(x,y)) + 2n\sum_{k=1}^{m+2\ell} \left( \E[M_1(x,y) M_{k+1}(x,y)] - p_{\lyl}(x,y)^2 \right) \\
-  &= n p_{\lyl}(x,y)(1-(1+2m+4\ell)p_{\lyl}(x,y)) + 2n\sum_{k=1}^{m+2\ell} \E[M_1(x,y) M_{k+1}(x,y)] .
+  \var[N(x,y)] &= \sum_{i=1}^n \var[\chi_i(x,y)] + \sum_{i\neq j} \cov[\chi_i(x,y), \chi_j(x,y)] \\
+               &\approx \sum_{i=1}^n \chi_i(x) p_{\ell,m}(x,y)(1-p_{\ell,m}(x,y)) 
+            + 2 \sum_{i=1}^{n-2\ell-m} \sum_{j=i+1}^{i+2\ell+m-1} \cov[ \chi_i(x,y) \chi_j(x,y) ] \\
+            &= N(x) p_{\ell,m}(x,y)(1-p_{\ell,m}(x,y)) + 
 \end{align}
-The term $\E[M_1(x,y) M_{k+1}(x,y)]$ is the probability that $x$ matches at both site 1 and site $k+1$,
+The term $\E[\chi_1(x,y) \chi_{k+1}(x,y)]$ is the probability that $x$ matches at both site 1 and site $k+1$,
 and that $y$ matches both at site $\ell+1$ and at site $\ell+k+1$.
 For this to be nonzero, the joint pattern $(x,y)$ must allow self-overlaps.
 Similarly, if $(x_1,y_1) \neq (x_2,y_2)$ then
 \begin{align}
   \begin{split}
     \cov[N(x_1,y_1),N(x_2,y_2)]
-    & \approx - n (2m+4\ell) p_{\lyl}(x_1,y_1)p_{\lyl}(x_2,y_2) \\
-    & \qquad {} + n\sum_{k=1}^{m+2\ell} \E[M_1(x_1,y_1) M_{k+1}(x_2,y_2) + M_1(x_2,y_2) M_{k+1}(x_1,y_1)] .
+    & \approx - n (2m+4\ell) p_{\ell,m}(x_1,y_1)p_{\ell,m}(x_2,y_2) \\
+    & \qquad {} + n\sum_{k=1}^{m+2\ell} \E[\chi_1(x_1,y_1) \chi_{k+1}(x_2,y_2) + \chi_1(x_2,y_2) \chi_{k+1}(x_1,y_1)] .
   \end{split}
 \end{align}
 
@@ -367,7 +375,7 @@ Similarly, if $(x_1,y_1) \neq (x_2,y_2)$ then
 \subsection{A likelihood function}
 
 The covariance calculations show that
-if $p_{\lyl}(x,y)$ is small enough (i.e.\ the pattern is not common),
+if $p_{\ell,m}(x,y)$ is small enough (i.e.\ the pattern is not common),
 then $N(x,y)$ is close to Poisson.
 Using this observation, we can estimate parameters by composite likelihood,
 using all $N(x,y)$ as data.
@@ -443,7 +451,7 @@ Now, MAKE THIS EASIER TO READ
 \end{multline}
 and so
 \begin{align} \label{eqn:prob_approx}
-  \left| \P\{ X_i^{(m)}(t) = y \mid X(0) \} - p_{\lyl}(t;x,y) \right| \le 2 \P\left\{  H(\{I,\ldots,i+m\},0,t)\subseteq\{i-\ell,\ldots,i+m+r\} \right\}.
+  \left| \P\{ X_i^{(m)}(t) = y \mid X(0) \} - p_{\ell,m}(t;x,y) \right| \le 2 \P\left\{  H(\{I,\ldots,i+m\},0,t)\subseteq\{i-\ell,\ldots,i+m+r\} \right\}.
 \end{align}
 
 So, the error is bounded by the probability that $H(I,0,t)$ is larger than the context from $I-\ell$ to $I+r$.
