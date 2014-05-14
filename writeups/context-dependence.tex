@@ -59,19 +59,19 @@ Each example above describes a 1-dimensional grid of sites, each of which can ta
 and that switch randomly between states according to a local set of rules.
 Concretely, we suppose that we observe a finite collection of these sites at only a few times,
 and that the dynamics are Markov:
-with the set of possible states by $\calS$, 
+with the set of possible states by $\calS$,
 and $X_i(t)$ the state of site $i$ at time $t$,
-we assume that $\{X(t)\}_{t \ge 0}$ is a Markov process on $\calS^n$ 
+we assume that $\{X(t)\}_{t \ge 0}$ is a Markov process on $\calS^n$
 for which the probability a given site changes state in a small amount of time
 depends only on the sequence of states at nearby sites.
 
 To make this notion of local dependence formal,
-first define a \textit{pattern} to mean a contiguous sequence of states; 
+first define a \textit{pattern} to mean a contiguous sequence of states;
 let $|u|$ denote the length of the pattern $u$;
 and let $x_i^{(h)} = (x_i, x_{i+1}, \ldots, x_{i+h-1})$ denote the subsequence of $x$ of length $h$ beginning at location $i$.
 The dynamics are determined by the set of allowed transitions and associated rates:
-given two patterns $u$ and $v$ of common length $h$, 
-saying ``pattern $u$ changes to $v$ at rate $\mu$'' means that 
+given two patterns $u$ and $v$ of common length $h$,
+saying ``pattern $u$ changes to $v$ at rate $\mu$'' means that
 \[
     \P\{ X_i^{(h)}(t+dt) = v \given X_i^{(h)}(t) = u \} = \mu dt + o(dt),
 \]
@@ -102,7 +102,7 @@ We will mention this when necessary.
   This only has one parameter, the speed.
   If we allow particles to exit from the right, and new particles to enter from the left
   (or, arrange them on a circle)
-  then from observing only starting and ending configurations 
+  then from observing only starting and ending configurations
   we cannot tell which particles have moved where,
   so it is not obvious how to estimate the speed.
 
@@ -111,7 +111,7 @@ We will mention this when necessary.
 \begin{example}[CpG mutation]
   A sequence of genome can be written using A, C, G, and T;
   in the most general model of single-site mutation, each of the 12 possible transitions occurs at its own rate.
-  Furthermore, it is a well-known observation that in many species, 
+  Furthermore, it is a well-known observation that in many species,
   adjacent, methylated CG dinucleotides (``CpG sites'') have a much higher mutation rate to TG and CA
   than either single nucleotide change.
   Embellishing the single-nucleotide model with this additional rate results in the model defined by
@@ -130,7 +130,7 @@ We will mention this when necessary.
 
   In this model, for a given pair of sequences, there may be more than one way to mutate a given string $x$ to get $y$:
   for instance, a change $\nA\nC\nG \to \nA\nT\nG$ could have occurred by a single $\nC \to \nT$ mutation,
-  or by a $\nC\nG \to \nT\nG$ mutation; 
+  or by a $\nC\nG \to \nT\nG$ mutation;
   and hence the total instantaneous rate at which ACG changes to ATG is $\gamma + m_{\nC\nT}$.
   Although this means there are many possible parameterizations,
   note that the model is identifiable, not overparameterized.
@@ -183,8 +183,8 @@ x \xrightarrow{i,u,v} y \qquad \text{iff} \qquad \begin{cases}
   x_k = y_k \quad &\text{for } k\ge i+h ,
 \end{cases}
 \]
-i.e.\ if $x$ and $y$ match except at positions $i,i+1,\ldots,i+h-1$, 
-and in this region $x$ matches with $u$ while $y$ matches with $v$.
+i.e.\ if $x$ and $y$ match except at positions $i,i+1,\ldots,i+h-1$,
+and for those positions $x$ matches with $u$ while $y$ matches with $v$.
 
 As noted above, there may be more than one way to mutate a sequence $x$ to get $y$:
 for each position $i$, these are those transitions in $\calT$ that can be applied at $i$
@@ -214,35 +214,32 @@ using a variant of the ``jump chain representation'' (also known as the Gillespi
 Briefly, this works by first sampling a homogeneous Poisson process of times and locations of possible changes,
 at an appropriate rate $\mu_*$ per site,
 and then resolving each possible change in temporal order.
-The rate $\mu_*$ should be the maximum ``local'' rate at which transitions occur, per site:
+The rate $\mu_*$ should be the maximum ``local'' rate at which transitions occur, across sites and transition outcome states:
 \[
 \mu_* = \max \left\{ \sum_{y \in \calS^n} \sum_{j\in J(i,x,y)} \mu_j \qquad \st x \in \calS^n, \quad 1 \le i \le n \right\} .
 \]
-Note that since mutation is homogeneous, the maximum rate of changes occuring at any position will be the same, except possibly near the end of the sequence,
+Note that since mutation is homogeneous, the maximum rate of changes occurring at any position will be the same, except possibly near the end of the sequence,
 so the maximization over $i$ is unnecessary.
-\todo[inline]{OK, I'm getting confused now. From the above, I would have thought that $\mu_*$ was the overall rate of mutation, but now it's only happening from pattern x?}
-\peter{$\mu_*$ is the maximum transition rate per site.  better now?}
 Now sample possible changes: let $c_{ij}$ denote the time of the $j^\text{th}$ possible change at site $i$,
 so that for each site $i$,
 \[
 0 \le c_{i1} < c_{i2} < \cdots < c_{iN_i} \le t
 \]
-is a rate $\mu_*$ Poisson process on $[0,t]$, and these are independent across sites.
-\todo[inline]{Further confusion: now $\mu_*$ is just the rate at a single site?}
-\peter{yes.}
+is a draw from a rate $\mu_*$ Poisson process on $[0,t]$.
+These processes are independent across sites.
 Now, suppose we have determined the state at time $s$ to be $X(s) = x$,
 and the next event is $c_{ij} = \min_{k,h} \{ c_{kh} : c_{kh}>s \}$.
-At $c_{ij}$, 
-a new subsequence is then chosen at position $i$
-with probability proportional to the corresponding rate:
+At $c_{ij}$,
+a new state is then chosen at position $i$
+with probability proportional to the corresponding rate, i.e.\
 \[
 q_j = \begin{cases}
-  \mu^j/\mu_* \qquad & \text{if } x_i^{(|u^j|)} = u^j  \\
+  \mu_j/\mu_* \qquad & \text{if } x_i^{(|u^j|)} = u^j  \\
   0 \qquad & \text{otherwise,}
 \end{cases}
 \]
-is the probability that $x_i^{|u^j|}$ is replaced with $v^j$,
-and no chance is made with the remaining probability $q_0 = 1-\sum_{j=1}^{n_T} q_j$.
+is the probability that $x_i^{(|u^j|)}$ is replaced with $v^j$.
+The remaining probability $q_0 = 1-\sum_{j=1}^{|\calT|} q_j$ gives the probability that the state remains the same.
 (By construction of $\mu_*$, $q_0\ge 0$.)
 
 For instance, to simulate TASEP, one has only to let $\mu_*=\lambda$, and at each $c_{ij}$
@@ -262,8 +259,8 @@ retaining information only about the parameters that affect the stationary distr
 In TASEP with any boundary conditions, we lose all information as it approaches stationarity,
 while in the Ising model we have information about the temperature $\beta$ and magnetic field $\gamma$ but not the speed of changes, $\lambda$.
 In the CpG model it is not immediately clear what information is retained.
-\todo[inline]{I would think that this is identifiable from the stationary distribution if we know the structure of the model.}
 \peter{What is identifiable?  The entire model, up to a time change?  I go back and forth on this...}
+\todo[inline]{Not sure what I was smoking when I said that. I think that the stationary distribution of the single-nucleotide model should be identifiable for sure. Then, I would guess the two CpG rates are identifiable modulo a rate factor that compares the single-nucleotide mutation rate to the CpG mutation rate.}
 
 
 But, how can we extract the information?
@@ -286,7 +283,7 @@ but computationally, we are stuck with small values of $m$.
 
 Alternatively, we could take into account context in the initial sequence only,
 by including the states of an additional $\ell$ sites on both the left and right.
-The probability that an initial sequence $x$ of length $m+2\ell$ after time $t$ 
+The probability that an initial sequence $x$ of length $m+2\ell$ after time $t$
 is found to match a smaller, middle sequence $y$ of length $m$ is found by marginalizing:
 \begin{align}
   p_{\ell,m}(t;x,y) &= \sum_{a \in \calS^\ell} \sum_{b \in \calS^\ell} p_{2\ell+m}(t;x,a \join y \join b) , \quad \text{for}\; x \in \calS^{2\ell+m}, \; y \in \calS^m ,
