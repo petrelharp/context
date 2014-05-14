@@ -1,7 +1,20 @@
 #PBS -S /bin/bash
 #PBS -q cmb
+#PBS -N bcells-inference
 #PBS -l nodes=1:ppn=1
 #PBS -l walltime=120:00:00
-#PBS -l pmem=2gb
-#PBS -l mem=.2gb
-#PBS -l vmem=2.2gb
+#PBS -l pmem=800mb
+#PBS -l mem=200mb
+#PBS -l vmem=1000mb
+
+# USAGE:
+#    qsub -vARGS="-u 02-C-M_out_of_frame -w 2 -l 2 -r 2 -k 2" skeleton.pbs
+
+source /usr/usc/R/3.0.2/setup.sh
+
+cd /home/rcf-40/pralph/panfs/context/bcells
+
+Rscript generate-patchy-run.R $ARGS
+
+exit
+
