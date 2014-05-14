@@ -184,7 +184,7 @@ x \xrightarrow{i,u,v} y \qquad \text{iff} \qquad \begin{cases}
 \end{cases}
 \]
 i.e.\ if $x$ and $y$ match except at positions $i,i+1,\ldots,i+h-1$,
-and in this region $x$ matches with $u$ while $y$ matches with $v$.
+and for those positions $x$ matches with $u$ while $y$ matches with $v$.
 
 As noted above, there may be more than one way to mutate a sequence $x$ to get $y$:
 for each position $i$, these are those transitions in $\calT$ that can be applied at $i$
@@ -214,35 +214,32 @@ using a variant of the ``jump chain representation'' (also known as the Gillespi
 Briefly, this works by first sampling a homogeneous Poisson process of times and locations of possible changes,
 at an appropriate rate $\mu_*$ per site,
 and then resolving each possible change in temporal order.
-The rate $\mu_*$ should be the maximum ``local'' rate at which transitions occur, per site:
+The rate $\mu_*$ should be the maximum ``local'' rate at which transitions occur, across sites and transition outcome states:
 \[
 \mu_* = \max \left\{ \sum_{y \in \calS^n} \sum_{j\in J(i,x,y)} \mu_j \qquad \st x \in \calS^n, \quad 1 \le i \le n \right\} .
 \]
-Note that since mutation is homogeneous, the maximum rate of changes occuring at any position will be the same, except possibly near the end of the sequence,
+Note that since mutation is homogeneous, the maximum rate of changes occurring at any position will be the same, except possibly near the end of the sequence,
 so the maximization over $i$ is unnecessary.
-\todo[inline]{OK, I'm getting confused now. From the above, I would have thought that $\mu_*$ was the overall rate of mutation, but now it's only happening from pattern x?}
-\peter{$\mu_*$ is the maximum transition rate per site.  better now?}
 Now sample possible changes: let $c_{ij}$ denote the time of the $j^\text{th}$ possible change at site $i$,
 so that for each site $i$,
 \[
 0 \le c_{i1} < c_{i2} < \cdots < c_{iN_i} \le t
 \]
-is a rate $\mu_*$ Poisson process on $[0,t]$, and these are independent across sites.
-\todo[inline]{Further confusion: now $\mu_*$ is just the rate at a single site?}
-\peter{yes.}
+is a draw from a rate $\mu_*$ Poisson process on $[0,t]$.
+These processes are independent across sites.
 Now, suppose we have determined the state at time $s$ to be $X(s) = x$,
 and the next event is $c_{ij} = \min_{k,h} \{ c_{kh} : c_{kh}>s \}$.
 At $c_{ij}$,
-a new subsequence is then chosen at position $i$
-with probability proportional to the corresponding rate:
+a new state is then chosen at position $i$
+with probability proportional to the corresponding rate, i.e.\
 \[
 q_j = \begin{cases}
-  \mu^j/\mu_* \qquad & \text{if } x_i^{(|u^j|)} = u^j  \\
+  \mu_j/\mu_* \qquad & \text{if } x_i^{(|u^j|)} = u^j  \\
   0 \qquad & \text{otherwise,}
 \end{cases}
 \]
-is the probability that $x_i^{|u^j|}$ is replaced with $v^j$,
-and no chance is made with the remaining probability $q_0 = 1-\sum_{j=1}^{n_T} q_j$.
+is the probability that $x_i^{(|u^j|)}$ is replaced with $v^j$.
+The remaining probability $q_0 = 1-\sum_{j=1}^{|\calT|} q_j$ gives the probability that the state remains the same.
 (By construction of $\mu_*$, $q_0\ge 0$.)
 
 For instance, to simulate TASEP, one has only to let $\mu_*=\lambda$, and at each $c_{ij}$
@@ -262,8 +259,8 @@ retaining information only about the parameters that affect the stationary distr
 In TASEP with any boundary conditions, we lose all information as it approaches stationarity,
 while in the Ising model we have information about the temperature $\beta$ and magnetic field $\gamma$ but not the speed of changes, $\lambda$.
 In the CpG model it is not immediately clear what information is retained.
-\todo[inline]{I would think that this is identifiable from the stationary distribution if we know the structure of the model.}
 \peter{What is identifiable?  The entire model, up to a time change?  I go back and forth on this...}
+\todo[inline]{Not sure what I was smoking when I said that. I think that the stationary distribution of the single-nucleotide model should be identifiable for sure. Then, I would guess the two CpG rates are identifiable modulo a rate factor that compares the single-nucleotide mutation rate to the CpG mutation rate.}
 
 
 But, how can we extract the information?
