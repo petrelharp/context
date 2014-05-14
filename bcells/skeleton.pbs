@@ -14,7 +14,7 @@ source /usr/usc/R/3.0.2/setup.sh
 
 cd /home/rcf-40/pralph/panfs/context/bcells
 
-Rscript generate-patchy-run.R $ARGS
+Rscript bcells-inference.R $ARGS
 
 exit
 
