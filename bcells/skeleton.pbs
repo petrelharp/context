@@ -6,6 +6,8 @@
 #PBS -l pmem=800mb
 #PBS -l mem=200mb
 #PBS -l vmem=1000mb
+# #PBS -e qsub-logs
+# #PBS -o qsub-logs
 
 # USAGE:
 #    qsub -vARGS="-u 02-C-M_out_of_frame -w 2 -l 2 -r 2 -k 2" skeleton.pbs
