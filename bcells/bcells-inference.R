@@ -32,7 +32,7 @@ if (is.character(opt$tprior)) { opt$tprior <- eval(parse(text=opt$tprior)) }
 if (length(opt$tprior)==1) { opt$tprior <- rep(opt$tprior,4) }
 if (is.null(opt$infile) & is.null(opt$basedir)) { stop("No input file.  Run\n  bcells-inference.R -h\n for help.\n") }
 attach(opt)
-# options(error=traceback)
+options(error = quote({dump.frames(to.file = TRUE); q()}))
 
 winlen <- lwin+win+rwin
 
@@ -188,7 +188,7 @@ pdf(file=paste(plotfile,"-shortcounts.pdf",sep=''),width=6, height=4, pointsize=
 layout(matrix(1:ncol(subcounts),nrow=2))
 for (k in 1:ncol(subcounts)) {
     lord <- order( subexpected[,k] )
-    plot( subcounts[lord,k], xaxt='n', xlab='', main=colnames(subcounts)[k], log='y', ylim=range(c(subcounts,subexpected)) )
+    plot( subcounts[lord,k], xaxt='n', xlab='', main=colnames(subcounts)[k], log='y', ylim=range(c(as.matrix(subcounts),as.matrix(subexpected))) )
     axis(1,at=1:nrow(subcounts),labels=rownames(subcounts)[lord],las=3)
     lines(subexpected[lord,k],col='red')
     legend("topleft",legend='fitted',lty=1,col='red')
