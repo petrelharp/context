@@ -29,6 +29,8 @@ options(error = quote({dump.frames(to.file = TRUE); q()}))
 if (interactive()) { nbatches <- 100; blen <- 10; restart <- FALSE; gmfile <- TRUE }
 if (!interactive()) { options(error = quote({dump.frames(to.file = TRUE); q()})) }
 
+winlen <- lwin+win+rwin
+
 if (substr(basedir,nchar(basedir),nchar(basedir)) %in% c("/","\\")) { basedir <- substr(basedir,1,nchar(basedir)-1) }
 if (is.null(opt$infile)) { infile <- paste(basedir,"/", basedir, ".tuples.",winlen,".",lwin,".counts",sep='') }
 if (!file.exists(infile)) { stop("Cannot read file ", infile) }
@@ -62,7 +64,6 @@ if (length(mcmcdatafiles)>0) { load(grep(paste("-mcmc-",mcmcnum-1,".RData",sep='
 ########
 
 # Inference.
-winlen <- lwin+win+rwin
 if (gmfile=="TRUE") { gmfile <- paste(paste("genmatrices/genmatrix",winlen,boundary,meanboundary,sep="-"),".RData",sep='') }
 if (file.exists(gmfile)) {
     load(gmfile)
