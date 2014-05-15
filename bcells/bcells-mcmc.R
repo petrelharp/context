@@ -65,11 +65,7 @@ if (gmfile=="TRUE") { gmfile <- paste(paste("genmatrices/genmatrix",winlen,bound
 if (file.exists(gmfile)) {
     load(gmfile)
 } else {
-    if (meanboundary>0) {
-        genmatrix <- meangenmatrix( lwin=1, rwin=1, patlen=winlen, mutpats=mutpats, selpats=selpats, mutrates=rep(1,length(mutpats)), selcoef=rep(1,length(selpats)), boundary=boundary )
-    } else {
-        genmatrix <- makegenmatrix( patlen=winlen, mutpats=mutpats, selpats=selpats, mutrates=rep(1,length(mutpats)), selcoef=rep(1,length(selpats)), boundary=boundary )
-    }
+    stop("Can't find the generator matrix in", gmfile, " . Specify filename directly?")
 }
 projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
 subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE, time="gamma" )
