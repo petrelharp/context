@@ -28,8 +28,6 @@ option_list <- list(
         make_option( c("-z","--doublemean"), type="double", default=1, help="Prior mean on double base mutation rates. [default \"%default\"]" )
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
-if (is.character(opt$tprior)) { opt$tprior <- eval(parse(text=opt$tprior)) }
-if (length(opt$tprior)==1) { opt$tprior <- rep(opt$tprior,4) }
 if (is.null(opt$infile) & is.null(opt$basedir)) { stop("No input file.  Run\n  bcells-inference.R -h\n for help.\n") }
 attach(opt)
 options(error = quote({dump.frames(to.file = TRUE); q()}))

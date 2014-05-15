@@ -24,7 +24,7 @@ attach(opt)
 
 if (interactive()) { nbatches <- 100; blen <- 10; restart <- FALSE; gmfile <- TRUE }
 
-if (!'infile'%in%names(opt)) { stop("Run\n  cpg-inference.R -h\n for help.") }
+if (!'infile'%in%names(opt)) { stop("Run\n  cpg-mcmc.R -h\n for help.") }
 
 # options(error=traceback)
 scriptdir <- "../"
