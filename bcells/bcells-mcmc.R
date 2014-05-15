@@ -27,12 +27,11 @@ attach(opt)
 options(error = quote({dump.frames(to.file = TRUE); q()}))
 
 if (interactive()) { nbatches <- 100; blen <- 10; restart <- FALSE; gmfile <- TRUE }
-
-if (!'infile'%in%names(opt)) { stop("Run\n  cpg-inference.R -h\n for help.") }
 if (!interactive()) { options(error = quote({dump.frames(to.file = TRUE); q()})) }
 
 if (substr(basedir,nchar(basedir),nchar(basedir)) %in% c("/","\\")) { basedir <- substr(basedir,1,nchar(basedir)-1) }
 if (is.null(opt$infile)) { infile <- paste(basedir,"/", basedir, ".tuples.",winlen,".",lwin,".counts",sep='') }
+if (!file.exists(infile)) { stop("Cannot read file ", infile) }
 
 scriptdir <- "../"
 source(paste(scriptdir,"codon-inference-fns.R",sep=''))
