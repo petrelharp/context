@@ -32,7 +32,8 @@ if (!interactive()) { options(error = quote({dump.frames(to.file = TRUE); q()}))
 winlen <- lwin+win+rwin
 
 if (substr(basedir,nchar(basedir),nchar(basedir)) %in% c("/","\\")) { basedir <- substr(basedir,1,nchar(basedir)-1) }
-if (is.null(opt$infile)) { infile <- paste(basedir,"/", basedir, ".tuples.",winlen,".",lwin,".counts",sep='') }
+basename <- paste(basedir,"/win-",lwin,"-",win,"-",rwin,"-",patlen,sep='')
+if (is.null(opt$infile)) { infile <- paste( basename ,"-results.RData",sep='') }
 if (!file.exists(infile)) { stop("Cannot read file ", infile) }
 
 scriptdir <- "../"
@@ -40,13 +41,9 @@ source(paste(scriptdir,"codon-inference-fns.R",sep=''))
 source(paste(scriptdir,"sim-context-fns.R",sep=''))
 require(mcmc)
 
-basedir <- gsub(".RData","",infile,fixed=TRUE)
 load(infile)
 if (!file.exists(basedir)) { dir.create(basedir) }
 
-
-basename <- paste(basedir,"/win-",lwin,"-",win,"-",rwin,sep='')
-datafile <- paste( basename ,"-results.RData",sep='')
 plotfile <- paste( basename ,"-plot",sep='')
 mcmcdatafiles <- list.files(path=basedir,pattern="-mcmc.*RData",full.names=TRUE)
 mcmcnum <- 1+max(c(0,as.numeric(gsub(".*-mcmc-","",gsub(".RData","",mcmcdatafiles)))),na.rm=TRUE)
