@@ -7,7 +7,7 @@ Run mcmc longer.\
 
 option_list <- list(
         make_option( c("-u","--basedir"), type="character", default=NULL, help="Directory to look for input in, and write output files to." ),
-        make_option( c("-i","--infile"), type="character", default=NULL, help=".RData file containing simulation." ),
+        make_option( c("-i","--infile"), type="character", default=NULL, help=".RData file containing results from initial run." ),
         make_option( c("-w","--win"), type="integer", default=1, help="Size of matching window. [default \"%default\"]" ),
         make_option( c("-l","--lwin"), type="integer", default=2, help="Size of left-hand context. [default \"%default\"]" ),
         make_option( c("-r","--rwin"), type="integer", default=2, help="Size of left-hand context. [default \"%default\"]" ),
@@ -55,7 +55,7 @@ if (!is.null(logfile)) {
     sink(file=logcon, type="output", split=interactive()) 
 }
 
-load(datafile)  # has mrun and previous things
+load(infile)  # has mrun and previous things (called 'datafile' in -inference.R)
 if (length(mcmcdatafiles)>0) { load(grep(paste("-mcmc-",mcmcnum-1,".RData",sep=''),mcmcdatafiles,fixed=TRUE,value=TRUE)) }
 
 ########
