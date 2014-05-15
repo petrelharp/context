@@ -70,12 +70,7 @@ if (file.exists(gmfile)) {
 projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
 subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE, time="gamma" )
 
-count.table <- read.table(infile,header=TRUE,stringsAsFactors=FALSE)
-counts <- Matrix(0,nrow=nrow(genmatrix),ncol=ncol(projmatrix))
-rownames(counts) <- rownames(genmatrix)
-colnames(counts) <- colnames(projmatrix)
-stopifnot( all( count.table$reference %in% rownames(genmatrix) ) & all(count.table$derived %in% colnames(projmatrix)) ) 
-counts[cbind( match(count.table$reference,rownames(genmatrix)), match(count.table$derived,colnames(projmatrix)) )] <- count.table$count
+# counts loaded from infile
 initcounts <- rowSums(counts)
 
 nmuts <- length(mutpats)
