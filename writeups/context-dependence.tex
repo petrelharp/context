@@ -307,7 +307,8 @@ Since we cannot compute reasonably the full likelihood for the data,
 we will need to choose appropriate summary statistics
 that contain as much information about the process as possible,
 and have a tractable expression for their marginal likelihood.
-Assume here that $\ell$ has been chosen to be sufficiently large that approximation \eqref{eqn:window_approx} holds exactly.
+For simplicity, 
+we assume in this section that approximation \eqref{eqn:window_approx} holds exactly.
 If $i_1 < \ldots < i_{n(x)}$ are a set of nonoverlapping sites where the initial sequence matches $x$
 -- i.e.\ $X_{i_k}^{(2\ell+m)}(0)=x$ and $i_{k+1} > i_k + 2\ell+m$ for all $k$ --
 then the counts $N(x,y)=\#\{ i_k \st X_{i_k+\ell}^{(m)}(t)=y\}$ (the number of these sites that match the smaller pattern $y$ at time $t$)
