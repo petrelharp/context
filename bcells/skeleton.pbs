@@ -10,13 +10,13 @@
 # #PBS -o qsub-logs
 
 # USAGE:
-#    qsub -vARGS="-u 02-C-M_out_of_frame -w 2 -l 2 -r 2 -k 2" skeleton.pbs
+#    qsub -vARGS="bcells-inference.R -u 02-C-M_out_of_frame -w 2 -l 2 -r 2 -k 2" skeleton.pbs
 
 source /usr/usc/R/3.0.2/setup.sh
 
 cd /home/rcf-40/pralph/panfs/context/bcells
 
-Rscript bcells-inference.R $ARGS
+Rscript $ARGS
 
 exit
 

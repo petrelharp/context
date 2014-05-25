@@ -19,15 +19,15 @@ option_list <- list(
         make_option( c("-d","--boundary"), type="character", default="none", help="Boundary conditions for generator matrix. [default \"%default\"]"),
         make_option( c("-y","--meanboundary"), type="integer", default=0, help="Average over this many neighboring bases in computing generator matrix. [default \"%default\"]" ),
         make_option( c("-g","--gmfile"), type="character", default="TRUE", help="File with precomputed generator matrix, or TRUE [default] to look for one. (otherwise, will compute)"),
-        make_option( c("-o","--logfile"), type="character", default="", help="Direct output to this file. [default appends .Rout]" )
+        make_option( c("-o","--logfile"), type="character", default="", help="Direct output to this file. [default appends .Rout]" ),
+        make_option( c("-e","--debug"), type="logical", default=FALSE, help="Debug output, e.g. dump to file on error?" )
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 if (is.null(opt$infile) & is.null(opt$basedir)) { stop("No input file.  Run\n  bcells-inference.R -h\n for help.\n") }
 attach(opt)
-options(error = quote({dump.frames(to.file = TRUE); q()}))
 
 if (interactive()) { nbatches <- 100; blen <- 10; restart <- FALSE; gmfile <- TRUE }
-if (!interactive()) { options(error = quote({dump.frames(to.file = TRUE); q()})) }
+if (opt$debug & !interactive()) { options(error = quote({dump.frames(to.file = TRUE); q()})) }
 
 winlen <- lwin+win+rwin
 
@@ -38,14 +38,14 @@ if (!file.exists(infile)) { stop("Cannot read file ", infile) }
 
 scriptdir <- "../"
 source(paste(scriptdir,"codon-inference-fns.R",sep=''))
-source(paste(scriptdir,"sim-context-fns.R",sep=''))
+# source(paste(scriptdir,"sim-context-fns.R",sep=''))
 require(mcmc)
 
-load(infile)
+load(infile)  # has mrun and previous things (called 'datafile' in -inference.R)
 if (!file.exists(basedir)) { dir.create(basedir) }
 
 plotfile <- paste( basename ,"-plot",sep='')
-mcmcdatafiles <- list.files(path=basedir,pattern="-mcmc.*RData",full.names=TRUE)
+mcmcdatafiles <- list.files(path=".",pattern=paste(basename,"-mcmc.*RData",sep=''),full.names=TRUE)
 mcmcnum <- 1+max(c(0,as.numeric(gsub(".*-mcmc-","",gsub(".RData","",mcmcdatafiles)))),na.rm=TRUE)
 
 if (logfile=="") { logfile <- paste(basename,"-mcmc-run-",mcmcnum,".Rout",sep='') }
@@ -54,8 +54,10 @@ if (!is.null(logfile)) {
     if (!interactive()) { sink(file=logcon, type="message") }
     sink(file=logcon, type="output", split=interactive()) 
 }
+date()
+cat("basename: ", basename, "\n")
+print(opt)
 
-load(infile)  # has mrun and previous things (called 'datafile' in -inference.R)
 if (length(mcmcdatafiles)>0) { load(grep(paste("-mcmc-",mcmcnum-1,".RData",sep=''),mcmcdatafiles,fixed=TRUE,value=TRUE)) }
 
 ########
@@ -106,16 +108,22 @@ if (restart) {
 }
 
 
-save( lwin, win, rwin, lud, mrun, initcounts, nov.counts, nonoverlapping, file=paste(basename,"-mcmc-",mcmcnum,".RData",sep='') )
+date()
+savefile <- paste(basename,"-mcmc-",mcmcnum,".RData",sep='')
+cat("saving to: ", savefile, "\n")
+save( lwin, win, rwin, lud, mrun, initcounts, file=savefile )
+
+param.names <- c( sapply(mutpats,function(x){paste(sapply(x,paste,collapse='->'),collapse='|')}), "shape" )
 
 pdf(file=paste(plotfile,"-mcmc-",mcmcnum,".pdf",sep=''),width=6, height=4, pointsize=10)
 matplot( mrun$batch, type='l', col=1:length(point.estimate) )
 abline(h=point.estimate, col=adjustcolor(1:length(point.estimate),.5), lwd=2)
-abline(h=estimates["ans",], col=1:length(point.estimate) )
-legend("topright", col=c(1:length(point.estimate),1,adjustcolor(1,.5)), lwd=c(rep(1,length(point.estimate)),1,2),legend=c(colnames(estimates)[1:length(point.estimate)],"point estimate","point.estimate"))
+legend("topright", col=(1:length(point.estimate)), lty=1, legend=param.names)
 dev.off()
 
-mutlabels <- paste("mut:", unlist( sapply( sapply( mutpats, lapply, paste, collapse="->" ), paste, collapse=" | " ) ) )
 pdf(file=paste(plotfile,"-mcmc-",mcmcnum,"-pairwise.pdf",sep=''),width=6,height=6,pointsize=10)
-pairs( rbind( mrun$batch, point.estimate ), col=c( rep(adjustcolor("black",.1),nrow(mrun$batch)), adjustcolor("red",1)), pch=20, cex=c( rep(.25,nrow(mrun$batch)), 2), labels=mutlabels, gap=.1 )
+pairs( rbind( mrun$batch, point.estimate ), col=c( rep(adjustcolor("black",.1),nrow(mrun$batch)), adjustcolor("red",1)), pch=20, cex=c( rep(.25,nrow(mrun$batch)), 2), labels=param.names, gap=.1 )
 dev.off()
+
+cat("done.\n")
+date()
