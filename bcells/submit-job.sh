@@ -4,16 +4,6 @@
 # e.g.
 #    submit-job.sh bcells-inference.R -u 02-C-M_out_of_frame -w 2 -l 2 -r 2 -k 2
 
-source /usr/usc/R/3.0.2/setup.sh
-
-cd /home/rcf-40/pralph/panfs/context/bcells
-
-echo "$ARGS"
-
-Rscript $ARGS
-
-exit
-
 
 read -d '' PBS_HEAD <<'EOF'
 #PBS -S /bin/bash
@@ -25,8 +15,19 @@ read -d '' PBS_HEAD <<'EOF'
 #PBS -l vmem=5gb
 EOF
 
-NAME = $1.$PBS_JOBID
-COMMAND = "echo \"$*\"; cd $PWD; Rscript --vanilla $* --jobid $PBS_JOBID; exit;"
+NAME=$1.$PBS_JOBID
 
-( echo $PBS_HEAD; echo "#PBS -N $NAME"; echo $COMMAND ) | qsub -
+read -d '' SETUP <<'EOF'
+source /usr/usc/R/3.0.2/setup.sh 
+EOF
 
+
+( echo "$PBS_HEAD"; 
+        echo "#PBS -N $NAME"; 
+        echo "$SETUP"; 
+        echo "script:";
+        echo "'$*'";
+        echo "";
+        echo "cd $PWD";
+        echo "Rscript --vanilla $* --jobid \$PBS_JOBID;" 
+) | qsub -
