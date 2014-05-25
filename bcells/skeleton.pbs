@@ -3,9 +3,9 @@
 #PBS -N bcells-inference
 #PBS -l nodes=1:ppn=1
 #PBS -l walltime=120:00:00
-#PBS -l pmem=800mb
-#PBS -l mem=200mb
-#PBS -l vmem=1000mb
+#PBS -l pmem=4gb
+#PBS -l mem=500mb
+#PBS -l vmem=5gb
 # #PBS -e qsub-logs
 # #PBS -o qsub-logs
 
@@ -15,6 +15,8 @@
 source /usr/usc/R/3.0.2/setup.sh
 
 cd /home/rcf-40/pralph/panfs/context/bcells
+
+echo "$ARGS"
 
 Rscript $ARGS
 

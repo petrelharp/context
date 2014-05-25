@@ -11,6 +11,7 @@ option_list <- list(
         make_option( c("-i","--infile"), type="character", default=NULL, help="Input file with tuple counts, tab-separated, with header 'reference', 'derived', 'count'. [default, looks in basedir]" ),
         make_option( c("-g","--gmfile"), type="character", default="TRUE", help="File with precomputed generator matrix, or TRUE [default] to look for one. (otherwise, will compute)"),
         make_option( c("-o","--logfile"), type="character", default="", help="Direct output to this file. [default appends .Rout]" ),
+        make_option( c("-j","--jobid"), type="character", default=formatC(1e6*runif(1),width=6,format="d",flag="0"), help="Unique job id. [default random]"),
     # context and pattern size
         make_option( c("-w","--win"), type="integer", default=1, help="Size of matching window. [default \"%default\"]" ),
         make_option( c("-l","--lwin"), type="integer", default=2, help="Size of left-hand context. [default \"%default\"]" ),
@@ -57,6 +58,10 @@ basename <- paste(basedir,"/win-",lwin,"-",win,"-",rwin,"-",patlen,sep='')
 datafile <- paste( basename ,"-results.RData",sep='')
 resultsfile <- paste( basename ,"-results.tsv",sep='')
 plotfile <- paste( basename ,"-plot",sep='')
+
+date()
+cat("basename: ", basename, "\n")
+print(opt)
 
 
 if (file.exists(gmfile)) {
@@ -165,6 +170,10 @@ expected <- pcounts(point.estimate)
 cwin <- min(2,win); lrcwin <- min(1,lwin,rwin)
 subcounts <- projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=counts )
 subexpected <- projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=expected )
+
+date()
+cat("done with computation.\n")
+cat("saving to: ", datafile, "\n")
 
 save( opt, counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, adhoc.ans, point.estimate, initpar, singlemean, doublemean, shapemean, expected, cwin, subcounts, subexpected, mrun, win, lwin, rwin, nmuts, file=datafile )
 
