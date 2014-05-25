@@ -24,10 +24,11 @@ EOF
 
 ( echo "$PBS_HEAD"; 
         echo "#PBS -N $NAME"; 
+        echo "";
+        echo "cd $PWD";
         echo "$SETUP"; 
         echo "echo 'script:'";
         echo "echo '$*'";
         echo "";
-        echo "cd $PWD";
         echo "Rscript --vanilla $* --jobid \$PBS_JOBID;" 
 )  | qsub -
