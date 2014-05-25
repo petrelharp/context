@@ -15,7 +15,7 @@ read -d '' PBS_HEAD <<'EOF'
 #PBS -l vmem=5gb
 EOF
 
-NAME=$1.$PBS_JOBID
+NAME=$(echo "$*"| sed -e 's/[ \.]//g')
 
 read -d '' SETUP <<'EOF'
 source /usr/usc/R/3.0.2/setup.sh 
@@ -25,9 +25,9 @@ EOF
 ( echo "$PBS_HEAD"; 
         echo "#PBS -N $NAME"; 
         echo "$SETUP"; 
-        echo "script:";
-        echo "'$*'";
+        echo "echo 'script:'";
+        echo "echo '$*'";
         echo "";
         echo "cd $PWD";
         echo "Rscript --vanilla $* --jobid \$PBS_JOBID;" 
-) | qsub -
+)  | qsub -
