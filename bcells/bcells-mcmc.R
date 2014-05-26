@@ -6,12 +6,8 @@ Run mcmc longer.\
 "
 
 option_list <- list(
-        make_option( c("-u","--basedir"), type="character", default=NULL, help="Directory to look for input in, and write output files to." ),
         make_option( c("-i","--infile"), type="character", default=NULL, help=".RData file containing results from initial run." ),
-        make_option( c("-w","--win"), type="integer", default=1, help="Size of matching window. [default \"%default\"]" ),
-        make_option( c("-l","--lwin"), type="integer", default=2, help="Size of left-hand context. [default \"%default\"]" ),
-        make_option( c("-r","--rwin"), type="integer", default=2, help="Size of left-hand context. [default \"%default\"]" ),
-        make_option( c("-k","--patlen"), type="integer", default=1, help="Include mutation rates for all tuples of this length. [default \"%default\"]" ),
+        make_option( c("-j","--jobid"), type="character", default=formatC(1e6*runif(1),width=6,format="d",flag="0"), help="Unique job id. [default random]"),
         make_option( c("-n","--nbatches"), type="integer", default=1000, help="Number of MCMC batches. [default \"%default\"]" ),
         make_option( c("-b","--blen"), type="integer", default=10, help="Length of each MCMC batch. [default \"%default\"]" ),
         make_option( c("-c","--stepscale"), type="numeric", default=1e-4, help="Scale of proposal steps for Metropolis algorithm. [default \"%default\"]" ),
@@ -22,19 +18,15 @@ option_list <- list(
         make_option( c("-o","--logfile"), type="character", default="", help="Direct output to this file. [default appends .Rout]" ),
         make_option( c("-e","--debug"), type="logical", default=FALSE, help="Debug output, e.g. dump to file on error?" )
     )
-opt <- parse_args(OptionParser(option_list=option_list,description=usage))
-if (is.null(opt$infile) & is.null(opt$basedir)) { stop("No input file.  Run\n  bcells-inference.R -h\n for help.\n") }
-attach(opt)
+mcmcopt <- parse_args(OptionParser(option_list=option_list,description=usage))
+if (is.null(mcmcopt$infile)) { stop("No input file.  Run\n  bcells-mcmc.R -h\n for help.\n") }
+attach(mcmcopt)
 
 if (interactive()) { nbatches <- 100; blen <- 10; restart <- FALSE; gmfile <- TRUE }
-if (opt$debug & !interactive()) { options(error = quote({dump.frames(to.file = TRUE); q()})) }
+if (mcmcopt$debug & !interactive()) { options(error = quote({dump.frames(to.file = TRUE); q()})) }
 
-winlen <- lwin+win+rwin
-
-if (substr(basedir,nchar(basedir),nchar(basedir)) %in% c("/","\\")) { basedir <- substr(basedir,1,nchar(basedir)-1) }
-basename <- paste(basedir,"/win-",lwin,"-",win,"-",rwin,"-",patlen,sep='')
-if (is.null(opt$infile)) { infile <- paste( basename ,"-results.RData",sep='') }
 if (!file.exists(infile)) { stop("Cannot read file ", infile) }
+basename <- gsub("-results.RData","",infile)
 
 scriptdir <- "../"
 source(paste(scriptdir,"codon-inference-fns.R",sep=''))
@@ -42,7 +34,9 @@ source(paste(scriptdir,"codon-inference-fns.R",sep=''))
 require(mcmc)
 
 load(infile)  # has mrun and previous things (called 'datafile' in -inference.R)
-if (!file.exists(basedir)) { dir.create(basedir) }
+
+winlen <- lwin + win + rwin
+if (!exists("patlen")) { patlen <- opt$patlen } # workaround
 
 plotfile <- paste( basename ,"-plot",sep='')
 mcmcdatafiles <- list.files(path=".",pattern=paste(basename,"-mcmc.*RData",sep=''),full.names=TRUE)
@@ -56,7 +50,7 @@ if (!is.null(logfile)) {
 }
 date()
 cat("basename: ", basename, "\n")
-print(opt)
+print(mcmcopt)
 
 if (length(mcmcdatafiles)>0) { load(grep(paste("-mcmc-",mcmcnum-1,".RData",sep=''),mcmcdatafiles,fixed=TRUE,value=TRUE)) }
 

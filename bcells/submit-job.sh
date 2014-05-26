@@ -32,6 +32,7 @@ NAME=$(echo "$*"| sed -e 's/[ \.]//g')
         echo "source /usr/usc/R/3.0.2/setup.sh";
         echo "echo 'script:'";
         echo "echo '$*'";
+        echo 'git log -1 --format="%H"';
         echo "";
         echo "Rscript $* --jobid \$PBS_JOBID" 
 )  | qsub -

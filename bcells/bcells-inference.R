@@ -172,7 +172,7 @@ date()
 cat("done with computation.\n")
 cat("saving to: ", datafile, "\n")
 
-save( opt, counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, adhoc.ans, point.estimate, initpar, singlemean, doublemean, shapemean, expected, cwin, subcounts, subexpected, mrun, win, lwin, rwin, nmuts, file=datafile )
+save( opt, counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, adhoc.ans, point.estimate, initpar, singlemean, doublemean, shapemean, expected, cwin, subcounts, subexpected, mrun, win, lwin, rwin, winlen, patlen, nmuts, file=datafile )
 
 # plot (long) counts
 pdf(file=paste(plotfile,"-longcounts.pdf",sep=''),width=6, height=4, pointsize=10)
