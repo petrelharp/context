@@ -33,5 +33,5 @@ NAME=$(echo "$*"| sed -e 's/[ \.]//g')
         echo "echo 'script:'";
         echo "echo '$*'";
         echo "";
-        echo "Rscript $* --jobid \$PBS_JOBID;" 
-) # | qsub -
+        echo "Rscript $* --jobid \$PBS_JOBID" 
+)  | qsub -
