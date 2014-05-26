@@ -30,6 +30,7 @@ option_list <- list(
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 if (is.null(opt$infile) & is.null(opt$basedir)) { stop("No input file.  Run\n  bcells-inference.R -h\n for help.\n") }
+print(opt) # this will go in the pbs log
 attach(opt)
 options(error = quote({dump.frames(to.file = TRUE); q()}))
 

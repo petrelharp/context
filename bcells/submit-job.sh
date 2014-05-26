@@ -4,6 +4,11 @@
 # e.g.
 #    submit-job.sh bcells-inference.R -u 02-C-M_out_of_frame -w 2 -l 2 -r 2 -k 2
 
+if [[ ! $# > 0 ]]
+then
+    echo "Example: submit-job.sh bcells-inference.R -u 02-C-M_out_of_frame -w 2 -l 2 -r 2 -k 2"
+    exit
+fi
 
 read -d '' PBS_HEAD <<'EOF'
 #PBS -S /bin/bash
@@ -13,22 +18,20 @@ read -d '' PBS_HEAD <<'EOF'
 #PBS -l pmem=4gb
 #PBS -l mem=500mb
 #PBS -l vmem=5gb
+#PBS -j oe
 EOF
 
 NAME=$(echo "$*"| sed -e 's/[ \.]//g')
 
-read -d '' SETUP <<'EOF'
-source /usr/usc/R/3.0.2/setup.sh 
-EOF
-
 
 ( echo "$PBS_HEAD"; 
         echo "#PBS -N $NAME"; 
+        echo "#PBS -o qsub-logs/$NAME.o\$PBS_JOBID"; 
         echo "";
         echo "cd $PWD";
-        echo "$SETUP"; 
+        echo "source /usr/usc/R/3.0.2/setup.sh";
         echo "echo 'script:'";
         echo "echo '$*'";
         echo "";
-        echo "Rscript --vanilla $* --jobid \$PBS_JOBID;" 
+        echo "Rscript $* --jobid \$PBS_JOBID;" 
 )  | qsub -
