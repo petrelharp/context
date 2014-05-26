@@ -46,7 +46,7 @@ if (gmfile=="TRUE") { gmfile <- paste(paste("genmatrices/genmatrix",winlen,bound
 if (logfile!="") {
     logfile <- paste(infile,".Rout",sep='')
     logcon <- if (logfile=="-") { stdout() } else { file(logfile,open="wt") }
-    sink(file=logcon, type="message", split=interactive()) 
+    sink(file=logcon, type="message")
     sink(file=logcon, type="output", split=interactive())   # send both to log file
 }
 
@@ -68,11 +68,7 @@ print(opt)
 if (file.exists(gmfile)) {
     load(gmfile)
 } else {
-    if (meanboundary>0) {
-        genmatrix <- meangenmatrix( lwin=1, rwin=1, patlen=winlen, mutpats=mutpats, selpats=selpats, mutrates=rep(1,length(mutpats)), selcoef=rep(1,length(selpats)), boundary=boundary )
-    } else {
-        genmatrix <- makegenmatrix( patlen=winlen, mutpats=mutpats, selpats=selpats, mutrates=rep(1,length(mutpats)), selcoef=rep(1,length(selpats)), boundary=boundary )
-    }
+    stop("Can't find generator matrix in ", gmfile, " -- provide file name exactly?")
 }
 projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
 subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE, time="gamma" )
@@ -227,3 +223,4 @@ dev.off()
 
 
 print(format(Sys.time(),"%Y-%m-%d-%H-%M"))
+sink(NULL); close(logcon)

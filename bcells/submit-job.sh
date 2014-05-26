@@ -34,4 +34,4 @@ NAME=$(echo "$*"| sed -e 's/[ \.]//g')
         echo "echo '$*'";
         echo "";
         echo "Rscript $* --jobid \$PBS_JOBID;" 
-)  | qsub -
+) # | qsub -
