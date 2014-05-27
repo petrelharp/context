@@ -94,9 +94,9 @@ likfun <- function (params) {
     # params are: mutrates*tlen, shape
     genmatrix@x <- update(genmatrix,mutrates=params[1:nmuts],selcoef=numeric(0))
     # this is collapsed transition matrix
-    subtransmatrix <- computetransmatrix( genmatrix, projmatrix, shape=params[length(params)], time="gamma" )
+    subtransmatrix <- computetransmatrix( genmatrix, projmatrix, tlen=1, time="fixed") # shape=params[length(params)], time="gamma" )
     # return NEGATIVE log-likelihood 
-    ans <- (-1) * sum( counts * log(subtransmatrix) )
+    ans <- (-1) * sum( counts * log(subtransmatrix) ) + (params[length(params)]-1)^2
     if (!is.finite(ans)) { print(params) }
     return(ans)
 }
@@ -124,12 +124,13 @@ lud <- function (params) {
 
 # point estimates
 initpar <- c(adhoc,1)
-lbs <- c( rep(1e-8,nmuts), .01 )
-ubs <- c( rep(5,nmuts), 1 )
+lbs <- c( rep(1e-6,nmuts), .01 )
+ubs <- c( rep(2,nmuts), 5 )
+parscale <- c( rep(mean(adhoc),length(adhoc)), 1 )*1e-3
 
 baseval <- likfun(initpar)
 stopifnot( is.finite(baseval) )
-adhoc.ans <- optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(fnscale=abs(baseval), maxit=100) )
+adhoc.ans <- optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(fnscale=abs(baseval), parscale=parscale, maxit=100) )
 if (adhoc.ans$convergence!=0) { warning("optim failed to converge.") }
 point.estimate <- adhoc.ans$par
 names(point.estimate) <- c( sapply(mutpats,function(x){paste(sapply(x,paste,collapse='->'),collapse='/')}), "shape" )
@@ -175,8 +176,8 @@ cat("saving to: ", datafile, "\n")
 save( opt, counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, adhoc.ans, point.estimate, initpar, singlemean, doublemean, shapemean, expected, cwin, subcounts, subexpected, mrun, win, lwin, rwin, winlen, patlen, nmuts, file=datafile )
 
 # plot (long) counts
-pdf(file=paste(plotfile,"-longcounts.pdf",sep=''),width=6, height=4, pointsize=10)
-layout(matrix(1:ncol(counts),nrow=2))
+pdf(file=paste(plotfile,"-longcounts.pdf",sep=''),width=11, height=8, pointsize=10)
+layout(matrix(1:min(ncol(counts),6),nrow=2))
 for (k in 1:ncol(counts)) {
     lord <- order( expected[,k] )
     plot( counts[lord,k], type='n', xaxt='n', xlab='', ylim=range(c(unlist(as.matrix(counts)),unlist(as.matrix(expected)))), ylab='counts', main=colnames(counts)[k] )
@@ -189,10 +190,11 @@ dev.off()
 
 # plot (shorter) counts 
 pdf(file=paste(plotfile,"-shortcounts.pdf",sep=''),width=6, height=4, pointsize=10)
-layout(matrix(1:ncol(subcounts),nrow=2))
+layout(matrix(1:min(ncol(subcounts),6),nrow=2))
+par(mar=c(4,2,1,1)+.1)
 for (k in 1:ncol(subcounts)) {
     lord <- order( subexpected[,k] )
-    plot( subcounts[lord,k], xaxt='n', xlab='', main=colnames(subcounts)[k], log='y', ylim=range(c(as.matrix(subcounts),as.matrix(subexpected))) )
+    plot( subcounts[lord,k], xaxt='n', xlab='', main=colnames(subcounts)[k], log='y', ylim=1+range(c(as.matrix(subcounts),as.matrix(subexpected))), ylab='' )
     axis(1,at=1:nrow(subcounts),labels=rownames(subcounts)[lord],las=3)
     lines(subexpected[lord,k],col='red')
     legend("topleft",legend='fitted',lty=1,col='red')
