@@ -43,7 +43,7 @@ if (!file.exists(infile)) { stop("Cannot read file ", infile) }
 
 if (gmfile=="TRUE") { gmfile <- paste(paste("genmatrices/genmatrix",winlen,boundary,meanboundary,patlen,sep="-"),".RData",sep='') }
 
-if (logfile!="") {
+if (logfile=="") {
     logfile <- paste(infile,".Rout",sep='')
     logcon <- if (logfile=="-") { stdout() } else { file(logfile,open="wt") }
     sink(file=logcon, type="message")
