@@ -29,11 +29,6 @@ estimates <- lapply( unique(mle.files$patlen), function (k) {
         return(est)
     } )
 allnames <- sort(colnames(estimates[[1]]))
-for (k in 2:length(estimates)) { allnames <- intersect( allnames, colnames(estimates[[k]]) ) }
-for (k in 1:length(estimates)) {
-    # put them all in the same order
-    estimates[[k]] <- estimates[[k]][,na.omit(match(colnames(estimates[[k]]),allnames))]
-}
 
 pdf(file="point-estimates.pdf",width=12,height=8,pointsize=10)
 layout(t(1:2))

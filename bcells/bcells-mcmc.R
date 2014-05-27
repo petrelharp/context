@@ -10,7 +10,8 @@ option_list <- list(
         make_option( c("-j","--jobid"), type="character", default=formatC(1e6*runif(1),width=6,format="d",flag="0"), help="Unique job id. [default random]"),
         make_option( c("-n","--nbatches"), type="integer", default=1000, help="Number of MCMC batches. [default \"%default\"]" ),
         make_option( c("-b","--blen"), type="integer", default=10, help="Length of each MCMC batch. [default \"%default\"]" ),
-        make_option( c("-c","--stepscale"), type="numeric", default=1e-4, help="Scale of proposal steps for Metropolis algorithm. [default \"%default\"]" ),
+        make_option( c("-c","--mutstepscale"), type="numeric", default=5e-6, help="Scale of proposal steps for mutation rates in the Metropolis algorithm. [default \"%default\"]" ),
+        make_option( c("-t","--timestepscale"), type="numeric", default=2e-4, help="Scale of proposal steps for time values in the Metropolis algorithm. [default \"%default\"]" ),
         make_option( c("-s","--restart"), action="store_true", default=FALSE, help="Start a whole new MCMC run?" ),
         make_option( c("-d","--boundary"), type="character", default="none", help="Boundary conditions for generator matrix. [default \"%default\"]"),
         make_option( c("-y","--meanboundary"), type="integer", default=0, help="Average over this many neighboring bases in computing generator matrix. [default \"%default\"]" ),
@@ -95,6 +96,9 @@ lud <- function (params) {
     }
 }
 
+if (length(mutstepscale)==1) { mutstepscale <- rep(mutstepscale,nmuts) }
+stepscale <- c(mutstepscale,timestepscale)
+
 if (restart) {
     mrun <- metrop( mrun, initial=adhoc.ans$par, nbatch=nbatches, blen=blen, scale=stepscale )
 } else {
@@ -105,7 +109,7 @@ if (restart) {
 date()
 savefile <- paste(basename,"-mcmc-",mcmcnum,".RData",sep='')
 cat("saving to: ", savefile, "\n")
-save( lwin, win, rwin, lud, mrun, initcounts, file=savefile )
+save( lwin, win, rwin, lud, mrun, initcounts, mcmcopt, file=savefile )
 
 param.names <- c( sapply(mutpats,function(x){paste(sapply(x,paste,collapse='->'),collapse='|')}), "shape" )
 
