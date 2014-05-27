@@ -125,7 +125,7 @@ lud <- function (params) {
 # point estimates
 initpar <- c(adhoc,1)
 lbs <- c( rep(1e-8,nmuts), .01 )
-ubs <- c( rep(20,nmuts), 2 )
+ubs <- c( rep(5,nmuts), 1 )
 
 baseval <- likfun(initpar)
 stopifnot( is.finite(baseval) )
