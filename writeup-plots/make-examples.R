@@ -1,7 +1,7 @@
 #/usr/bin/R --vanilla
 
 source("../sim-context-fns.R")
-source("../codon-inference-fns.R")
+source("../context-inference-fns.R")
 
 
 # EXAMPLE 1 in the talk

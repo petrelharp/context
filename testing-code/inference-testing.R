@@ -1,6 +1,6 @@
 # Test inference from simulation
-source("codons.R")
-source("codon-inference-fns.R")
+source("context.R")
+source("context-inference-fns.R")
 source("sim-context-fns.R")
 
 # do diagnostic plots?

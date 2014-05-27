@@ -28,7 +28,7 @@ if (!'infile'%in%names(opt)) { stop("Run\n  cpg-inference.R -h\n for help.") }
 # options(error=traceback)
 
 scriptdir <- "../"
-source(paste(scriptdir,"codon-inference-fns.R",sep=''))
+source(paste(scriptdir,"context-inference-fns.R",sep=''))
 source(paste(scriptdir,"sim-context-fns.R",sep=''))
 
 basename <- paste( gsub("[0-9]*.RData","",infile,fixed=FALSE), "-mcmc-run-", id, sep='' )

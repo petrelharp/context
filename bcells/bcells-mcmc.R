@@ -29,7 +29,7 @@ if (!file.exists(infile)) { stop("Cannot read file ", infile) }
 basename <- gsub("-results.RData","",infile)
 
 scriptdir <- "../"
-source(paste(scriptdir,"codon-inference-fns.R",sep=''))
+source(paste(scriptdir,"context-inference-fns.R",sep=''))
 # source(paste(scriptdir,"sim-context-fns.R",sep=''))
 require(mcmc)
 

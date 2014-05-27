@@ -33,8 +33,8 @@ if (interactive()) { winlen <- 3; boundary <- "none"; meanboundary <- 0 }
 bases <- c("A","T","C","G")
 
 source("../sim-context-fns.R")
-source("../codon-inference-fns.R")
-source("../codons.R")
+source("../context-inference-fns.R")
+source("../context.R")
 codonstrings <- as.character(codons$codon)
 
 # all pairwise trinucleotide

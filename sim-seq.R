@@ -14,9 +14,9 @@ if (length(args)<2) {
     tlen <- as.numeric(args[2]) # total length 6e7 gives lots of transitions (but still signal); 1e7 not so many
 }
 
-source("codons.R")
+source("context.R")
 source("sim-context-fns.R")
-source("codon-inference-fns.R")
+source("context-inference-fns.R")
 
 # maximum size of pattern (for simulation)
 patlen <- 2

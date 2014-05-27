@@ -1,6 +1,6 @@
 # Evolve from a common root
-source("codons.R")
-source("codon-inference-fns.R")
+source("context.R")
+source("context-inference-fns.R")
 source("sim-context-fns.R")
 
 # maximum size of pattern (for simulation)

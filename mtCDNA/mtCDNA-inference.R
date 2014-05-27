@@ -45,7 +45,7 @@ if (basedir=="") { basedir <- gsub(".nuc","",infile,fixed=TRUE) }
 require(Biostrings)
 
 scriptdir <- "../"
-source(paste(scriptdir,"codon-inference-fns.R",sep=''))
+source(paste(scriptdir,"context-inference-fns.R",sep=''))
 source(paste(scriptdir,"sim-context-fns.R",sep=''))
 
 if (!file.exists(basedir)) { dir.create(basedir) }

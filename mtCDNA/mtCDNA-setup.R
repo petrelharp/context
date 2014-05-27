@@ -1,7 +1,7 @@
 #!/usr/bin/Rscript --vanilla
 # setup for mtCDNA inference
 
-source("../codons.R")
+source("../context.R")
 codonpairs <- combn( as.character(codons$codon), 2 )
 ndiffs <- apply( codonpairs, 2, function (x) { sum( do.call( "!=",  strsplit(x,"") ) ) } )
 codonpairs <- codonpairs[,ndiffs==1]

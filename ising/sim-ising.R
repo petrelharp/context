@@ -39,7 +39,7 @@ if (logfile != "" & !interactive()) {
 bases <- c("X","O")
 
 source("../sim-context-fns.R")
-source("../codon-inference-fns.R")
+source("../context-inference-fns.R")
 
 # maximum size of pattern (for simulation)
 mutpats <- list( 

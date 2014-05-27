@@ -2,7 +2,7 @@
 
 # Run some tests!!
 source("../sim-context-fns.R")
-source("../codon-inference-fns.R")
+source("../context-inference-fns.R")
 
 bases <- c("X","O")
 
