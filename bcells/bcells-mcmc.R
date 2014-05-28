@@ -113,14 +113,17 @@ save( lwin, win, rwin, patlen, lud, mrun, initcounts, mcmcopt, file=savefile )
 
 param.names <- c( sapply(mutpats,function(x){paste(sapply(x,paste,collapse='->'),collapse='|')}), "shape" )
 
-pdf(file=paste(plotfile,"-mcmc-",mcmcnum,".pdf",sep=''),width=6, height=4, pointsize=10)
-matplot( mrun$batch, type='l', col=1:length(point.estimate) )
-abline(h=point.estimate, col=adjustcolor(1:length(point.estimate),.5), lwd=2)
+# scale tends to be much larger than mutation rates; scale it.
+scaled.batch <- sweep(mrun$batch,2,c(rep(1,nmuts),.01),"*")
+
+pdf(file=paste(plotfile,"-mcmc-",mcmcnum,".pdf",sep=''), width=11, height=8, pointsize=10)
+matplot( scaled.batch, type='l', col=1:length(point.estimate) )
+abline(h=point.estimate, col=adjustcolor(1:length(point.estimate),.5), lwd=1, lty=2)
 legend("topright", col=(1:length(point.estimate)), lty=1, legend=param.names)
 dev.off()
 
-pdf(file=paste(plotfile,"-mcmc-",mcmcnum,"-pairwise.pdf",sep=''),width=6,height=6,pointsize=10)
-pairs( rbind( mrun$batch, point.estimate ), col=c( rep(adjustcolor("black",.1),nrow(mrun$batch)), adjustcolor("red",1)), pch=20, cex=c( rep(.25,nrow(mrun$batch)), 2), labels=param.names, gap=.1 )
+pdf(file=paste(plotfile,"-mcmc-",mcmcnum,"-pairwise.pdf",sep=''),width=11,height=8,pointsize=10)
+pairs( rbind( scaled.batch, point.estimate ), col=c( rep(adjustcolor("black",.1),nrow(mrun$batch)), adjustcolor("red",1)), pch=20, cex=c( rep(.25,nrow(mrun$batch)), 2), labels=param.names, gap=.1 )
 dev.off()
 
 cat("done.\n")

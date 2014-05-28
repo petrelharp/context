@@ -21,7 +21,7 @@ read -d '' PBS_HEAD <<'EOF'
 #PBS -j oe
 EOF
 
-NAME=$(echo "$*"| sed -e 's/[ \.]//g')
+NAME=$(echo "$*"| sed -e 's/[ .\/]/_/g')
 
 
 ( echo "$PBS_HEAD"; 
