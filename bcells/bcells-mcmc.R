@@ -109,7 +109,7 @@ if (restart) {
 date()
 savefile <- paste(basename,"-mcmc-",mcmcnum,".RData",sep='')
 cat("saving to: ", savefile, "\n")
-save( lwin, win, rwin, lud, mrun, initcounts, mcmcopt, file=savefile )
+save( lwin, win, rwin, patlen, lud, mrun, initcounts, mcmcopt, file=savefile )
 
 param.names <- c( sapply(mutpats,function(x){paste(sapply(x,paste,collapse='->'),collapse='|')}), "shape" )
 
