@@ -4,6 +4,7 @@
 \usepackage{amsthm}
 \usepackage{graphicx}
 \usepackage{natbib}
+\usepackage{hyperref}
 \usepackage{bm}
 \usepackage{todonotes}
 
@@ -28,6 +29,8 @@
 \newtheorem{theorem}{Theorem}
 \theoremstyle{definition}
 \newtheorem{example}{Example}[section]
+
+\bibliographystyle{plainnat}
 
 \begin{document}
 
@@ -68,21 +71,36 @@ These are used, for instance, in spatial statistics \citep{besag1972nearestneigh
 and image reconstruction \citep{geman1984stochastic,besag1986statistical}.
 The conditioning method we consider here
 is simliar to the ``coding'' scheme introduced by \citet{besag1974spatial},
-that conditions on a set of sites that makes the remaining observations independent (thanks to the Gibbs property).
+that conditions on a set of sites that makes the remaining observations independent (thanks to the Gibbs property);
+consistency of such methods has been shown by \citet{comets1992consistency} and reviewed by \citet{larribe2011composite}.
 A good review of recent statistical techniques is given by \citet{friel2012bayesian}.
+
 
 In the context of genomics,
 it is well-known that certain short nucleotide sequences 
-are in many organisms much more, or less, abundant than expected by chance \citep{karlin},
-in part due to context dependence of the nucleotide mutation and substitution processes.
-Phylogenetic and population genetic methods usually ignore such dependencies
+are in many organisms much more, or less, abundant than expected by chance \citep{burge1992underrepresentation},
+due to the combined effects of context dependence of the nucleotide mutation process,
+selective constraints on the function of the sequence,
+and other processes such as biased gene conversion \citep{duret2009biased}.
+Indeed, molecular studies have demonstrated that the spectrum of new mutations in humans
+is highly context dependent \citep{schaibley2013influence} 
+and that multinucleotide substitutions are relatively common \citep{schrider2011pervasive,terekhanova2013prevalence}.
+(We are concerned with effects that are \emph{homogeneous} across the sequence,
+so do not consider further the many constraints on protein-coding sequence \citep[reviewed in][]{thorne2007protein}.)
+However, phylogenetic and population genetic methods usually ignore such dependencies
 in the interest of computational efficiency and lack of understanding of the underlying process,
 but some progress has been made.
-XXX
-Usually dealt with either by using larger and larger windows (but, only up to four bp),
-or by doing MCMC over additional information (entire history of changes).
-Also, Markov-along-the-genome method.
-Larribe and Fearnhead.
+Often, the effects of a complex mutational spectrum are explored using summary statistics of larger blocks or other sensible but \textit{ad hoc} methods.
+For instance, \citet{arndt2003sequence} studied dinucleotide transitions,
+and \citet{yaari2013models} displayed strong heterogeneity in the probability of synonymous mutations across 5-mers
+in B-cell immunoglobin genes.
+Others have made progress using simplifying assumptions \citep{berard2012accurate},
+or by other approximations \citep{christensen2005pseudolikelihood}.
+\citet{siepel2004phylogenetic} introduced a method to compute likelihoods under a context-dependent mutation model
+by moving iteratively along the genome,
+while
+\citet{lunter2004nucleotide} and \citet{hobolth2008markov} used data augmentation and an MCMC algorithm to do Bayesian inference;
+both these methods are promising but very computationally intensive.
 
 Another canonical example is the Ising model of statistical physics
 with time evolution given by Glauber dynamics \citep{glauber1963timedependent},
@@ -95,7 +113,7 @@ but there does not seem to be similar work on the case when more than one observ
 The general framework also fits certain cellular automata models,
 e.g.\ modeling wildfire \citep{clarke1994cellular}, 
 the spread of HIV \citep{zorzenondossantos2001dynamics}, 
-or land use patterns \citep{clarke1996methods}.
+or land use patterns \citep{wu2002calibration}.
 Complex models may introduce long-range dependencies beyond the scope of this paper,
 but these methods may still prove useful in the modeling process.
 
@@ -260,7 +278,7 @@ This paper proposes an alternate strategy.
 
 First, it will be useful for later proofs to have an explicit construction of the process,
 also used for simulation,
-using a variant of the ``jump chain representation'' (also known as the Gillespie algorithm \citep{vankampen}).
+using a variant of the ``jump chain representation''.
 Briefly, this works by first sampling a homogeneous Poisson process of times and locations of possible changes,
 at an appropriate rate $\mu_*$ per site,
 and then resolving each possible change in temporal order.
@@ -965,5 +983,7 @@ sergey:
   \item How to identify motifs in the residuals?
 
 \end{enumerate}
+
+\bibliography{context-dependence}
 
 \end{document}
