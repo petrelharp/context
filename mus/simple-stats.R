@@ -16,11 +16,12 @@ option_list <- list(
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 if (is.null(opt$basedir)) { stop("No input directory  Run\n  bcells-inference.R -h\n for help.\n") }
-if (opt$outfile=="") { outfile <- with(opt, paste(basedir,"simple-stats-",win,"-",lwin,"-",rwin,".pdf",sep='')) }
 attach(opt)
 
 lwin <- rwin <- lrwin
 winlen <- win - lwin - rwin
+
+if (opt$outfile=="") { outfile <- with(opt, paste(basedir,"simple-stats-",win,"-",lwin,"-",rwin,".pdf",sep='')) }
 
 scriptdir <- "../"
 source(paste(scriptdir,"context-inference-fns.R",sep=''))
