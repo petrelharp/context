@@ -12,7 +12,7 @@ option_list <- list(
         make_option( c("-g","--gmfile"), type="character", default="TRUE", help="File with precomputed generator matrix, or TRUE [default] to look for one. (otherwise, will compute)"),
     # context and pattern size
         make_option( c("-w","--win"), type="integer", default=1, help="Size of matching window. [default \"%default\"]" ),
-        make_option( c("-l","--lrwin"), type="integer", default=2, help="Size of left-hand and right-hand context. [default \"%default\"]" ),
+        make_option( c("-l","--lrwin"), type="integer", default=2, help="Size of left-hand and right-hand context. [default \"%default\"]" )
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 if (is.null(opt$basedir)) { stop("No input directory  Run\n  bcells-inference.R -h\n for help.\n") }
