@@ -4,7 +4,6 @@
 mm9rn5 :
 	-mkdir mm9rn5
 	cd mm9rn5
-	http://hgdownload.soe.ucsc.edu/goldenPath/mm9/vsRn5/
 	for x in $$(seq 19); do wget http://hgdownload.soe.ucsc.edu/goldenPath/mm9/vsRn5/axtNet/chr$${x}.mm9.rn5.net.axt.gz
 	wget http://hgdownload.soe.ucsc.edu/goldenPath/mm9/vsRn5/axtNet/chrX.mm9.rn5.net.axt.gz
 
