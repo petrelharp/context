@@ -3,9 +3,10 @@
 import argparse
 from collections import Counter
 from plrutils import *
+import re
 
 usage = '''
-Count paired tuples from a paired fasta file.
+Count paired tuples from a paired fasta or an axt file.
 
 Assume infile is in a paired format as follows: 
   >04-A-M_0029015
@@ -20,17 +21,21 @@ where the  length of the W's is 'winlen', the length of the l's is 'lwin', and t
 
 The longer window (Ws) matches the second (reference) sequence, and the shorter window (M's) matches the first sequence.
 
+If 'strict' then ignores anything but ACGT (case-sensitive).
 '''
 
 parser = argparse.ArgumentParser(description=usage)
 parser.add_argument('--infile', '-i', nargs='?', default="-")
+parser.add_argument('--informat', '-f', nargs='?', default="fasta")
 parser.add_argument('--outfile', '-o', nargs='?', default="-")
 parser.add_argument('--winlen', '-w', nargs=1)
 parser.add_argument('--lwin', '-l', nargs=1)
 parser.add_argument('--rwin', '-r', nargs=1)
+parser.add_argument('--strict', '-s', action="store_true")
 
 # args.infile='../bcells/A-IGHV3-64_04-IGHJ4_02_F-42-aligned_pairs.fasta'
 # args.outfile='../bcells/A-IGHV3-64_04-IGHJ4_02_F-42-aligned_pairs.fasta.counts'
+# args.informat='fasta'
 # args.winlen=3
 # args.lwin=1
 # args.rwin=1
@@ -45,25 +50,31 @@ rwin = int(args.rwin[0])
 midwin = winlen-lwin-rwin
 if (midwin<=0):
     raise ValueError
+strict = args.strict
 
-infile = fileopt( args.infile, "r" )
 outfile = fileopt(args.outfile, "w" )
 
 tuplecount = Counter()
 
-while True:
-    head1 = infile.readline().strip()
-    if not head1:
-        break
-    seq1 = infile.readline().strip()
-    head2 = infile.readline().strip()
-    seq2 = infile.readline().strip()
-    if not head1 == head2[0:len(head1)] :
-        print "Uh-oh: " + head1 + " doesn't match " + head2 + "\n"
-        raise ValueError
-    for x in xrange(len(seq1)-winlen+1):
-        tuplecount[ ( seq2[x:(x+winlen)], seq1[(x+lwin):(x+lwin+midwin)] ) ] += 1
+if args.informat == "fasta":
+    infile = PairedFastaFile( args.infile )
+elif args.informat == "axt":
+    infile = AxtFile( args.infile )
+else:
+    raise ValueError
 
+while True:
+    try:
+        infile.next()
+        for x in xrange(len(infile.seq1)-winlen+1):
+            word1 = infile.seq2[x:(x+winlen)]
+            word2 = infile.seq1[(x+lwin):(x+lwin+midwin)]
+            if strict and ( re.search("[^ACGT]",word1) or re.search("[^ACGT]",word2) ):
+                next
+            else:
+                tuplecount[ ( word1, word2 ) ] += 1
+    except StopIteration:
+        break
 
 # write out
 outfile.write("\t".join(["reference","derived","count"])+"\n")

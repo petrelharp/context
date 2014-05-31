@@ -1,0 +1,54 @@
+More at
+  http://hgdownload.soe.ucsc.edu/downloads.html
+
+.axt file format:
+    http://genome.ucsc.edu/goldenPath/help/axt.html
+
+mus/
+
+  - target/reference: Mouse
+    (mm9, July 2007 (NCBI37/mm9),
+    NCBI Build 37)
+
+  - query: Rat
+    (rn5, Mar. 2012 (RGSC 5.0/rn5),
+    RGSC Rnor_5.0 (GCA_000001895.3))
+
+------------------------------
+10_filter_regions.out:
+
+Matt says:
+
+These coordinates are based on genome build mm9 (also known as NCBI37).
+
+
+chr X:
+25 regions
+mean_recombination=0.8481 cM/Mb
+median_recombination=0.8090
+stdev_recombination=0.0550
+mean_bp_per_region=90897.8000
+total_bp=2272445
+
+autosomes:
+480 regions
+mean_recombination=0.9714
+median_recombination=0.9500
+stdev_recombination=0.1297
+mean_bp_per_region=99898.2208
+total_bp=47951146
+
+As you can see, there are 47.95 MB of autosomal bp to choose from, plus 2.27 MB of chrX.  We had talked about enriching a total target size of 1MB, so that gives you plenty to choose from based on mappability, etc.
+
+Basically, I'd like half the target to come from chrX and the other half to come from any autosomal regions.
+
+Just so you know, these are regions that are at least 200kb from any protein coding gene.
+
+
+Each region is at least 500 kb long and at least 200 kb away from a gene.  To maintain consistency, I would only consider regions that are at least 200 kb away from each other as independent markers (roughly about the extent of LD in wild domesticus at least).  
+
+These regions have been filtered to be present in spretus (from Keane et al.).  In other words, I didn't enrich a region unless I knew it was there in spretus.  The reason some regions are close is because those are gaps in their genome build.  
+
+... and the spretus genome came from this: Keane, T.M., Goodstadt, L., Danecek, P., White, M.A., Wong, K., Yalcin, B., Heger, A., Agam, A., Slater, G., Goodson, M., et al. (2011). Mouse genomic variation and its effect on phenotypes and gene regulation. Nature 477, 289-294.
+
+(it was mapped to NCBI37).
