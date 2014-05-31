@@ -28,6 +28,7 @@ source(paste(scriptdir,"context-inference-fns.R",sep=''))
 
 boundary <- "none"
 meanboundary <- 0
+patlen <- 1
 if (gmfile=="TRUE") { gmfile <- paste(paste("genmatrices/genmatrix",winlen,boundary,meanboundary,patlen,sep="-"),".RData",sep='') }
 if (file.exists(gmfile)) {
     load(gmfile)
