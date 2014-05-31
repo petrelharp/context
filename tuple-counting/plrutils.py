@@ -29,6 +29,10 @@ class PosFile:
         return self
     def next(self):
         posline = self.file.next().strip().split()
+        if len(posline) < 3 :
+            print "Bad position line:\n"
+            print " ".join(posline)+"\n"
+            raise ValueError
         self.chrom = posline[0]
         self.pos = [ int(x) for x in posline[1:3] ]
     def close(self):
