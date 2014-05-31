@@ -38,53 +38,33 @@ parser.add_argument('--outfile', '-o', nargs='?', default="-")
 args = parser.parse_args()
 
 # example
-# tail -n +2 10_filter_regions.out | cut -f 1 | sed -e 's/\(.*\):\([0-9]*\)-\([0-9]*\).*/\1 \2 \3/' > 11_filter_regions.positions.out
-args = parser.parse_args("-p test.out -a test.axt -o -".split())
-
-posfile = fileopt( args.posfile, "r" )
-axtfile = fileopt( args.axtfile, "r" )
+# tail -n +2 10_filter_regions.pos | cut -f 1 | sed -e 's/\(.*\):\([0-9]*\)-\([0-9]*\).*/\1 \2 \3/' > 11_filter_regions.positions.pos
+# args = parser.parse_args("-p test.pos -a test.axt -o test.sub.axt".split())
+pos = PosFile( args.posfile )
+axt = AxtFile( args.axtfile )
 outfile = fileopt( args.outfile, "w" )
 
-posfile.close()
-axtfile.close()
-posfile = fileopt( args.posfile, "r" )
-axtfile = fileopt( args.axtfile, "r" )
+pos.next()
+axt.next()
 
-for posline in posfile:
-    # current position
-    posline = posline.strip().split()
-    chrom = posline[0]
-    pos = [ int(x) for x in posline[1:3] ]
-    print "pos:"
-    print chrom
-    print pos
-    # we've moved past that position
-    while True :
-        while True:
-            axtinfo = axtfile.readline().strip().split()
-            if not ( len(axtinfo)==0 or axtinfo[0][0] == "#" ) :
-                break
-        axtchrom = axtinfo[1]
-        axtpos = [ int(x) for x in axtinfo[2:4] ]
-        seq1 = axtfile.readline().strip()
-        seq2 = axtfile.readline().strip()
-        print "axt:"
-        print axtchrom
-        print axtpos
-        # next alignment position
-        if axtchrom > chrom or axtpos[0] > pos[1] :
-            break
-        overlap = [ max(pos[0],axtpos[0]), min(pos[1],axtpos[1]) ]
-        if overlap[0] < overlap[1] :
+while True:
+    try:
+        overlap = [ max(pos.pos[0],axt.pos[0]), min(pos.pos[1],axt.pos[1]) ]
+        if pos.chrom == axt.chrom and overlap[0] < overlap[1] :
             # overlap! output this.
-            print "overlap:"
-            print overlap
-            newinfo = axtinfo[0:2] + overlap + axtinfo[4:5] + [ int(axtinfo[5])+overlap[0]-axtpos[0] + x for x in [0,overlap[1]-overlap[0]] ] + axtinfo[7:]
+            newinfo = axt.info[0:2] + overlap + axt.info[4:5] + [ int(axt.info[5])+overlap[0]-axt.pos[0] + x for x in [0,overlap[1]-overlap[0]] ] + axt.info[7:]
             outfile.write(" ".join(map(str,newinfo))+"\n")
-            outfile.write( seq1[(overlap[0]-axtpos[0]):(overlap[1]-axtpos[1])] + "\n" )
-            outfile.write( seq2[(overlap[0]-1):(overlap[1]-1)] + "\n" )
+            outfile.write( axt.seq1[(overlap[0]-axt.pos[0]):(overlap[1]-axt.pos[0])] + "\n" )
+            outfile.write( axt.seq2[(overlap[0]-axt.pos[0]):(overlap[1]-axt.pos[0])] + "\n" )
+            outfile.write("\n")
+        if axt.chrom > pos.chrom or axt.pos[1] > pos.pos[1] :
+            pos.next()
+        if axt.chrom < pos.chrom or axt.pos[1] < pos.pos[1] :
+            axt.next()
+    except StopIteration:
+        break
 
 
 outfile.close()
-axtfile.close()
-posfile.close()
+pos.file.close()
+axt.file.close()
