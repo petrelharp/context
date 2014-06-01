@@ -27,6 +27,11 @@ if (opt$outfile=="") { outfile <- with(opt, paste(basedir,"/simple-stats",win,"-
 scriptdir <- "../"
 source(paste(scriptdir,"context-inference-fns.R",sep=''))
 
+countfiles <- list.files(basedir,paste("*",winlen,lrwin,"counts",sep="."), full.names=TRUE)
+names(countfiles) <- gsub(".*chr([0-9XY]*).*","chr\\1",countfiles)
+countfiles <- countfiles[ order( as.numeric( gsub("chr","",names(countfiles)) ) ) ]
+if (length(countfiles)==0) { stop("No input files.") }
+
 boundary <- "none"
 meanboundary <- 0
 patlen <- 1
@@ -37,11 +42,7 @@ if (file.exists(gmfile)) {
     stop("Can't find generator matrix in ", gmfile, " -- provide file name exactly?")
 }
 projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
-subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE, time="gamma" )
 
-countfiles <- list.files(basedir,paste("*",winlen,lrwin,"counts",sep="."), full.names=TRUE)
-names(countfiles) <- gsub(".*chr([0-9XY]*).*","chr\\1",countfiles)
-countfiles <- countfiles[ order( as.numeric( gsub("chr","",names(countfiles)) ) ) ]
 counts <- lapply(countfiles, function (x) {
         count.table <- read.table(x,header=TRUE,stringsAsFactors=FALSE)
         counts <- Matrix(0,nrow=nrow(genmatrix),ncol=ncol(projmatrix))
