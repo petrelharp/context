@@ -2,17 +2,17 @@
 
 SCRIPTDIR = ../../tuple-counting
 
-5_1_counts = $(patsubst %.net.axt.gz,%.5.1.counts,$(wildcard *.net.axt.gz))
-5_1_counts_rev = $(patsubst %.net.axt.gz,rev.%.5.1.counts,$(wildcard *.net.axt.gz))
+5_3_counts = $(patsubst %.net.axt.gz,%.5.3.counts,$(wildcard *.net.axt.gz))
+5_3_counts_rev = $(patsubst %.net.axt.gz,rev.%.5.3.counts,$(wildcard *.net.axt.gz))
 3_1_counts = $(patsubst %.net.axt.gz,%.3.1.counts,$(wildcard *.net.axt.gz))
 3_1_counts_rev = $(patsubst %.net.axt.gz,rev.%.3.1.counts,$(wildcard *.net.axt.gz))
 
-counts : 5.1.counts rev.5.1.counts 3.1.counts rev.3.1.counts
+counts : 5.3.counts rev.5.3.counts 3.1.counts rev.3.1.counts
 
-5.1.counts : $(5_1_counts)
+5.3.counts : $(5_3_counts)
 	python $(SCRIPTDIR)/sum-counts.py -o $@ -i $^
 
-rev.5.1.counts : $(5_1_counts_rev)
+rev.5.3.counts : $(5_3_counts_rev)
 	python $(SCRIPTDIR)/sum-counts.py -o $@ -i $^
 
 3.1.counts : $(3_1_counts)
@@ -24,7 +24,7 @@ rev.3.1.counts : $(3_1_counts_rev)
 %.axt.sub.gz : %.axt.gz
 	python $(SCRIPTDIR)/get-regions-from-alignment.py --axtfile $< --posfile ../11_filter_regions.sorted.pos -o $@
 
-%.5.1.counts : %.net.axt.sub.gz
+%.5.3.counts : %.net.axt.sub.gz
 	python $(SCRIPTDIR)/count-paired-tuples.py --reverse --strict --infile $< --informat axt -w 5 -l 1 -r 1 --outfile $@
 
 %.3.1.counts : %.net.axt.sub.gz

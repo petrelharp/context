@@ -29,7 +29,8 @@ NAME=$(echo "$*"| sed -e 's/[ .\/]/_/g')
         echo "#PBS -o qsub-logs/$NAME.o\$PBS_JOBID"; 
         echo "";
         echo "cd $PWD";
-        echo "source /usr/usc/R/3.0.2/setup.sh";
+        echo "source /usr/usc/R/3.1.0/setup.sh";
+        echo "source /usr/usc/git/default/setup.sh";
         echo "echo 'script:'";
         echo "echo '$*'";
         echo '/usr/bin/git log -1 --format="%H"';

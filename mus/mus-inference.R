@@ -9,6 +9,7 @@ option_list <- list(
         make_option( c("-u","--indir"), type="character", default=NULL, help="Directory to look for input in, and write output files to." ),
         make_option( c("-i","--infile"), type="character", default=NULL, help="Table of count data."),
         make_option( c("-v","--revfile"), type="character", default=NULL, help="Table of count data in the reverse orientation"),
+        make_option( c("-j","--jobid"), type="character", default=formatC(1e6*runif(1),width=6,format="d",flag="0"), help="Unique job id. [default random]"),
         make_option( c("-w","--win"), type="integer", default=1, help="Size of matching window. [default \"%default\"]" ),
         make_option( c("-l","--lwin"), type="integer", default=1, help="Size of left-hand context. [default \"%default\"]" ),
         make_option( c("-r","--rwin"), type="integer", default=1, help="Size of left-hand context. [default \"%default\"]" ),
