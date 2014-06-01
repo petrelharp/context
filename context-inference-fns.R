@@ -385,7 +385,7 @@ projectcounts <- function( lwin, lcountwin, countwin, rcountwin, counts ) {
     return(pcounts)
 }
 
-predicttreecounts <- function (win, lwin=0, rwin=0, initcounts, mutrates, selcoef, mutpats, selpats, tlens, genmatrix, projmatrix, initfreqs, ... ) {
+predicttreecounts <- function (win, lwin=0, rwin=0, initcounts, mutrates, selcoef, mutpats, selpats, tlens, genmatrix, projmatrix, initfreqs, patcomp, ... ) {
     # Compute expected counts of paired patterns:
     winlen <- lwin+win+rwin
     if (missing(genmatrix)) { genmatrix <- makegenmatrix(patlen=lwin+win+rwin,mutpats=mutpats,selpats=selpats, ...) }
