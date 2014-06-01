@@ -1,0 +1,24 @@
+# run this in subdirectories
+
+SCRIPTDIR = ../../tuple-counting
+
+5_1_counts = $(patsubst %.net.axt.gz,%.5.1.counts,$(wildcard *.net.axt.gz))
+3_1_counts = $(patsubst %.net.axt.gz,%.3.1.counts,$(wildcard *.net.axt.gz))
+
+counts : $(5_1_counts) $(3_1_counts)
+
+5.1.counts : $(5_1_counts)
+	python $(SCRIPTDIR)/tuple-counting/sum-counts.py -o $@ -i $^
+
+3.1.counts : $(3_1_counts)
+	python $(SCRIPTDIR)/tuple-counting/sum-counts.py -o $@ -i $^
+
+%.axt.sub.gz : %.axt.gz
+	python $(SCRIPTDIR)/get-regions-from-alignment.py --axtfile $< --posfile ../11_filter_regions.sorted.pos -o $@
+
+%.5.1.counts : %.net.axt.sub.gz
+	python $(SCRIPTDIR)/count-paired-tuples.py --reverse --strict --infile $< --informat axt -w 5 -l 1 -r 1 --outfile $@
+
+%.3.1.counts : %.net.axt.sub.gz
+	python $(SCRIPTDIR)/count-paired-tuples.py --reverse --strict --infile $< --informat axt -w 3 -l 1 -r 1 --outfile $@
+

@@ -1,34 +1,6 @@
 
-
-.PHONY : mm9rn5.data mm9rn5
-
 11_filter_regions.sorted.pos : 10_filter_regions.pos
 	tail -n +2 10_filter_regions.pos | cut -f 1 | sed -e 's/\(.*\):\([0-9]*\)-\([0-9]*\).*/\1 \2 \3/' | sort > $@
-
-%.axt.sub.gz : %.axt.gz
-	python ../tuple-counting/get-regions-from-alignment.py --axtfile $< --posfile 11_filter_regions.sorted.pos -o $@
-
-%.5.1.counts : %.net.axt.sub.gz
-	python ../tuple-counting/count-paired-tuples.py --reverse --strict --infile $< --informat axt -w 5 -l 1 -r 1 --outfile $@
-
-%.3.1.counts : %.net.axt.sub.gz
-	python ../tuple-counting/count-paired-tuples.py --reverse --strict --infile $< --informat axt -w 3 -l 1 -r 1 --outfile $@
-
-%/makefile :
-	@echo '# automatically generated' > $@
-	@echo '' >> $@
-	@echo '5_1_counts = $$(patsubst %.net.axt.gz,%.5.1.counts,$$(wildcard *.net.axt.gz))' >> $@
-	@echo '3_1_counts = $$(patsubst %.net.axt.gz,%.3.1.counts,$$(wildcard *.net.axt.gz))' >> $@
-	@echo '' >> $@
-	@echo 'counts : $(5_1_counts) $(3_1_counts)' >> $@
-	@echo '' >> $@
-	@echo '5.1.counts : $$(5_1_counts)' >> $@
-	@echo '	python ../../tuple-counting/sum-counts.py -o $$@ -i $$^' >> $@
-	@echo '' >> $@
-	@echo '3.1.counts : $$(3_1_counts)' >> $@
-	@echo '	python ../../tuple-counting/sum-counts.py -o $$@ -i $$^' >> $@
-	@echo '' >> $@
-	@echo 'include ../makefile' >> $@
 
 ############# WET makefile, now redundant
 
@@ -38,7 +10,7 @@ mm9rn5.data :
 	-mkdir mm9rn5
 	cd mm9rn5; for x in $$(seq 19); do wget http://hgdownload.soe.ucsc.edu/goldenPath/mm9/vsRn5/axtNet/chr$${x}.mm9.rn5.net.axt.gz; done
 	cd mm9rn5; wget http://hgdownload.soe.ucsc.edu/goldenPath/mm9/vsRn5/axtNet/chrX.mm9.rn5.net.axt.gz
-	make mm9rn5/makefile
+	cp sub-makefile mm9rn5/makefile
 
 # mm9rn5counts = $(patsubst %.net.axt.gz,%.5.1.counts,$(wildcard mm9rn5/*))
 # 
