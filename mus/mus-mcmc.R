@@ -19,7 +19,7 @@ option_list <- list(
         make_option( c("-t","--tprior"), type="double", default=.5, help="Parameter for Beta prior on branch length. [default \"%default\"]" ),
         make_option( c("-n","--nbatches"), type="integer", default=1000, help="Number of MCMC batches. [default \"%default\"]" ),
         make_option( c("-b","--blen"), type="integer", default=10, help="Length of each MCMC batch. [default \"%default\"]" ),
-        make_option( c("-c","--stepscale"), type="character", default="1e-4", help="Scale of proposal steps for mutation*time parameters for Metropolis algorithm. [default \"%default\"]" ),
+        make_option( c("-z","--stepscale"), type="character", default="1e-4", help="Scale of proposal steps for mutation*time parameters for Metropolis algorithm. [default \"%default\"]" ),
         make_option( c("-e","--initscale"), type="character", default="3e-3", help="Scale of proposal steps for initial frequencies for Metropolis algorithm. [default \"%default\"]" ),
         make_option( c("-f","--treescale"), type="character", default="1e-4", help="Scale of proposal steps for relative tree branch lengths for Metropolis algorithm. [default \"%default\"]" ),
         make_option( c("-s","--restart"), action="store_true", default=FALSE, help="Start a whole new MCMC run?" ),
@@ -166,13 +166,13 @@ save( lwin, win, rwin, lud, mrun, file=paste(basename,"-mcmc-",mcmcnum,".RData",
 npar <- ncol(estimates)-1
 mlepar <- estimates["mle",][1:npar]
 
-pdf(file=paste(plotfile,"-mcmc-",mcmcnum,".pdf",sep=''),width=6, height=4, pointsize=10)
+pdf(file=paste(plotfile,"-mcmc-",mcmcnum,".pdf",sep=''),width=10, height=8, pointsize=10)
 subs <- seq.int(1, nrow(mrun$batch), by=max(1,floor(nrow(mrun$batch)/1000)) )
 matplot( mrun$batch[subs,], type='l', col=1:npar )
 abline(h=mlepar, col=adjustcolor(1:npar,.5), lwd=2)
 dev.off()
 
-pdf(file=paste(plotfile,"-mcmc-",mcmcnum,"-pairwise.pdf",sep=''),width=6,height=6,pointsize=10)
+pdf(file=paste(plotfile,"-mcmc-",mcmcnum,"-pairwise.pdf",sep=''),width=10,height=8,pointsize=10)
 mutlabels <- colnames(estimates)[-npar]
 subs <- seq.int(1, nrow(mrun$batch), by=max(1,floor(nrow(mrun$batch)/1000)) )
 pairs( rbind( mrun$batch[subs,], mlepar[-npar] ), col=c( rep(adjustcolor("black",.1),length(subs)), adjustcolor("red",1)), pch=20, cex=c( rep(.25,length(subs)), 2), labels=mutlabels, gap=.1 )
