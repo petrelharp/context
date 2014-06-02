@@ -43,7 +43,7 @@ if (!file.exists(infile) | !file.exists(revfile)) { stop("Cannot read file ", in
 
 basedir <- paste(infile,"-results",sep='')
 if (!file.exists(basedir)) { dir.create(basedir) }
-basename <- paste(basedir,"/win-",lwin,"-",lwin,"-",rwin,sep='')
+basename <- paste(basedir,"/win-",win,"-",lwin,"-",rwin,sep='')
 datafile <- paste( basename ,"-results.RData",sep='')
 resultsfile <- paste( basename ,"-results.tsv",sep='')
 plotfile <- paste( basename ,"-plot",sep='')
@@ -57,7 +57,7 @@ if (logfile=="") {
 
 scriptdir <- "../"
 source(paste(scriptdir,"context-inference-fns.R",sep=''))
-source(paste(scriptdir,"sim-context-fns.R",sep=''))
+# source(paste(scriptdir,"sim-context-fns.R",sep=''))
 
 require(mcmc)
 
@@ -192,7 +192,7 @@ all.subexpected <- lapply( all.expected, lapply, function (x)
 save( opt, counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, mle, estimates, initpar, mmeans, ppriors, tpriors, all.expected, cwin, subcounts, all.subexpected, mrun, win, lwin, rwin, nmuts, nfreqs, npats, patcomp, file=datafile )
 
 # plot (long) counts
-pdf(file=paste(plotfile,"-longcounts.pdf",sep=''),width=6, height=4, pointsize=10)
+pdf(file=paste(plotfile,"-longcounts.pdf",sep=''),width=10, height=8, pointsize=10)
 layout(matrix(1:sum(sapply(counts,ncol)),nrow=2))
 for (j in seq_along(counts)) {
     for (k in 1:ncol(counts[[j]])) {
@@ -209,7 +209,7 @@ for (j in seq_along(counts)) {
 dev.off()
 
 # plot (shorter) counts 
-pdf(file=paste(plotfile,"-shortcounts.pdf",sep=''),width=6, height=4, pointsize=10)
+pdf(file=paste(plotfile,"-shortcounts.pdf",sep=''),width=10, height=8, pointsize=10)
 layout(matrix(1:sum(sapply(subcounts,ncol)),nrow=2))
 cols <- rainbow(2+length(all.expected))[1:length(all.expected)]
 for (j in seq_along(subcounts)) {
@@ -224,7 +224,7 @@ for (j in seq_along(subcounts)) {
 dev.off()
 
 # residuals of (shorter) counts 
-pdf(file=paste(plotfile,"-shortresids.pdf",sep=''),width=6, height=4, pointsize=10)
+pdf(file=paste(plotfile,"-shortresids.pdf",sep=''),width=10, height=8, pointsize=10)
 layout(matrix(seq_along(subcounts)))
 cols <- rainbow(2+length(all.expected))[1:length(all.expected)]
 all.subresids <- lapply( all.subexpected, function (x) mapply(function(u,v) (u-v)/sqrt(v),x,subcounts) )
