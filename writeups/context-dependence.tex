@@ -84,7 +84,7 @@ selective constraints on the function of the sequence,
 and other processes such as biased gene conversion \citep{duret2009biased}.
 Indeed, molecular studies have demonstrated that the spectrum of new mutations in humans
 is highly context dependent \citep{schaibley2013influence} 
-and that multinucleotide substitutions are relatively common \citep{schrider2011pervasive,terekhanova2013prevalence}.
+and that multinucleotide substitutions are relatively common \citep{schrider2011pervasive,terekhanova2013prevalence,harris2013errorprone}.
 (We are concerned with effects that are \emph{homogeneous} across the sequence,
 so do not consider further the many constraints on protein-coding sequence \citep[reviewed in][]{thorne2007protein}.)
 However, phylogenetic and population genetic methods usually ignore such dependencies
@@ -96,11 +96,11 @@ and \citet{yaari2013models} displayed strong heterogeneity in the probability of
 in B-cell immunoglobin genes.
 Others have made progress using simplifying assumptions \citep{berard2012accurate},
 or by other approximations \citep{christensen2005pseudolikelihood}.
-\citet{siepel2004phylogenetic} introduced a method to compute likelihoods under a context-dependent mutation model
-by moving iteratively along the genome,
-while
-\citet{lunter2004nucleotide} and \citet{hobolth2008markov} used data augmentation and an MCMC algorithm to do Bayesian inference;
-both these methods are promising but very computationally intensive.
+\citet{pedersen2000dependent}, later extended by 
+\citet{hobolth2008markov,baele2010using}, used data augmentation and an MCMC algorithm to do Bayesian inference;
+\citet{lunter2004nucleotide} used an approximate matrix decomposition;
+while \citet{siepel2004phylogenetic} and later \citep{baele2010modelling} computed likelihoods by assuming a model that is Markov along the genome;
+however, all these methods quite computationally intensive.
 
 Another canonical example is the Ising model of statistical physics
 with time evolution given by Glauber dynamics \citep{glauber1963timedependent},

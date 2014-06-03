@@ -206,7 +206,7 @@ show.simseq <- function (x,printit=FALSE,maxchar=min(nchar(x$initseq),200),latex
                 "\\end{tabular} \\end{center} \n" 
             ), collapse="" )
     }
-    if (printit) { lapply( outstrings, cat ) }
+    if (printit | latex) { lapply( outstrings, cat ) }
     return(invisible(outstrings))
 } 
 

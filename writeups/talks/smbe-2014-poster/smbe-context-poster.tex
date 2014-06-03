@@ -1,0 +1,462 @@
+\documentclass[fontscale=0.38]{baposter}
+
+\tracingstats=2
+
+\usepackage{times}
+\usepackage{calc}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{relsize}
+\usepackage{multirow}
+\usepackage{bm}
+\usepackage{caption}
+\usepackage[authoryear,round]{natbib}
+
+\usepackage{tabularx}
+\usepackage{booktabs}
+
+\usepackage{colortbl}
+
+\usepackage{multicol}
+
+%\usepackage{pgfbaselayers}
+%\pgfdeclarelayer{background}
+%\pgfdeclarelayer{foreground}
+%\pgfsetlayers{background,main,foreground}
+
+
+% plr macros: these are for boxes in tables
+\newcommand\tLL[1]{\multicolumn{1}{|c}{#1}}
+\newcommand\tRR[1]{\multicolumn{1}{c|}{#1}}
+\newcommand\tLR[1]{\multicolumn{1}{|c|}{#1}}
+% nucleotides:
+\newcommand{\nA}{\mbox{A}}  
+\newcommand{\nC}{\mbox{C}}
+\newcommand{\nG}{\mbox{G}}
+\newcommand{\nT}{\mbox{T}}
+
+
+%\usepackage{tikz}
+%\usetikzlibrary{arrows,backgrounds,patterns,matrix,shapes,fit,calc,shadows,plotmarks,decorations.pathmorphing,positioning,trees}
+
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{helvet}
+\usepackage{bookman}
+\usepackage{palatino}
+
+% My stuff
+\newcommand{\E}{\mathbb{E}}
+\renewcommand{\P}{\mathbb{P}}
+% end my stuff
+
+\selectcolormodel{cmyk}
+
+% \graphicspath{{images/}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%% Some symbols used in the text
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\newcommand{\sub}[2]{\ensuremath{#1_{\textrm{#2}}}}
+%\newcommand{\gen}[2]{\ensuremath{\textrm{#1}_{\textrm{#2}}}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Multicol Settings
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\setlength{\columnsep}{0.7em}
+\setlength{\columnsep}{8mm}
+\setlength{\columnseprule}{0mm} % no vertical line
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Save space in lists. Use this after the opening of the list
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\compresslist}{
+\setlength{\itemsep}{1pt}
+\setlength{\parskip}{0pt}
+\setlength{\parsep}{0pt}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Other Macros
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \renewcommand{\labelenumi}{\alph{enumi})}
+% \renewcommand{\theenumi}{\alph{enumi})}
+\newcommand{\postercaption}[1]{\begin{minipage}{\linewidth}\center\smaller
+  {#1}\end{minipage}}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Begin of Document
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Here starts the poster
+%%%---------------------------------------------------------------------------
+%%% Format it to your taste with the options
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Define some colors
+\definecolor{silver}{cmyk}{0,0,0,0.3}
+\definecolor{black}{cmyk}{0,0,0.0,1.0}
+\definecolor{white}{cmyk}{0,0,0.0,0.0}
+\definecolor{darkSilver}{cmyk}{0,0,0,0.1}
+
+\definecolor{darkYellow}{cmyk}{0,0,1.0,0.5}
+\definecolor{yellow}{cmyk}{0,0,0.9,0.0}
+\definecolor{reddishyellow}{cmyk}{0,0.22,1.0,0.0}
+\definecolor{lightyellow}{cmyk}{0,0,0.3,0.0}
+\definecolor{lighteryellow}{cmyk}{0,0,0.1,0.0}
+\definecolor{lightestyellow}{cmyk}{0,0,0.05,0.0}
+
+\definecolor{DavisBlue}{cmyk}{1,0.56,0,0.34}
+%    C = 100  M = 56  Y = 0 K = 34
+
+
+\definecolor{HohenheimBlue}{cmyk}{1,0.5,0,0.45}
+\definecolor{HohenheimLightLightBlue}{RGB}{233,240,245}
+\definecolor{HohenheimLightBlue}{RGB}{215,221,235}
+\definecolor{HohenheimDarkBlue}{RGB}{52,104,152}
+\definecolor{darkCyan}{cmyk}{1,1,0,0.5}
+\definecolor{cyan}{cmyk}{1,0,0,0.0}
+\definecolor{lightcyan}{cmyk}{0.3,0,0,0.0}
+\definecolor{lightercyan}{cmyk}{0.1,0,0,0.0}
+\definecolor{lightestcyan}{cmyk}{0.05,0,0,0.0}
+
+
+
+\typeout{Poster Starts}
+%Define custom background
+\background{
+  \begin{tikzpicture}[remember picture,overlay]%
+    \draw (current page.north west)+(-2em,2em) node[anchor=north west] {\includegraphics[height=\textheight]{silhouettes_background}};
+  \end{tikzpicture}%
+}
+
+\newlength{\leftimgwidth}
+\begin{poster}%
+  % Poster Options
+  {
+  % Columns and Column spacing
+  columns=2,
+  colspacing=1.5em,
+  % Background
+  % background=user,
+  background=shade-tb,
+  % Poster header options
+  eyecatcher=yes,
+  posterheaderheight=0.15\textheight,
+  % Format of textbox header
+  headerborder=open,
+  % headershape=small-rounded,
+  headershape=roundedright,
+  headershade=shade-tb,
+  % headershade=plain,
+  headerfont=\Large\textsf, %Sans Serif
+  % Format of textbox
+  boxborder=small-rounded,
+  % boxborder=roundedleft,    
+  boxshade=plain,
+  linewidth=0.5pt,
+  % Color style
+  % bgColorOne=lightestcyan,
+  % bgColorTwo=lightcyan,
+  bgColorOne=white,
+  bgColorTwo=white,
+  % borderColor=cyan,
+  borderColor=black,
+  headerColorOne=DavisBlue,
+  % headerColorOne=cyan,
+  headerColorTwo=black,
+  % headerFontColor=black,
+  headerFontColor=white,
+  % boxColorOne=lightercyan,
+  boxColorOne=HohenheimLightLightBlue,
+  boxColorTwo=white,
+  % Show grid to help with alignment
+  grid=no
+  % grid=yes
+  }
+  % Eye Catcher
+  {
+  \makebox[10em][r]{%
+    \begin{minipage}{10em}
+       \hfill
+       % \includegraphics[width=10em]{UC_davis_seal_black_CMYK.pdf}
+    \end{minipage}
+    }
+  }
+  % Title
+  {\sf %Sans Serif
+  %\bf% %bold  
+  \vspace{0.5em}
+  \textbf{\textcolor{DavisBlue}{Efficient inference with context-dependent models of nucleotide substituion}}\vspace{0.5em}}
+  % Authors
+  {\sf %Sans Serif
+    Peter Ralph$^{\dagger}$ \\  \vspace{-1.0mm}
+    {\small \textit{$\dagger$ Molecular \& Computational Biology, University of Southern California }}\\  
+    {\small   \textbf{ralphlab.usc.edu}}\\
+  }
+  % Project logo
+  {
+    \makebox[10em][r]{%
+      \begin{minipage}{10em}
+        \hfill
+        % \includegraphics[width=10em]{pedigree-ibd-coalescent-path.pdf}
+      \end{minipage}
+    }
+  }
+
+  % Width of left inset image
+%  \setlength{\leftimgwidth}{0.78em+0.0em}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Now define the boxes that make up the poster
+%%%---------------------------------------------------------------------------
+%%% Each box has a name and can be placed absolutely or relatively.
+%%% The only inconvenience is that you can only specify a relative position 
+%%% towards an already declared box. So if you have a box attached to the 
+%%% bottom, one to the top and a third one which should be in between, you 
+%%% have to specify the top and bottom boxes before you specify the middle 
+%%% box.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\headerbox{Context-dependence}{name=intro,column=0,row=0,span=1}{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  \textbf{Data:} Long (nucleotide) sequences separated by (evolutionary) time
+    with known (phylogenetic) relationship.
+
+
+  \textbf{Process:} Sequence substitution rates depend on local context.
+
+
+  \textbf{Goal:} Infer substitution motifs;
+    mutation rates;
+    relative amounts of time.
+
+  \textbf{Background:} 
+  The raw mutational spectrum is highly context-dependent and multinuleotide 
+  \citep{schaibley2013influence,schrider2011pervasive,terekhanova2013prevalence,harris2013errorprone}.
+  This is an issue for methods in phylogenetics and ancestral sequence reconstruction
+  that assume independence of sites.
+  Previous  work --
+  \citet{siepel2004phylogenetic} assumed Markov dependency along the sequence;
+  \citet{lunter2004nucleotide} used a matrix decomposition;
+  and \citet{pedersen2000dependent,hobolth2008markov} used data augmentation with an MCMC algorithm
+  -- is not computationally feasible for long sequences.
+  Similar: Markov random fields in image reconstruction \citep{besag1986statistical};
+  inference for cellular automata models \citep{clarke1994cellular,zorzenondossantos2001dynamics}.
+
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\headerbox{Example}{name=example,column=0,span=1,below=intro}{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  \parbox[b]{.4\textwidth}{
+
+    \textbf{Simple example} on two nucleotides:
+      \begin{itemize}
+        \item $\text{X} \to \text{O}$ at rate 1
+        \item $\text{O} \to \text{X}$ at rate 1
+        \item $\text{OX} \to \text{XO}$ at rate $\gamma$
+      \end{itemize}
+
+  }\parbox[b]{.3\textwidth}{
+
+    % easy
+    \begin{center} \tiny \setlength{\tabcolsep}{0pt} \begin{tabular}{cccccccccccccccccccccccccccccccccccccccccc}
+    O&O&O&X&O&X&X&X&X&X&X&O&O&O&X&O&X&O&X&O\\
+    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
+    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&X&O&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
+    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&O&X\\
+    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&O&X&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
+    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
+    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&O&O&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&X&O&$\centerdot$\\
+    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
+    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&X&O&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&X&X\\
+    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&X&X&$\centerdot$&O&X&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
+    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
+    O&O&O&X&O&O&X&X&X&X&X&O&X&O&O&X&X&X&X&X\\
+    \end{tabular} \end{center} 
+
+  }\parbox[b]{.3\textwidth}{
+     
+    % hard
+    \begin{center} \tiny \setlength{\tabcolsep}{0pt} \begin{tabular}{cccccccccccccccccccccccccccccccccccccccccc}
+    X&O&X&X&O&O&X&X&O&X&O&O&X&O&O&X&O&X&X&O\\
+    O&X&O&X&$\centerdot$&$\centerdot$&$\centerdot$&X&O&$\centerdot$&$\centerdot$&$\centerdot$&O&O&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
+    O&O&X&$\centerdot$&$\centerdot$&O&O&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&O&O&$\centerdot$&$\centerdot$\\
+    $\centerdot$&X&X&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&O&O&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&O&O\\
+    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&X&O&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&O&X&O&X&$\centerdot$\\
+    $\centerdot$&$\centerdot$&O&X&O&O&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&X&O&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
+    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
+    $\centerdot$&$\centerdot$&O&O&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&X&X\\
+    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&O&O&X&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
+    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&O&X&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&O&X&$\centerdot$&$\centerdot$&O&X\\
+    O&X&$\centerdot$&$\centerdot$&O&X&X&X&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
+    O&X&O&O&O&X&X&X&O&X&O&O&O&X&O&X&X&O&O&X\\
+    \end{tabular} \end{center} 
+
+  }
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\headerbox{General mutational grammar}{name=grammar,column=0,span=1,below=example}{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+  \textbf{Mutation} rules $(a,b,r)$: 
+    locations matching $a$ mutate to $b$ at rate $r$ 
+  \[
+  a \longrightarrow b \qquad \text{ at rate } r
+  \]
+  $a$, $b$ can be \emph{any} patterns of the same length.
+
+    Also: fixation bias (e.g.\ GC-bias).
+
+%   \textbf{Fixation} function: 
+%     mutations take effect with probability 
+%     \begin{align*}
+%       f(s(\text{new}) - s(\text{old})) ,
+%     \end{align*}
+%     e.g.\ $f(ds) = N_e (1-e^{-2 ds})/(1-e^{-2 N_e ds})$
+% 
+%   \textbf{Selection} is additive (and abstract):
+%     given rules $(a_i,s_i)$,
+%     \begin{align*}
+%       s(x) = \sum_i s_i n_i(x),
+%     \end{align*}
+%     with $n_i(x)$ number of times $a_i$ matches in $x$
+
+
+\textbf{Assuming:}
+    homogeneity along the sequence and through time
+
+    \textbf{Not assuming:}
+    stationarity;
+    reversibility.
+
+    \emph{Example:} GC-content need not be at equilibrium.
+
+
+
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\headerbox{Exact solution}{name=exact,column=0,span=1,below=grammar}{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Say $\lambda$ is the \emph{total mutation rate}
+and $P$ is the matrix of single-mutation probabilities, i.e.
+\begin{align}
+  \P\{ x \longrightarrow y \text{ in time $dt$ }\} = P_{xy} \lambda dt 
+\end{align}
+e.g.\ $P_{ACA \to ATA} = \mu_{CT}$ and $P_{GAC \to TCG} = 0$.
+Then the transition probabilities are
+\begin{align}
+  & \P\{ x \longrightarrow y \text{ in time $t$ }\} = \sum_{k \ge 0} e^{-\lambda t} \frac{ (\lambda t)^k }{ k! } (P^k)_{xy} \\
+  &\qquad = \sum_{k \ge 0} \text{( prob there are $k$ mutations )} \times \text{ ( prob k mutations takes $x \to y$ ) } .
+\end{align}
+
+$P$ {also equals} $e^{tG}$ with $G_{xy} = \lambda P_{xy}$ and $G_{xx} = - \sum_{y\neq x} G_{xy}$.
+For length-$n$ sequences, \textbf{$P$ is $4^n \times 4^n$}.
+
+% \[ % max rate < 1 :
+% e^{tG}  = e^{t((G+I)-I)} = e^{-t} I e^{t(G+I)} = \sum_k e^{-t} t^k/k! (G+I)^k
+% \]
+% If $G$ is the \emph{rate matrix}, i.e. for $x \neq y$,
+% \begin{align}
+%   G_{xy} &= ( \text{ rate at which sequence $x$ changes to $y$ } ) 
+% \end{align}
+% and $G_{xx} = - \sum_{y\neq x} G_{xy}$, then
+
+
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\headerbox{The relevant fringe}{name=windows,column=0,span=1,below=exact}{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    \begin{itemize}
+      \item If the size of the maximum context is $k$
+      \item and the expected number of such mutations per site is $\mu t$
+      \item a site is unlikely to be affected by context further way than, say, $k^2 \mu t$.
+      \item i.e.\ the probability of a particular transition at a site is almost unaffected by changes further away.
+    \end{itemize}
+
+    \begin{center}
+      \includegraphics[width=.6\textwidth]{../../../writeup-plots/talk-tasep-fig-3}
+    \end{center}
+
+
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\headerbox{Summary statistics}{name=statistics,column=0,below=windows,above=bottom}{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+Count pairs of $(w,r)$-tuples, with $r<w$,
+and use partial/pseudo-likelihood: 
+  \begin{align*}
+    \mathcal{L} = \prod_{a,c} n(a,c) \sum_{b \supset c} \log \left( e^{tG_w} \right)_{ab} .
+  \end{align*}
+
+  \begin{center} 
+    \setlength{\tabcolsep}{0pt} 
+    \begin{tabular}{cccccccccc}
+      \cline{1-3}
+      \tLL{C}&C&\tRR{C}&A&G&T&C&C&A&G\\
+      \cline{1-1}\cline{3-3}
+      C&\tLR{A}&C&A&G&T&C&C&A&G\\
+      \cline{2-2}
+    \end{tabular} 
+    \hspace{5em}
+    \setlength{\tabcolsep}{5pt} 
+    \begin{tabular}{c c c}
+      $a$ & $c$ & $n(a,c)$ \\
+      \hline
+      CCA & C & 2 \\
+      CCC & A & 1 \\
+      CAG & A & 1 \\
+      AGT & G & 1 \\
+      \vdots & \vdots & \vdots \\
+      \hline
+    \end{tabular}
+  \end{center} 
+
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\headerbox{References}{name=references,column=1,above=bottom}{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \scriptsize
+  \renewcommand{\section}[2]{\vskip 0.0em}
+  \bibliographystyle{abbrvnat}
+  \bibliography{../../context-dependence}
+  }
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{poster}%
+\end{document}
