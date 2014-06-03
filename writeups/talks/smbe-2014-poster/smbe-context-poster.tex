@@ -449,6 +449,81 @@ and use partial/pseudo-likelihood:
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\headerbox{Computation}{name=computation,column=1}{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\textbf{Tricks:} Krylov methods to compute $e^{tG}v$ for sparse $G$ (also: gamma-distributed times);\\
+precompute mapping of parameters to $G$ to make parameter update quick.
+
+
+  \vspace{1em}
+
+  \textbf{Choices:}
+  \begin{itemize}
+    \item Long ($w$) and short ($r$) pattern sizes
+    \item Set of short patterns: maximize information
+  \end{itemize}
+
+  \vspace{1em}
+
+  \textbf{Memory usage:} constant times the (pattern count) data.
+
+  \vspace{1em}
+
+  \textbf{Computational time:} $O(w 4^{w} (\#\text{short patterns}))$ operations 
+  \begin{itemize}
+    \item $(w=5,r=1) \longrightarrow$  a second
+    \item $(w=8,r=2) \longrightarrow$  a minute
+  \end{itemize}
+
+  \vspace{1em}
+
+  \textbf{Feasible:} window sizes, nearest neighbor context \\
+  \hspace{3em} $w=4$: mean density of mutations ${} < 0.5$ per site\\
+  \hspace{3em}   $w=8$: mean density of mutations ${} < 2$ per site
+
+
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\headerbox{Simulation}{name=simulation,column=1,below=computation}{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+  Simulated $10^6$ bases on a tree of length 1, 
+  with one branch twice as long as the other,
+  sequence divergence above 15\%,
+  and mutation rates
+  {\small
+  \begin{center}
+    \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }c}
+      $u$  &  $v$  &  $\mu$  \\
+      \hline
+       A & T   &  0.15  \\
+       A & C   &  0.15  \\
+       \vdots & \vdots & \vdots \\
+       G & C &  0.15  \\
+      CG   &  TG   &  0.45 \\
+      CG   &  CA   &  0.45 
+    \end{tabular}
+  \end{center}
+  }
+
+  Priors on the 17 parameters; MCMC to get posterior distribution;
+  1--3--1 windows
+
+  \begin{center}
+    \includegraphics[width=.75\textwidth]{../../../writeup-plots/selsims-2013-06-03-13-17-0187525-estimate-boxplots}
+  \end{center}
+
+  
+
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \headerbox{References}{name=references,column=1,above=bottom}{
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \scriptsize
