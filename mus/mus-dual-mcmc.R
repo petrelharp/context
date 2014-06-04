@@ -11,8 +11,8 @@ option_list <- list(
         make_option( c("-v","--revfile"), type="character", default=NULL, help="Table of count data in the reverse orientation"),
         make_option( c("-j","--jobid"), type="character", default=formatC(1e6*runif(1),width=6,format="d",flag="0"), help="Unique job id. [default random]"),
         make_option( c("-w","--win"), type="integer", default=1, help="Size of matching window. [default \"%default\"]" ),
-        make_option( c("-l","--lwin"), type="integer", default=2, help="Size of left-hand context. [default \"%default\"]" ),
-        make_option( c("-r","--rwin"), type="integer", default=2, help="Size of left-hand context. [default \"%default\"]" ),
+        make_option( c("-l","--lwin"), type="integer", default=1, help="Size of left-hand context. [default \"%default\"]" ),
+        make_option( c("-r","--rwin"), type="integer", default=1, help="Size of left-hand context. [default \"%default\"]" ),
         make_option( c("-m","--mmean"), type="double", default=1, help="Prior mean on single base mutation rates. [default \"%default\"]" ),
         make_option( c("-c","--cpgmean"), type="double", default=1, help="Prior variance on CpG rate. [default \"%default\"]" ),
         make_option( c("-p","--pprior"), type="double", default=1, help="Parameter for Dirichlet prior on base frequencies. [default \"%default\"]" ),
@@ -126,32 +126,13 @@ lud <- function (params) {
 adhoc <- lapply(counts, countmuts,mutpats=mutpats,lwin=lwin)
 adhoc <- unlist( sapply( adhoc, function (x) x[1,]/x[2,] ) )
 
-# construct matrix for proposal distribution for mcmc steps:
-#  First, need base frequencies to sum to 1.
-# we want (root distr'n for x) * (transition rate x -> y) to stay the same,
-#  so adjust proposed changes to transition rates
-#  by the proposed changes in root distr'n.
-# The proposals are, in metrop( ), controlled by scale %*% (standard normal vector).
-scalemat <- diag(1+nmuts+nfreqs)
-rownames(scalemat) <- colnames(scalemat) <- c( sapply(lapply(mutpats[1:13],"[[",1),paste,collapse='-'), sapply(lapply(mutpats[1:13],"[[",1),paste,collapse='-'), bases )
-changes <- mutpatchanges(mutpats)
-fac <- 1 / ( .25 / mean( adhoc ) )
-for (k in seq_along(mutpats)) {
-    frombases <- match( changes[[k]][,1], bases )
-    scalemat[k,nmuts+frombases] <- (+1)*fac
-    tobases <- match( changes[[k]][,2], bases )
-    scalemat[k,nmuts+tobases] <- (-1)*fac
-}
-scalemat <- scalemat * c( rep_len( stepscale, nmuts ), rep_len( initscale, nfreqs ) )
-# proposed base freq changes will have zero sum:
-scalemat[,nmuts+(1:nfreqs)] <- sweep( scalemat[,nmuts+(1:nfreqs)], 1, rowMeans(scalemat[,nmuts+(1:nfreqs)]), "-" )
-# but we omit the last one anyhow
-scalemat <- scalemat[-nrow(scalemat),-ncol(scalemat)]
+# construct simplified proposal distribution for mcmc steps:
+scalemat <- c( rep_len( stepscale, nmuts ), rep_len( stepscale, nmuts ), rep_len( initscale, nfreqs-1 ) )
 
 if (restart) {
     # mrun <- metrop( lud, initial=random.ans$par[-length(random.ans$par)], nbatch=nbatches, blen=blen, scale=scalemat )
     # if (is.finite(lud(mle$par[-length(mle$par)]))) {
-        mrun <- metrop( lud, initial=mle$par, nbatch=nbatches, blen=blen, scale=scalemat )
+        mrun <- metrop( lud, initial=mle$par[-length(mle$par)], nbatch=nbatches, blen=blen, scale=scalemat )
     # } else {  # the point estimate broke; cheat to get a good starting point
     #     mrun <- metrop( lud, initial=truth, nbatch=nbatches, blen=blen, scale=scalemat )
     # }
