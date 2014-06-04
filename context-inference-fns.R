@@ -45,6 +45,7 @@ countmuts <- function (counts, mutpats, lwin) {
     #    divergence(...)
     counts <- as.matrix(counts)
     win <- nchar(colnames(counts)[1])
+    stopifnot( len(win)>0 & win>0 )
     # restrict to same-length seqs
     xx <- substr(rownames(counts),lwin+1,lwin+win)
     yy <- colnames(counts)
@@ -53,11 +54,13 @@ countmuts <- function (counts, mutpats, lwin) {
         for (j in seq_along(mutpats)) {
             mutpat <- mutpats[[j]]
             mx <- sapply(mutpat, function (mp) {
-                    sum( counts[ ( substr(xx,k,k+win-1) == mp[1] ), ( substr(yy,k,k+win-1) == mp[2] ) ] )
+                    patlen <- nchar(mp[1])
+                    sum( counts[ ( substr(xx,k,k+patlen-1) == mp[1] ), ( substr(yy,k,k+patlen-1) == mp[2] ) ] )
                 } )
             sum.changed[j] <- sum.changed[j] + sum( mx )
             px <- sapply(mutpat, function (mp) {
-                    sum( counts[ ( substr(xx,k,k+win-1) == mp[1] ), ] )
+                    patlen <- nchar(mp[1])
+                    sum( counts[ ( substr(xx,k,k+patlen-1) == mp[1] ), ] )
                 } )
             possible[j] <- possible[j] + sum( px )
         }

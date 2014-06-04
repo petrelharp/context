@@ -229,29 +229,26 @@
 \headerbox{Context-dependence}{name=intro,column=0,row=0,span=1}{
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-  \textbf{Data:} Long (nucleotide) sequences separated by (evolutionary) time
-    with known (phylogenetic) relationship.
+  \textbf{Given} long, homologous sequences with known phylogenetic relationship, \\
+  that have mutated from an ancestral sequence by a
+  \textbf{context-dependent substitution process},
+  \textbf{our goal} is to infer substitution motifs;
+    mutation rates; and branch lengths on the tree.
 
-
-  \textbf{Process:} Sequence substitution rates depend on local context.
-
-
-  \textbf{Goal:} Infer substitution motifs;
-    mutation rates;
-    relative amounts of time.
+    \vspace{2em}
 
   \textbf{Background:} 
-  The raw mutational spectrum is highly context-dependent and multinuleotide 
-  \citep{schaibley2013influence,schrider2011pervasive,terekhanova2013prevalence,harris2013errorprone}.
+  The raw mutational spectrum is highly context-dependent % and multinuleotide 
+  \citep{schaibley2013influence}. %,schrider2011pervasive,terekhanova2013prevalence,harris2013errorprone}.
   This is an issue for methods in phylogenetics and ancestral sequence reconstruction
   that assume independence of sites.
-  Previous  work --
+  Previous  methods --
   \citet{siepel2004phylogenetic} assumed Markov dependency along the sequence;
   \citet{lunter2004nucleotide} used a matrix decomposition;
   and \citet{pedersen2000dependent,hobolth2008markov} used data augmentation with an MCMC algorithm
-  -- is not computationally feasible for long sequences.
-  Similar: Markov random fields in image reconstruction \citep{besag1986statistical};
-  inference for cellular automata models \citep{clarke1994cellular,zorzenondossantos2001dynamics}.
+  -- are not computationally feasible for long sequences.
+  Similar problem -- Markov random fields in image reconstruction \citep{besag1986statistical};
+  inference for cellular automata models \citep{zorzenondossantos2001dynamics}.
 
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -274,6 +271,7 @@
 
     % easy
     \begin{center} \tiny \setlength{\tabcolsep}{0pt} \begin{tabular}{cccccccccccccccccccccccccccccccccccccccccc}
+        \multicolumn{20}{ c }{\textbf{easy:}} \\
     O&O&O&X&O&X&X&X&X&X&X&O&O&O&X&O&X&O&X&O\\
     $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
     $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&X&O&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
@@ -292,6 +290,7 @@
      
     % hard
     \begin{center} \tiny \setlength{\tabcolsep}{0pt} \begin{tabular}{cccccccccccccccccccccccccccccccccccccccccc}
+        \multicolumn{20}{ c }{\textbf{hard:}} \\
     X&O&X&X&O&O&X&X&O&X&O&O&X&O&O&X&O&X&X&O\\
     O&X&O&X&$\centerdot$&$\centerdot$&$\centerdot$&X&O&$\centerdot$&$\centerdot$&$\centerdot$&O&O&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
     O&O&X&$\centerdot$&$\centerdot$&O&O&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&O&O&$\centerdot$&$\centerdot$\\
@@ -529,7 +528,8 @@ precompute mapping of parameters to $G$ to make parameter update quick.
   \scriptsize
   \renewcommand{\section}[2]{\vskip 0.0em}
   \bibliographystyle{abbrvnat}
-  \bibliography{../../context-dependence}
+  \setlength{\bibsep}{0.0pt}
+  \bibliography{context-dependence}
   }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

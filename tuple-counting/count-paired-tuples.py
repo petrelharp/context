@@ -4,6 +4,7 @@ import argparse
 from collections import Counter
 from plrutils import *
 import re
+from os import path
 
 usage = '''
 Count paired tuples from a paired fasta or an axt file.
@@ -61,7 +62,10 @@ outfile = fileopt(args.outfile, "w" )
 tuplecount = Counter()
 
 if args.reverse:
-    revfile = fileopt("rev."+args.outfile, "w" )
+    outdir = path.dirname(args.outfile) 
+    if len(outdir)>0:
+        outdir += '/'
+    revfile = fileopt(outdir + "rev." + path.basename(args.outfile), "w" )
     revcount = Counter()
 
 if args.informat == "fasta":
