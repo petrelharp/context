@@ -16,10 +16,10 @@ option_list <- list(
         make_option( c("-n","--nbatches"), type="integer", default=20, help="Number of MCMC batches. [default \"%default\"]" ),
         make_option( c("-b","--blen"), type="integer", default=10, help="Length of each MCMC batch. [default \"%default\"]" ),
         make_option( c("-s","--stepscale"), type="numeric", default=1e-4, help="Scale of proposal steps for Metropolis algorithm. [default \"%default\"]" ),
+        make_option( c("-a","--optimscale"), type="numeric", default=1e-2, help="Scale of proposal steps for optimization algorithm. [default \"%default\"]" ),
         make_option( c("-m","--mmean"), type="double", default=1, help="Prior mean on single base mutation rates. [default \"%default\"]" ),
         make_option( c("-c","--cpgmean"), type="double", default=1, help="Prior variance on CpG rate. [default \"%default\"]" ),
         make_option( c("-p","--pprior"), type="double", default=1, help="Parameter for Dirichlet prior on base frequencies. [default \"%default\"]" ),
-        make_option( c("-t","--tprior"), type="double", default=.5, help="Parameter for Beta prior on branch length. [default \"%default\"]" ),
         make_option( c("-d","--boundary"), type="character", default="none", help="Boundary conditions for generator matrix. [default \"%default\"]"),
         make_option( c("-y","--meanboundary"), type="integer", default=0, help="Average over this many neighboring bases in computing generator matrix. [default \"%default\"]" ),
         make_option( c("-g","--gmfile"), type="character", default="TRUE", help="File with precomputed generator matrix, or TRUE [default] to look for one. (otherwise, will compute)"),
@@ -91,10 +91,10 @@ nfreqs <- length(bases)
 npats <- nrow(genmatrix)
 patcomp <- apply( do.call(rbind, strsplit(rownames(genmatrix),'') ), 2, match, bases )  # which base is at each position in each pattern
 likfun <- function (params) {
-    # params are: tlen[1]/sum(tlen), sum(tlen)*mutrates2, sum(tlen)*mutrates2, , initfreqs
-    branchlens <- c(params[1],1-params[1])
-    mutrates <- list( params[1+(1:nmuts)],  params[1+nmuts+(1:nmuts)] )
-    initfreqs <- params[1+2*nmuts+(1:nfreqs)]
+    # params are: sum(tlen)*mutrates2, sum(tlen)*mutrates2, , initfreqs
+    branchlens <- c(.5,.5)
+    mutrates <- list( params[(1:nmuts)],  params[nmuts+(1:nmuts)] )
+    initfreqs <- params[2*nmuts+(1:nfreqs)]
     initfreqs <- initfreqs/sum(initfreqs)
     patfreqs <- initfreqs[patcomp]
     dim(patfreqs) <- dim(patcomp)
@@ -116,17 +116,16 @@ likfun <- function (params) {
 # only nonoverlapping counts, plus priors -- indep't trials. (multinomial)
 mmeans <- c( rep(mmean,nmuts-1), cpgmean )
 ppriors <- rep( pprior, nfreqs )
-tpriors <- rep( tprior, 2 )
 lud <- function (params) {
     # params are: tlen[1]/sum(tlen), sum(tlen)*mutrates1, sum(tlen)*mutrates2, initfreqs[-length(initfreqs)]
-    branchlens <- c(params[1],1-params[1])
-    mutrates <- list( params[1+(1:nmuts)],  params[1+nmuts+(1:nmuts)] )
-    initfreqs <- params[1+nmuts+(1:(nfreqs-1))]
+    branchlens <- c(.5,.5)
+    mutrates <- list( params[(1:nmuts)],  params[nmuts+(1:nmuts)] )
+    initfreqs <- params[nmuts+(1:(nfreqs-1))]
     initfreqs <- c(initfreqs,1-sum(initfreqs))
     patfreqs <- initfreqs[patcomp]
     dim(patfreqs) <- dim(patcomp)
     patfreqs <- apply( patfreqs, 1, prod )
-    if (any(mutrates<0) | any(initfreqs<0)) {
+    if (any(unlist(mutrates)<0) | any(initfreqs<0)) {
         return( -Inf )
     } else {
         updownbranch <- list(  # note "up" branch is from simpler summaries
@@ -138,8 +137,7 @@ lud <- function (params) {
                 # (-1)*sum(updownbranch[nonoverlapping[[1]]]) +
                 sum( counts[[1]] * log(updownbranch[[1]]) ) 
                 + sum( counts[[2]] * log(updownbranch[[2]]) ) 
-                + sum( (tpriors-1)*log(branchlens) )
-                - sum(mmeans*mutrates) 
+                - sum(mmeans*unlist(mutrates)) 
                 + sum( (ppriors-1)*log(initfreqs) )
             )
     }
@@ -147,24 +145,23 @@ lud <- function (params) {
 
 # MLE point estimates
 #   params are: tlen[1]/sum(tlen), sum(tlen)*mutrates, initfreqs
-initpar <- c( runif(1), adhoc[[1]], rep(.25,4) ) # random init
-names(initpar) <- c( "rel.branchlen", 
-        paste( unlist( sapply( sapply( mutpats, lapply, paste, collapse="->", sep='' ), paste, collapse="|", sep='' ) ), "AB", sep='' ),
-        paste( unlist( sapply( sapply( mutpats, lapply, paste, collapse="->", sep='' ), paste, collapse="|", sep='' ) ), "AB", sep='' ),
+initpar <- c( adhoc[[1]], adhoc[[2]], rep(.25,4) ) # random init
+names(initpar) <- c( 
+        paste( unlist( sapply( sapply( mutpats, lapply, paste, collapse="->", sep='' ), paste, collapse="|", sep='' ) ), ".ab", sep='' ),
+        paste( unlist( sapply( sapply( mutpats, lapply, paste, collapse="->", sep='' ), paste, collapse="|", sep='' ) ), ".ab", sep='' ),
         paste("init",bases,sep='.') )
-lbs <- c( 1e-6, rep(0,2*nmuts), rep(1e-6,length(bases)) )
-ubs <- c( 1, rep(20,2*nmuts), rep(1,length(bases)) )
+lbs <- c( rep(0,2*nmuts), rep(1e-6,length(bases)) )
+ubs <- c( rep(20,2*nmuts), rep(1,length(bases)) )
 # # do in parallel:
-# cheating.parjob <- mcparallel( optim( par=truth, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(trace=3,fnscale=likfun(truth)) ) ),
-# random.parjob <- mcparallel( optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(trace=3,fnscale=likfun(truth)) ) )
-# cheating.ans <- mccollect( cheating.parjob, wait=TRUE )
-# mle <- mccollect( random.parjob, wait=TRUE )
-mle <- optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(trace=3,fnscale=abs(likfun(initpar))) )
+mle <- optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(trace=3,fnscale=abs(likfun(initpar)),parscale=rep(optimscale,length(initpar)),maxit=500) )
 # renormalize the initial frequencies
-mle.par <- mle$par; mle.par[1+2*nmuts+(1:nfreqs)] <- mle.par[1+2*nmuts+(1:nfreqs)] / sum( mle.par[1+2*nmuts+(1:nfreqs)] )
+mle.par <- mle$par; mle.par[2*nmuts+(1:nfreqs)] <- mle.par[2*nmuts+(1:nfreqs)] / sum( mle.par[2*nmuts+(1:nfreqs)] )
 
 estimates <- data.frame( rbind(init=initpar, mle=mle.par) )
-colnames(estimates) <- c( "branchlen", paste("tmut:", unlist( sapply( sapply( mutpats, lapply, paste, collapse="->" ), paste, collapse=" | " ) ) ), paste("init",bases,sep='.') )
+colnames(estimates) <- c( 
+        paste( unlist( sapply( sapply( mutpats, lapply, paste, collapse="->", sep='' ), paste, collapse="|", sep='' ) ), ".ab", sep='' ),
+        paste( unlist( sapply( sapply( mutpats, lapply, paste, collapse="->", sep='' ), paste, collapse="|", sep='' ) ), ".ab", sep='' ),
+        paste("init",bases,sep='.') )
 estimates$likfun <- apply( estimates, 1, likfun )
 write.table( estimates, file=resultsfile, quote=FALSE, sep="\t" )
 
@@ -174,6 +171,6 @@ write.table( estimates, file=resultsfile, quote=FALSE, sep="\t" )
 #  mrun <- mccollect(mcrun.parjob)
 mrun <- metrop( lud, initial=mle.par[-length(mle.par)], nbatch=nbatches, blen=blen, scale=stepscale )
 
-save( opt, counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, mle, estimates, initpar, mmeans, ppriors, tpriors, mrun, win, lwin, rwin, nmuts, nfreqs, npats, patcomp, file=datafile )
+save( opt, counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, mle, estimates, initpar, mmeans, ppriors, mrun, win, lwin, rwin, nmuts, nfreqs, npats, patcomp, file=datafile )
 
 print(format(Sys.time(),"%Y-%m-%d-%H-%M"))
