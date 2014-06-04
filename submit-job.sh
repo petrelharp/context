@@ -33,7 +33,7 @@ NAME=$(echo "$*"| sed -e 's/[ .\/]/_/g')
         echo "source /usr/usc/git/default/setup.sh";
         echo "echo 'script:'";
         echo "echo '$*'";
-        echo '/usr/bin/git log -1 --format="%H"';
+        echo 'git log -1 --format="%H"';
         echo "";
         echo "Rscript $* --jobid \$PBS_JOBID" 
 )  | qsub -

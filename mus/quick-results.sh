@@ -1,6 +1,13 @@
 #!/bin/bash
 
-Rscript -e "fn=commandArgs(TRUE); options(width=1000); z=do.call(rbind, lapply(fn,function(x){ load(x); c(estimates['mle',],win=win,lrwin=lwin) })); rownames(z)=fn; z" $(find . -name "*-results.RData") | sed -e "s/tmut: //g" | sed -e 's/ | /|/g'
+if [ $# -lt 1 ]; then PAT=''; else PAT="-"$1; fi
+
+Rscript -e "fn=commandArgs(TRUE); \
+    options(width=1000); \
+    z=do.call(rbind, lapply(fn,function(x){ load(x); c(estimates['mle',],win=win,lrwin=lwin) })); \
+    rownames(z)=fn; z" \
+    $(find mm*/*counts$PAT-results -name "*-results.RData" ) | sed -e "s/tmut: //g" | sed -e 's/ | /|/g'
+
 
 echo <<ALLDONE
 # paste this into R
