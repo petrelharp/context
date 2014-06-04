@@ -99,27 +99,24 @@ lud <- function (params) {
     # params are: tlen[1]/sum(tlen), sum(tlen)*mutrates1, sum(tlen)*mutrates2, initfreqs[-length(initfreqs)]
     branchlens <- c(.5,.5)
     mutrates <- list( params[(1:nmuts)],  params[nmuts+(1:nmuts)] )
-    initfreqs <- params[nmuts+(1:(nfreqs-1))]
+    initfreqs <- params[2*nmuts+(1:(nfreqs-1))]
     initfreqs <- c(initfreqs,1-sum(initfreqs))
+    if (any(unlist(mutrates)<0) | any(initfreqs<0)) { return( -Inf ) } 
     patfreqs <- initfreqs[patcomp]
     dim(patfreqs) <- dim(patcomp)
     patfreqs <- apply( patfreqs, 1, prod )
-    if (any(unlist(mutrates)<0) | any(initfreqs<0)) {
-        return( -Inf )
-    } else {
-        updownbranch <- list(  # note "up" branch is from simpler summaries
-                getupdowntrans( genmatrix, projmatrix, mutrates=mutrates, selcoef=list(numeric(0),numeric(0)), initfreqs=patfreqs, tlens=rev(branchlens) ),
-                getupdowntrans( genmatrix, projmatrix, mutrates=mutrates, selcoef=list(numeric(0),numeric(0)), initfreqs=patfreqs, tlens=branchlens )
-            )
-        # return (positive) log-posterior
-        return( 
-                # (-1)*sum(updownbranch[nonoverlapping[[1]]]) +
-                sum( counts[[1]] * log(updownbranch[[1]]) ) 
-                + sum( counts[[2]] * log(updownbranch[[2]]) ) 
-                - sum(mmeans*unlist(mutrates)) 
-                + sum( (ppriors-1)*log(initfreqs) )
-            )
-    }
+    updownbranch <- list(  # note "up" branch is from simpler summaries
+            getupdowntrans( genmatrix, projmatrix, mutrates=mutrates, selcoef=list(numeric(0),numeric(0)), initfreqs=patfreqs, tlens=rev(branchlens) ),
+            getupdowntrans( genmatrix, projmatrix, mutrates=mutrates, selcoef=list(numeric(0),numeric(0)), initfreqs=patfreqs, tlens=branchlens )
+        )
+    # return (positive) log-posterior
+    return( 
+            # (-1)*sum(updownbranch[nonoverlapping[[1]]]) +
+            sum( counts[[1]] * log(updownbranch[[1]]) ) 
+            + sum( counts[[2]] * log(updownbranch[[2]]) ) 
+            - sum(mmeans*unlist(mutrates)) 
+            + sum( (ppriors-1)*log(initfreqs) )
+        )
 }
 
 # simple point estimates for starting positions
