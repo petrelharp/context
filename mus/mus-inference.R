@@ -68,7 +68,6 @@ if (file.exists(gmfile)) {
     stop(paste("Cannot read",gmfile,"."))
 }
 projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
-subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE )
 
 # read in counts (produced with count-paired-tuples.py)
 counts <- lapply( list(infile,revfile), function (ifile) {
@@ -83,8 +82,8 @@ counts <- lapply( list(infile,revfile), function (ifile) {
 initcounts <- lapply( counts, rowSums )
 
 # simple point estimates for starting positions
-adhoc <- lapply(counts, countmuts,mutpats=mutpats,lwin=lwin)
-adhoc <- lapply( adhoc, function (x) x[1,]/x[2,] )
+simple.counts <- lapply(counts, countmuts,mutpats=mutpats,lwin=lwin)
+adhoc <- lapply( simple.counts, function (x) x[1,]/x[2,] )
 
 # move from base frequencies (what we estimate) to pattern frequencies
 nmuts <- length(mutpats)
@@ -190,7 +189,7 @@ subcounts <- lapply( counts, function (x)
 all.subexpected <- lapply( all.expected, lapply, function (x)
         projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=x ) )
 
-save( opt, counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, mle, estimates, initpar, mmeans, ppriors, tpriors, all.expected, cwin, subcounts, all.subexpected, mrun, win, lwin, rwin, nmuts, nfreqs, npats, patcomp, file=datafile )
+save( opt, counts, genmatrix, projmatrix, lud, likfun, mle, estimates, initpar, mmeans, ppriors, tpriors, all.expected, cwin, subcounts, all.subexpected, mrun, win, lwin, rwin, nmuts, nfreqs, npats, patcomp, file=datafile )
 
 # plot (long) counts
 pdf(file=paste(plotfile,"-longcounts.pdf",sep=''),width=10, height=8, pointsize=10)

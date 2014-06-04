@@ -1,4 +1,47 @@
+#!/usr/bin/Rscript
+
+source("../context-inference-fns.R")
+
 aligns <- c( "mm9ornAna1", "mm9hg19", "mm9galGal3", "mm9oryCun2", "mm9rn5" )
+
+win <- 3
+lwin <- rwin <- 1
+winlen <- win+lwin+rwin
+bases <- c("A","T","C","G")
+mutpats <- c(
+        apply(combn(bases,2),2,list),  # single-base rates
+        apply(combn(bases,2)[2:1,],2,list),  # single-base rates
+        list( list( c("CG","TG"), c("CG","CA") ) )  # CpG rate
+    ) 
+genmatrix <- makegenmatrix( patlen=winlen, mutpats=mutpats, selpats=list(), boundary='none' )
+projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
+
+count.files <- outer( aligns, c("5.1.counts","rev.5.1.counts"), paste, sep='/' )
+names(count.files) <- gsub("\\/.*","",count.files)
+count.files <- count.files[order(names(count.files))]
+counts <- lapply(count.files, function (ifile) {
+        count.table <- read.table(ifile,header=TRUE,stringsAsFactors=FALSE)
+        counts <- Matrix(0,nrow=nrow(genmatrix),ncol=ncol(projmatrix))
+        rownames(counts) <- rownames(genmatrix)
+        colnames(counts) <- colnames(projmatrix)
+        stopifnot( all( count.table$reference %in% rownames(genmatrix) ) & all(count.table$derived %in% colnames(projmatrix)) ) 
+        counts[cbind( match(count.table$reference,rownames(genmatrix)), match(count.table$derived,colnames(projmatrix)) )] <- count.table$count
+        return(counts)
+    } )
+simple.counts <- lapply(counts, countmuts, mutpats=mutpats, lwin=lwin)
+simple.table <- data.frame( do.call(rbind, lapply(simple.counts,t) ) )
+names(simple.table) <- c("numerator","denominator")
+simple.table$mut <- factor( sapply(simple.counts,colnames) )
+simple.table$sp <- factor( names(simple.counts)[rep(seq_along(simple.counts),sapply(simple.counts,ncol))] )
+
+divergences <- sapply( counts, divergence, lwin=lwin )
+
+with(simple.table, { plot( denominator, numerator, col=sp, pch=as.numeric(mut) );
+        legend("topright", col=seq_along(levels(sp)), legend=levels(sp), pch=1);
+        legend("topleft", legend=levels(mut), pch=seq_along(levels(mut)) )
+    } )
+
+## estimates
 mle.tables <- lapply( sapply(paste(aligns,"/3.1.counts-results",sep=''),list.files,pattern="*.tsv",full.names=TRUE),
     read.csv, header=TRUE, sep='\t' )
 names(mle.tables) <- aligns

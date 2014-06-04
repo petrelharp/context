@@ -18,43 +18,53 @@ npatterns <- function (winlen) {
     return( length(bases)^winlen )
 }
 
+mutnames <- function (mutpats) {
+    return( unlist( sapply( sapply( mutpats, lapply, paste, collapse="->" ), paste, collapse="|" ) ) )
+}
+
 ###
 # Point estimates
 
 divergence <- function (counts, lwin) {
     # mean density of nucleotide differences
-    unchanged <- outer(rownames(counts),colnames(counts),function(x,y){ substr(x,lwin+1,lwin+nchar(y[1]))==y })
-    return( sum(counts[!unchanged])/sum(counts) )
+    require(stringdist)
+    patlen <- nchar(colnames(counts)[1])
+    nchanges <- stringdistmatrix( substr(rownames(counts),lwin+1,lwin+patlen), colnames(counts) )
+    return( sum(nchanges*counts)/(sum(counts)*patlen) )
 }
 
 countmuts <- function (counts, mutpats, lwin) {
     # given a table of matched tuples,
     # return counts of how many of these could be produced by each of mutpats
-    #   out of the total
+    #   and the total possible
     # note that if we estimate rates by
     #    r.est <- countmuts(...)[1,]/countmuts(...)[2,]
     # then something like
     #    sum( r.est ) / 4
     # should be close to 
     #    divergence(...)
+    counts <- as.matrix(counts)
     win <- nchar(colnames(counts)[1])
-    return( 
-        sapply( mutpats, function (mutpat) {
-            rowSums( sapply( mutpat, function (mp) {
-                inmatches <- gregexpr( pattern=mp[1], text=rownames(counts), fixed=TRUE )
-                nmatches <- sapply( inmatches, function (x) length(x[x>0]) )
-                matchlocs <- unlist( inmatches )
-                matchlocs <- matchlocs[matchlocs>0]
-                inind <- rep(1:nrow(counts),nmatches)
-                outstr <- instr <- rownames(counts)[inind]
-                substr(outstr,matchlocs,matchlocs+nchar(mp[2])-1) <- mp[2]
-                outstr <- substr(outstr,1+lwin,lwin+win)
-                changed <- ( outstr != substr(instr,1+lwin,lwin+win) )
-                sum.changed <- sum( counts[ cbind( inind[changed], match(outstr[changed],colnames(counts)) ) ] )
-                possible <- sum( counts[ inind[changed], ] )
-                c(sum.changed,possible)
-        } ) ) } )
-    )
+    # restrict to same-length seqs
+    xx <- substr(rownames(counts),lwin+1,lwin+win)
+    yy <- colnames(counts)
+    sum.changed <- possible <- numeric(length(mutpats))
+    for (k in 1:(win-lwin+1)) {
+        for (j in seq_along(mutpats)) {
+            mutpat <- mutpats[[j]]
+            mx <- sapply(mutpat, function (mp) {
+                    sum( counts[ ( substr(xx,k,k+win-1) == mp[1] ), ( substr(yy,k,k+win-1) == mp[2] ) ] )
+                } )
+            sum.changed[j] <- sum.changed[j] + sum( mx )
+            px <- sapply(mutpat, function (mp) {
+                    sum( counts[ ( substr(xx,k,k+win-1) == mp[1] ), ] )
+                } )
+            possible[j] <- possible[j] + sum( px )
+        }
+    }
+    x <- rbind(sum.changed,possible)
+    colnames(x) <- mutnames(mutpats)
+    return(x)
 }
 
 
