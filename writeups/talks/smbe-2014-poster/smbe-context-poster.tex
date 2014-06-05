@@ -186,7 +186,7 @@
   \makebox[10em][r]{%
     \begin{minipage}{10em}
        \hfill
-       % \includegraphics[width=10em]{UC_davis_seal_black_CMYK.pdf}
+       \includegraphics[width=10em]{USC-seal} \\
     \end{minipage}
     }
   }
@@ -206,7 +206,7 @@
     \makebox[10em][r]{%
       \begin{minipage}{10em}
         \hfill
-        % \includegraphics[width=10em]{pedigree-ibd-coalescent-path.pdf}
+        \includegraphics[width=10em]{../../contextual-logo}
       \end{minipage}
     }
   }
@@ -255,63 +255,7 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\headerbox{Example}{name=example,column=0,span=1,below=intro}{
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-  \parbox[b]{.4\textwidth}{
-
-    \textbf{Simple example} on two nucleotides:
-      \begin{itemize}
-        \item $\text{X} \to \text{O}$ at rate 1
-        \item $\text{O} \to \text{X}$ at rate 1
-        \item $\text{OX} \to \text{XO}$ at rate $\gamma$
-      \end{itemize}
-
-  }\parbox[b]{.3\textwidth}{
-
-    % easy
-    \begin{center} \tiny \setlength{\tabcolsep}{0pt} \begin{tabular}{cccccccccccccccccccccccccccccccccccccccccc}
-        \multicolumn{20}{ c }{\textbf{easy:}} \\
-    O&O&O&X&O&X&X&X&X&X&X&O&O&O&X&O&X&O&X&O\\
-    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
-    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&X&O&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
-    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&O&X\\
-    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&O&X&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
-    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
-    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&O&O&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&X&O&$\centerdot$\\
-    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
-    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&X&O&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&X&X\\
-    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&X&X&$\centerdot$&O&X&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
-    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
-    O&O&O&X&O&O&X&X&X&X&X&O&X&O&O&X&X&X&X&X\\
-    \end{tabular} \end{center} 
-
-  }\parbox[b]{.3\textwidth}{
-     
-    % hard
-    \begin{center} \tiny \setlength{\tabcolsep}{0pt} \begin{tabular}{cccccccccccccccccccccccccccccccccccccccccc}
-        \multicolumn{20}{ c }{\textbf{hard:}} \\
-    X&O&X&X&O&O&X&X&O&X&O&O&X&O&O&X&O&X&X&O\\
-    O&X&O&X&$\centerdot$&$\centerdot$&$\centerdot$&X&O&$\centerdot$&$\centerdot$&$\centerdot$&O&O&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
-    O&O&X&$\centerdot$&$\centerdot$&O&O&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&O&O&$\centerdot$&$\centerdot$\\
-    $\centerdot$&X&X&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&O&O&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&O&O\\
-    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&X&O&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&O&X&O&X&$\centerdot$\\
-    $\centerdot$&$\centerdot$&O&X&O&O&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&X&O&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
-    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
-    $\centerdot$&$\centerdot$&O&O&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&X&X\\
-    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&O&O&X&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
-    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&O&X&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&O&X&$\centerdot$&$\centerdot$&O&X\\
-    O&X&$\centerdot$&$\centerdot$&O&X&X&X&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
-    O&X&O&O&O&X&X&X&O&X&O&O&O&X&O&X&X&O&O&X\\
-    \end{tabular} \end{center} 
-
-  }
-}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\headerbox{General mutational grammar}{name=grammar,column=0,span=1,below=example}{
+\headerbox{General mutational grammar}{name=grammar,column=0,span=1,below=intro}{
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -321,8 +265,6 @@
   a \longrightarrow b \qquad \text{ at rate } r
   \]
   $a$, $b$ can be \emph{any} patterns of the same length.
-
-    Also: fixation bias (e.g.\ GC-bias).
 
 %   \textbf{Fixation} function: 
 %     mutations take effect with probability 
@@ -339,16 +281,145 @@
 %     with $n_i(x)$ number of times $a_i$ matches in $x$
 
 
+    \vspace{1em}
+
 \textbf{Assuming:}
-    homogeneity along the sequence and through time
+    homogeneity along the sequence and along each branch
 
     \textbf{Not assuming:}
     stationarity;
     reversibility.
+    (\textbf{e.g.} GC-content need not be at equilibrium)
 
-    \emph{Example:} GC-content need not be at equilibrium.
+    % \hrule{\hfill}
+
+    \vspace{1em}
+
+  \parbox[b]{.4\textwidth}{
+
+    \textbf{Simple example} on two nucleotides:
+      \begin{itemize}
+        \item $\text{X} \to \text{O}$ at rate 1.0
+        \item $\text{O} \to \text{X}$ at rate 1.2
+        \item $\text{OX} \to \text{XO}$ at rate 0.7
+      \end{itemize}
+
+  }\parbox[b]{.3\textwidth}{
+
+    % easy
+    \begin{center} \tiny \setlength{\tabcolsep}{0pt} \begin{tabular}{cccccccccccccccccccccccccccccccccccccccccc}
+        \multicolumn{20}{ c }{\textbf{easy:}} \\
+    O&O&O&X&O&X&X&X&X&X&X&O&O&O&X&O&X&O&X&O\\
+    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
+    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&X&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
+    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&O&X\\
+    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&O&X&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
+    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
+    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&O&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&X&O&$\centerdot$\\
+    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
+    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&O&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&X\\
+    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&X&$\centerdot$&$\centerdot$&O&X&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
+    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
+    O&O&O&X&O&O&X&X&X&X&X&O&X&O&O&X&X&X&X&X\\
+    \end{tabular} \end{center} 
+
+  }\parbox[b]{.3\textwidth}{
+     
+    % hard
+    \begin{center} \tiny \setlength{\tabcolsep}{0pt} \begin{tabular}{cccccccccccccccccccccccccccccccccccccccccc}
+        \multicolumn{20}{ c }{\textbf{hard:}} \\
+    X&O&X&X&O&O&X&X&O&X&O&O&X&O&O&X&O&X&X&O\\
+    O&X&O&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&O&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
+    $\centerdot$&O&X&$\centerdot$&$\centerdot$&$\centerdot$&O&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&O&$\centerdot$&$\centerdot$&$\centerdot$\\
+    $\centerdot$&X&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&O&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&O&$\centerdot$\\
+    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&X&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&O&X&$\centerdot$&X&$\centerdot$\\
+    $\centerdot$&$\centerdot$&O&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&X&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
+    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
+    $\centerdot$&$\centerdot$&$\centerdot$&O&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&X\\
+    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&O&$\centerdot$&X&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
+    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&O&X&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&X&$\centerdot$&$\centerdot$&O&$\centerdot$\\
+    $\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&X&X&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$\\
+    O&X&O&O&O&X&X&X&O&X&O&O&O&X&O&X&X&O&O&X\\
+    \end{tabular} \end{center} 
+
+  }
 
 
+
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\headerbox{Idea: count asymmetric tuples}{name=windows,column=0,span=1,below=grammar}{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\parbox[b]{.55\textwidth}{
+
+    \begin{itemize}
+      \item If the size of the maximum context is $k$
+      \item and the expected number of such mutations per site is $\mu t$
+      \item a site is unlikely to be affected by context further away than, say, $k^2 \mu t$.
+      \item i.e.\ the sequence at a site, conditioned on a $(k^2 \mu t)$-window in the ancestor,
+        is almost independent of the sequence further away.
+    \end{itemize}
+
+    }\parbox[b]{.45\textwidth}{
+
+    \begin{flushright}
+      \includegraphics[width=.4\textwidth]{../../../writeup-plots/talk-tasep-fig-3}
+    \end{flushright}
+    \vspace{2em}
+
+    }
+
+    \vspace{1em}
+
+    \textbf{Method:}
+Count pairs of $(w,r)$-tuples, with $r<w$;
+compute exact transition probabilities using $w$-tuples;
+assume nonoverlapping blocks are independent (binomial likelihood).
+
+\vspace{1em}
+
+\textbf{Example, $(w,r)=(3,1)$:}
+  \begin{center} 
+    \setlength{\tabcolsep}{0pt} 
+    \begin{tabular}{cccccccccc}
+      $\vert\!\leftarrow$ & $w$ & $\rightarrow\!\vert$ & &&&&&& \\
+      \cline{1-3}
+      \tLL{C}&C&\tRR{C}&A&G&T&C&C&A&G\\
+      \cline{1-1}\cline{3-3}
+      C&\tLR{A}&C&A&G&T&C&C&A&G\\
+      \cline{2-2}
+      $\rightarrow\!\vert$ & $r$ & $\vert\!\leftarrow$ & &&&&&& \\
+    \end{tabular} 
+    \hspace{5em}
+    \setlength{\tabcolsep}{5pt} 
+    \begin{tabular}{c c c}
+      $w$-tuple & $r$-tuple & count \\
+      \hline
+      CCA & C & 2 \\
+      CCC & A & 1 \\
+      CAG & A & 1 \\
+      AGT & G & 1 \\
+      \vdots & \vdots & \vdots \\
+      \hline
+    \end{tabular}
+  \end{center} 
+
+  \vspace{1em}
+
+  \textbf{Inference method:}
+  \begin{itemize}
+    \item Fit a simple model with short patterns (e.g.\ $(w,r)=(4,2)$).
+    \item Predict longer patterns (e.g.\ $(w,r)=8,4$), and examine residuals.
+    \item Add new mutation pattern(s) that best explains residuals.
+    \item Repeat until residuals fit the null.
+  \end{itemize}
+
+%   \begin{align*}
+%     \mathcal{L} = \prod_{a,c} n(a,c) \sum_{b \supset c} \log \left( e^{tG_w} \right)_{ab} .
+%   \end{align*}
 
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -356,7 +427,7 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\headerbox{Exact solution}{name=exact,column=0,span=1,below=grammar}{
+\headerbox{Exact solution}{name=exact,column=0,span=1,below=windows}{
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Say $\lambda$ is the \emph{total mutation rate}
@@ -371,7 +442,7 @@ Then the transition probabilities are
   &\qquad = \sum_{k \ge 0} \text{( prob there are $k$ mutations )} \times \text{ ( prob k mutations takes $x \to y$ ) } .
 \end{align}
 
-$P$ {also equals} $e^{tG}$ with $G_{xy} = \lambda P_{xy}$ and $G_{xx} = - \sum_{y\neq x} G_{xy}$.
+$P$ {also equals} $e^{tG}$ with $G_{xy} = \lambda P_{xy}$ and $G_{xx} = - \sum_{y\neq x} G_{xy}$.\\
 For length-$n$ sequences, \textbf{$P$ is $4^n \times 4^n$}.
 
 % \[ % max rate < 1 :
@@ -387,71 +458,12 @@ For length-$n$ sequences, \textbf{$P$ is $4^n \times 4^n$}.
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\headerbox{The relevant fringe}{name=windows,column=0,span=1,below=exact}{
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-    \begin{itemize}
-      \item If the size of the maximum context is $k$
-      \item and the expected number of such mutations per site is $\mu t$
-      \item a site is unlikely to be affected by context further way than, say, $k^2 \mu t$.
-      \item i.e.\ the probability of a particular transition at a site is almost unaffected by changes further away.
-    \end{itemize}
-
-    \begin{center}
-      \includegraphics[width=.6\textwidth]{../../../writeup-plots/talk-tasep-fig-3}
-    \end{center}
-
-
-}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\headerbox{Summary statistics}{name=statistics,column=0,below=windows,above=bottom}{
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-Count pairs of $(w,r)$-tuples, with $r<w$,
-and use partial/pseudo-likelihood: 
-  \begin{align*}
-    \mathcal{L} = \prod_{a,c} n(a,c) \sum_{b \supset c} \log \left( e^{tG_w} \right)_{ab} .
-  \end{align*}
-
-  \begin{center} 
-    \setlength{\tabcolsep}{0pt} 
-    \begin{tabular}{cccccccccc}
-      \cline{1-3}
-      \tLL{C}&C&\tRR{C}&A&G&T&C&C&A&G\\
-      \cline{1-1}\cline{3-3}
-      C&\tLR{A}&C&A&G&T&C&C&A&G\\
-      \cline{2-2}
-    \end{tabular} 
-    \hspace{5em}
-    \setlength{\tabcolsep}{5pt} 
-    \begin{tabular}{c c c}
-      $a$ & $c$ & $n(a,c)$ \\
-      \hline
-      CCA & C & 2 \\
-      CCC & A & 1 \\
-      CAG & A & 1 \\
-      AGT & G & 1 \\
-      \vdots & \vdots & \vdots \\
-      \hline
-    \end{tabular}
-  \end{center} 
-
-}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \headerbox{Computation}{name=computation,column=1}{
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\textbf{Tricks:} Krylov methods to compute $e^{tG}v$ for sparse $G$ (also: gamma-distributed times);\\
+\textbf{Tricks:} Krylov methods to compute $e^{tG}v$ for sparse $G$;
 precompute mapping of parameters to $G$ to make parameter update quick.
 
 
@@ -460,7 +472,7 @@ precompute mapping of parameters to $G$ to make parameter update quick.
   \textbf{Choices:}
   \begin{itemize}
     \item Long ($w$) and short ($r$) pattern sizes
-    \item Set of short patterns: maximize information
+    \item Set of short patterns, overlapped or not
   \end{itemize}
 
   \vspace{1em}
@@ -477,9 +489,11 @@ precompute mapping of parameters to $G$ to make parameter update quick.
 
   \vspace{1em}
 
-  \textbf{Feasible:} window sizes, nearest neighbor context \\
-  \hspace{3em} $w=4$: mean density of mutations ${} < 0.5$ per site\\
-  \hspace{3em}   $w=8$: mean density of mutations ${} < 2$ per site
+  \textbf{Feasible:} window sizes
+  \begin{itemize}
+    \item  $w=4$: mean density of mutations ${} < 0.5$ per site
+    \item  $w=8$: mean density of mutations ${} < 2$ per site
+  \end{itemize}
 
 
 }
@@ -493,28 +507,13 @@ precompute mapping of parameters to $G$ to make parameter update quick.
 
   Simulated $10^6$ bases on a tree of length 1, 
   with one branch twice as long as the other,
-  sequence divergence above 15\%,
-  and mutation rates
-  {\small
-  \begin{center}
-    \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }c}
-      $u$  &  $v$  &  $\mu$  \\
-      \hline
-       A & T   &  0.15  \\
-       A & C   &  0.15  \\
-       \vdots & \vdots & \vdots \\
-       G & C &  0.15  \\
-      CG   &  TG   &  0.45 \\
-      CG   &  CA   &  0.45 
-    \end{tabular}
-  \end{center}
-  }
-
+  sequence divergence above 15\%;
+  estimated single-base + CpG mutation rates, root nucleotide composition, branch asymmetry.
   Priors on the 17 parameters; MCMC to get posterior distribution;
   1--3--1 windows
 
   \begin{center}
-    \includegraphics[width=.75\textwidth]{../../../writeup-plots/selsims-2013-06-03-13-17-0187525-estimate-boxplots}
+    \includegraphics[width=.7\textwidth]{../../../writeup-plots/selsims-2013-06-03-13-17-0187525-estimate-boxplots}
   \end{center}
 
   
@@ -522,14 +521,45 @@ precompute mapping of parameters to $G$ to make parameter update quick.
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\headerbox{Real data}{name=data,column=1,below=simulation}{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\textbf{20MB} in 500 noncoding regions in mouse (chosen by Matt Dean), 
+aligned to rat (UCSC, mm9--rn5) with gaps and low-quality bases removed,
+divergence of 14.7\%.
+Fit model with separate single-base mutations + CpG rates,
+root nucleotide composition, and branch asymmetry.
+using (5,3)--tuples;
+looked for structure in residuals of (7,3)--tuples.
+
+\vspace{1em}
+
+\textbf{Preliminary results:} CpG higher than other rates by $10\times{}$;
+transitions about $3\times{}$ higher than transversions;
+C$\to$A very rare.
+Nonstationary CG--content and issue.
+Residuals mostly explained by strand slippage.
+
+
+  \begin{center}
+    \includegraphics[width=\textwidth]{../../../mus/mm9rn5/poster-results}
+  \end{center}
+
+
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \headerbox{References}{name=references,column=1,above=bottom}{
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Code: \texttt{http://github.com/petrelharp/context}
   \scriptsize
   \renewcommand{\section}[2]{\vskip 0.0em}
   \bibliographystyle{abbrvnat}
   \setlength{\bibsep}{0.0pt}
-  \bibliography{context-dependence}
+  \bibliography{context-dependence-poster}
   }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

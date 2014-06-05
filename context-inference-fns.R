@@ -33,7 +33,7 @@ divergence <- function (counts, lwin) {
     return( sum(nchanges*counts)/(sum(counts)*patlen) )
 }
 
-countmuts <- function (counts, mutpats, lwin) {
+countmuts <- function (counts, mutpats, lwin, ...) {
     # given a table of matched tuples,
     # return counts of how many of these could be produced by each of mutpats
     #   and the total possible
@@ -45,7 +45,7 @@ countmuts <- function (counts, mutpats, lwin) {
     #    divergence(...)
     counts <- as.matrix(counts)
     win <- nchar(colnames(counts)[1])
-    stopifnot( len(win)>0 & win>0 )
+    stopifnot( length(win)>0 & win>0 )
     # restrict to same-length seqs
     xx <- substr(rownames(counts),lwin+1,lwin+win)
     yy <- colnames(counts)
@@ -55,14 +55,14 @@ countmuts <- function (counts, mutpats, lwin) {
             mutpat <- mutpats[[j]]
             mx <- sapply(mutpat, function (mp) {
                     patlen <- nchar(mp[1])
-                    sum( counts[ ( substr(xx,k,k+patlen-1) == mp[1] ), ( substr(yy,k,k+patlen-1) == mp[2] ) ] )
+                    sum( counts[ ( substr(xx,k,k+patlen-1) == mp[1] ), ( substr(yy,k,k+patlen-1) == mp[2] ) ], ... )
                 } )
-            sum.changed[j] <- sum.changed[j] + sum( mx )
+            sum.changed[j] <- sum.changed[j] + sum( mx, ... )
             px <- sapply(mutpat, function (mp) {
                     patlen <- nchar(mp[1])
-                    sum( counts[ ( substr(xx,k,k+patlen-1) == mp[1] ), ] )
+                    sum( counts[ ( substr(xx,k,k+patlen-1) == mp[1] ), ], ... )
                 } )
-            possible[j] <- possible[j] + sum( px )
+            possible[j] <- possible[j] + sum( px, ... )
         }
     }
     x <- rbind(sum.changed,possible)

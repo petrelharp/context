@@ -2,8 +2,8 @@
 
 source("../context-inference-fns.R")
 
-long.win <- list( lwin=2, rwin=2, win=3, winlen=7 )
-# long.win <- list( lwin=1, rwin=1, win=5, winlen=7 )
+# long.win <- list( lwin=2, rwin=2, win=3, winlen=7 )
+long.win <- list( lwin=1, rwin=1, win=5, winlen=7 )
 
 bases <- c("A","T","C","G")
 mutpats <- c(
@@ -54,6 +54,7 @@ long.win$counts <- with(long.win, getcounts(winlen,win,genmatrix,projmatrix))
 
 load("3.1.counts-results/win-3-1-1-results.RData")
 load("3.1.counts-results/win-1-1-1-mcmc-2.RData")
+# load("3.1.counts-dual-results/win-1-1-1-results.RData")
 
 if (mrun$nbatch * mrun$blen > 1e4) {
     estimates <- rbind(estimates, 
@@ -81,11 +82,73 @@ names(all.expected) <- rownames(estimates)
 
 # all.resids <- with(long.win, lapply( all.expected, function (x) mapply(function(u,v) (u-v)/sqrt(u),x,counts) ) )
 all.resids <- with(long.win, lapply( all.expected, function (x) mapply(function(u,v) qnorm(ppois(as.numeric(v),as.numeric(u))), x, counts, SIMPLIFY=FALSE)) )
-for (i in seq_along(all.resids)) for (j in seq_along(all.resids[[i]])) { { with(long.win, { dim(all.resids[[i]][[j]]) <- dim(counts[[1]]); dimnames(all.resids[[i]][[j]]) <- dimnames(counts[[1]]) } ) } }
+for (i in seq_along(all.resids)) for (j in seq_along(all.resids[[i]])) { 
+        all.resids[[i]][[j]] <- pmin(100, pmax( -100, all.resids[[i]][[j]] ) )
+        dim(all.resids[[i]][[j]]) <- with(long.win,  dim(counts[[1]]) ); 
+        dimnames(all.resids[[i]][[j]]) <- with(long.win,  dimnames(counts[[1]]) ) 
+    }
 
 resid.counts <- with(long.win, lapply( all.resids[['mle']], countmuts, mutpats=long.mutpats[[2]], lwin=lwin) )
 
-resid.counts <- with(long.win, lapply( long.mutpats, function (mutpats) { lapply( all.resids[['mle']], countmuts, mutpats=mutpats, lwin=lwin) } ) )
+resid.counts.mle <- with(long.win, mclapply( long.mutpats, function (mutpats) { lapply( all.resids[['mle']], countmuts, mutpats=mutpats, lwin=lwin) }, mc.cores=3 ) )
+resid.counts.mean <- with(long.win, mclapply( long.mutpats, function (mutpats) { lapply( all.resids[['mean']], countmuts, mutpats=mutpats, lwin=lwin) }, mc.cores=3 ) )
+
+resid.table.mle <- do.call( cbind, lapply( resid.counts.mle[[2]], function (x) { x[1,] } ) )
+resid.table.mle <- resid.table.mle[order(rowMeans(resid.table.mle)),] 
+resid.table.mean <- do.call( cbind, lapply( resid.counts.mean[[2]], function (x) { x[1,] } ) )
+resid.table.mean <- resid.table.mean[order(rowMeans(resid.table.mean)),] 
+
+plot( all.resids[['mle']][[1]], all.resids[['mean']][[1]] )
+
+layout(matrix(1:16,nrow=4))
+for (k in 2:17) { hist(mrun$batch[200:1000,k],breaks=40,main=names(mrun$final[k])) }
+
+########## POSTER FIG
+pdf( file='poster-results.pdf', width=8, height=3, pointsize=10 )
+layout( matrix( 
+        c( 1,4,
+            2,4,
+            3,4 ), nrow=3, byrow=TRUE ), widths=c(2,1) )
+
+# pdf(file='est-mutrates.pdf',width=5,height=3,pointsize=10)
+mutlabs <- mutnames(mutpats)
+# get reverse-complement by eachother
+labperm <- c(1,7,2,5,3,4,6,12,8,11,9,10,13)
+par(mar=c(0,3,0,0)+.1)
+for (k in labperm[1:12]) {
+    first <- (k==labperm[1])
+    last <- (k==labperm[7])
+    adj <- ( match(k,labperm)%%6 )
+    new <- ( adj == 1 )
+    if (last) { par(mar=c(3,0,0,0)+.1) }
+    if (first) { par(mar=c(0,0,3,0)+.1) }
+    hist(mrun$batch[200:1000,1+k], breaks=seq(0,.2,length.out=500), col=adjustcolor(rainbow(20)[k],.5), border=NA, xlim=c(0,.1), xaxt='n', xlab='', main=if (!first) '' else 'posterior density of mutation rates', add=!new, ylim=c(0,60), yaxt='n' )
+    if (new) { axis(1,tick=TRUE,labels=last) }
+    text(mean(mrun$batch[200:1000,1+k],trim=.1)+.003,10+8*adj,labels=mutlabs[k])
+}
+hist(mrun$batch[200:1000,1+13], breaks=20, col=grey(.5), xlim=c(0,1), yaxt='n', xlab='', main='')
+text(quantile(mrun$batch[200:1000,1+13],.8)+.1,20,labels=mutlabs[13])
+# dev.off()
+
+# pdf( file='mle-resids-hist.pdf', width=3, height=3, pointsize=10 )
+par(mar=c(4,4,1,1)+.1)
+hist( pmin(20,all.resids[['mle']][[1]]), breaks=200, xlab='residual (5,3) tuple count', ylab='abundance', main='' )
+#  label tail with these:
+biginds <- which( all.resids[['mle']][[1]] > 20, arr.ind=TRUE )
+bigresids <- data.frame( mus=rownames(all.resids[['mle']][[1]])[biginds[,1]], rat=colnames(all.resids[['mle']][[1]])[biginds[,2]], resid=all.resids[['mle']][[1]][biginds], stringsAsFactors=FALSE )
+legend("topright",legend=apply(bigresids[sample.int(nrow(bigresids),10),1:2],1,paste,collapse='->'),box.lty=0,title='overrepresented',cex=.7)
+littleinds <- which( all.resids[['mle']][[1]] < (-10), arr.ind=TRUE )
+littleresids <- data.frame( mus=rownames(all.resids[['mle']][[1]])[littleinds[,1]], rat=colnames(all.resids[['mle']][[1]])[littleinds[,2]], resid=all.resids[['mle']][[1]][littleinds], stringsAsFactors=FALSE )
+littleresids <- littleresids[order(littleresids$resid),]
+legend("topleft",legend=apply(littleresids[1:10,1:2],1,paste,collapse='->'),box.lty=0,title='underrepresented',cex=.7)
+# dev.off()
+
+dev.off()
+##########
+
+plot( 0, 0, xlim=c(.01,.1), ylim=c(0,100) )
+for (k in 2:13) { hist(mrun$batch[200:1000,k],breaks=40,main=names(mrun$final[k]), add=TRUE, col=adjustcolor(rainbow(20)[k],.25), border=NA) }
+
 
 save(list=ls(),file=with(long.win, paste("resids-",win,"-",lwin,".RData",sep='')))
 
