@@ -36,16 +36,16 @@
 
 \section*{Introduction}
 
-It not uncommon to encounter models 
+It not uncommon to encounter models
 consisting of a lattice of sites,
 each of which taking one of a finite collection of possible states,
 and whose stochastic, temporal evolution is Markov and governed by a set of local rules.
-For instance, at each site may sit 
+For instance, at each site may sit
 a nucelotide whose mutation rate depends on physical properties determined by the nearby DNA sequence;
 a cell whose infection status depends on the state of its neighbors;
 or a particle whose spin is perturbed by external noise to a state whose distribution depends on the local energy configuration.
 Practical use of such models often requires
-inferring transition rules 
+inferring transition rules
 based on observations of the system at several time points,
 or of several states evolved along a tree from a single starting point.
 In this paper,
@@ -64,7 +64,7 @@ but this is impractical as the size of the matrix is equal to the number of poss
 As an alternative, we show that the conditional likelihood of local pattern count statistics
 can be well-approximated by marginalizing over a finite amount of surrounding context.
 
-The situation is similar to the widely-studied problem of inference based on observation 
+The situation is similar to the widely-studied problem of inference based on observation
 of a single instance of a Markov random field,
 and in many cases reduces to this if we only observe the system at one time point at stationarity.
 These are used, for instance, in spatial statistics \citep{besag1972nearestneighbour,gelfand2010handbook}
@@ -77,13 +77,13 @@ A good review of recent statistical techniques is given by \citet{friel2012bayes
 
 
 In the context of genomics,
-it is well-known that certain short nucleotide sequences 
+it is well-known that certain short nucleotide sequences
 are in many organisms much more, or less, abundant than expected by chance \citep{burge1992underrepresentation},
 due to the combined effects of context dependence of the nucleotide mutation process,
 selective constraints on the function of the sequence,
 and other processes such as biased gene conversion \citep{duret2009biased}.
 Indeed, molecular studies have demonstrated that the spectrum of new mutations in humans
-is highly context dependent \citep{schaibley2013influence} 
+is highly context dependent \citep{schaibley2013influence}
 and that multinucleotide substitutions are relatively common \citep{schrider2011pervasive,terekhanova2013prevalence,harris2013errorprone}.
 (We are concerned with effects that are \emph{homogeneous} across the sequence,
 so do not consider further the many constraints on protein-coding sequence \citep[reviewed in][]{thorne2007protein}.)
@@ -96,7 +96,7 @@ and \citet{yaari2013models} displayed strong heterogeneity in the probability of
 in B-cell immunoglobin genes.
 Others have made progress using simplifying assumptions \citep{berard2012accurate},
 or by other approximations \citep{christensen2005pseudolikelihood}.
-\citet{pedersen2000dependent}, later extended by 
+\citet{pedersen2000dependent}, later extended by
 \citet{hobolth2008markov,baele2010using}, used data augmentation and an MCMC algorithm to do Bayesian inference;
 \citet{lunter2004nucleotide} used an approximate matrix decomposition;
 while \citet{siepel2004phylogenetic} and later \citep{baele2010modelling} computed likelihoods by assuming a model that is Markov along the genome;
@@ -104,15 +104,15 @@ however, all these methods quite computationally intensive.
 
 Another canonical example is the Ising model of statistical physics
 with time evolution given by Glauber dynamics \citep{glauber1963timedependent},
-in which a lattice of up/down spins are perturbed by thermal noise, 
+in which a lattice of up/down spins are perturbed by thermal noise,
 relaxing into states dependent on the energy of the resulting configuration.
 Parameter estimation for Ising model without temporal dynamics
 is relatively well-undersood \citep{pickard1982inference,frigessi1990parameter},
 but there does not seem to be similar work on the case when more than one observation is made of the dynamical system.
 
 The general framework also fits certain cellular automata models,
-e.g.\ modeling wildfire \citep{clarke1994cellular}, 
-the spread of HIV \citep{zorzenondossantos2001dynamics}, 
+e.g.\ modeling wildfire \citep{clarke1994cellular},
+the spread of HIV \citep{zorzenondossantos2001dynamics},
 or land use patterns \citep{wu2002calibration}.
 Complex models may introduce long-range dependencies beyond the scope of this paper,
 but these methods may still prove useful in the modeling process.
@@ -375,7 +375,7 @@ Since we cannot compute reasonably the full likelihood for the data,
 we will need to choose appropriate summary statistics
 that contain as much information about the process as possible,
 and have a tractable expression for their marginal likelihood.
-For simplicity, 
+For simplicity,
 we assume in this section that approximation \eqref{eqn:window_approx} holds exactly.
 If $i_1 < \ldots < i_{n(x)}$ are a set of nonoverlapping sites where the initial sequence matches $x$
 -- i.e.\ $X_{i_k}^{(2\ell+m)}(0)=x$ and $i_{k+1} > i_k + 2\ell+m$ for all $k$ --
@@ -420,9 +420,9 @@ so that $N(x,y) = \sum_{i=1}^n \chi_i(x,y)$.
 Overloading notation, also define $\chi_i(x)$ to be 1 if $X_{i-\ell}^{(|x|)}(0)=x$,
 \begin{align}
   \var[N(x,y)] &= \sum_{i=1}^n \var[\chi_i(x,y)] + \sum_{i\neq j} \cov[\chi_i(x,y), \chi_j(x,y)] \\
-               &\approx \sum_{i=1}^n \chi_i(x) p_{\ell,m}(x,y)(1-p_{\ell,m}(x,y)) 
+               &\approx \sum_{i=1}^n \chi_i(x) p_{\ell,m}(x,y)(1-p_{\ell,m}(x,y))
             + 2 \sum_{i=1}^{n-2\ell-m} \sum_{j=i+1}^{i+2\ell+m-1} \cov[ \chi_i(x,y) \chi_j(x,y) ] \\
-            &= N(x) p_{\ell,m}(x,y)(1-p_{\ell,m}(x,y)) + 
+            &= N(x) p_{\ell,m}(x,y)(1-p_{\ell,m}(x,y)) +
 \end{align}
 The term $\E[\chi_1(x,y) \chi_{k+1}(x,y)]$ is the probability that $x$ matches at both site 1 and site $k+1$,
 and that $y$ matches both at site $\ell+1$ and at site $\ell+k+1$.
