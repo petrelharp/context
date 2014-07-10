@@ -38,7 +38,7 @@
 
 It not uncommon to encounter models
 consisting of a lattice of sites,
-each of which taking one of a finite collection of possible states,
+each site taking one of a finite collection of possible states,
 and whose stochastic, temporal evolution is Markov and governed by a set of local rules.
 For instance, at each site may sit
 a nucelotide whose mutation rate depends on physical properties determined by the nearby DNA sequence;
@@ -60,7 +60,8 @@ in the sense that any instantaneous change only affects a small number of nearby
 and the rates of such instantaneous changes depend only on the states in some bounded neighborhood of those sites to change.
 As finite-state Markov chains,
 transition probabilities are in principle simply expressable as a matrix exponential,
-but this is impractical as the size of the matrix is equal to the number of possible configurations.
+but this is impractical because the size of the matrix is equal to the number of possible configurations.
+\todo{I suggest pulling this sentence together with your "In this paper" sentence to form a separate paragraph.}
 As an alternative, we show that the conditional likelihood of local pattern count statistics
 can be well-approximated by marginalizing over a finite amount of surrounding context.
 
@@ -87,6 +88,7 @@ is highly context dependent \citep{schaibley2013influence}
 and that multinucleotide substitutions are relatively common \citep{schrider2011pervasive,terekhanova2013prevalence,harris2013errorprone}.
 (We are concerned with effects that are \emph{homogeneous} across the sequence,
 so do not consider further the many constraints on protein-coding sequence \citep[reviewed in][]{thorne2007protein}.)
+
 However, phylogenetic and population genetic methods usually ignore such dependencies
 in the interest of computational efficiency and lack of understanding of the underlying process,
 but some progress has been made.
@@ -100,9 +102,9 @@ or by other approximations \citep{christensen2005pseudolikelihood}.
 \citet{hobolth2008markov,baele2010using}, used data augmentation and an MCMC algorithm to do Bayesian inference;
 \citet{lunter2004nucleotide} used an approximate matrix decomposition;
 while \citet{siepel2004phylogenetic} and later \citep{baele2010modelling} computed likelihoods by assuming a model that is Markov along the genome;
-however, all these methods quite computationally intensive.
+however, all these methods are quite computationally intensive.
 
-Another canonical example is the Ising model of statistical physics
+Another canonical example of context-dependent transition is the Ising model of statistical physics
 with time evolution given by Glauber dynamics \citep{glauber1963timedependent},
 in which a lattice of up/down spins are perturbed by thermal noise,
 relaxing into states dependent on the energy of the resulting configuration.
@@ -123,21 +125,27 @@ but these methods may still prove useful in the modeling process.
 %%%%%%% %%%%%%%%%%
 \section{Notation and Examples}
 
-Each example above describes a 1-dimensional grid of sites, each of which can take one of a finite set of states,
+Each example above describes \todo{Has a formulation as? Glauber can be greater than 1 D} a 1-dimensional grid of sites, each of which can take one of a finite set of states,
 and that switch randomly between states according to a local set of rules.
 Concretely, we suppose that we observe a finite collection of these sites at only a few times,
 and that the dynamics are Markov:
 with the set of possible states by $\calS$,
 and $X_i(t)$ the state of site $i$ at time $t$,
-we assume that $\{X(t)\}_{t \ge 0}$ is a Markov process on $\calS^n$
+we assume that $\{X(t)\}_{t \ge 0}$ is a Markov process on sequences of $n$ states $\calS^n$
 for which the probability a given site changes state in a small amount of time
 depends only on the sequence of states at nearby sites.
 
-To make this notion of local dependence formal,
+To formalize this notion of local dependence,
 first define a \textit{pattern} to mean a contiguous sequence of states;
-let $|u|$ denote the length of the pattern $u$;
-and let $x_i^{(h)} = (x_i, x_{i+1}, \ldots, x_{i+h-1})$ denote the subsequence of $x$ of length $h$ beginning at location $i$.
-The dynamics are determined by the set of allowed transitions and associated rates:
+let $|u|$ denote the length of the pattern $u$.
+Given $x \in \calS$,
+let $x_i^{(h)} = (x_i, x_{i+1}, \ldots, x_{i+h-1})$ denote the pattern of $x$ of length $h$ beginning at location $i$.
+Recall we are focusing on finite sequences, and by default, we do not allow patterns to ``hang off'' the end of the sequence.
+This is natural in many situations, but in others we might want to other boundary conditions,
+modeling extant, but unobserved, neighbors.
+We will mention this when necessary.
+
+The dynamics of our stochastic process are determined by the set of allowed transitions and associated rates:
 given two patterns $u$ and $v$ of common length $h$,
 saying ``pattern $u$ changes to $v$ at rate $\mu$'' means that
 \[
@@ -147,19 +155,14 @@ regardless of the location $i$ along the sequence.
 If more than one pattern would match to cause the same change, their rates add.
 Such a rule is defined by its ``transition triple'' $(\mu,u,v)$.
 The set of all transition triples, $\calT$, determines the time evolution of the process.
-
-A final note: recall we are focusing on finite sequences.
-By default, we do not allow patterns to ``hang off'' the end of the sequence.
-This is natural in many situations, but in others we might want to other boundary conditions,
-modeling extant, but unobserved, neighbors.
-We will mention this when necessary.
+\todo{I'd suggest being more formal and defining a name for the class of processes you describe, and saying what it consists of.}
 
 
 \begin{example}[TASEP]
   The \emph{Totally Asymmetric Simple Exclusion Process} labels each site as ``empty'' or ``occupied'' (0 or 1, respectively),
   and says that each occupied site, independently at rate $\lambda$, checks the site to the right to see if it is empty,
   and if it is, moves there.
-  This process therefore has only one transition triple:
+  This process therefore has only one transition triple \todo{Not sure if reviewers will like having a different notation for triples so soon after you defined the parens notation}:
 
   \begin{center}
     \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }c}
@@ -178,10 +181,10 @@ We will mention this when necessary.
 
 \begin{example}[CpG mutation]
   A sequence of genome can be written using A, C, G, and T;
-  in the most general model of single-site mutation, each of the 12 possible transitions occurs at its own rate.
+  in the most general model of independent mutation across sites, each of the 12 possible transitions occurs at its own rate.\todo{Given the importance of the independent model, I think it deserves a more complete presentation.}
   Furthermore, it is a well-known observation that in many species,
-  adjacent, methylated CG dinucleotides (``CpG sites'') have a much higher mutation rate to TG and CA
-  than either single nucleotide change.
+  adjacent, methylated CG dinucleotides (``CpG sites'') \todo{not all CpG sites are methylated} have a much higher mutation rate to TG and CA
+  than either single nucleotide change \todo{Those *are* single nucleotide changes}.
   Embellishing the single-nucleotide model with this additional rate results in the model defined by
 
   \begin{center}
@@ -212,12 +215,12 @@ We will mention this when necessary.
   and the energy associated with a given state $x$ is $H(x) = - \frac{1}{2} \beta \sum_i x_i x_{i+1} - \frac{1}{2} \gamma \sum_i x_i$.
   Here $\beta$ represents inverse temperature, and $\gamma$ represents the strength of the magnetic field (here scaled by temperature).
   The associated stationary distribution on configurations is proportional to $\exp(-H(x))$.
-  One way to add temporal dynamics that preserve the distribution
-  is to say that each site, independently at rate $\lambda$,
+  The following ``Glauber dynamics'' preserve the stationary distribution:
+  each site, independently at rate $\lambda$,
   forgets its spin,
   and reconfigures to a state chosen with probability proportional to the stationary probability of the resulting configuration.
-  This is known as ``Glauber dynamics'', and ignoring transitions that don't change the state,
-  we get that if patterns $u$ and $v$ differ at only one site, then $u$ changes to $v$ at rate $1/(1+\exp(H(v)-H(u)))$, so
+  Ignoring transitions that don't change the state,
+  if patterns $u$ and $v$ differ at only one site then $u$ changes to $v$ at rate $1/(1+\exp(H(v)-H(u)))$ \todo{Hum, this isn't immediately obvious to me-- quick explanation please? Also, shouldn't there be a $\lambda$ up top?}, so
 
   \begin{center}
     \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }c}
@@ -242,12 +245,12 @@ For clarity, we describe how the set of transition rates determines the transiti
 the $|\calS|^n \times |\calS|^n$ matrix $G(n)$ whose $(x,y)^\text{th}$ entry gives the instantaneous rate
 with which the process in state $x$ jumps to state $y$.
 Recall that $x_i^{(h)} = (x_i, x_{i+1}, \ldots, x_{i+h-1})$ denotes the subsequence of length $h$ beginning at location $i$.
-For each $1\le i \le n$, pattern length $h \ge 0$, and patterns $u,v \in \calS^h$ define the relation
+For each $1\le i \le n$, pattern length $h > 0$, and patterns $u,v \in \calS^h$ define the relation
 \[
 x \xrightarrow{i,u,v} y \qquad \text{iff} \qquad \begin{cases}
   x_k = y_k \quad &\text{for } k<i \\
   x_{i+k} = u_k \quad &\text{for } 0 \le k < h \\
-  y_{i+k} = v_k \quad &\text{for } 0 \le k < h, and \\
+  y_{i+k} = v_k \quad &\text{for } 0 \le k < h,\ \text{and} \\
   x_k = y_k \quad &\text{for } k\ge i+h ,
 \end{cases}
 \]
@@ -255,15 +258,18 @@ i.e.\ if $x$ and $y$ match except at positions $i,i+1,\ldots,i+h-1$,
 and for those positions $x$ matches with $u$ while $y$ matches with $v$.
 
 As noted above, there may be more than one way to mutate a sequence $x$ to get $y$:
-for each position $i$, these are those transitions in $\calT$ that can be applied at $i$
-to change $x$ into $y$, denoted  $J(i,x,y) = \{ (\mu^j,u^j,v^j) \in \calT \st x \xrightarrow{i,u^j,v^j} y \}$.
+for each position $i$, let $J(i,x,y)$ be those transitions in $\calT$ that can be applied at $i$
+to change $x$ into $y$, i.e.
+\[
+J(i,x,y) = \{ (\mu^j,u^j,v^j) \in \calT \st x \xrightarrow{i,u^j,v^j} y \}.
+\]
 The rate $G(n)_{x,y}$ is then the sum of all matching transition rates,
 namely
 \begin{align} \label{eqn:G_defn}
   G(n)_{x,y} = \sum_{i=1}^n \sum_{J(i,x,y)}  \mu^j ,
 \end{align}
 and if there are no triples $(\mu,u,v)$ with $x \xrightarrow{i,u,v} y$ for some $i$, then $G(n)_{x,y}=0$.
-This is just to say that the transition rate from $x$ to $y$ is the sum of the mutation rates of all transition triples
+This formalizes the statement that the transition rate from $x$ to $y$ is the sum of the mutation rates of all transition triples
 that would change $x$ into $y$.
 In principle, this gives us the transition probabilities for the process by a matrix exponential:
 \begin{align} \label{eqn:full_likelihood}
@@ -279,7 +285,7 @@ This paper proposes an alternate strategy.
 First, it will be useful for later proofs to have an explicit construction of the process,
 also used for simulation,
 using a variant of the ``jump chain representation''.
-Briefly, this works by first sampling a homogeneous Poisson process of times and locations of possible changes,
+Briefly, this \todo{This is called the Gillespie algorithm, right?} works by first sampling a homogeneous Poisson process of times and locations of possible changes,
 at an appropriate rate $\mu_*$ per site,
 and then resolving each possible change in temporal order.
 The rate $\mu_*$ should be the maximum ``local'' rate at which transitions occur, across sites and transition outcome states:
@@ -300,6 +306,7 @@ and the next event is $c_{ij} = \min_{k,h} \{ c_{kh} : c_{kh}>s \}$.
 At $c_{ij}$,
 a new state is then chosen at position $i$
 with probability proportional to the corresponding rate, i.e.\
+\todo{A little confused here. Previously, the $j$ in $u^j$ was used to index the possible patterns, right? Now it's indexing possible changes at a site.}
 \[
 q_j = \begin{cases}
   \mu_j/\mu_* \qquad & \text{if } x_i^{(|u^j|)} = u^j  \\
@@ -327,8 +334,9 @@ retaining information only about the parameters that affect the stationary distr
 In TASEP with any boundary conditions, we lose all information as it approaches stationarity,
 while in the Ising model we have information about the temperature $\beta$ and magnetic field $\gamma$ but not the speed of changes, $\lambda$.
 In the CpG model it is not immediately clear what information is retained.
-\peter{What is identifiable?  The entire model, up to a time change?  I go back and forth on this...}
-\todo[inline]{Not sure what I was smoking when I said that. I think that the stationary distribution of the single-nucleotide model should be identifiable for sure. Then, I would guess the two CpG rates are identifiable modulo a rate factor that compares the single-nucleotide mutation rate to the CpG mutation rate.}
+\todo[inline]{
+I think that the stationary distribution of the single-nucleotide model should be identifiable for sure. Then, I would guess the two CpG rates are identifiable modulo a rate factor that compares the single-nucleotide mutation rate to the CpG mutation rate.
+}
 
 
 But, how can we extract the information?
@@ -362,23 +370,23 @@ then after time $t$ we will see at the middle $m$ positions the pattern $y$,
 ignoring what is present in the leftmost and rightmost $\ell$ positions.
 We expect $p_{\ell,m}(x,y)$ to be asymptotically correct when $\ell$ is large (and $t$ is fixed),
 i.e.\ that the probability a given subsequence matching $x$ is later observed to have its center matching $y$
-is close to $p_{\ell,m}(x,y)$, regardless of context:
+is close to $p_{\ell,m}(x,y)$, regardless of context wider than $2k+l$:
 \begin{align} \label{eqn:window_approx}
-  p_{\ell,m}(x,y) \approx \P\{ X_i^{(m)}(t) = y \mid X_i^{(2\ell+m)}(0) = x \}.
+  p_{\ell,m}(x,y) \approx \P\{ X_{i+\ell}^{(m)}(t) = y \mid X_i^{(2\ell+m)}(0) = x \}.
 \end{align}
 We provide a precise statement of the error in this approximation later.
 
 %%%%
 \subsection{Summary statistics}
 
-Since we cannot compute reasonably the full likelihood for the data,
+Since we cannot compute reasonably the full likelihood for the data \todo{Well, can we prove that it's not possible? Perhaps say that we can't using straightforward exponentiation?},
 we will need to choose appropriate summary statistics
 that contain as much information about the process as possible,
 and have a tractable expression for their marginal likelihood.
 For simplicity,
 we assume in this section that approximation \eqref{eqn:window_approx} holds exactly.
 If $i_1 < \ldots < i_{n(x)}$ are a set of nonoverlapping sites where the initial sequence matches $x$
--- i.e.\ $X_{i_k}^{(2\ell+m)}(0)=x$ and $i_{k+1} > i_k + 2\ell+m$ for all $k$ --
+-- i.e.\ $X_{i_k}^{(2\ell+m)}(0)=x$ and $i_{k+1} > i_k + 2\ell+m$ for all $k$ -- \todo{En dash close to math confuses me! This sentence is a doozy.}
 then the counts $N(x,y)=\#\{ i_k \st X_{i_k+\ell}^{(m)}(t)=y\}$ (the number of these sites that match the smaller pattern $y$ at time $t$)
 are multinomial, with probabilities $\{p_{\ell,m}(x,y)\st y \in \calS^m\}$.
 For instance, if $\ell=3$ then $N(\text{ACTCAC}, \text{CGC})$ counts the number of occurrences of
@@ -405,9 +413,6 @@ As before, let $N(x)$ be the number of occurrences of a pattern $x$ in $X(0)$,
 and $N(x,y)$ the number of times $x$ is seen juxtaposed with $y$ in $X(t)$,
 but this time, count over all positions,
 so that e.g.\ $N(x) = \#\{ 1 \le i \le n - 2\ell - m + 1 \st X_i^{(m+2\ell)}(0)=x\}$.
-
-\peter{Ooops, yes.  Previously, I was semi-inconsistently thinking of the initial sequence $X(0)$ as random as well. ,
-    which is why I was talking about Poisson instead of Multinomial counts.}
 
 Now we will now calculate the expectation and covariances of $N(x,y)$.
 \peter{The following is Not Right, but also we don't really use it at the moment.}
