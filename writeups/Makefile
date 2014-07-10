@@ -6,3 +6,6 @@ all:
 	bibtex $(PROJECT)
 	$(BUILDTEX)
 	$(BUILDTEX)
+
+clean:
+	rm -f *.log *.bak *.aux *.bbl *.blg *.idx *.toc *.out *~
