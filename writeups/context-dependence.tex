@@ -366,7 +366,7 @@ is found to match a smaller, middle sequence $y$ of length $m$ is found by margi
 \end{align}
 where $a \join y \join b$ is the sequence composed of concatenating $a$, $y$, and $b$ together in that order.
 This is the probability that if we begin with a sequence $x$ of length $2\ell+m$,
-then after time $t$ we will see at the middle $m$ positions the pattern $y$,
+then after time $t$ we will see the pattern $y$ at the middle $m$ positions,
 ignoring what is present in the leftmost and rightmost $\ell$ positions.
 We expect $p_{\ell,m}(x,y)$ to be asymptotically correct when $\ell$ is large (and $t$ is fixed),
 i.e.\ that the probability a given subsequence matching $x$ is later observed to have its center matching $y$
@@ -457,6 +457,7 @@ If we use only a subset of patterns $\{(x_k,y_k)\}$ chosen so that $\E[M_1(x,y) 
 the entire collection $\{N(x_k,y_k)\}$ will be close to independent Poisson.
 (using Stein's method)
 Then we'll have the correct likelihood function for (this subset of) data.
+
 If changes are rare, then one way to get a set of patterns with this property is to only choose ones such that going from $x$ to $y$ entails a change;
 and any overlapping patterns must require additional changes,
 i.e.\ if $(x_1,y_1)$ matches at $i_1$,
@@ -466,6 +467,8 @@ there must be additional changes outside $(i_1,\ldots,i_1+\ell-1)$.
 Here is one way to obtain such a set.
 Take a pair of patterns $(x,y)$, that overlap at $m$ positions,
 and suppose that they differ at $1 \le i_1, \ldots, i_d \le m$.
+Let $\bar i = (1/d) \sum_{j=1}^d i_j$ be the mean position of the changes,
+and take only patterns with $(m-1)/2 < \bar i \le (m+1)/2$.
 For example, in the example above with $m=3$ and $\ell=2$,
 \begin{center}
 \begin{tabular}{c|ccccccc}
@@ -474,20 +477,18 @@ For example, in the example above with $m=3$ and $\ell=2$,
 \end{tabular}
 \end{center}
 $x$ and $y$ differ only at (relative) position $i_1=2$.
-Let $\bar i = (1/d) \sum_{j=1}^d i_j$ be the mean position of the changes,
-and take only patterns with $(m-1)/2 < \bar i \le (m+1)/2$.
-As another example,
+
+Another way to achieve the same goal of having all overlapping patterns require additional changes is to require $i_1 = \bar i = 1$.
+No two such patterns can be shifted versions of each other
+without adding more changed sites,
+since shifting by $k$ without adding changed sites just adds $k$ to $\bar i$.
+For example, we might take
 \begin{center}
 \begin{tabular}{c|ccccccc}
  $x$ &  A & C & T & C & A & C & G \\
  $y$ &  $\centerdot$  & $\centerdot$  & G & C & A & $\centerdot$  & $\centerdot$
 \end{tabular}
 \end{center}
-has $i_1 = \bar i = 1$.
-No two such patterns can be shifted versions of each other
-without adding more changed sites,
-since shifting by $k$ without adding changed sites just adds $k$ to $\bar i$.
-
 
 
 %%%%
