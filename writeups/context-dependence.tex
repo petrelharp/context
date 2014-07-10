@@ -445,6 +445,10 @@ Similarly, if $(x_1,y_1) \neq (x_2,y_2)$ then
 %%%%
 \subsection{A likelihood function}
 
+\todo[inline]{In this section I believe that we are talking about the full likelihood, rather than the likelihood of just non-overlapping windows of the data.
+I'm also a little confused about "choosing" a subset of patterns.
+These pattern choices are determining our model?}
+
 The covariance calculations show that
 if $p_{\ell,m}(x,y)$ is small enough (i.e.\ the pattern is not common),
 then $N(x,y)$ is close to Poisson.
@@ -454,6 +458,7 @@ Maximum likelihood then gets an asymptotically unbiased estimate of the paramete
 However, since they are not independent, to get confidence intervals, we need to either simulate, or do something different.
 
 If we use only a subset of patterns $\{(x_k,y_k)\}$ chosen so that $\E[M_1(x,y) M_{k+1}(x,y)]$ is small (or zero),
+\todo{M not defined, but I'm guessing that this is effectively saying that the probability of having two different patterns apply to the same sequences is small?}
 the entire collection $\{N(x_k,y_k)\}$ will be close to independent Poisson.
 (using Stein's method)
 Then we'll have the correct likelihood function for (this subset of) data.
