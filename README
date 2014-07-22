@@ -67,3 +67,17 @@ will glean some statistics from the runs, as well as producing the file
   all-mcmc-runs.pdf
 
 which has trace plots of all the mcmc runs.
+
+------------
+
+Prerequisite packages:
+
+* expm
+* mcmc
+* stringdist
+* Biostrings
+* IRanges
+* optparse
+
+and maybe later
+* jsonlite

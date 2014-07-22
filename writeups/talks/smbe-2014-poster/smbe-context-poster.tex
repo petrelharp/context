@@ -118,7 +118,7 @@
 
 
 \definecolor{HohenheimBlue}{cmyk}{1,0.5,0,0.45}
-\definecolor{HohenheimLightLightBlue}{RGB}{233,240,245}
+\definecolor{HohenheimLightLightBlue}{RGB}{243,250,255}
 \definecolor{HohenheimLightBlue}{RGB}{215,221,235}
 \definecolor{HohenheimDarkBlue}{RGB}{52,104,152}
 \definecolor{darkCyan}{cmyk}{1,1,0,0.5}
@@ -183,10 +183,10 @@
   }
   % Eye Catcher
   {
-  \makebox[10em][r]{%
-    \begin{minipage}{10em}
+  \makebox[15em][r]{%
+    \begin{minipage}{15em}
        \hfill
-       \includegraphics[width=10em]{USC-seal} \\
+       \includegraphics[width=15em]{USC-seal} \\
     \end{minipage}
     }
   }
@@ -203,10 +203,10 @@
   }
   % Project logo
   {
-    \makebox[10em][r]{%
-      \begin{minipage}{10em}
+    \makebox[15em][r]{%
+      \begin{minipage}{15em}
         \hfill
-        \includegraphics[width=10em]{../../contextual-logo}
+        \includegraphics[width=15em]{../../contextual-logo}
       \end{minipage}
     }
   }
@@ -259,12 +259,14 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-  \textbf{Mutation} rules $(a,b,r)$: 
-    locations matching $a$ mutate to $b$ at rate $r$ 
-  \[
-  a \longrightarrow b \qquad \text{ at rate } r
-  \]
-  $a$, $b$ can be \emph{any} patterns of the same length.
+    \textbf{Parameters:} an arbitrary set of mutation rules $(a,b,r)$: 
+    sequences matching $a$ mutate to $b$ at rate $r$ per unit time;
+    $a$ and $b$ can be any patterns of the same length,
+    e.g.
+    \begin{align*}
+        \nA &\longrightarrow \nT \qquad \text{ at rate } 10^{-8} , \\
+        \text{or} \qquad       \nC\nA\nC &\longrightarrow \nC\nT\nC \qquad \text{ at rate } 5\times 10^{-8} .
+  \end{align*}
 
 %   \textbf{Fixation} function: 
 %     mutations take effect with probability 
@@ -283,8 +285,9 @@
 
     \vspace{1em}
 
-\textbf{Assuming:}
-    homogeneity along the sequence and along each branch
+    \textbf{Assuming:}
+    homogeneity along the sequence and along each branch; no indels
+    \vspace{.5em}
 
     \textbf{Not assuming:}
     stationarity;
@@ -293,16 +296,16 @@
 
     % \hrule{\hfill}
 
-    \vspace{1em}
 
   \parbox[b]{.4\textwidth}{
 
     \textbf{Simple example} on two nucleotides:
       \begin{itemize}
-        \item $\text{X} \to \text{O}$ at rate 1.0
-        \item $\text{O} \to \text{X}$ at rate 1.2
-        \item $\text{OX} \to \text{XO}$ at rate 0.7
+        \item $\text{X} \to \text{O}$ at rate 1
+        \item $\text{O} \to \text{X}$ at rate 1
+        \item $\text{OX} \to \text{XO}$ at rate $\gamma$
       \end{itemize}
+      From before/after sequence, infer $\gamma$.
 
   }\parbox[b]{.3\textwidth}{
 
@@ -350,25 +353,25 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\headerbox{Idea: count asymmetric tuples}{name=windows,column=0,span=1,below=grammar}{
+\headerbox{Idea: count \emph{asymmetric} tuples}{name=windows,column=0,span=1,below=grammar}{
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \parbox[b]{.55\textwidth}{
 
     \begin{itemize}
       \item If the size of the maximum context is $k$
-      \item and the expected number of such mutations per site is $\mu t$
-      \item a site is unlikely to be affected by context further away than, say, $k^2 \mu t$.
+      \item and the mean density of mutations is $\mu t$ per site
+      \item \textbf{then} a site is unlikely to be affected by context further away than, say, $k^2 \mu t$.
       \item i.e.\ the sequence at a site, conditioned on a $(k^2 \mu t)$-window in the ancestor,
         is almost independent of the sequence further away.
     \end{itemize}
 
     }\parbox[b]{.45\textwidth}{
 
+        \vspace{-1em}
     \begin{flushright}
-      \includegraphics[width=.4\textwidth]{../../../writeup-plots/talk-tasep-fig-3}
+        \includegraphics[width=.35\textwidth]{context-illustration}
     \end{flushright}
-    \vspace{2em}
 
     }
 
@@ -376,7 +379,7 @@
 
     \textbf{Method:}
 Count pairs of $(w,r)$-tuples, with $r<w$;
-compute exact transition probabilities using $w$-tuples;
+compute exact transition probabilities using $w$-tuples (below);
 assume nonoverlapping blocks are independent (binomial likelihood).
 
 \vspace{1em}
@@ -384,14 +387,14 @@ assume nonoverlapping blocks are independent (binomial likelihood).
 \textbf{Example, $(w,r)=(3,1)$:}
   \begin{center} 
     \setlength{\tabcolsep}{0pt} 
-    \begin{tabular}{cccccccccc}
-      $\vert\!\leftarrow$ & $w$ & $\rightarrow\!\vert$ & &&&&&& \\
-      \cline{1-3}
-      \tLL{C}&C&\tRR{C}&A&G&T&C&C&A&G\\
-      \cline{1-1}\cline{3-3}
-      C&\tLR{A}&C&A&G&T&C&C&A&G\\
-      \cline{2-2}
-      $\rightarrow\!\vert$ & $r$ & $\vert\!\leftarrow$ & &&&&&& \\
+    \begin{tabular}{r cccccccccc}
+        & $\vert\!\leftarrow$ & $w$ & $\rightarrow\!\vert$ & &&&&&& \\
+      \cline{2-4}
+      sequence 1 \hspace{2em} & \tLL{C}&C&\tRR{C}&A&G&T&C&C&A&G\\
+      \cline{2-2}\cline{4-4}
+      sequence 2 \hspace{2em} & C&\tLR{A}&C&A&G&T&C&C&A&G\\
+      \cline{3-3}
+      & $\rightarrow\!\vert$ & $r$ & $\vert\!\leftarrow$ & &&&&&& \\
     \end{tabular} 
     \hspace{5em}
     \setlength{\tabcolsep}{5pt} 
@@ -409,7 +412,7 @@ assume nonoverlapping blocks are independent (binomial likelihood).
 
   \vspace{1em}
 
-  \textbf{Inference method:}
+  \textbf{An inference strategy:}
   \begin{itemize}
     \item Fit a simple model with short patterns (e.g.\ $(w,r)=(4,2)$).
     \item Predict longer patterns (e.g.\ $(w,r)=8,4$), and examine residuals.
@@ -427,7 +430,7 @@ assume nonoverlapping blocks are independent (binomial likelihood).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\headerbox{Exact solution}{name=exact,column=0,span=1,below=windows}{
+\headerbox{Exact solution (for very short sequences)}{name=exact,column=0,span=1,below=windows}{
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Say $\lambda$ is the \emph{total mutation rate}
@@ -435,15 +438,15 @@ and $P$ is the matrix of single-mutation probabilities, i.e.
 \begin{align}
   \P\{ x \longrightarrow y \text{ in time $dt$ }\} = P_{xy} \lambda dt 
 \end{align}
-e.g.\ $P_{ACA \to ATA} = \mu_{CT}$ and $P_{GAC \to TCG} = 0$.
+e.g.\ $P_{\scriptsize \nA\nC\nA \to \nA\nT\nA} = \mu_{\scriptsize \nC\nT}$ and $P_{\scriptsize \nG\nA\nC \to \nT\nC\nG} = 0$.
 Then the transition probabilities are
 \begin{align}
   & \P\{ x \longrightarrow y \text{ in time $t$ }\} = \sum_{k \ge 0} e^{-\lambda t} \frac{ (\lambda t)^k }{ k! } (P^k)_{xy} \\
   &\qquad = \sum_{k \ge 0} \text{( prob there are $k$ mutations )} \times \text{ ( prob k mutations takes $x \to y$ ) } .
 \end{align}
 
-$P$ {also equals} $e^{tG}$ with $G_{xy} = \lambda P_{xy}$ and $G_{xx} = - \sum_{y\neq x} G_{xy}$.\\
-For length-$n$ sequences, \textbf{$P$ is $4^n \times 4^n$}.
+$P$ {also equals} $e^{tG}$ with $G_{xy} = \lambda P_{xy}$ and $G_{xx} = - \sum_{y\neq x} G_{xy}$.
+Danger: $P$ and $G$ are both $4^w \times 4^w$.
 
 % \[ % max rate < 1 :
 % e^{tG}  = e^{t((G+I)-I)} = e^{-t} I e^{t(G+I)} = \sum_k e^{-t} t^k/k! (G+I)^k
@@ -463,7 +466,7 @@ For length-$n$ sequences, \textbf{$P$ is $4^n \times 4^n$}.
 \headerbox{Computation}{name=computation,column=1}{
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\textbf{Tricks:} Krylov methods to compute $e^{tG}v$ for sparse $G$;
+\textbf{Speed:} Krylov methods to compute $e^{tG}v$ for sparse $G$;
 precompute mapping of parameters to $G$ to make parameter update quick.
 
 
@@ -501,7 +504,7 @@ precompute mapping of parameters to $G$ to make parameter update quick.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\headerbox{Simulation}{name=simulation,column=1,below=computation}{
+\headerbox{Simulation: power analysis}{name=simulation,column=1,below=computation}{
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -510,7 +513,7 @@ precompute mapping of parameters to $G$ to make parameter update quick.
   sequence divergence above 15\%;
   estimated single-base + CpG mutation rates, root nucleotide composition, branch asymmetry.
   Priors on the 17 parameters; MCMC to get posterior distribution;
-  1--3--1 windows
+  $w=3$ and $r=1$. Red lines are the truth; boxplots show posterior distribution.
 
   \begin{center}
     \includegraphics[width=.7\textwidth]{../../../writeup-plots/selsims-2013-06-03-13-17-0187525-estimate-boxplots}
@@ -523,7 +526,7 @@ precompute mapping of parameters to $G$ to make parameter update quick.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\headerbox{Real data}{name=data,column=1,below=simulation}{
+\headerbox{Real data: mouse--rat noncoding alignment}{name=data,column=1,below=simulation}{
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \textbf{20MB} in 500 noncoding regions in mouse (chosen by Matt Dean), 
@@ -552,9 +555,16 @@ Residuals mostly explained by strand slippage.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\headerbox{References}{name=references,column=1,above=bottom}{
+\headerbox{Summary, and References}{name=references,column=1,above=bottom}{
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Code: \texttt{http://github.com/petrelharp/context}
+    Efficient, provably correct inference and evaluation of model fit
+    with arbitrary context-dependent mutation is possible.
+    The main limitation is the assumption of homogeneity.
+    Other applications: ancestral sequence reconstruction, rigorous hotspot identification\ldots
+
+    \vspace{1em}
+
+    \textbf{Code:} available now/soon at \texttt{http://github.com/petrelharp/context}\\
   \scriptsize
   \renewcommand{\section}[2]{\vskip 0.0em}
   \bibliographystyle{abbrvnat}
