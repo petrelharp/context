@@ -104,7 +104,9 @@ date()
 cat("done with computation.\n")
 cat("saving to: ", datafile, "\n")
 
-save( list=ls(), file=datafile )
+save( opt, gmname, infile, adhoc, likfun, nmuts, counts, initpar, lbs, ubs, parscale, optim.point.estimate, point.estimate,
+     winlen, rwin, lwin, win, 
+     file=datafile )
 
 print(format(Sys.time(),"%Y-%m-%d-%H-%M"))
 sink(NULL); close(logcon)
