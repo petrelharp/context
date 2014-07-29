@@ -23,7 +23,7 @@ getmutpats <- function(patlen,nchanges=1) {
     for (k in 1:patlen) {
         kmers <- getpatterns(k)
         mutpats <- c( mutpats,
-                apply(combn(kmers,2),2,list),  
+                apply(combn(kmers,2),2,list),
                 apply(combn(kmers,2)[2:1,],2,list)
             )
     }
@@ -64,7 +64,7 @@ countmuts <- function (counts, mutpats, lwin, ...) {
     #    r.est <- countmuts(...)[1,]/countmuts(...)[2,]
     # then something like
     #    sum( r.est ) / 4
-    # should be close to 
+    # should be close to
     #    divergence(...)
     counts <- as.matrix(counts)
     win <- nchar(colnames(counts)[1])
@@ -119,7 +119,7 @@ getmutmats <- function(mutpats,patterns,boundary=c("none","wrap")) {
     lapply( mutpats, function (y) {  # y is list of short pattern pairs
             do.call( rbind, lapply(y, function (x) {  # x is short pattern pair (from, to)
                 patlen <- nchar(x[1])
-                switch( boundary, 
+                switch( boundary,
                     wrap={ # patterns are circular
                         wpatterns <- paste( patterns, substr(patterns,1,patlen), sep='' )
                         maxshift <- winlen
@@ -155,7 +155,7 @@ getselmatches <- function (selpats, patterns, boundary=c("none","wrap"), names=F
                     rowSums( sapply( 0:maxshift, function (k) {
                                 x == substrfun( patterns, 1+k, k+nchar(x) )
                                 # xx <- paste( c(rep(".",k), x, rep(".", patlen-regexplen(x)-k)), collapse='' )
-                                # grepl( xx, patterns ) 
+                                # grepl( xx, patterns )
                         } ) )
                 } ) )
         } ) )
@@ -167,9 +167,9 @@ getselmatches <- function (selpats, patterns, boundary=c("none","wrap"), names=F
 }
 
 
-popgen.fixfn <- function (ds,Ne,...) { 
+popgen.fixfn <- function (ds,Ne,...) {
     # total influx of fixation given selection coefficient (s[to] - s[from]) difference ds
-    if (length(ds)==0) { 1 } else { ifelse( ds==0, 1, Ne*expm1(-2*ds)/expm1(-2*Ne*ds) ) } 
+    if (length(ds)==0) { 1 } else { ifelse( ds==0, 1, Ne*expm1(-2*ds)/expm1(-2*Ne*ds) ) }
 }
 
 ising.fixfn <- function (ds,...) { 1/(1+exp(-ds)) }
@@ -198,9 +198,9 @@ makegenmatrix <- function (mutpats,selpats=list(),patlen=nchar(patterns[1]),patt
         # transfer selection coefficients to selective differences involved in each mutation
         #    these are ( transitions ) x ( mutpats ) matrix
         #     ... make these sparse?
-        ##  the following has (fromsel-tosel); combined to reduce memory usage 
-        ##  fromsel <- selmatches[,  allmutmats$i, drop=FALSE ] 
-        ##  tosel <- selmatches[,  allmutmats$j, drop=FALSE ] 
+        ##  the following has (fromsel-tosel); combined to reduce memory usage
+        ##  fromsel <- selmatches[,  allmutmats$i, drop=FALSE ]
+        ##  tosel <- selmatches[,  allmutmats$j, drop=FALSE ]
         seltrans <- Matrix(t( ( selmatches[,  allmutmats$i, drop=FALSE ] - selmatches[,  allmutmats$j, drop=FALSE ] )[,dgCord,drop=FALSE] ))
     } else {
         seltrans <- Matrix(numeric(0),nrow=nrow(muttrans),ncol=0)
@@ -211,11 +211,11 @@ makegenmatrix <- function (mutpats,selpats=list(),patlen=nchar(patterns[1]),patt
     muttrans <- dupproj %*% muttrans
     seltrans <- dupproj %*% seltrans
     # full instantaneous mutation, and transition matrix
-    genmatrix <- with( allmutmats[dgCord,], new( "genmatrix", 
-            i=(i-1L)[!dups], 
+    genmatrix <- with( allmutmats[dgCord,], new( "genmatrix",
+            i=(i-1L)[!dups],
             p=sapply(0:length(patterns), function (k) sum(j[!dups]<k+1)),
             x=rep(1,sum(!dups)),
-            Dim=c(length(patterns),length(patterns)), 
+            Dim=c(length(patterns),length(patterns)),
             muttrans=muttrans,
             seltrans=seltrans,
             mutrates=mutrates,
@@ -235,11 +235,11 @@ update <- function (G, mutrates=G@mutrates, selcoef=G@selcoef, ...) {
     # use like: genmatrix@x <- update(genmatrix,...)
     #   note that fixfn is defined GLOBALLY
     fixprob <- if (length(selcoef)>0) { fixfn( as.vector(G@seltrans%*%selcoef), ... ) } else { 1 }
-    as.vector( G@muttrans %*% mutrates ) * fixprob 
+    as.vector( G@muttrans %*% mutrates ) * fixprob
 }
 
 collapsepatmatrix <- function (ipatterns, lwin=0, rwin=nchar(ipatterns[1])-nchar(fpatterns[1])-lwin, fpatterns=getpatterns(nchar(ipatterns[1])-lwin-rwin) ) {
-    # returns a (nbases)^k x (nbases)^k-m matrix projection matrix 
+    # returns a (nbases)^k x (nbases)^k-m matrix projection matrix
     # map patterns onto the shorter patterns obtained by deleting lwin characters at the start and rwin characters at the end
     patlen <- nchar(ipatterns[1])
     win <- patlen - lwin - rwin
@@ -267,7 +267,7 @@ meangenmatrix <- function (lwin,rwin,patlen,...) {
     # construct matrix to project from x values in big dgCMatrix to little one:
     #  note that H_ij = M_i. G  P_.j  = sum_kl M_ik G_kl P_lj
     #  ... and we have constructed G and H so we know which the nonzero elements are already
-    #    and can use this to find the linear transformation 
+    #    and can use this to find the linear transformation
     #    from nonzero elemetns of G to nonzero elements of H
     ij.H <- 1L + cbind( i=ii[nondiag], j=jj[nondiag] )
     ij.G <- 1L + cbind( i=genmat@i, j=rep(1:ncol(genmat),times=diff(genmat@p))-1L )
@@ -340,13 +340,13 @@ downbranch <- function ( genmatrix, rootmatrix, mutrates, selcoef, tlen, ... ) {
 ##
 # pruning-ish algorithm
 #
-# outline: 
+# outline:
 #   1) begin at the root, with initial frequencies.
 #   2) we'll move down, towards the focal (longest-pattern) tip
 #   3) before moving, resolve up the the other, non-focal branch, recursive in the same way.
 
 treetrans <- function (  ) {
-    # First, compute a good order 
+    # First, compute a good order
 
 }
 
@@ -355,7 +355,7 @@ treetrans <- function (  ) {
 
 get.descendants  <- function (tree) {
     # return the node-by-node matrix with [i,j] TRUE meaning that j is below i
-    adjacency <- matrix( 0, nrow=Nnode(tree)+Ntip(tree), ncol=Nnode(tree)+Ntip(tree) ) 
+    adjacency <- matrix( 0, nrow=Nnode(tree)+Ntip(tree), ncol=Nnode(tree)+Ntip(tree) )
     adjacency[ tree$edge ] <- 1  # adjacency matrix: [i,j] means that node j is directly below node i
     # descendants is indexed by NODES
     descendants <- apower <- adjacency  # [i,j] means that node j is somewhere below node i
@@ -432,7 +432,7 @@ predicttreecounts <- function (win, lwin=0, rwin=0, initcounts, mutrates, selcoe
     if (missing(projmatrix)) { projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin ) }
     if (missing(patcomp) & !is.null(names(initfreqs))) {
         patcomp <- apply( do.call(rbind, strsplit(rownames(genmatrix),'') ), 2, match, names(initfreqs) )  # which base is at each position in each pattern
-    } 
+    }
     patfreqs <- initfreqs[patcomp]
     dim(patfreqs) <- dim(patcomp)
     patfreqs <- apply( patfreqs, 1, prod )
@@ -450,7 +450,7 @@ listresids <- function (counts, expected, file, trim=20, lwin=(nchar(rownames(co
     # make a readable output ordered by z-score
     #  optionally writing results out to 'file'
     #  and trimming to only patterns with z-score above 'trim'
-    resids <- data.frame( inpat=rownames(counts)[row(counts)], 
+    resids <- data.frame( inpat=rownames(counts)[row(counts)],
                          outpat=colnames(counts)[col(counts)],
                          observed=as.vector(counts),
                          expected=as.vector(expected),
@@ -497,20 +497,20 @@ table.weighted <- function(x,weights=rep(1,length(x))) {
 
 print.motif <- function (pats,weights=1,n=24,print=TRUE,long=FALSE) {
     pats <- do.call( rbind, strsplit(pats,"") )
-    freqs <- lapply( 1:ncol(pats), function(k) { 
-                    x <- table.weighted(pats[,k],weights); x[order(names(x))] 
+    freqs <- lapply( 1:ncol(pats), function(k) {
+                    x <- table.weighted(pats[,k],weights); x[order(names(x))]
                 } )
     if (long) {
         samps <- do.call( cbind, lapply( freqs, function (x) { names(x)[cut((1:n)/(n+1),breaks=c(0,cumsum(x))/sum(x))] } ) )
         samps <- apply(samps,1,paste,collapse='')
     } else {
-        samps <- paste( sapply(freqs, function (x) { 
+        samps <- paste( sapply(freqs, function (x) {
                                themax <- which.max(x)
-                               return( 
-                                   if (max(x)>.75*sum(x)) { 
-                                       (toupper(names(x)[themax])) 
-                                   } else if (max(x)>.5*sum(x)) { 
-                                       (toupper(names(x)[themax])) 
+                               return(
+                                   if (max(x)>.75*sum(x)) {
+                                       (toupper(names(x)[themax]))
+                                   } else if (max(x)>.5*sum(x)) {
+                                       (toupper(names(x)[themax]))
                                    } else { "." }
                                )
         } ), collapse='' )
@@ -548,7 +548,7 @@ mutpatchanges <- function (mutpats) {
 
 getlikfun <- function (nmuts,nsel,genmatrix,projmatrix,const=0) {
     return( function (params) {
-        # params are: mutrates, selcoef, Ne 
+        # params are: mutrates, selcoef, Ne
         mutrates <- params[1:nmuts]
         selcoef <- params[nmuts+(1:nsel)]
         Ne <- params[nmuts+nsel+1]
@@ -556,7 +556,7 @@ getlikfun <- function (nmuts,nsel,genmatrix,projmatrix,const=0) {
         # this is collapsed transition matrix
         genmatrix@x <- update(genmatrix,mutrates,selcoef,Ne)
         subtransmatrix <- computetransmatrix( genmatrix, projmatrix )
-        # return negative log-likelihood 
+        # return negative log-likelihood
         (-1) * sum( counts * log(subtransmatrix) ) + const
     } )
 }
@@ -596,7 +596,7 @@ dgTtodgC <- function (M) {
 }
 
 
-# Unused? 
+# Unused?
 if (FALSE ){
 
 regexplen <- function (xx) {
