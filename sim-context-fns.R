@@ -189,7 +189,7 @@ show.simseq <- function (x,printit=FALSE,maxchar=min(nchar(x$initseq),200),latex
         if (length(events)>0) {
             whichchanged <- sapply( events, function (k) { kev <- (x$ntrans$loc==k); any( x$ntrans$i[kev] != x$ntrans$j[kev] ) } )
             changedlocs <- ( seq_len(nchar(fseq)) %in% outer( events[whichchanged], 0:(patlen-1), "+" ) )
-            fseq[eventlocs & !changedlocs] <- tolower(fseq[eventlocs & !changedlocs])
+            fseq[eventlocs & !changedlocs] <- BString( tolower(fseq[eventlocs & !changedlocs]) )
         }
         fseq[!eventlocs] <- "."
     }

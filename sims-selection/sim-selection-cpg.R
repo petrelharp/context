@@ -68,11 +68,9 @@ fixfn <- popgen.fixfn  # takes (dx,Ne) as arguments
 rootseq <- rinitseq(seqlen,bases,basefreqs=initfreqs)
 system.time( 
         simseqs <- list(
-                simseq( seqlen=seqlen, tlen=tlen[1], mutpats=mutpats, mutrates=mutrates[1], selpats=selpats, selcoef=selcoef[1], initseq=rootseq, bases=bases, Ne=Ne[1] ),
-                simseq( seqlen=seqlen, tlen=tlen[2], mutpats=mutpats, mutrates=mutrates[2], selpats=selpats, selcoef=selcoef[2], initseq=rootseq, bases=bases, Ne=Ne[2] )
+                simseq( seqlen=seqlen, tlen=tlen[1], mutpats=mutpats, mutrates=mutrates[[1]], selpats=selpats, selcoef=selcoef[1], initseq=rootseq, bases=bases, Ne=Ne[1] ),
+                simseq( seqlen=seqlen, tlen=tlen[2], mutpats=mutpats, mutrates=mutrates[[2]], selpats=selpats, selcoef=selcoef[2], initseq=rootseq, bases=bases, Ne=Ne[2] )
             )
     )
 
 save( thisone, now, opt, bases, mutpats, mutrates, selpats, selcoef, fixfn, seqlen, tlen, Ne, initfreqs, simseqs, file=outfile )
-
-
