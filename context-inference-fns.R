@@ -175,7 +175,7 @@ popgen.fixfn <- function (ds,Ne,...) {
 ising.fixfn <- function (ds,...) { 1/(1+exp(-ds)) }
 
 # genmatrix extends the sparse matrix class, carrying along more information.
-setClass("genmatrix", representation(muttrans="Matrix",seltrans="Matrix",mutrates="numeric",selcoef="numeric"), contains = "dgCMatrix")
+setClass("genmatrix", representation(muttrans="Matrix",seltrans="Matrix",mutrates="numeric",selcoef="numeric",mutpats="list",selpats="list",boundary="character",meanboundary="numeric"), contains = "dgCMatrix")
 
 makegenmatrix <- function (mutpats,selpats=list(),patlen=nchar(patterns[1]),patterns=getpatterns(patlen),mutrates=rep(1,length(mutpats)),selcoef=rep(1,length(selpats)), boundary="none", ...) {
     # make the generator matrix, carrying with it the means to quickly update itself.
@@ -219,7 +219,11 @@ makegenmatrix <- function (mutpats,selpats=list(),patlen=nchar(patterns[1]),patt
             muttrans=muttrans,
             seltrans=seltrans,
             mutrates=mutrates,
-            selcoef=selcoef
+            selcoef=selcoef,
+            mutpats=mutpats,
+            selpats=selpats,
+            boundary=boundary,
+            meanboundary=meanboundary
         ) )
     rownames( genmatrix ) <- colnames( genmatrix ) <- patterns
     genmatrix@x <- update( genmatrix, mutrates, selcoef, ... )

@@ -66,11 +66,5 @@ if (meanboundary==0) {
 } else {
     genmatrix <- meangenmatrix( lwin=meanboundary, rwin=meanboundary, patlen=winlen, mutpats=mutpats, selpats=selpats, boundary=boundary, Ne=1e-4 )
 }
-attr(genmatrix,"bases") <- bases
-attr(genmatrix,"mutpats") <- mutpats
-attr(genmatrix,"selpats") <- selpats
-attr(genmatrix,"boundary") <- boundary
-attr(genmatrix,"meanboundary") <- meanboundary
-attr(genmatrix,"opt") <- opt
 
 save( boundary, meanboundary, bases, mutpats, selpats, fixfn, genmatrix, file=outfile )
