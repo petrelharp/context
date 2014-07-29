@@ -15,6 +15,22 @@ getpatterns <- function(winlen) {
     return( apply(patterns,1,paste,collapse="") )
 }
 
+getmutpats <- function(patlen,nchanges=1) {
+    # all kmer -> kmer changes
+    # that involve at most nchanges changes
+    mutpats <- list()
+    patterns <- getpatterns(patlen)
+    for (k in 1:patlen) {
+        kmers <- getpatterns(k)
+        mutpats <- c( mutpats,
+                apply(combn(kmers,2),2,list),  
+                apply(combn(kmers,2)[2:1,],2,list)
+            )
+    }
+    obschanges <- sapply(mutpatchanges(mutpats),nrow)
+    return( mutpats[obschanges%in%nchanges] )
+}
+
 npatterns <- function (winlen) {
     return( length(bases)^winlen )
 }
@@ -67,7 +83,7 @@ countmuts <- function (counts, mutpats, lwin, ...) {
             sum.changed[j] <- sum.changed[j] + sum( mx, ... )
             px <- sapply(mutpat, function (mp) {
                     patlen <- nchar(mp[1])
-                    sum( counts[ ( substr(xx,k,k+patlen-1) == mp[1] ), ], ... )
+                    sum( abs(counts)[ ( substr(xx,k,k+patlen-1) == mp[1] ), ], ... )
                 } )
             possible[j] <- possible[j] + sum( px, ... )
         }

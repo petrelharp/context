@@ -26,7 +26,7 @@ Entries in the same sub-list have the same associated parameter (reverse-complem
 
 option_list <- list(
         make_option( c("-c","--configfile"), type="character", default="-", help="Input file of mutation and selection motifs." ),
-        make_option( c("-s","--outfile"), type="character", default="", help="Save resulting matrix in this file.  [default: genmatrix-(configfile).RData]" ),
+        make_option( c("-s","--outfile"), type="character", default="", help="Save resulting matrix in this file.  [default: genmatrix-(winlen)-(configfile).RData]" ),
         make_option( c("-w","--winlen"), type="integer", help="Size of matching window." ),
         make_option( c("-b","--boundary"), type="character", default="none", help="Boundary conditions. [default \"%default\"]" ),
         make_option( c("-m","--meanboundary"), type="integer", default=0, help="Average over this many neighboring bases. [default \"%default\"]" ),
@@ -44,7 +44,7 @@ mutpats <- mutation
 selpats <- selection
 
 if (outfile=="") { 
-    outfile <- paste(dirname(configfile),"/",paste("genmatrix",gsub(".mut$","",basename(configfile)),sep="-"),".RData",sep='') 
+    outfile <- paste(dirname(configfile),"/",paste("genmatrix",winlen,gsub(".mut$","",basename(configfile)),sep="-"),".RData",sep='') 
 }
 basename <- gsub(".RData",'',outfile)
 if (logfile=="" & !interactive()) { logfile <- paste(basename,"-flex-genmat.Rout",sep='') }

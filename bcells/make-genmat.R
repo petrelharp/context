@@ -36,18 +36,7 @@ bases <- c("A","T","C","G")
 source("../sim-context-fns.R")
 source("../context-inference-fns.R")
 
-mutpats <- list()
-# all kmer -> kmer changes
-for (k in 1:patlen) {
-    kmers <- getpatterns(k)
-    mutpats <- c( mutpats,
-            apply(combn(kmers,2),2,list),  
-            apply(combn(kmers,2)[2:1,],2,list)
-        )
-}
-# restrict to those only changing one base
-nchanges <- sapply(mutpatchanges(mutpats),nrow)
-mutpats <- mutpats[nchanges==1]
+mutpats <- getmutpats(patlen)
 # # DO NOT allow GC-bias
 # selpats <- list(
 #         c("A","T")
