@@ -38,6 +38,12 @@ countmuts <- function (counts, mutpats, lwin, ...) {
     # given a table of matched tuples,
     # return counts of how many of these could be produced by each of mutpats
     #   and the total possible
+    #
+    # in other words, for each mutation pattern a -> b
+    #  sum the values of counts[u,v] over choices of u,v such that:
+    #   (a) 'a' matches 'u' at some position
+    #   (b) ... in addition, 'b' matches 'v' at the same position
+    #
     # note that if we estimate rates by
     #    r.est <- countmuts(...)[1,]/countmuts(...)[2,]
     # then something like
@@ -47,7 +53,7 @@ countmuts <- function (counts, mutpats, lwin, ...) {
     counts <- as.matrix(counts)
     win <- nchar(colnames(counts)[1])
     stopifnot( length(win)>0 & win>0 )
-    # restrict to same-length seqs
+    # trim off windows
     xx <- substr(rownames(counts),lwin+1,lwin+win)
     yy <- colnames(counts)
     sum.changed <- possible <- numeric(length(mutpats))
@@ -420,8 +426,10 @@ predicttreecounts <- function (win, lwin=0, rwin=0, initcounts, mutrates, selcoe
 ###
 # stuff for looking at residuals and finding motifs there
 
-listresids <- function (counts, expected, file, trim=5, lwin=(nchar(rownames(counts)[1])-nchar(colnames(counts)[1]))/2) {
+listresids <- function (counts, expected, file, trim=20, lwin=(nchar(rownames(counts)[1])-nchar(colnames(counts)[1]))/2) {
     # make a readable output ordered by z-score
+    #  optionally writing results out to 'file'
+    #  and trimming to only patterns with z-score above 'trim'
     resids <- data.frame( inpat=rownames(counts)[row(counts)], 
                          outpat=colnames(counts)[col(counts)],
                          observed=as.vector(counts),
@@ -434,7 +442,7 @@ listresids <- function (counts, expected, file, trim=5, lwin=(nchar(rownames(cou
     if (is.numeric(trim)) { resids <- subset( resids, is.numeric(resids$z) & (abs(resids$z) > trim) ) }
     resids <- resids[order(resids$z),]
     if (!missing(file)) {
-        write.table(file=pipe(paste("column -t >", file)), x=tmp, sep=' ',quote=FALSE, row.names=FALSE )
+        write.table(file=pipe(paste("column -t >", file)), x=resids, sep=' ',quote=FALSE, row.names=FALSE )
         return(invisible(resids))
     } else {
         return(resids)

@@ -7,4 +7,5 @@
 %/tuples.3.1.counts : %.fasta
 	python ../tuple-counting/count-paired-tuples.py -w 3 -l 1 -r 1 -i $< > $@
 
-
+%-resids.tsv : %-results.RData
+	Rscript view-resids.R $< $@
