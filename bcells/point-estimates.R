@@ -109,4 +109,4 @@ save( opt, gmname, infile, adhoc, likfun, nmuts, counts, initpar, lbs, ubs, pars
      file=datafile )
 
 print(format(Sys.time(),"%Y-%m-%d-%H-%M"))
-sink(NULL); close(logcon)
+sink(NULL); flush(logcon)
