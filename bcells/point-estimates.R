@@ -70,6 +70,7 @@ initcounts <- rowSums(counts)
 # ad-hoc estimate
 adhoc <- countmuts(counts=counts,mutpats=mutpats,lwin=lwin)
 adhoc <- adhoc[1,]/adhoc[2,]
+stopifnot( all( is.finite( adhoc ) )
 
 nmuts <- length(genmatrix@mutpats)
 nsel <- length(genmatrix@selpats)

@@ -9,6 +9,11 @@ if (length(commandArgs(TRUE))<2) {
 }
 
 load(resultsfile)
+load(opt$gmfile)
+
+projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
+pcounts <- function (params) { predictcounts(win, lwin, rwin, initcounts=rowSums(counts), mutrates=params[1:nmuts], selcoef=numeric(0), scale=params[length(params)], genmatrix=genmatrix, projmatrix=projmatrix, time="fixed" ) }
+expected <- pcounts(point.estimate)
 
 resids <- listresids(counts,expected,file=residsfile)
 
@@ -17,10 +22,19 @@ if (FALSE) {
     resultsfile <- "02-C-M_in_frame/win-2-2-2-1-results.RData"
     load(resultsfile)
 
+    resultsfile <- "02-C-M_in_frame/02-C-M_in_frame.tuples.6.2.counts-genmatrix-6-model-02-112777-results.RData"
+    load(resultsfile)
+
+    projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
+    pcounts <- function (params) { predictcounts(win, lwin, rwin, initcounts=rowSums(counts), mutrates=params[1:nmuts], selcoef=numeric(0), scale=params[length(params)], genmatrix=genmatrix, projmatrix=projmatrix, time="fixed" ) }
+    expected <- pcounts(point.estimate)
+
     resids <- listresids(counts,expected,trim=0)
     old.mutpats <- names(point.estimate)[grepl("->",names(point.estimate))]
 
     load("genmatrices/genmatrix-6-none-0-2.RData")
+    mutpats <- genmatrix@mutpats
+
     stopifnot( all( old.mutpats %in% mutnames(mutpats) ) )
 
     new.params <- which( !( mutnames(mutpats) %in% old.mutpats ) )
@@ -45,17 +59,19 @@ if (FALSE) {
                 # mrates <- seq(adhoc[k]/5,adhoc[k]*20,length.out=10)
                 # likvals <- sapply(mrates, likfun)
                 optimize( likfun, interval=c(0,10*adhoc[k]) )
-        } )
+        }, mc.cores=8 )
+    # save( marginal.params, file="temp.RData")
+    names(marginal.params) <- mutnames(mutpats)[new.params]
 
 
-    # # not so good:
-    # all.mutpats <- getmutpats(2)
-    # mutpatlen <- sapply( all.mutpats, function (x) nchar(unlist(x)[1]) )
-    # residmat <- 0 * counts 
-    # stopifnot( all(toupper(resids$inpat) %in% rownames(residmat)) & all(resids$outpat %in% colnames(residmat)) )
-    # residmat[cbind( match(toupper(resids$inpat),rownames(residmat)), match(resids$outpat,colnames(residmat)) )] <- resids$resid
-    # resid.counts <- countmuts( residmat, all.mutpats, lwin=lwin )
-    # plot(t(resid.counts[2:1,]),col=mutpatlen)
-    # plot(resid.counts[2,]/resid.counts[1,], resid.counts[1,], col=mutpatlen)
+    # not so good:
+    all.mutpats <- getmutpats(2)
+    mutpatlen <- sapply( all.mutpats, function (x) nchar(unlist(x)[1]) )
+    residmat <- 0 * counts 
+    stopifnot( all(toupper(resids$inpat) %in% rownames(residmat)) & all(resids$outpat %in% colnames(residmat)) )
+    residmat[cbind( match(toupper(resids$inpat),rownames(residmat)), match(resids$outpat,colnames(residmat)) )] <- resids$resid
+    resid.counts <- countmuts( residmat, all.mutpats, lwin=lwin )
+    plot(t(resid.counts[2:1,]),col=mutpatlen)
+    plot(resid.counts[2,]/resid.counts[1,], resid.counts[1,], col=mutpatlen)
 
 }
