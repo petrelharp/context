@@ -22,6 +22,18 @@ formatted in json as follows (see singlebase.mut): \
 } \
  \
 Entries in the same sub-list have the same associated parameter (reverse-complement, above). \
+\
+To make this for e.g. all patterns up to 3-way, with one change each: \
+\
+require(jsonlite) \
+bases <- c( "A", "C", "G", "T") \
+pats <- getmutpats(3) \
+# check this is idempotent \
+stopifnot( identical( pats, fromJSON(toJSON(pats,pretty=TRUE),simplifyMatrix=FALSE) ) ) \
+sink("triplebase.mut") \
+toJSON(list(bases=bases,mutation=pats,selection=NULL)) \
+sink(NULL) \
+\
 '
 
 option_list <- list(
