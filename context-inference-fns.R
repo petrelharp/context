@@ -175,9 +175,38 @@ popgen.fixfn <- function (ds,Ne,...) {
 ising.fixfn <- function (ds,...) { 1/(1+exp(-ds)) }
 
 # genmatrix extends the sparse matrix class, carrying along more information.
-setClass("genmatrix", representation(muttrans="Matrix",seltrans="Matrix",mutrates="numeric",selcoef="numeric",mutpats="list",selpats="list",boundary="character",meanboundary="numeric"), contains = "dgCMatrix")
+setClass("genmatrix", representation(muttrans="Matrix",seltrans="Matrix",mutpats="list",selpats="list",boundary="character",meanboundary="numeric",fixfn="closure"), contains = "dgCMatrix")
 
-makegenmatrix <- function (mutpats,selpats=list(),patlen=nchar(patterns[1]),patterns=getpatterns(patlen),mutrates=rep(1,length(mutpats)),selcoef=rep(1,length(selpats)), boundary="none", ...) {
+setClass("context", 
+         representation(data="Matrix",
+                        winlen="numeric",
+                        lwin="numeric",
+                        headpats="character",
+                        tailpats="character",
+                        genmatrix="genmatrix",
+                        mutrates="numeric",
+                        selcoef="numeric",
+                        params="numeric",
+                        projmatrix="Matrix",
+                        likfun="closure",
+                        optim.results="list"
+                    ), 
+         validity=check.context)
+
+check.context <- function (cont) {
+    return( 
+        all( rownames(cont@genmatrix) == cont@headpats ) &
+        all( rownames(cont@projmatrix) == cont@headpats ) &
+        all( colnames(cont@projmatrix) == cont@tailpats ) &
+        all( nchar(cont@headpats) == cont@winlen ) &
+        all( nchar(cont@tailpats) + cont@lwin <= cont@winlen ) &
+        all( dim(cont@data) == dim(cont@projmatrix) ) &
+        ( length(cont@mutrates) == length(cont@genmatrix@mutpats) ) &
+        ( length(cont@selcoef) == length(cont@genmatrix@selpats) ) 
+    )
+}
+
+makegenmatrix <- function (mutpats,selpats=list(),patlen=nchar(patterns[1]),patterns=getpatterns(patlen), mutrates=rep(1,length(mutpats)),selcoef=rep(1,length(selpats)), boundary="none", fixfn=function(...){1}, ...) {
     # make the generator matrix, carrying with it the means to quickly update itself.
     #  DON'T do the diagonal, so that the updating is easier.
     # this gives the instantaneous rate for going from patterns x -> y
@@ -218,10 +247,9 @@ makegenmatrix <- function (mutpats,selpats=list(),patlen=nchar(patterns[1]),patt
             Dim=c(length(patterns),length(patterns)), 
             muttrans=muttrans,
             seltrans=seltrans,
-            mutrates=mutrates,
-            selcoef=selcoef,
             mutpats=mutpats,
             selpats=selpats,
+            fixfn=fixfn,
             boundary=boundary,
             meanboundary=meanboundary
         ) )
@@ -231,10 +259,9 @@ makegenmatrix <- function (mutpats,selpats=list(),patlen=nchar(patterns[1]),patt
     return(genmatrix)
 }
 
-update <- function (G, mutrates=G@mutrates, selcoef=G@selcoef, ...) {
+update <- function (G, mutrates, selcoef, ...) {
     # use like: genmatrix@x <- update(genmatrix,...)
-    #   note that fixfn is defined GLOBALLY
-    fixprob <- if (length(selcoef)>0) { fixfn( as.vector(G@seltrans%*%selcoef), ... ) } else { 1 }
+    fixprob <- if (length(selcoef)>0) { G@fixfn( as.vector(G@seltrans%*%selcoef), ... ) } else { 1 }
     as.vector( G@muttrans %*% mutrates ) * fixprob 
 }
 
@@ -251,7 +278,7 @@ collapsepatmatrix <- function (ipatterns, lwin=0, rwin=nchar(ipatterns[1])-nchar
     return( matchmatrix )
 }
 
-meangenmatrix <- function (lwin,rwin,patlen,...) {
+meangenmatrix <- function (lwin,rwin,patlen,,...) {
     # create a generator matrix that averages over possible adjacent states
     longpatlen <- patlen+lwin+rwin
     genmat <- makegenmatrix(...,patlen=longpatlen)  # this is G
@@ -277,9 +304,11 @@ meangenmatrix <- function (lwin,rwin,patlen,...) {
     # pnonz <- t( apply( ij.H, 1, function (ij) { meanmat[ij[1],ij.G[,"i"]] * projmat[ij.G[,"j"],ij[2]] } ) )
     pp <- sapply( 0:ncol(pgenmat), function(k) sum(jj[nondiag]<k) )
     meangenmat <- new( "genmatrix", i=ii[nondiag], p=pp, x=pgenmat@x[nondiag], Dim=pgenmat@Dim, Dimnames=pgenmat@Dimnames,
-        muttrans = (pnonz %*% genmat@muttrans), seltrans = (pnonz %*% genmat@seltrans),
-        mutrates=genmat@mutrates, selcoef=genmat@selcoef )
-    meangenmat@x <- update(meangenmat, ...)
+        muttrans = (pnonz %*% genmat@muttrans), seltrans = (pnonz %*% genmat@seltrans) )
+    args <- list(...)
+    if (is.null(args$mutrates)) { args$mutrates <- rep(1,length(genmat@mutpats)) }
+    if (is.null(args$selcoef)) { args$selcoef <- rep(1,length(genmat@selpats)) }
+    meangenmat@x <- do.call(update,c( list(G=meangenmat), args ) )
     return( meangenmat )
 }
 
