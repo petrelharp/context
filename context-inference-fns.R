@@ -62,10 +62,10 @@ divergence <- function (counts, lwin) {
 }
 
 countmuts <- function (counts, mutpats, lwin, ...) {
-    # given a contingency table of observed kmer changes, a collection of
+    # given a contingency table of kmer changes from data, a collection of
     # mutation patterns, the lwin, and a list of arguments to `sum`.
-    # return counts of how many of these could be produced by each of mutpats
-    #   and the total possible
+    # returns a matrix, the first row of which gives counts of how many of these could be produced by each of mutpats
+    #   and the second of which gives the number of "from" matches of the mutpats (called the "total possible").
     #
     # in other words, for each mutation pattern a -> b
     #  sum the values of counts[u,v] over choices of u,v such that:
@@ -85,7 +85,8 @@ countmuts <- function (counts, mutpats, lwin, ...) {
     # trim off windows
     xx <- substr(rownames(counts),lwin+1,lwin+win)
     yy <- colnames(counts)
-    sum.changed <- possible <- numeric(length(mutpats)) # sum.changed and possible are each numeric vectors
+    # Note that `observed` counts a change multiply if it can occur in different ways.
+    observed <- possible <- numeric(length(mutpats)) # observed and possible are each numeric vectors
     for (j in seq_along(mutpats)) {
         mutpat <- mutpats[[j]]
         for (k in 1:(win-1)) {
@@ -97,7 +98,7 @@ countmuts <- function (counts, mutpats, lwin, ...) {
                         0
                     }
                 } )
-            sum.changed[j] <- sum.changed[j] + sum( mx, ... )
+            observed[j] <- observed[j] + sum( mx, ... )
             px <- sapply(mutpat, function (mp) {
                     patlen <- nchar(mp[1])
                     if ( k+patlen-1 <= win ) {
@@ -109,7 +110,7 @@ countmuts <- function (counts, mutpats, lwin, ...) {
             possible[j] <- possible[j] + sum( px, ... )
         }
     }
-    x <- rbind(sum.changed,possible)
+    x <- rbind(observed,possible)
     colnames(x) <- mutnames(mutpats)
     return(x)
 }
