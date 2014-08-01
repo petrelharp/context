@@ -278,7 +278,7 @@ collapsepatmatrix <- function (ipatterns, lwin=0, rwin=nchar(ipatterns[1])-nchar
     return( matchmatrix )
 }
 
-meangenmatrix <- function (lwin,rwin,patlen,,...) {
+meangenmatrix <- function (lwin,rwin,patlen,...) {
     # create a generator matrix that averages over possible adjacent states
     longpatlen <- patlen+lwin+rwin
     genmat <- makegenmatrix(...,patlen=longpatlen)  # this is G
