@@ -293,13 +293,13 @@ meangenmatrix <- function (lwin,rwin,patlen,,...) {
     nondiag <- ( ii != jj )
     # construct matrix to project from x values in big dgCMatrix to little one:
     #  note that H_ij = M_i. G  P_.j  = sum_kl M_ik G_kl P_lj
-    #  ... and we have constructed G and H so we know which the nonzero elements are already
-    #    and can use this to find the linear transformation 
-    #    from nonzero elemetns of G to nonzero elements of H
+    #  ... and we have constructed G and H so we already know which elements are nonzero
+    #    and can use this to find the linear transformation
+    #    from nonzero elements of G (genmat) to nonzero elements of H (pgenmat)
     ij.H <- 1L + cbind( i=ii[nondiag], j=jj[nondiag] )
     ij.G <- 1L + cbind( i=genmat@i, j=rep(1:ncol(genmat),times=diff(genmat@p))-1L )
-    # for-loop to avoid memory hogging
     pnonz <- Matrix( 0, nrow=nrow(ij.H), ncol=nrow(ij.G), sparse=TRUE )
+    # for-loop to avoid memory hogging
     for (k in 1:nrow(ij.H)) { pnonz[k,] <-  meanmat[ij.H[k,"i"],ij.G[,"i"]] * projmat[ij.G[,"j"],ij.H[k,"j"]] }
     # pnonz <- t( apply( ij.H, 1, function (ij) { meanmat[ij[1],ij.G[,"i"]] * projmat[ij.G[,"j"],ij[2]] } ) )
     pp <- sapply( 0:ncol(pgenmat), function(k) sum(jj[nondiag]<k) )
