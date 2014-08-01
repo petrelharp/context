@@ -54,9 +54,9 @@ mutnames <- function (mutpats) {
 
 divergence <- function (counts, lwin) {
     # mean density of nucleotide differences
-    require(stringdist)
+    require(stringdist) # http://www.inside-r.org/packages/cran/stringdist/docs/stringdist
     patlen <- nchar(colnames(counts)[1])
-    nchanges <- stringdistmatrix( substr(rownames(counts),lwin+1,lwin+patlen), colnames(counts) )
+    nchanges <- stringdistmatrix( substr(rownames(counts),lwin+1,lwin+patlen), colnames(counts), method="hamming" )
     return( sum(nchanges*counts)/(sum(counts)*patlen) )
 }
 
@@ -74,7 +74,7 @@ countmuts <- function (counts, mutpats, lwin, ...) {
     #    r.est <- countmuts(...)[1,]/countmuts(...)[2,]
     # then something like
     #    sum( r.est ) / 4
-    # should be close to
+    # should be close to the mean density of nucleotide changes
     #    divergence(...)
     counts <- as.matrix(counts)
     win <- nchar(colnames(counts)[1])
