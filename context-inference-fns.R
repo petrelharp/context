@@ -87,8 +87,8 @@ countmuts <- function (counts, mutpats, lwin, ...) {
     yy <- colnames(counts)
     sum.changed <- possible <- numeric(length(mutpats)) # sum.changed and possible are each numeric vectors
     for (j in seq_along(mutpats)) {
+        mutpat <- mutpats[[j]]
         for (k in 1:(win-1)) {
-            mutpat <- mutpats[[j]]
             mx <- sapply(mutpat, function (mp) {
                     patlen <- nchar(mp[1])
                     if ( k+patlen-1 <= win ) {
