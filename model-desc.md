@@ -15,6 +15,9 @@ It should therefore carry around:
 - 'likfun' : the function that returns the negative log-likelihood of the data as a function of (mutrates,selcoef,params)
 - 'optim.results' : output from routine that estimated parameters (mutrates, selcoef, params)
 
+
+Note that although it's not stored in the 'context' object because it would be redundant, 'win' means the inner window width.
+
 An object of class 'genmatrix' is a sparse matrix that additionally carries the following information (and some more stuff):
 - 'rownames( )' and 'colnames( )' : character vectors; should match with e.g. 'headpats' above.
 - 'mutpats' : list of mutation motifs
