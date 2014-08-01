@@ -18,6 +18,7 @@ getpatterns <- function(patlen) {
 
 mutpatchanges <- function (mutpats) {
     # return list of single-base changes for each list of patterns in mutpats
+    # a `mutpat` is a 2-element string list of the form (from, to)
     lapply( mutpats, function (x) { do.call(rbind, lapply( x, function (y) {
                 ysplit <- strsplit(y,'')
                 differs <- do.call("!=",ysplit)
@@ -33,8 +34,8 @@ getmutpats <- function(patlen,nchanges=1) {
     for (k in 1:patlen) {
         kmers <- getpatterns(k)
         mutpats <- c( mutpats,
-                apply(combn(kmers,2),2,list),
-                apply(combn(kmers,2)[2:1,],2,list)
+                apply(combn(kmers,2),2,list), # make lists of rows (2 = apply over columns), giving 2-element lists of kmers
+                apply(combn(kmers,2)[2:1,],2,list) # and the reverse of the 2-element lists
             )
     }
     obschanges <- sapply(mutpatchanges(mutpats),nrow)
@@ -61,14 +62,15 @@ divergence <- function (counts, lwin) {
 }
 
 countmuts <- function (counts, mutpats, lwin, ...) {
-    # given a table of matched tuples,
+    # given a contingency table of observed kmer changes, a collection of
+    # mutation patterns, the lwin, and a list of arguments to `sum`.
     # return counts of how many of these could be produced by each of mutpats
     #   and the total possible
     #
     # in other words, for each mutation pattern a -> b
     #  sum the values of counts[u,v] over choices of u,v such that:
-    #   (a) 'a' matches 'u' at some position
-    #   (b) ... in addition, 'b' matches 'v' at the same position
+    #   (i) 'a' matches 'u' at some position
+    #   (ii) in addition, 'b' matches 'v' at the same position
     #
     # note that if we estimate rates by
     #    r.est <- countmuts(...)[1,]/countmuts(...)[2,]
@@ -77,8 +79,9 @@ countmuts <- function (counts, mutpats, lwin, ...) {
     # should be close to the mean density of nucleotide changes
     #    divergence(...)
     counts <- as.matrix(counts)
+    # `win` is the length of the inner window
     win <- nchar(colnames(counts)[1])
-    stopifnot( length(win)>0 & win>0 )
+    stopifnot( length(win)>0 & win>0 ) # length statement catches the case that there are no colnames for counts
     # trim off windows
     xx <- substr(rownames(counts),lwin+1,lwin+win)
     yy <- colnames(counts)
