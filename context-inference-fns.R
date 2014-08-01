@@ -16,6 +16,15 @@ getpatterns <- function(patlen) {
     return( apply(patterns,1,paste,collapse="") )
 }
 
+mutpatchanges <- function (mutpats) {
+    # return list of single-base changes for each list of patterns in mutpats
+    lapply( mutpats, function (x) { do.call(rbind, lapply( x, function (y) {
+                ysplit <- strsplit(y,'')
+                differs <- do.call("!=",ysplit)
+                cbind( ysplit[[1]][differs], ysplit[[2]][differs] )
+            } ) ) } )
+}
+
 getmutpats <- function(patlen,nchanges=1) {
     # all kmer -> kmer changes
     # that involve at most nchanges changes
@@ -565,15 +574,6 @@ leftchanged <- function (ipatterns,fpatterns,lwin=0,win=nchar(ipatterns[0])) {
     dim(changedchars) <- c( length(ipatterns), length(fpatterns), win )
     meanpos <- rowMeans(changedchars, na.rm=TRUE, dims=2)
     return( !is.na(meanpos) & meanpos <= (win+1)/2 )
-}
-
-mutpatchanges <- function (mutpats) {
-    # return list of single-base changes for each list of patterns in mutpats
-    lapply( mutpats, function (x) { do.call(rbind, lapply( x, function (y) {
-                ysplit <- strsplit(y,'')
-                differs <- do.call("!=",ysplit)
-                cbind( ysplit[[1]][differs], ysplit[[2]][differs] )
-            } ) ) } )
 }
 
 getlikfun <- function (nmuts,nsel,genmatrix,projmatrix,const=0) {
