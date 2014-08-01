@@ -63,7 +63,7 @@ divergence <- function (counts, lwin) {
 
 countmuts <- function (counts, mutpats, lwin, ...) {
     # given a contingency table of kmer changes from data, a collection of
-    # mutation patterns, the lwin, and a list of arguments to `sum`.
+    # mutation patterns, the lwin, and a list of arguments to `sum`, this function
     # returns a matrix, the first row of which gives counts of how many of these could be produced by each of mutpats
     #   and the second of which gives the number of "from" matches of the mutpats (called the "total possible").
     #
@@ -127,6 +127,7 @@ gradest <- function (likfun, params, eps=mean(params)/1000) {
 }
 
 ###
+# functions to prepare mutation and selection matrices, and build fixation functions
 
 getmutmats <- function(mutpats,patterns,boundary=c("none","wrap")) {
     # returns i and j's indexing the generator matrix.
@@ -166,7 +167,7 @@ getmutmats <- function(mutpats,patterns,boundary=c("none","wrap")) {
 
 getselmatches <- function (selpats, patterns, boundary=c("none","wrap"), names=FALSE) {
     # selpats can be a vector or a list of vectors,
-    #  each element gets one parameter
+    #   each element gets one parameter
     # selmatches[i,j] is number of times anything in selpat[[i]] matches pattern[j]
     boundary <- match.arg(boundary)
     substrfun <- switch( boundary, wrap=wrapsubstr, none=substr )
@@ -197,6 +198,9 @@ popgen.fixfn <- function (ds,Ne,...) {
 
 ising.fixfn <- function (ds,...) { 1/(1+exp(-ds)) }
 
+###
+# genmatrix code
+# genmatrix gives the instantaneous rate for going from patterns x -> y
 # genmatrix extends the sparse matrix class, carrying along more information.
 setClass("genmatrix", representation(muttrans="Matrix",seltrans="Matrix",mutpats="list",selpats="list",boundary="character",meanboundary="numeric",fixfn="closure"), contains = "dgCMatrix")
 
@@ -232,7 +236,6 @@ check.context <- function (cont) {
 makegenmatrix <- function (mutpats,selpats=list(),patlen=nchar(patterns[1]),patterns=getpatterns(patlen), mutrates=rep(1,length(mutpats)),selcoef=rep(1,length(selpats)), boundary="none", fixfn=function(...){1}, ...) {
     # make the generator matrix, carrying with it the means to quickly update itself.
     #  DON'T do the diagonal, so that the updating is easier.
-    # this gives the instantaneous rate for going from patterns x -> y
     if (!is.numeric(patlen)|(missing(patlen)&missing(patterns))) { stop("need patlen or patterns") }
     if ( (length(selpats)>0 && max(sapply(unlist(selpats),nchar))>patlen) | max(sapply(unlist(mutpats),nchar))>patlen ) { stop("some patterns longer than patlen") }
     # list of matrices with indices of changes corresponding to mutation patterns
