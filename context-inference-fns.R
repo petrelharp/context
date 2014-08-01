@@ -10,8 +10,9 @@ PATH <- dirname(frame_files[[length(frame_files)]])
 source(paste(PATH,"/expAtv.R",sep=''))  # fixed upstream
 source(paste(PATH,"/gammaAtv.R",sep=''))  # fixed upstream
 
-getpatterns <- function(winlen) {
-    patterns <- do.call( expand.grid, rep( list(bases), winlen ) )
+getpatterns <- function(patlen) {
+    # construct a list of all patterns
+    patterns <- do.call( expand.grid, rep( list(bases), patlen ) )
     return( apply(patterns,1,paste,collapse="") )
 }
 
@@ -31,8 +32,8 @@ getmutpats <- function(patlen,nchanges=1) {
     return( mutpats[obschanges%in%nchanges] )
 }
 
-npatterns <- function (winlen) {
-    return( length(bases)^winlen )
+npatterns <- function (patlen) {
+    return( length(bases)^patlen )
 }
 
 mutnames <- function (mutpats) {
