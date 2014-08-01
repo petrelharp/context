@@ -85,18 +85,26 @@ countmuts <- function (counts, mutpats, lwin, ...) {
     # trim off windows
     xx <- substr(rownames(counts),lwin+1,lwin+win)
     yy <- colnames(counts)
-    sum.changed <- possible <- numeric(length(mutpats))
-    for (k in 1:(win-lwin+1)) {
-        for (j in seq_along(mutpats)) {
+    sum.changed <- possible <- numeric(length(mutpats)) # sum.changed and possible are each numeric vectors
+    for (j in seq_along(mutpats)) {
+        for (k in 1:(win-1)) {
             mutpat <- mutpats[[j]]
             mx <- sapply(mutpat, function (mp) {
                     patlen <- nchar(mp[1])
-                    sum( counts[ ( substr(xx,k,k+patlen-1) == mp[1] ), ( substr(yy,k,k+patlen-1) == mp[2] ) ], ... )
+                    if ( k+patlen-1 <= win ) {
+                        sum( counts[ ( substr(xx,k,k+patlen-1) == mp[1] ), ( substr(yy,k,k+patlen-1) == mp[2] ) ], ... )
+                    } else {
+                        0
+                    }
                 } )
             sum.changed[j] <- sum.changed[j] + sum( mx, ... )
             px <- sapply(mutpat, function (mp) {
                     patlen <- nchar(mp[1])
-                    sum( abs(counts)[ ( substr(xx,k,k+patlen-1) == mp[1] ), ], ... )
+                    if ( k+patlen-1 <= win ) {
+                        sum( abs(counts)[ ( substr(xx,k,k+patlen-1) == mp[1] ), ], ... )
+                    } else {
+                        0
+                    }
                 } )
             possible[j] <- possible[j] + sum( px, ... )
         }
