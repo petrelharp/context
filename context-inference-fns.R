@@ -123,7 +123,7 @@ gradest <- function (likfun, params, eps=mean(params)/1000) {
     # estimate gradient, crudely
     gradup <- sapply( seq_along(initpar), function (k) { likfun(initpar+ifelse(seq_along(initpar)==k,eps,0)) } )
     graddown <- sapply( seq_along(initpar), function (k) { likfun(initpar-ifelse(seq_along(initpar)==k,eps,0)) } )
-    return((gradup-graddown)/eps)
+    return((gradup-graddown)/(2*eps))
 }
 
 ###
