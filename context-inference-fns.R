@@ -129,11 +129,12 @@ gradest <- function (likfun, params, eps=mean(params)/1000) {
 ###
 
 getmutmats <- function(mutpats,patterns,boundary=c("none","wrap")) {
-    # given mutation patterns,
-    #   which can be a list of either pairs or lists of pairs,
-    # return list of matrices with (1-based) indices of changes corresponding to mutation patterns
+    # returns i and j's indexing the generator matrix.
+    # that is, given a list of mutation patterns,
+    #   which can be either pairs or lists of pairs,
+    # return a corresponding list of matrices with (1-based) indices of changes corresponding to mutation patterns
     #   i.e. if (i,j) is a row of output[[k]], then patterns[j] can be obtained from patterns[i]
-    #   by performing the substitution from mutpats[[i]][1] -> mutpats[[i]][2]
+    #   by performing the substitution from mutpats[[k]][1] -> mutpats[[k]][2]
     #   at some location within the string.
     boundary <- match.arg(boundary)
     winlen <- nchar(patterns[1])
