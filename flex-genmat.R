@@ -52,9 +52,6 @@ options(error=traceback)
 
 config <- fromJSON(opt$configfile,simplifyMatrix=FALSE)
 attach(c(opt,config))
-# rename (config file is more user-friendly?)
-mutpats <- mutation
-selpats <- selection
 
 if (outfile=="") { 
     outfile <- paste(dirname(configfile),"/",paste("genmatrix",winlen,gsub(".mut$","",basename(configfile)),sep="-"),".RData",sep='') 
@@ -75,7 +72,9 @@ source("../context-inference-fns.R")
 # turn fixfn into an actual function
 # either by looking it up as a name
 # or parsing it directly
-if (exists("fixfn") && is.character(fixfn)) {
+if (!exists("selpats")) { selpats <- list(); selcoef <- numeric(0); fixfn <- null.fixfn; fixfn.params=list() }
+if (!exists("fixfn")) { fixfn <- null.fixfn; fixfn.params=list() }
+if (is.character(fixfn)) {
     if (exists(fixfn,mode="function")) {
         fixfn <- get(fixfn,mode="function")
     } else {
