@@ -206,23 +206,6 @@ null.fixfn <- function (...) { 1 }
 # genmatrix code
 # genmatrix gives the instantaneous rate for going from patterns x -> y
 # genmatrix extends the sparse matrix class, carrying along more information.
-setClass("genmatrix", representation(muttrans="Matrix",seltrans="Matrix",mutpats="list",selpats="list",boundary="character",meanboundary="numeric",fixfn="closure"), contains = "dgCMatrix")
-
-setClass("context",
-         representation(data="Matrix",
-                        winlen="numeric",
-                        lwin="numeric",
-                        headpats="character",
-                        tailpats="character",
-                        genmatrix="genmatrix",
-                        mutrates="numeric",
-                        selcoef="numeric",
-                        params="numeric",
-                        projmatrix="Matrix",
-                        likfun="closure",
-                        optim.results="list"
-                    ),
-         validity=check.context)
 
 check.context <- function (cont) {
     return(
