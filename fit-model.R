@@ -9,8 +9,8 @@ option_list <- list(
     # input/output
         make_option( c("-i","--infile"), type="character", help="Input file with tuple counts, tab-separated, with header 'reference', 'derived', 'count'. [default, looks in basedir]" ),
         make_option( c("-o","--outfile"), type="character", help="File to save results to.  [default: like infile, but with unique suffix]."),
-        make_option( c("-l","--lwin"), type="integer", help="Size of left-hand context." ),
         make_option( c("-u","--basedir"), type="character", default=NULL, help="Directory to put output in. [default: same as infile]"),
+        make_option( c("-l","--lwin"), type="integer", help="Size of left-hand context." ),
         make_option( c("-m","--gmfile"), type="character", default="TRUE", help="File with precomputed generator matrix, or TRUE [default] to look for one. (otherwise, will compute)"),
         make_option( c("-x","--maxit"), type="integer", default=100, help="Number of iterations of optimization to run for. [default=%default]"),
         make_option( c("-j","--jobid"), type="character", default=formatC(1e6*runif(1),width=6,format="d",flag="0"), help="Unique job id. [default random]")
