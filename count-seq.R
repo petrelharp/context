@@ -31,14 +31,14 @@ source("../sim-context-fns.R")
 
 load(infile)
 
-longpats <- getpatterns(winlen,bases)
-shortpats <- getpatterns(win,bases)
+longpats <- getpatterns(opt$winlen,bases)
+shortpats <- getpatterns(opt$win,bases)
 
 # this returns a matrix
 counts <- if (revcounts) {
-    counttrans( longpats, shortpats, simseqs[[1]]$initseq, simseqs[[1]]$finalseq, lwin=lwin )
+    counttrans( longpats, shortpats, simseqs[[1]]$initseq, simseqs[[1]]$finalseq, lwin=opt$lwin )
 } else {
-    counttrans( longpats, shortpats, simseqs[[1]]$finalseq, simseqs[[1]]$initseq, lwin=lwin )
+    counttrans( longpats, shortpats, simseqs[[1]]$finalseq, simseqs[[1]]$initseq, lwin=opt$lwin )
 }
 
 countframe <- data.frame( reference=rownames(counts)[row(counts)], 
