@@ -31,9 +31,9 @@ getmutpats <- function(patlen,nchanges=1) {
     # all kmer -> kmer changes
     # that involve at most nchanges changes
     mutpats <- list()
-    patterns <- getpatterns(patlen)
+    patterns <- getpatterns(patlen,bases)
     for (k in 1:patlen) {
-        kmers <- getpatterns(k)
+        kmers <- getpatterns(k,bases)
         mutpats <- c( mutpats,
                 apply(combn(kmers,2),2,list), # make lists of rows (2 = apply over columns), giving 2-element lists of kmers
                 apply(combn(kmers,2)[2:1,],2,list) # and the reverse of the 2-element lists
@@ -274,7 +274,7 @@ setGeneric("nsel", function (x) { standardGeneric("nsel") } )
 setMethod("nmuts", signature=c(x="genmatrix"), definition=function (x) { length(x@mutpats) } )
 setMethod("nsel", signature=c(x="genmatrix"), definition=function (x) { length(x@selpats) } )
 
-makegenmatrix <- function (mutpats,selpats=list(),patlen=nchar(patterns[1]),patterns=getpatterns(patlen), mutrates=rep(1,length(mutpats)),selcoef=rep(1,length(selpats)), boundary="none", fixfn=function(...){1}, ...) {
+makegenmatrix <- function (mutpats, selpats=list(), patlen=nchar(patterns[1]), patterns=getpatterns(patlen,bases), bases, mutrates=rep(1,length(mutpats)),selcoef=rep(1,length(selpats)), boundary="none", fixfn=function(...){1}, ...) {
     # make the generator matrix, carrying with it the means to quickly update itself.
     #  DON'T do the diagonal, so that the updating is easier.
     if (!is.numeric(patlen)|(missing(patlen)&missing(patterns))) { stop("need patlen or patterns") }

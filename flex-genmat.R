@@ -27,7 +27,7 @@ To make this for e.g. all patterns up to 3-way, with one change each: \
 \
 require(jsonlite) \
 bases <- c( "A", "C", "G", "T") \
-pats <- getmutpats(3) \
+pats <- getmutpats(3,bases) \
 # check this is idempotent \
 stopifnot( identical( pats, fromJSON(toJSON(pats,pretty=TRUE),simplifyMatrix=FALSE) ) ) \
 sink("triplebase.mut") \

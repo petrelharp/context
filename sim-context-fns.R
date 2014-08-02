@@ -33,7 +33,7 @@ simseq <- function (seqlen, tlen, mutpats, mutrates, selpats=list(), selcoef=num
     if (patlen<mutlen) { stop("patlen too short") }
     pad.patlen <- patlen+2*max(0,(sellen-1))
     # construct generator matrix for (sellen-1,patlen,sellen-1) but with outer padding not changing
-    full.genmatrix <- makegenmatrix( mutpats, selpats, patlen=pad.patlen, boundary="none", ... )
+    full.genmatrix <- makegenmatrix( mutpats, selpats, patlen=pad.patlen, boundary="none", bases=bases, ... )
     if (! all( sapply(mutpatlens,length)==1 ) ) { stop("need each list in mutpats to have patterns of the same length") }
     mutrates <- mutrates / (patlen-mutpatlens+1)  # avoid overcounting (see above)
     full.genmatrix@x <- update(full.genmatrix,mutrates,selcoef,...)
