@@ -18,7 +18,8 @@ formatted in json as follows (see singlebase.mut): \
     [ [ "C", "T" ], [ "G", "A" ] ] \
     ], \
     "selpats" : [ \
-    ] \
+    ], \
+    "fixfn" : "null.fixfn"
 } \
  \
 Entries in the same sub-list have the same associated parameter (reverse-complement, above). \
@@ -37,7 +38,7 @@ sink(NULL) \
 '
 
 option_list <- list(
-        make_option( c("-c","--configfile"), type="character", default="-", help="Input file of mutation and selection motifs." ),
+        make_option( c("-c","--configfile"), type="character", help="Input file of mutation and selection motifs." ),
         make_option( c("-s","--outfile"), type="character", default="", help="Save resulting matrix in this file.  [default: genmatrix-(winlen)-(configfile).RData]" ),
         make_option( c("-w","--winlen"), type="integer", help="Size of matching window." ),
         make_option( c("-b","--boundary"), type="character", default="none", help="Boundary conditions. [default \"%default\"]" ),
@@ -71,12 +72,21 @@ if (interactive()) { win <- 2; boundary <- "none"; meanboundary <- 0 }
 source("../sim-context-fns.R")
 source("../context-inference-fns.R")
 
-fixfn <- function (...) { 1 }
+# turn fixfn into an actual function
+# either by looking it up as a name
+# or parsing it directly
+if (exists("fixfn") && is.character(fixfn)) {
+    if (exists(fixfn,mode="function")) {
+        fixfn <- get(fixfn,mode="function")
+    } else {
+        fixfn <- eval(parse(text=fixfn))
+    }
+}
 
 if (meanboundary==0) {
-    genmatrix <- makegenmatrix( patlen=winlen, mutpats=mutpats, selpats=selpats, boundary=boundary, Ne=1e-4 )
+    genmatrix <- makegenmatrix( patlen=opt$winlen, mutpats=mutpats, selpats=selpats, boundary=boundary )
 } else {
-    genmatrix <- meangenmatrix( lwin=meanboundary, rwin=meanboundary, patlen=winlen, mutpats=mutpats, selpats=selpats, boundary=boundary, Ne=1e-4 )
+    genmatrix <- meangenmatrix( lwin=meanboundary, rwin=meanboundary, patlen=opt$winlen, mutpats=mutpats, selpats=selpats, boundary=boundary )
 }
 
 save( boundary, meanboundary, bases, mutpats, selpats, fixfn, genmatrix, file=outfile )
