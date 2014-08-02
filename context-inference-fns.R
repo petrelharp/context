@@ -231,9 +231,11 @@ setClass("genmatrix", representation(
          contains = "dgCMatrix")
 
 setClass("tuplecounts",representation(lwin="numeric",counts="Matrix"))
+setMethod("dim", signature=(x="tuplecounts"), definition=function (x) { dim(x@counts) } )
 setMethod("dimnames", signature=(x="tuplecounts"), definition=function (x) { dimnames(x@counts) } )
 setMethod("dimnames<-", signature=c(x="tuplecounts",value="ANY"), definition=function (x,value) { dimnames(x@counts)<-value } )
 setMethod("as.matrix", signature=(x="tuplecounts"), definition=function (x) { as.matrix(x@counts) } )
+setMethod("as.vector", signature=(x="tuplecounts"), definition=function (x) { as.vector(x@counts) } )
 
 setClass("context",
          representation(data="tuplecounts",
