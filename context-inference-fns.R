@@ -11,9 +11,20 @@ source(paste(.PATH,"/expAtv.R",sep=''))  # fixed upstream
 source(paste(.PATH,"/gammaAtv.R",sep=''))  # fixed upstream
 source(paste(.PATH,"/input-output.R",sep='')) 
 
-getpatterns <- function(winlen,bases) {
-    patterns <- do.call( expand.grid, rep( list(bases), winlen ) )
+getpatterns <- function(patlen,bases) {
+    # construct a list of all patterns
+    patterns <- do.call( expand.grid, rep( list(bases), patlen ) )
     return( apply(patterns,1,paste,collapse="") )
+}
+
+mutpatchanges <- function (mutpats) {
+    # return list of single-base changes for each list of patterns in mutpats
+    # a `mutpat` is a 2-element string list of the form (from, to)
+    lapply( mutpats, function (x) { do.call(rbind, lapply( x, function (y) {
+                ysplit <- strsplit(y,'')
+                differs <- do.call("!=",ysplit)
+                cbind( ysplit[[1]][differs], ysplit[[2]][differs] )
+            } ) ) } )
 }
 
 getmutpats <- function(patlen,nchanges=1) {
@@ -24,16 +35,16 @@ getmutpats <- function(patlen,nchanges=1) {
     for (k in 1:patlen) {
         kmers <- getpatterns(k)
         mutpats <- c( mutpats,
-                apply(combn(kmers,2),2,list),
-                apply(combn(kmers,2)[2:1,],2,list)
+                apply(combn(kmers,2),2,list), # make lists of rows (2 = apply over columns), giving 2-element lists of kmers
+                apply(combn(kmers,2)[2:1,],2,list) # and the reverse of the 2-element lists
             )
     }
     obschanges <- sapply(mutpatchanges(mutpats),nrow)
     return( mutpats[obschanges%in%nchanges] )
 }
 
-npatterns <- function (winlen,bases) {
-    return( length(bases)^winlen )
+npatterns <- function (patlen,bases) {
+    return( length(bases)^patlen )
 }
 
 mutnames <- function (mutpats) {
@@ -45,51 +56,62 @@ mutnames <- function (mutpats) {
 
 divergence <- function (counts, lwin) {
     # mean density of nucleotide differences
-    require(stringdist)
+    require(stringdist) # http://www.inside-r.org/packages/cran/stringdist/docs/stringdist
     patlen <- nchar(colnames(counts)[1])
-    nchanges <- stringdistmatrix( substr(rownames(counts),lwin+1,lwin+patlen), colnames(counts) )
+    nchanges <- stringdistmatrix( substr(rownames(counts),lwin+1,lwin+patlen), colnames(counts), method="hamming" )
     return( sum(nchanges*counts)/(sum(counts)*patlen) )
 }
 
 countmuts <- function (counts, mutpats, lwin, ...) {
-    # given a table of matched tuples,
-    # return counts of how many of these could be produced by each of mutpats
-    #   and the total possible
+    # given a contingency table of kmer changes from data, a collection of
+    # mutation patterns, the lwin, and a list of arguments to `sum`, this function
+    # returns a matrix, the first row of which gives counts of how many of these could be produced by each of mutpats
+    #   and the second of which gives the number of "from" matches of the mutpats (called the "total possible").
     #
     # in other words, for each mutation pattern a -> b
     #  sum the values of counts[u,v] over choices of u,v such that:
-    #   (a) 'a' matches 'u' at some position
-    #   (b) ... in addition, 'b' matches 'v' at the same position
+    #   (i) 'a' matches 'u' at some position
+    #   (ii) in addition, 'b' matches 'v' at the same position
     #
     # note that if we estimate rates by
     #    r.est <- countmuts(...)[1,]/countmuts(...)[2,]
     # then something like
     #    sum( r.est ) / 4
-    # should be close to
+    # should be close to the mean density of nucleotide changes
     #    divergence(...)
     counts <- as.matrix(counts)
+    # `win` is the length of the inner window
     win <- nchar(colnames(counts)[1])
-    stopifnot( length(win)>0 & win>0 )
+    stopifnot( length(win)>0 & win>0 ) # length statement catches the case that there are no colnames for counts
     # trim off windows
     xx <- substr(rownames(counts),lwin+1,lwin+win)
     yy <- colnames(counts)
-    sum.changed <- possible <- numeric(length(mutpats))
-    for (k in 1:(win-lwin+1)) {
-        for (j in seq_along(mutpats)) {
-            mutpat <- mutpats[[j]]
+    # Note that `observed` counts a change multiply if it can occur in different ways.
+    observed <- possible <- numeric(length(mutpats)) # observed and possible are each numeric vectors
+    for (j in seq_along(mutpats)) {
+        mutpat <- mutpats[[j]]
+        for (k in 1:(win-1)) {
             mx <- sapply(mutpat, function (mp) {
                     patlen <- nchar(mp[1])
-                    sum( counts[ ( substr(xx,k,k+patlen-1) == mp[1] ), ( substr(yy,k,k+patlen-1) == mp[2] ) ], ... )
+                    if ( k+patlen-1 <= win ) {
+                        sum( counts[ ( substr(xx,k,k+patlen-1) == mp[1] ), ( substr(yy,k,k+patlen-1) == mp[2] ) ], ... )
+                    } else {
+                        0
+                    }
                 } )
-            sum.changed[j] <- sum.changed[j] + sum( mx, ... )
+            observed[j] <- observed[j] + sum( mx, ... )
             px <- sapply(mutpat, function (mp) {
                     patlen <- nchar(mp[1])
-                    sum( abs(counts)[ ( substr(xx,k,k+patlen-1) == mp[1] ), ], ... )
+                    if ( k+patlen-1 <= win ) {
+                        sum( abs(counts)[ ( substr(xx,k,k+patlen-1) == mp[1] ), ], ... )
+                    } else {
+                        0
+                    }
                 } )
             possible[j] <- possible[j] + sum( px, ... )
         }
     }
-    x <- rbind(sum.changed,possible)
+    x <- rbind(observed,possible)
     colnames(x) <- mutnames(mutpats)
     return(x)
 }
@@ -102,17 +124,19 @@ gradest <- function (likfun, params, eps=mean(params)/1000) {
     # estimate gradient, crudely
     gradup <- sapply( seq_along(initpar), function (k) { likfun(initpar+ifelse(seq_along(initpar)==k,eps,0)) } )
     graddown <- sapply( seq_along(initpar), function (k) { likfun(initpar-ifelse(seq_along(initpar)==k,eps,0)) } )
-    return((gradup-graddown)/eps)
+    return((gradup-graddown)/(2*eps))
 }
 
 ###
+# functions to prepare mutation and selection matrices, and build fixation functions
 
 getmutmats <- function(mutpats,patterns,boundary=c("none","wrap")) {
-    # given mutation patterns,
-    #   which can be a list of either pairs or lists of pairs,
-    # return list of matrices with (1-based) indices of changes corresponding to mutation patterns
+    # returns i and j's indexing the generator matrix.
+    # that is, given a list of mutation patterns,
+    #   which can be either pairs or lists of pairs,
+    # return a corresponding list of matrices with (1-based) indices of changes corresponding to mutation patterns
     #   i.e. if (i,j) is a row of output[[k]], then patterns[j] can be obtained from patterns[i]
-    #   by performing the substitution from mutpats[[i]][1] -> mutpats[[i]][2]
+    #   by performing the substitution from mutpats[[k]][1] -> mutpats[[k]][2]
     #   at some location within the string.
     boundary <- match.arg(boundary)
     winlen <- nchar(patterns[1])
@@ -144,7 +168,7 @@ getmutmats <- function(mutpats,patterns,boundary=c("none","wrap")) {
 
 getselmatches <- function (selpats, patterns, boundary=c("none","wrap"), names=FALSE) {
     # selpats can be a vector or a list of vectors,
-    #  each element gets one parameter
+    #   each element gets one parameter
     # selmatches[i,j] is number of times anything in selpat[[i]] matches pattern[j]
     boundary <- match.arg(boundary)
     substrfun <- switch( boundary, wrap=wrapsubstr, none=substr )
@@ -176,6 +200,29 @@ popgen.fixfn <- function (ds,Ne,...) {
 ising.fixfn <- function (ds,...) { 1/(1+exp(-ds)) }
 
 null.fixfn <- function (...) { 1 }
+
+
+###
+# genmatrix code
+# genmatrix gives the instantaneous rate for going from patterns x -> y
+# genmatrix extends the sparse matrix class, carrying along more information.
+setClass("genmatrix", representation(muttrans="Matrix",seltrans="Matrix",mutpats="list",selpats="list",boundary="character",meanboundary="numeric",fixfn="closure"), contains = "dgCMatrix")
+
+setClass("context",
+         representation(data="Matrix",
+                        winlen="numeric",
+                        lwin="numeric",
+                        headpats="character",
+                        tailpats="character",
+                        genmatrix="genmatrix",
+                        mutrates="numeric",
+                        selcoef="numeric",
+                        params="numeric",
+                        projmatrix="Matrix",
+                        likfun="closure",
+                        optim.results="list"
+                    ),
+         validity=check.context)
 
 check.context <- function (cont) {
     return(
@@ -247,7 +294,6 @@ setMethod("nsel", signature=c(x="genmatrix"), definition=function (x) { length(x
 makegenmatrix <- function (mutpats,selpats=list(),patlen=nchar(patterns[1]),patterns=getpatterns(patlen), mutrates=rep(1,length(mutpats)),selcoef=rep(1,length(selpats)), boundary="none", fixfn=function(...){1}, ...) {
     # make the generator matrix, carrying with it the means to quickly update itself.
     #  DON'T do the diagonal, so that the updating is easier.
-    # this gives the instantaneous rate for going from patterns x -> y
     if (!is.numeric(patlen)|(missing(patlen)&missing(patterns))) { stop("need patlen or patterns") }
     if ( (length(selpats)>0 && max(sapply(unlist(selpats),nchar))>patlen) | max(sapply(unlist(mutpats),nchar))>patlen ) { stop("some patterns longer than patlen") }
     # list of matrices with indices of changes corresponding to mutation patterns
@@ -601,15 +647,6 @@ leftchanged <- function (ipatterns,fpatterns,lwin=0,win=nchar(ipatterns[0])) {
     dim(changedchars) <- c( length(ipatterns), length(fpatterns), win )
     meanpos <- rowMeans(changedchars, na.rm=TRUE, dims=2)
     return( !is.na(meanpos) & meanpos <= (win+1)/2 )
-}
-
-mutpatchanges <- function (mutpats) {
-    # return list of single-base changes for each list of patterns in mutpats
-    lapply( mutpats, function (x) { do.call(rbind, lapply( x, function (y) {
-                ysplit <- strsplit(y,'')
-                differs <- do.call("!=",ysplit)
-                cbind( ysplit[[1]][differs], ysplit[[2]][differs] )
-            } ) ) } )
 }
 
 getlikfun <- function (nmuts,nsel,genmatrix,projmatrix,const=0) {
