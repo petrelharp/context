@@ -138,6 +138,7 @@ counttrans.list <- function (lpatterns, seqlist=lapply(simseqs,"[[","finalseq"),
         for (j in rev(seq_along(ii)[-1])) { ii[j-1] <- ii[j-1] + ( ii[j] > npats[j] ) }
         ii[-1] <- 1 + ( (ii[-1]-1) %% npats[-1] )
     }
+    counts <- lapply( counts, function (x) new("tuplecounts",counts=x,lwin=lwin) )
     if (shift==0) { counts <- counts[[1]] }
     return(counts)
 }
@@ -168,6 +169,7 @@ counttrans <- function (ipatterns, fpatterns, initseq=simseqs[["initseq"]], fina
             }
         } 
     }
+    counts <- lapply( counts, function (x) new("tuplecounts",counts=x,lwin=lwin) )
     if (shift==0) { counts <- counts[[1]] }
     return(counts)
 }

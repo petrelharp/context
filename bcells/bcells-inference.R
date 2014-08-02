@@ -70,7 +70,7 @@ if (file.exists(gmfile)) {
 } else {
     stop("Can't find generator matrix in ", gmfile, " -- provide file name exactly?")
 }
-projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
+projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, win=win )
 subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE, time="gamma" )
 
 # read in counts (produced with count-paired-tuples.py)

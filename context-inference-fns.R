@@ -5,12 +5,13 @@ require(stringdist)
 # # find what directory this file is in
 frame_files <- lapply(sys.frames(), function(x) x$ofile)
 frame_files <- Filter(Negate(is.null), frame_files)
-PATH <- dirname(frame_files[[length(frame_files)]])
-# source(paste(PATH,"/expm-simple.R",sep=''))  # expAtv is faster
-source(paste(PATH,"/expAtv.R",sep=''))  # fixed upstream
-source(paste(PATH,"/gammaAtv.R",sep=''))  # fixed upstream
+.PATH <- dirname(frame_files[[length(frame_files)]])
+# source(paste(.PATH,"/expm-simple.R",sep=''))  # expAtv is faster
+source(paste(.PATH,"/expAtv.R",sep=''))  # fixed upstream
+source(paste(.PATH,"/gammaAtv.R",sep=''))  # fixed upstream
+source(paste(.PATH,"/input-output.R",sep='')) 
 
-getpatterns <- function(winlen) {
+getpatterns <- function(winlen,bases) {
     patterns <- do.call( expand.grid, rep( list(bases), winlen ) )
     return( apply(patterns,1,paste,collapse="") )
 }
@@ -31,7 +32,7 @@ getmutpats <- function(patlen,nchanges=1) {
     return( mutpats[obschanges%in%nchanges] )
 }
 
-npatterns <- function (winlen) {
+npatterns <- function (winlen,bases) {
     return( length(bases)^winlen )
 }
 
@@ -174,24 +175,7 @@ popgen.fixfn <- function (ds,Ne,...) {
 
 ising.fixfn <- function (ds,...) { 1/(1+exp(-ds)) }
 
-# genmatrix extends the sparse matrix class, carrying along more information.
-setClass("genmatrix", representation(muttrans="Matrix",seltrans="Matrix",mutpats="list",selpats="list",boundary="character",meanboundary="numeric",fixfn="closure"), contains = "dgCMatrix")
-
-setClass("context",
-         representation(data="Matrix",
-                        winlen="numeric",
-                        lwin="numeric",
-                        headpats="character",
-                        tailpats="character",
-                        genmatrix="genmatrix",
-                        mutrates="numeric",
-                        selcoef="numeric",
-                        params="numeric",
-                        projmatrix="Matrix",
-                        likfun="closure",
-                        optim.results="list"
-                    ),
-         validity=check.context)
+null.fixfn <- function (...) { 1 }
 
 check.context <- function (cont) {
     return(
@@ -205,6 +189,60 @@ check.context <- function (cont) {
         ( length(cont@selcoef) == length(cont@genmatrix@selpats) )
     )
 }
+
+# genmatrix extends the sparse matrix class, carrying along more information.
+setClass("genmatrix", representation(
+                                     muttrans="Matrix",
+                                     seltrans="Matrix",
+                                     mutpats="list",
+                                     selpats="list",
+                                     boundary="character",
+                                     fixfn="function"),
+         contains = "dgCMatrix")
+
+setClass("tuplecounts",representation(lwin="numeric",counts="Matrix"))
+setMethod("dimnames", signature=(x="tuplecounts"), definition=function (x) { dimnames(x@counts) } )
+setMethod("dimnames<-", signature=c(x="tuplecounts",value="ANY"), definition=function (x,value) { dimnames(x@counts)<-value } )
+setMethod("as.matrix", signature=(x="tuplecounts"), definition=function (x) { as.matrix(x@counts) } )
+
+setClass("context",
+         representation(data="tuplecounts",
+                        genmatrix="genmatrix",
+                        mutrates="numeric",
+                        selcoef="numeric",
+                        params="numeric",
+                        projmatrix="Matrix",
+                        likfun="function",
+                        optim.results="list"
+                    )
+         )
+setMethod("dimnames", signature=c(x="context"), definition=function (x) { dimnames(x@data) } )
+
+# We would like the likfun function to automatically have access to the stuff in the context object
+#  ... where is 'self'?!?
+# EVIL:
+setGeneric("likfun", function (x) { standardGeneric("likfun") } )
+setMethod("likfun", signature=c(x="context"), definition=function(x) { 
+          f <- x@likfun
+          environment(f) <- list2env( list(genmatrix=x@genmatrix,projmatrix=x@projmatrix), parent=globalenv())
+          return(f) } )
+
+# extract window lengths from these objects:
+setGeneric("winlen", function(x) { standardGeneric("winlen") })
+setGeneric("win", function(x) { standardGeneric("win") })
+setGeneric("lwin", function(x) { standardGeneric("lwin") })
+setMethod("winlen", signature=c(x="genmatrix"), definition=function(x) { nchar(rownames(genmatrix)[1]) } )
+setMethod("winlen", signature=c(x="tuplecounts"), definition=function(x) { nchar(rownames(x@counts)[1]) } )
+setMethod("winlen", signature=c(x="context"), definition=function(x) { winlen(context@data) } )
+setMethod("win", signature=c(x="tuplecounts"), definition=function(x) { nchar(colnames(x@counts)[1]) } )
+setMethod("win", signature=c(x="context"), definition=function(x) { win(context@data) } )
+setMethod("lwin", signature=c(x="tuplecounts"), definition=function(x) { x@lwin } )
+setMethod("lwin", signature=c(x="context"), definition=function(x) { lwin(context@data) } )
+# convenience functions
+setGeneric("nmuts", function (x) { standardGeneric("nmuts") } )
+setGeneric("nsel", function (x) { standardGeneric("nsel") } )
+setMethod("nmuts", signature=c(x="genmatrix"), definition=function (x) { length(x@mutpats) } )
+setMethod("nsel", signature=c(x="genmatrix"), definition=function (x) { length(x@selpats) } )
 
 makegenmatrix <- function (mutpats,selpats=list(),patlen=nchar(patterns[1]),patterns=getpatterns(patlen), mutrates=rep(1,length(mutpats)),selcoef=rep(1,length(selpats)), boundary="none", fixfn=function(...){1}, ...) {
     # make the generator matrix, carrying with it the means to quickly update itself.
@@ -250,8 +288,7 @@ makegenmatrix <- function (mutpats,selpats=list(),patlen=nchar(patterns[1]),patt
             mutpats=mutpats,
             selpats=selpats,
             fixfn=fixfn,
-            boundary=boundary,
-            meanboundary=meanboundary
+            boundary=boundary
         ) )
     rownames( genmatrix ) <- colnames( genmatrix ) <- patterns
     genmatrix@x <- update( genmatrix, mutrates, selcoef, ... )
@@ -265,7 +302,7 @@ update <- function (G, mutrates, selcoef, ...) {
     as.vector( G@muttrans %*% mutrates ) * fixprob
 }
 
-collapsepatmatrix <- function (ipatterns, lwin=0, rwin=nchar(ipatterns[1])-nchar(fpatterns[1])-lwin, fpatterns=getpatterns(nchar(ipatterns[1])-lwin-rwin) ) {
+collapsepatmatrix <- function (ipatterns, lwin, win=nchar(fpatterns[1]), rwin=nchar(ipatterns[1])-win-lwin, fpatterns=getpatterns(nchar(ipatterns[1])-lwin-rwin), bases ) {
     # returns a (nbases)^k x (nbases)^k-m matrix projection matrix
     # map patterns onto the shorter patterns obtained by deleting lwin characters at the start and rwin characters at the end
     patlen <- nchar(ipatterns[1])
@@ -444,7 +481,7 @@ projectcounts <- function( lwin, lcountwin, countwin, rcountwin, counts ) {
     winlen <- nchar(rownames(counts)[1])
     win <- nchar(colnames(counts)[1])
     rwin <- winlen-win-lwin
-    pcounts <- matrix(0,nrow=npatterns(lcountwin+countwin+rcountwin),ncol=npatterns(countwin))
+    pcounts <- matrix(0,nrow=npatterns(lcountwin+countwin+rcountwin,bases),ncol=npatterns(countwin,bases))
     for (k in max(0L,lwin-lcountwin):((lwin+win)-(lcountwin+countwin)+min(0L,rwin-rcountwin))) {
         lpmat <- collapsepatmatrix( ipatterns=rownames(counts), lwin=k, rwin=winlen-(k+lcountwin+countwin+rcountwin) )
         rpmat <- collapsepatmatrix( ipatterns=colnames(counts), lwin=k+lcountwin-lwin, rwin=win-(k+lcountwin-lwin+countwin) )

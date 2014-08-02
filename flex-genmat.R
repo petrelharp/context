@@ -45,7 +45,7 @@ option_list <- list(
         make_option( c("-o","--logfile"), type="character", default="", help="Direct logging output to this file. [default appends .Rout]" )
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
-if (is.null(opt$configfile)) { stop("Need a config file.") }
+if (is.null(opt$configfile) | !file.exists(opt$configfile)) { stop("Need a config file.") }
 if (is.null(opt$winlen)) { stop("Need a window length.") }
 options(error=traceback)
 

@@ -1,47 +1,85 @@
-#!/usr/bin/Rscript
-# Test inference from simulation
+#!/usr/bin/Rscript --vanilla
+require(optparse)
 
 usage <- "\
-Usage:\
-   Rscript sim-seq.R seqlen tlen\
+Simulate from the process whose parameters are given in the config file.\
+\
+The config file is a JSON file defining: \
+    bases : character vector of allowable bases \
+    initfreqs : numeric vector of frequencies of the bases at the root \
+    mutpats : list of lists of length-two character vectors of mutation patterns \
+    mutrates : numeric vector of same length as mutpats giving mutation rates per generation \
+    selpats : list of character vectors of patterns under selection (default: empty, in which case don't need the subsequent things either) \
+    selcoef : numeric vector of same length as selpats giving selection coefficients \
+    fixfn : character string giving name of the fixation function  \
+    fixparams: named list of additional parameters to pass to fixfn \
+\
+This extends the information in config files for making a generator matrix. \
 "
 
-args <- commandArgs(TRUE)
-if (length(args)<2) {
-    stop(usage)
-} else {
-    seqlen <- as.numeric(args[1])  # e.g. 1e4
-    tlen <- as.numeric(args[2]) # total length 6e7 gives lots of transitions (but still signal); 1e7 not so many
+option_list <- list(
+        make_option( c("-c","--configfile"), type="character", help="Configuration file."),
+        make_option( c("-t","--tlen"), type="numeric", help="Time to simulate for." ),
+        make_option( c("-s","--seqlen"), type="numeric", help="Number of bases to simulate." ),
+        make_option( c("-d","--outdir"), type="character", default="", help="Direct output to this directory."),
+        make_option( c("-o","--outfile"), type="character", default="", help="Direct output to this file."),
+        make_option( c("-l","--logfile"), type="character", default="", help="Direct logging output to this file. [default appends -simrun.Rout]" )
+    )
+opt <- parse_args(OptionParser(option_list=option_list,description=usage))
+if ( is.null(opt$configfile) | !file.exists(opt$configfile) |(is.null(opt$tlen) | is.null(opt$seqlen)) ) { stop("Rscript sim-cpg.R -h for help.") }
+attach(opt)
+
+source("../context-inference-fns.R")
+source("../sim-context-fns.R")
+
+require(jsonlite)
+config <- fromJSON(configfile,simplifyMatrix=FALSE)
+attach(config)
+
+# turn fixfn into an actual function
+# either by looking it up as a name
+# or parsing it directly
+if (exists("fixfn") && is.character(fixfn)) {
+    if (exists(fixfn,mode="function")) {
+        fixfn <- get(fixfn,mode="function")
+    } else {
+        fixfn <- eval(parse(text=fixfn))
+    }
 }
 
-source("context.R")
-source("sim-context-fns.R")
-source("context-inference-fns.R")
+# defaults:
+if (!exists("selpats")) { selpats <- list(); selcoef <- numeric(0); fixfn <- null.fixfn; fixfn.params=list() }
+stopifnot( 
+          ( length(bases) == length(initfreqs ) ) &&
+           ( length(mutpats) == length(mutrates) ) &&
+           ( length(selpats) == length(selcoef) )
+        )
 
-# maximum size of pattern (for simulation)
-patlen <- 2
-mutpats <- list( 
-        fwd=combn( bases, 2, simplify=FALSE ), 
-        rev=lapply( combn( bases, 2, simplify=FALSE ), rev),
-        gc=list( c("GC","TC") ) ,
-        ga=list( c("GA","CA") ) ,
-        ta=list( c("AT","GT") ) 
-    ) 
-mutrates <- runif( length(mutpats) )*1e-8
-selpats <- c( "[GC]", "[AT]" )
-selcoef <- runif( length(selpats) )*1e-3
-# other params
-Ne <- c(1e4,1e4)
-branchlens <- c(1,1)
 
-initfreqs <- c(.3,.3,.2,.2)
+# identifiers
+if (outfile == "") {
+    now <- Sys.time()
+    jobid <- formatC( floor(runif(1)*1e6) , digits=6,flag='0')
+    basename <- paste(outdir,"/","simseq-",format(now,"%Y-%m-%d-%H-%M"),"-",jobid,sep='')
+    outfile <- paste(basename,".RData",sep='')
+} else {
+    basename <- gsub(".RData","",outfile)
+}
+if (logfile=="" & !interactive()) { logfile <- paste(basename,".Rout",sep='') }
+if (!is.null(logfile)) { 
+    logcon <- if (logfile=="-") { stdout() } else { file(logfile,open="wt") }
+    sink(file=logcon, type="message") 
+    sink(file=logcon, type="output") 
+}
+
+
 initseq <- rinitseq(seqlen,bases,basefreqs=initfreqs)
 system.time( 
-        simseqs <- lapply(1:2, function (k) simseq( seqlen, tlen*branchlens[k], patlen=patlen, mutpats=mutpats, selpats=selpats, mutrates=mutrates, selcoef=selcoef, Ne=Ne[k], initseq=initseq ) ) 
+        simseqs <- list(
+                simseq( seqlen=seqlen, tlen=tlen, mutpats=mutpats, mutrates=mutrates, selpats=selpats, selcoef=selcoef, initseq=initseq, bases=bases )
+            )
     )
 
-thisone <- formatC( floor(runif(1)*1e6) , digits=6,flag='0')
-now <- format(Sys.time(), "%Y-%m-%d-%H-%M")
-save( thisone, now, patlen, mutpats, selpats, selcoef, Ne, seqlen, tlen, branchlens, initfreqs, simseqs, file=paste(now,thisone,"sims/selsims.RData",sep='') )
+save( opt, bases, mutpats, mutrates, selpats, selcoef, fixfn, seqlen, tlen, initfreqs, simseqs, file=outfile )
 
 
