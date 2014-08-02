@@ -80,6 +80,8 @@ system.time(
             )
     )
 
-save( opt, bases, mutpats, mutrates, selpats, selcoef, fixfn, seqlen, tlen, initfreqs, simseqs, file=outfile )
+simseq.opt <- opt
+
+save( simseq.opt, bases, mutpats, mutrates, selpats, selcoef, fixfn, seqlen, tlen, initfreqs, simseqs, file=outfile )
 
 

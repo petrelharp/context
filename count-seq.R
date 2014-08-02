@@ -22,23 +22,23 @@ option_list <- list(
         make_option( c("-l","--lwin"), type="integer", help="Size of offset of short window from the left."),
         make_option( c("-r","--revcounts"), action="store_true", default="FALSE", help="Count reversed?")
         )
-opt <- parse_args(OptionParser(option_list=option_list,description=usage))
-if (is.null(opt$outfile)) { outfile <- paste( gsub(".RData","",opt$infile), if(opt$revcounts){"-rev"}else{""}, ".counts", sep="") }
-attach(opt)
+countseq.opt <- parse_args(OptionParser(option_list=option_list,description=usage))
+if (is.null(countseq.opt$outfile)) { outfile <- paste( gsub(".RData","",countseq.opt$infile), if(countseq.opt$revcounts){"-rev"}else{""}, ".counts", sep="") }
+attach(countseq.opt)
 
 source("../context-inference-fns.R")
 source("../sim-context-fns.R")
 
 load(infile)
 
-longpats <- getpatterns(opt$winlen,bases)
-shortpats <- getpatterns(opt$win,bases)
+longpats <- getpatterns(countseq.opt$winlen,bases)
+shortpats <- getpatterns(countseq.opt$win,bases)
 
 # this returns a matrix
 counts <- if (revcounts) {
-    counttrans( longpats, shortpats, simseqs[[1]]$initseq, simseqs[[1]]$finalseq, lwin=opt$lwin )
+    counttrans( longpats, shortpats, simseqs[[1]]$initseq, simseqs[[1]]$finalseq, lwin=countseq.opt$lwin )
 } else {
-    counttrans( longpats, shortpats, simseqs[[1]]$finalseq, simseqs[[1]]$initseq, lwin=opt$lwin )
+    counttrans( longpats, shortpats, simseqs[[1]]$finalseq, simseqs[[1]]$initseq, lwin=countseq.opt$lwin )
 }
 
 countframe <- data.frame( reference=rownames(counts)[row(counts)], 
