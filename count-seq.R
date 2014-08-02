@@ -31,8 +31,8 @@ source("../sim-context-fns.R")
 
 load(infile)
 
-longpats <- getpatterns(winlen)
-shortpats <- getpatterns(win)
+longpats <- getpatterns(winlen,bases)
+shortpats <- getpatterns(win,bases)
 
 # this returns a matrix
 counts <- if (revcounts) {
