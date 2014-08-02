@@ -54,7 +54,7 @@ config <- fromJSON(opt$configfile,simplifyMatrix=FALSE)
 attach(c(opt,config))
 
 if (outfile=="") { 
-    outfile <- paste(dirname(configfile),"/",paste("genmatrix",winlen,gsub(".mut$","",basename(configfile)),sep="-"),".RData",sep='') 
+    outfile <- paste(dirname(configfile),"/",paste("genmatrix",winlen,gsub(".json$","",basename(configfile)),sep="-"),".RData",sep='') 
 }
 basename <- gsub(".RData",'',outfile)
 if (logfile=="" & !interactive()) { logfile <- paste(basename,"-flex-genmat.Rout",sep='') }
