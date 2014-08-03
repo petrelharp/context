@@ -7,6 +7,8 @@ frame_files <- lapply(sys.frames(), function(x) x$ofile)
 frame_files <- Filter(Negate(is.null), frame_files)
 .PATH <- dirname(frame_files[[length(frame_files)]])
 # source(paste(.PATH,"/expm-simple.R",sep=''))  # expAtv is faster
+
+.PATH <- "/home/matsen/re/context"
 source(paste(.PATH,"/expAtv.R",sep=''))  # fixed upstream
 source(paste(.PATH,"/gammaAtv.R",sep=''))  # fixed upstream
 source(paste(.PATH,"/input-output.R",sep=''))

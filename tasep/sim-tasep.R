@@ -35,9 +35,9 @@ source("../sim-context-fns.R")
 source("../context-inference-fns.R")
 
 # maximum size of pattern (for simulation)
-mutpats <- list( 
+mutpats <- list(
     list( c("XO","OX") )
-    ) 
+    )
 mutrates <- 1
 selpats <- list()
 selcoef <- numeric(0)
@@ -46,12 +46,12 @@ fixfn <- function (...) { 1 }
 
 initfreqs <- c(Xfreq,1-Xfreq)
 initseq <- rinitseq(seqlen,bases,basefreqs=initfreqs)
-system.time( 
+system.time(
         simseqs <- list(
                 simseq( seqlen=seqlen, tlen=tlen, mutpats=mutpats, mutrates=mutrates, selpats=selpats, selcoef=selcoef, initseq=initseq, bases=bases )
             )
     )
 
-save( thisone, now, bases, patlen, mutpats, mutrates, selpats, selcoef, fixfn, seqlen, tlen, initfreqs, simseqs, file=paste(simdir,"selsims-",format(now,"%Y-%m-%d-%H-%M"),"-",thisone,".RData",sep='') )
+save( thisone, now, bases, mutpats, mutrates, selpats, selcoef, fixfn, seqlen, tlen, initfreqs, simseqs, file=paste(simdir,"selsims-",format(now,"%Y-%m-%d-%H-%M"),"-",thisone,".RData",sep='') )
 
 
