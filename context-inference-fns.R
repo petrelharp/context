@@ -9,7 +9,7 @@ frame_files <- Filter(Negate(is.null), frame_files)
 # source(paste(.PATH,"/expm-simple.R",sep=''))  # expAtv is faster
 source(paste(.PATH,"/expAtv.R",sep=''))  # fixed upstream
 source(paste(.PATH,"/gammaAtv.R",sep=''))  # fixed upstream
-source(paste(.PATH,"/input-output.R",sep='')) 
+source(paste(.PATH,"/input-output.R",sep=''))
 
 getpatterns <- function(patlen,bases) {
     # construct a list of all patterns
@@ -254,7 +254,7 @@ setMethod("dimnames", signature=c(x="context"), definition=function (x) { dimnam
 #  ... where is 'self'?!?
 # EVIL:
 setGeneric("likfun", function (x) { standardGeneric("likfun") } )
-setMethod("likfun", signature=c(x="context"), definition=function(x) { 
+setMethod("likfun", signature=c(x="context"), definition=function(x) {
           f <- x@likfun
           environment(f) <- list2env( list(genmatrix=x@genmatrix,projmatrix=x@projmatrix), parent=globalenv())
           return(f) } )
