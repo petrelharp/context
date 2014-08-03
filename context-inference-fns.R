@@ -276,6 +276,16 @@ setGeneric("nsel", function (x) { standardGeneric("nsel") } )
 setMethod("nmuts", signature=c(x="genmatrix"), definition=function (x) { length(x@mutpats) } )
 setMethod("nsel", signature=c(x="genmatrix"), definition=function (x) { length(x@selpats) } )
 
+# and methods related to model fitting
+setGeneric("counts", function (x) { standardGeneric("counts") } )
+setMethod("counts", signature=c(x="context"), definition=function (x) {x@data} )
+setMethod("coef", signature=c(object="context"), definition=function (object) {
+          coef <- c( object@mutrates, object@selcoef, object@params )
+          names(coef) <- c( mutnames( object@genmatrix@mutpats ), mutnames( object@genmatrix@selpats ), names(object@params) )
+          return(coef) } )
+# setMethod("fitted", signature=c(object="context"), definition=function (object) {
+# predictcounts <- function (win, lwin=0, rwin=0, initcounts, mutrates, selcoef, mutpats, selpats, genmatrix, projmatrix, ... ) {
+
 makegenmatrix <- function (mutpats, selpats=list(), patlen=nchar(patterns[1]), patterns=getpatterns(patlen,bases), bases, mutrates=rep(1,length(mutpats)),selcoef=rep(1,length(selpats)), boundary="none", fixfn=function(...){1}, ...) {
     # make the generator matrix, carrying with it the means to quickly update itself.
     #  DON'T do the diagonal, so that the updating is easier.
