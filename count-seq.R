@@ -34,13 +34,14 @@ longpats <- getpatterns(countseq.opt$winlen,bases)
 shortpats <- getpatterns(countseq.opt$win,bases)
 
 # this returns a matrix
-counts <- if (revcounts) {
+countsobj <- if (revcounts) {
     counttrans( longpats, shortpats, simseqs[[1]]$initseq, simseqs[[1]]$finalseq, lwin=countseq.opt$lwin )
 } else {
     counttrans( longpats, shortpats, simseqs[[1]]$finalseq, simseqs[[1]]$initseq, lwin=countseq.opt$lwin )
 }
 
-countframe <- data.frame( reference=rownames(counts)[row(counts)], 
+counts <- countsobj@counts
+countframe <- data.frame( reference=rownames(counts)[row(counts)],
                          derived=colnames(counts)[col(counts)],
                          count=as.vector(counts)
                          )
