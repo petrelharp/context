@@ -13,7 +13,7 @@ source(paste(.PATH,"/gammaAtv.R",sep=''))
 source(paste(.PATH,"/input-output.R",sep=''))
 
 getpatterns <- function(patlen,bases) {
-    # construct a list of all patterns
+    # construct a list of all patterns of a given length
     patterns <- do.call( expand.grid, rep( list(bases), patlen ) )
     return( apply(patterns,1,paste,collapse="") )
 }
@@ -29,7 +29,7 @@ mutpatchanges <- function (mutpats) {
 }
 
 getmutpats <- function(bases,patlen,nchanges=1) {
-    # all kmer -> kmer changes
+    # all kmer -> kmer changes where k = `patlen`
     # that involve at most nchanges changes
     mutpats <- list()
     patterns <- getpatterns(patlen,bases)
@@ -49,6 +49,7 @@ npatterns <- function (patlen,bases) {
 }
 
 mutnames <- function (mutpats) {
+    # Stringify a list of mutpat lists.
     return( unlist( sapply( sapply( mutpats, lapply, paste, collapse="->" ), paste, collapse="|" ) ) )
 }
 
@@ -73,6 +74,7 @@ countmuts <- function (counts, mutpats, leftwin, ...) {
     #  sum the values of counts[u,v] over choices of u,v such that:
     #   (i) 'a' matches 'u' at some position
     #   (ii) in addition, 'b' matches 'v' at the same position
+    # and store in the first row
     #
     # note that if we estimate rates by
     #    r.est <- countmuts(...)[1,]/countmuts(...)[2,]
@@ -207,6 +209,9 @@ null.fixfn <- function (...) { 1 }
 # genmatrix code
 # genmatrix gives the instantaneous rate for going from patterns x -> y
 # genmatrix extends a sparse matrix class, carrying along more information.
+# it is laid out in classical Markov fashion, with the rows indexing the "from" states
+# (headpats) and columns indexing the "to" states (tailpats)
+# genmatrix extends the sparse matrix class, carrying along more information.
 
 check.context <- function (cont) {
     return(
@@ -314,6 +319,7 @@ makegenmatrix <- function (mutpats, selpats=list(), patlen=nchar(patterns[1]), p
     dgCord <- order( allmutmats$j, allmutmats$i )
     # nmutswitches is a vector with kth component equal to the number of mutations between patterns that can be induced by performing one of the substitutions in the kth mutpat.
     nmutswitches <- sapply(mutmats,NROW)
+    # muttrans: translate the mutation rates into the pattern space
     # We take these pattern mutations with repetition to be the implicit order on pattern mutations.
     # We put a 1 in every (i,j) such that i indexes a pattern mutation that happens at the jth mutpat.
     muttrans <- dgTtodgC( new( "dgTMatrix", i=1:sum(nmutswitches)-1L, j=rep(seq_along(mutrates),times=nmutswitches)-1L, x=rep(1,sum(nmutswitches)), Dim=c(sum(nmutswitches),length(mutrates)) ) )
@@ -363,8 +369,10 @@ update <- function (G, mutrates, selcoef, ...) {
 }
 
 collapsepatmatrix <- function (ipatterns, leftwin, shortwin=nchar(fpatterns[1]), rightwin=nchar(ipatterns[1])-shortwin-leftwin, fpatterns=getpatterns(nchar(ipatterns[1])-leftwin-rightwin,bases), bases ) {
-    # returns a (nbases)^k x (nbases)^k-m matrix projection matrix
-    # map patterns onto the shorter patterns obtained by deleting leftwin characters at the start and rightwin characters at the end
+    # ipatterns are the "input" patterns, while fpatterns are the "projected" patterns
+    # returns a (nbases)^k by (nbases)^{k-lwin-rwin} matrix projection matrix
+    # mapping patterns onto the shorter patterns obtained by deleting lwin characters at the start and rwin characters at the end
+    # assumes that all input patterns are the same length
     patlen <- nchar(ipatterns[1])
     shortwin <- patlen - leftwin - rightwin
     stopifnot(shortwin>0)
@@ -383,7 +391,9 @@ meangenmatrix <- function (leftwin,rightwin,patlen,...) {
         return(genmat)
     }
     projmat <- collapsepatmatrix(ipatterns=rownames(genmat),leftwin=leftwin,rightwin=rightwin, bases=genmatrix@bases)  # this is P
-    meanmat <- t( sweep( projmat, 2, colSums(projmat), "/" ) )  # this is M
+    # Divide entries by column sums, then transpose. Makes M, which is now has rows indexed by
+    # the short version and columns the usual one.
+    meanmat <- t( sweep( projmat, 2, colSums(projmat), "/" ) )
     pgenmat <- meanmat %*% genmat %*% projmat   # this is H = M G P
     ii <- pgenmat@i
     jj <- rep(1:ncol(pgenmat),times=diff(pgenmat@p)) - 1L
@@ -401,7 +411,7 @@ meangenmatrix <- function (leftwin,rightwin,patlen,...) {
     # pnonz <- t( apply( ij.H, 1, function (ij) { meanmat[ij[1],ij.G[,"i"]] * projmat[ij.G[,"j"],ij[2]] } ) )
     pp <- sapply( 0:ncol(pgenmat), function(k) sum(jj[nondiag]<k) )
     meangenmat <- new( "genmatrix", i=ii[nondiag], p=pp, x=pgenmat@x[nondiag], Dim=pgenmat@Dim, Dimnames=pgenmat@Dimnames,
-        muttrans = (pnonz %*% genmat@muttrans), seltrans = (pnonz %*% genmat@seltrans), 
+        muttrans = (pnonz %*% genmat@muttrans), seltrans = (pnonz %*% genmat@seltrans),
         bases=pgenmat@bases, mutpats=pgenmat@mutpats, selpats=pgenmat@selpats,
         boundary=pgenmat@boundary, fixfn=pgenmat@fixfn
         )
@@ -528,7 +538,7 @@ predictcounts.context <- function (model, longwin=NULL, shortwin=NULL, leftwin=N
     if (is.null(longwin)) { longwin <- longwin(model) }
     if (is.null(shortwin)) { shortwin <- shortwin(model) }
     if (is.null(leftwin)) { leftwin <- leftwin(model) }
-    if (!missing(genmatrix) && missing(projmatrix)) { 
+    if (!missing(genmatrix) && missing(projmatrix)) {
         projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, fpatterns=getpatterns(shortwin,genmatrix@bases) )
     }
     predictcounts(longwin,shortwin,leftwin,initcounts,mutrates,selcoef,genmatrix,projmatrix)
@@ -554,8 +564,8 @@ projectcounts <- function( counts, lcountwin, countwin, rcountwin ) {
     longwin <- longwin(counts)
     shortwin <- shortwin(counts)
     rightwin <- longwin-shortwin-leftwin
-    if ( max(0L,leftwin-lcountwin) > (leftwin+shortwin)-(lcountwin+countwin)+min(0L,rightwin-rcountwin) ) { 
-        stop("unreconcilable windows specified.") 
+    if ( max(0L,leftwin-lcountwin) > (leftwin+shortwin)-(lcountwin+countwin)+min(0L,rightwin-rcountwin) ) {
+        stop("unreconcilable windows specified.")
     }
     pcounts <- matrix(0,nrow=npatterns(lcountwin+countwin+rcountwin,counts@bases),ncol=npatterns(countwin,counts@bases))
     for (k in max(0L,leftwin-lcountwin):((leftwin+shortwin)-(lcountwin+countwin)+min(0L,rightwin-rcountwin))) {

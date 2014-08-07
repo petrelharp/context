@@ -284,8 +284,9 @@ This paper proposes an alternate strategy.
 
 First, it will be useful for later proofs to have an explicit construction of the process,
 also used for simulation,
-using a variant of the ``jump chain representation''.
-Briefly, this \todo{This is called the Gillespie algorithm, right?} works by first sampling a homogeneous Poisson process of times and locations of possible changes,
+using a variant of the ``jump chain representation'', also known as the ``Gillespie algorithm.''
+.
+Briefly, this  works by first sampling a homogeneous Poisson process of times and locations of possible changes,
 at an appropriate rate $\mu_*$ per site,
 and then resolving each possible change in temporal order.
 The rate $\mu_*$ should be the maximum ``local'' rate at which transitions occur, across sites and transition outcome states:
@@ -444,10 +445,6 @@ Similarly, if $(x_1,y_1) \neq (x_2,y_2)$ then
 
 %%%%
 \subsection{A likelihood function}
-
-\todo[inline]{In this section I believe that we are talking about the full likelihood, rather than the likelihood of just non-overlapping windows of the data.
-I'm also a little confused about "choosing" a subset of patterns.
-These pattern choices are determining our model?}
 
 The covariance calculations show that
 if $p_{\ell,m}(x,y)$ is small enough (i.e.\ the pattern is not common),

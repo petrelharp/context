@@ -4,7 +4,7 @@ An object of class 'context' is the result of fitting a 'model' to some 'data'.
 It should therefore carry around:
 - 'data' : an object of class 'tuplecounts' giving numbers of observed paired tuples
 - 'genmatrix' : an object of class 'genmatrix' with rows and columns indexed by 'headpats' (in the same order)
-- 'mutrates' : instaneous rates corresponding to 'genmatrix@mutpats'
+- 'mutrates' : instantaneous rates corresponding to 'genmatrix@mutpats'
 - 'selcoef' : selection coefficients corresponding to 'genmatrix@selpats'
 - 'params' : other parameters (branch lengths, arguments to fixfn, etc)
 - 'projmatrix' : a (projection) matrix with rows indexed by 'headpats' and columns indexed by 'tailpats'
@@ -25,7 +25,7 @@ and even more usefully,
 Note that by default 'fitted(model)' predicts counts for the pattern lengths used to fit the model, but by passing other parameters, you can obtain predicted counts for other pattern lengths (but note: must pass in a new 'genmatrix').  The same goes for 'residuals(model)', but for patterns longer than those initially used, you must pass in the observed counts.
 
 An object of class 'tuplecounts' is a matrix of counts of paired tuples, that additionally carries:
-- 'counts' : a Matrix of counts 
+- 'counts' : a Matrix of counts
 - 'lwin' : an integer giving the offset that aligns rownames(counts) with colnames(counts)
 
 
