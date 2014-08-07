@@ -38,8 +38,8 @@ getmutpats <- function(patlen,nchanges=1) {
         kmers <- getpatterns(k,bases)
         mutpats <- c( mutpats,
                 apply(combn(kmers,2),2,list), # make lists of rows (2 = apply over columns), giving 2-element lists of kmers
-                apply(combn(kmers,2)[2:1,],2,list) # and the reverse of the 2-element lists
-            )
+                apply(combn(kmers,2)[2:1,,drop=FALSE],2,list) # and the reverse of the 2-element lists
+                )
     }
     obschanges <- sapply(mutpatchanges(mutpats),nrow)
     return( mutpats[obschanges%in%nchanges] )
