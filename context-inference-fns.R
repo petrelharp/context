@@ -54,17 +54,17 @@ mutnames <- function (mutpats) {
 ###
 # Point estimates
 
-divergence <- function (counts, lwin) {
+divergence <- function (counts, leftwin) {
     # mean density of nucleotide differences
     require(stringdist) # http://www.inside-r.org/packages/cran/stringdist/docs/stringdist
     patlen <- nchar(colnames(counts)[1])
-    nchanges <- stringdistmatrix( substr(rownames(counts),lwin+1,lwin+patlen), colnames(counts), method="hamming" )
+    nchanges <- stringdistmatrix( substr(rownames(counts),leftwin+1,leftwin+patlen), colnames(counts), method="hamming" )
     return( sum(nchanges*counts)/(sum(counts)*patlen) )
 }
 
-countmuts <- function (counts, mutpats, lwin, ...) {
+countmuts <- function (counts, mutpats, leftwin, ...) {
     # given a contingency table of kmer changes from data, a collection of
-    # mutation patterns, the lwin, and a list of arguments to `sum`, this function
+    # mutation patterns, the leftwin, and a list of arguments to `sum`, this function
     # returns a matrix, the first row of which gives counts of how many of these could be produced by each of mutpats
     #   and the second of which gives the number of "from" matches of the mutpats (called the "total possible").
     #
@@ -80,20 +80,20 @@ countmuts <- function (counts, mutpats, lwin, ...) {
     # should be close to the mean density of nucleotide changes
     #    divergence(...)
     counts <- as.matrix(counts)
-    # `win` is the length of the inner window
-    win <- nchar(colnames(counts)[1])
-    stopifnot( length(win)>0 & win>0 ) # length statement catches the case that there are no colnames for counts
+    # `shortwin` is the length of the inner window
+    shortwin <- nchar(colnames(counts)[1])
+    stopifnot( length(shortwin)>0 & shortwin>0 ) # length statement catches the case that there are no colnames for counts
     # trim off windows
-    xx <- substr(rownames(counts),lwin+1,lwin+win)
+    xx <- substr(rownames(counts),leftwin+1,leftwin+shortwin)
     yy <- colnames(counts)
     # Note that `observed` counts a change multiply if it can occur in different ways.
     observed <- possible <- numeric(length(mutpats)) # observed and possible are each numeric vectors
     for (j in seq_along(mutpats)) {
         mutpat <- mutpats[[j]]
-        for (k in 1:(win-1)) {
+        for (k in 1:(shortwin-1)) {
             mx <- sapply(mutpat, function (mp) {
                     patlen <- nchar(mp[1])
-                    if ( k+patlen-1 <= win ) {
+                    if ( k+patlen-1 <= shortwin ) {
                         sum( counts[ ( substr(xx,k,k+patlen-1) == mp[1] ), ( substr(yy,k,k+patlen-1) == mp[2] ) ], ... )
                     } else {
                         0
@@ -102,7 +102,7 @@ countmuts <- function (counts, mutpats, lwin, ...) {
             observed[j] <- observed[j] + sum( mx, ... )
             px <- sapply(mutpat, function (mp) {
                     patlen <- nchar(mp[1])
-                    if ( k+patlen-1 <= win ) {
+                    if ( k+patlen-1 <= shortwin ) {
                         sum( abs(counts)[ ( substr(xx,k,k+patlen-1) == mp[1] ), ], ... )
                     } else {
                         0
@@ -139,7 +139,7 @@ getmutmats <- function(mutpats,patterns,boundary=c("none","wrap")) {
     #   by performing the substitution from mutpats[[k]][1] -> mutpats[[k]][2]
     #   at some location within the string.
     boundary <- match.arg(boundary)
-    winlen <- nchar(patterns[1])
+    longwin <- nchar(patterns[1])
     mutpats <- lapply( mutpats, function (x) { if (is.list(x)) { x } else { list(x) } } )
     lapply( mutpats, function (y) {  # y is list of short pattern pairs
             do.call( rbind, lapply(y, function (x) {  # x is short pattern pair (from, to)
@@ -147,12 +147,12 @@ getmutmats <- function(mutpats,patterns,boundary=c("none","wrap")) {
                 switch( boundary,
                     wrap={ # patterns are circular
                         wpatterns <- paste( patterns, substr(patterns,1,patlen), sep='' )
-                        maxshift <- winlen
+                        maxshift <- longwin
                         subsfun <- function (pat,topat,k) { wrapsubstr( pat, k, k+patlen-1 ) <- topat; return(pat) }
                     },
                     none={
                         wpatterns <- patterns
-                        maxshift <- winlen-patlen+1
+                        maxshift <- longwin-patlen+1
                         subsfun <- function (pat,topat,k) { substr( pat, k, k+patlen-1 ) <- topat; return(pat) }
                     }
                 )
@@ -212,8 +212,8 @@ check.context <- function (cont) {
         all( rownames(cont@genmatrix) == cont@headpats ) &
         all( rownames(cont@projmatrix) == cont@headpats ) &
         all( colnames(cont@projmatrix) == cont@tailpats ) &
-        all( nchar(cont@headpats) == cont@winlen ) &
-        all( nchar(cont@tailpats) + cont@lwin <= cont@winlen ) &
+        all( nchar(cont@headpats) == cont@longwin ) &
+        all( nchar(cont@tailpats) + cont@leftwin <= cont@longwin ) &
         all( dim(cont@data) == dim(cont@projmatrix) ) &
         ( length(cont@mutrates) == length(cont@genmatrix@mutpats) ) &
         ( length(cont@selcoef) == length(cont@genmatrix@selpats) )
@@ -230,7 +230,7 @@ setClass("genmatrix", representation(
                                      fixfn="function"),
          contains = "dgCMatrix")
 
-setClass("tuplecounts",representation(lwin="numeric",counts="Matrix"))
+setClass("tuplecounts",representation(leftwin="numeric",counts="Matrix"))
 setMethod("dim", signature=(x="tuplecounts"), definition=function (x) { dim(x@counts) } )
 setMethod("dimnames", signature=(x="tuplecounts"), definition=function (x) { dimnames(x@counts) } )
 setMethod("dimnames<-", signature=c(x="tuplecounts",value="ANY"), definition=function (x,value) { dimnames(x@counts)<-value } )
@@ -260,16 +260,16 @@ setMethod("likfun", signature=c(x="context"), definition=function(x) {
           return(f) } )
 
 # extract window lengths from these objects:
-setGeneric("winlen", function(x) { standardGeneric("winlen") })
-setGeneric("win", function(x) { standardGeneric("win") })
-setGeneric("lwin", function(x) { standardGeneric("lwin") })
-setMethod("winlen", signature=c(x="genmatrix"), definition=function(x) { nchar(rownames(genmatrix)[1]) } )
-setMethod("winlen", signature=c(x="tuplecounts"), definition=function(x) { nchar(rownames(x@counts)[1]) } )
-setMethod("winlen", signature=c(x="context"), definition=function(x) { winlen(context@data) } )
-setMethod("win", signature=c(x="tuplecounts"), definition=function(x) { nchar(colnames(x@counts)[1]) } )
-setMethod("win", signature=c(x="context"), definition=function(x) { win(context@data) } )
-setMethod("lwin", signature=c(x="tuplecounts"), definition=function(x) { x@lwin } )
-setMethod("lwin", signature=c(x="context"), definition=function(x) { lwin(context@data) } )
+setGeneric("longwin", function(x) { standardGeneric("longwin") })
+setGeneric("shortwin", function(x) { standardGeneric("shortwin") })
+setGeneric("leftwin", function(x) { standardGeneric("leftwin") })
+setMethod("longwin", signature=c(x="genmatrix"), definition=function(x) { nchar(rownames(genmatrix)[1]) } )
+setMethod("longwin", signature=c(x="tuplecounts"), definition=function(x) { nchar(rownames(x@counts)[1]) } )
+setMethod("longwin", signature=c(x="context"), definition=function(x) { longwin(context@data) } )
+setMethod("shortwin", signature=c(x="tuplecounts"), definition=function(x) { nchar(colnames(x@counts)[1]) } )
+setMethod("shortwin", signature=c(x="context"), definition=function(x) { shortwin(context@data) } )
+setMethod("leftwin", signature=c(x="tuplecounts"), definition=function(x) { x@leftwin } )
+setMethod("leftwin", signature=c(x="context"), definition=function(x) { leftwin(context@data) } )
 # convenience functions
 setGeneric("nmuts", function (x) { standardGeneric("nmuts") } )
 setGeneric("nsel", function (x) { standardGeneric("nsel") } )
@@ -284,7 +284,7 @@ setMethod("coef", signature=c(object="context"), definition=function (object) {
           names(coef) <- c( mutnames( object@genmatrix@mutpats ), mutnames( object@genmatrix@selpats ), names(object@params) )
           return(coef) } )
 # setMethod("fitted", signature=c(object="context"), definition=function (object) {
-# predictcounts <- function (win, lwin=0, rwin=0, initcounts, mutrates, selcoef, mutpats, selpats, genmatrix, projmatrix, ... ) {
+# predictcounts <- function (shortwin, leftwin=0, rightwin=0, initcounts, mutrates, selcoef, mutpats, selpats, genmatrix, projmatrix, ... ) {
 
 makegenmatrix <- function (mutpats, selpats=list(), patlen=nchar(patterns[1]), patterns=getpatterns(patlen,bases), bases, mutrates=rep(1,length(mutpats)),selcoef=rep(1,length(selpats)), boundary="none", fixfn=function(...){1}, ...) {
     # make the generator matrix, carrying with it the means to quickly update itself.
@@ -343,27 +343,27 @@ update <- function (G, mutrates, selcoef, ...) {
     as.vector( G@muttrans %*% mutrates ) * fixprob
 }
 
-collapsepatmatrix <- function (ipatterns, lwin, win=nchar(fpatterns[1]), rwin=nchar(ipatterns[1])-win-lwin, fpatterns=getpatterns(nchar(ipatterns[1])-lwin-rwin), bases ) {
+collapsepatmatrix <- function (ipatterns, leftwin, shortwin=nchar(fpatterns[1]), rightwin=nchar(ipatterns[1])-shortwin-leftwin, fpatterns=getpatterns(nchar(ipatterns[1])-leftwin-rightwin), bases ) {
     # returns a (nbases)^k x (nbases)^k-m matrix projection matrix
-    # map patterns onto the shorter patterns obtained by deleting lwin characters at the start and rwin characters at the end
+    # map patterns onto the shorter patterns obtained by deleting leftwin characters at the start and rightwin characters at the end
     patlen <- nchar(ipatterns[1])
-    win <- patlen - lwin - rwin
-    stopifnot(win>0)
-    matchpats <- match( substr(ipatterns,lwin+1L,lwin+win), fpatterns )
+    shortwin <- patlen - leftwin - rightwin
+    stopifnot(shortwin>0)
+    matchpats <- match( substr(ipatterns,leftwin+1L,leftwin+shortwin), fpatterns )
     matchmatrix <- new( "dgTMatrix", i=(seq_along(ipatterns)-1L), j=(matchpats-1L), x=rep(1,length(ipatterns)), Dim=c(length(ipatterns),length(fpatterns)) )
     rownames(matchmatrix) <- ipatterns
     colnames(matchmatrix) <- fpatterns
     return( matchmatrix )
 }
 
-meangenmatrix <- function (lwin,rwin,patlen,...) {
+meangenmatrix <- function (leftwin,rightwin,patlen,...) {
     # create a generator matrix that averages over possible adjacent states
-    longpatlen <- patlen+lwin+rwin
+    longpatlen <- patlen+leftwin+rightwin
     genmat <- makegenmatrix(...,patlen=longpatlen)  # this is G
     if (longpatlen == patlen) {  # no need to do anything else...
         return(genmat)
     }
-    projmat <- collapsepatmatrix(ipatterns=rownames(genmat),lwin=lwin,rwin=rwin)  # this is P
+    projmat <- collapsepatmatrix(ipatterns=rownames(genmat),leftwin=leftwin,rightwin=rightwin)  # this is P
     meanmat <- t( sweep( projmat, 2, colSums(projmat), "/" ) )  # this is M
     pgenmat <- meanmat %*% genmat %*% projmat   # this is H = M G P
     ii <- pgenmat@i
@@ -502,41 +502,41 @@ reverse.complement <- function (mutpats) {
 ###
 #
 
-predictcounts <- function (win, lwin=0, rwin=0, initcounts, mutrates, selcoef, mutpats, selpats, genmatrix, projmatrix, ... ) {
+predictcounts <- function (shortwin, leftwin=0, rightwin=0, initcounts, mutrates, selcoef, mutpats, selpats, genmatrix, projmatrix, ... ) {
     # Compute expected counts of paired patterns:
-    winlen <- lwin+win+rwin
-    if (missing(genmatrix)) { genmatrix <- makegenmatrix(patlen=lwin+win+rwin,mutpats=mutpats,selpats=selpats, ...) }
+    longwin <- leftwin+shortwin+rightwin
+    if (missing(genmatrix)) { genmatrix <- makegenmatrix(patlen=leftwin+shortwin+rightwin,mutpats=mutpats,selpats=selpats, ...) }
     if (!missing(mutrates)|!missing(selcoef)) { genmatrix@x <- update(genmatrix,mutrates=mutrates,selcoef=selcoef,...) }
-    if (missing(projmatrix)) { projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin ) }
+    if (missing(projmatrix)) { projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, rightwin=rightwin ) }
     subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE, ... )
     if (missing(initcounts)) { initcounts <- 1 }
     fullcounts <- initcounts * subtransmatrix
     return( fullcounts )
 }
 
-projectcounts <- function( lwin, lcountwin, countwin, rcountwin, counts ) {
+projectcounts <- function( leftwin, lcountwin, countwin, rcountwin, counts ) {
     # collapse: valid shift ranges is
     #  (l-lc)^+ <= k < (l+w)-(lc+wc)+(r-rc)^-
-    #  using counts for (lwin,win,rwin) compute counts for (lcountwin,countwin,rcountwin).
-    if ( max(0L,lwin-lcountwin) > (lwin+win)-(lcountwin+countwin)+min(0L,rwin-rcountwin) ) { stop("unreconcilable windows specified.") }
-    winlen <- nchar(rownames(counts)[1])
-    win <- nchar(colnames(counts)[1])
-    rwin <- winlen-win-lwin
+    #  using counts for (leftwin,shortwin,rightwin) compute counts for (lcountwin,countwin,rcountwin).
+    if ( max(0L,leftwin-lcountwin) > (leftwin+shortwin)-(lcountwin+countwin)+min(0L,rightwin-rcountwin) ) { stop("unreconcilable windows specified.") }
+    longwin <- nchar(rownames(counts)[1])
+    shortwin <- nchar(colnames(counts)[1])
+    rightwin <- longwin-shortwin-leftwin
     pcounts <- matrix(0,nrow=npatterns(lcountwin+countwin+rcountwin,bases),ncol=npatterns(countwin,bases))
-    for (k in max(0L,lwin-lcountwin):((lwin+win)-(lcountwin+countwin)+min(0L,rwin-rcountwin))) {
-        lpmat <- collapsepatmatrix( ipatterns=rownames(counts), lwin=k, rwin=winlen-(k+lcountwin+countwin+rcountwin) )
-        rpmat <- collapsepatmatrix( ipatterns=colnames(counts), lwin=k+lcountwin-lwin, rwin=win-(k+lcountwin-lwin+countwin) )
+    for (k in max(0L,leftwin-lcountwin):((leftwin+shortwin)-(lcountwin+countwin)+min(0L,rightwin-rcountwin))) {
+        lpmat <- collapsepatmatrix( ipatterns=rownames(counts), leftwin=k, rightwin=longwin-(k+lcountwin+countwin+rcountwin) )
+        rpmat <- collapsepatmatrix( ipatterns=colnames(counts), leftwin=k+lcountwin-leftwin, rightwin=shortwin-(k+lcountwin-leftwin+countwin) )
         pcounts <- pcounts + t(lpmat) %*% counts %*% (rpmat)
     }
     dimnames(pcounts) <- list( colnames(lpmat), colnames(rpmat) )
     return(pcounts)
 }
 
-predicttreecounts <- function (win, lwin=0, rwin=0, initcounts, mutrates, selcoef, mutpats, selpats, tlens, genmatrix, projmatrix, initfreqs, patcomp, ... ) {
+predicttreecounts <- function (shortwin, leftwin=0, rightwin=0, initcounts, mutrates, selcoef, mutpats, selpats, tlens, genmatrix, projmatrix, initfreqs, patcomp, ... ) {
     # Compute expected counts of paired patterns:
-    winlen <- lwin+win+rwin
-    if (missing(genmatrix)) { genmatrix <- makegenmatrix(patlen=lwin+win+rwin,mutpats=mutpats,selpats=selpats, ...) }
-    if (missing(projmatrix)) { projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin ) }
+    longwin <- leftwin+shortwin+rightwin
+    if (missing(genmatrix)) { genmatrix <- makegenmatrix(patlen=leftwin+shortwin+rightwin,mutpats=mutpats,selpats=selpats, ...) }
+    if (missing(projmatrix)) { projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, rightwin=rightwin ) }
     if (missing(patcomp) & !is.null(names(initfreqs))) {
         patcomp <- apply( do.call(rbind, strsplit(rownames(genmatrix),'') ), 2, match, names(initfreqs) )  # which base is at each position in each pattern
     }
@@ -553,7 +553,7 @@ predicttreecounts <- function (win, lwin=0, rwin=0, initcounts, mutrates, selcoe
 ###
 # stuff for looking at residuals and finding motifs there
 
-listresids <- function (counts, expected, file, trim=20, lwin=(nchar(rownames(counts)[1])-nchar(colnames(counts)[1]))/2) {
+listresids <- function (counts, expected, file, trim=20, leftwin=(nchar(rownames(counts)[1])-nchar(colnames(counts)[1]))/2) {
     # make a readable output ordered by z-score
     #  optionally writing results out to 'file'
     #  and trimming to only patterns with z-score above 'trim'
@@ -562,8 +562,8 @@ listresids <- function (counts, expected, file, trim=20, lwin=(nchar(rownames(co
                          observed=as.vector(counts),
                          expected=as.vector(expected),
                     resid=as.vector(counts-expected) )
-    winlen <- nchar(rownames(counts)[1])
-    resids$inpat <- with(resids, paste( tolower(substr(inpat,1,lwin)), substr(inpat,lwin+1,winlen-lwin), tolower(substr(inpat,winlen-lwin+1,winlen)), sep='' ) )
+    longwin <- nchar(rownames(counts)[1])
+    resids$inpat <- with(resids, paste( tolower(substr(inpat,1,leftwin)), substr(inpat,leftwin+1,longwin-leftwin), tolower(substr(inpat,longwin-leftwin+1,longwin)), sep='' ) )
     resids$outpat <- paste(resids$outpat)
     resids$z <- resids$resid/sqrt(as.vector(expected))
     if (is.numeric(trim)) { resids <- subset( resids, is.numeric(resids$z) & (abs(resids$z) > trim) ) }
@@ -582,8 +582,8 @@ clusterresids <- function (resids,npats=300,nclusts=12) {
             resids$z <- resids$z * sign
             trim <- quantile((resids$z[is.finite(resids$z)]),1-npats/sum(is.finite(resids$z)))
             resids <- subset(resids, is.finite(z) & z>trim )
-            winlen <- nchar(resids$inpat[1])
-            win <- nchar(resids$outpat[1])
+            longwin <- nchar(resids$inpat[1])
+            shortwin <- nchar(resids$outpat[1])
             pats <- paste(resids$inpat,resids$outpat,sep="")
             # 10 secs for 3000x3000
             sdists <- stringdistmatrix(pats,pats,method="hamming")
@@ -628,20 +628,20 @@ print.motif <- function (pats,weights=1,n=24,print=TRUE,long=FALSE) {
 
 ## other stuff
 
-whichchanged <- function (ipatterns,fpatterns,lwin=0,win=nchar(ipatterns[0])) {
+whichchanged <- function (ipatterns,fpatterns,leftwin=0,shortwin=nchar(ipatterns[0])) {
     # return indicator corresponding to entries of output of gettransmatrix that have changed
     if (!is.null(dimnames(ipatterns))) { fpatterns <- colnames(ipatterns); ipatterns <- rownames(ipatterns) }
-    return( outer( ipatterns, fpatterns, function (x,y) { substr(x,lwin+1,lwin+win)!=y } ) )
+    return( outer( ipatterns, fpatterns, function (x,y) { substr(x,leftwin+1,leftwin+shortwin)!=y } ) )
 }
 
-leftchanged <- function (ipatterns,fpatterns,lwin=0,win=nchar(ipatterns[0])) {
+leftchanged <- function (ipatterns,fpatterns,leftwin=0,shortwin=nchar(ipatterns[0])) {
     # return indicator corresponding to whether average of changed positions is left of middle
     # ... any two such patterns, if they overlap, require an additional change.
     if (!is.null(dimnames(ipatterns))) { fpatterns <- colnames(ipatterns); ipatterns <- rownames(ipatterns) }
-    changedchars <- sapply( 1:win, function (k) outer( ipatterns, fpatterns, function (x,y) { ifelse( substr(x,lwin+k,lwin+k)!=substr(y,k,k), k, NA ) } ) )
-    dim(changedchars) <- c( length(ipatterns), length(fpatterns), win )
+    changedchars <- sapply( 1:shortwin, function (k) outer( ipatterns, fpatterns, function (x,y) { ifelse( substr(x,leftwin+k,leftwin+k)!=substr(y,k,k), k, NA ) } ) )
+    dim(changedchars) <- c( length(ipatterns), length(fpatterns), shortwin )
     meanpos <- rowMeans(changedchars, na.rm=TRUE, dims=2)
-    return( !is.na(meanpos) & meanpos <= (win+1)/2 )
+    return( !is.na(meanpos) & meanpos <= (shortwin+1)/2 )
 }
 
 getlikfun <- function (nmuts,nsel,genmatrix,projmatrix,const=0) {
@@ -705,13 +705,13 @@ regexplen <- function (xx) {
     } )
 }
 
-gettransmatrix <- function (mutpats, mutrates, selpats, selcoef, Ne, tlen=1, win, lwin=0, rwin=0, expm=expm.poisson, ... ) {
-    # get reduced transition matrix: given (lwin, win, rwin) context, return probability of pattern in win
+gettransmatrix <- function (mutpats, mutrates, selpats, selcoef, Ne, tlen=1, shortwin, leftwin=0, rightwin=0, expm=expm.poisson, ... ) {
+    # get reduced transition matrix: given (leftwin, shortwin, rightwin) context, return probability of pattern in shortwin
     #   note: alternative is expm=expm::expm(x,method="Higham08")
-    winlen <- lwin+win+rwin
-    fullgenmatrix <- makegenmatrix( mutpats, selpats, patlen=winlen,...)
+    longwin <- leftwin+shortwin+rightwin
+    fullgenmatrix <- makegenmatrix( mutpats, selpats, patlen=longwin,...)
     fullgenmatrix@x <- update(fullgenmatrix,mutrates,selcoef,Ne)
-    projmatrix <- collapsepatmatrix( ipatterns=rownames(fullgenmatrix), lwin=lwin, rwin=rwin )
+    projmatrix <- collapsepatmatrix( ipatterns=rownames(fullgenmatrix), leftwin=leftwin, rightwin=rightwin )
     subtransmatrix <- computetransmatrix( genmatrix, tlen, projmatrix, names=TRUE )
     # transmatrix <- expm( tlen * (fullgenmatrix-Diagonal(nrow(fullgenmatrix),rowSums(fullgenmatrix))) )  # exponentiate
     # subtransmatrix <- transmatrix %*% projmatrix        # collapse

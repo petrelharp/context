@@ -10,7 +10,7 @@ option_list <- list(
         make_option( c("-i","--infile"), type="character", help="Input file with tuple counts, tab-separated, with header 'reference', 'derived', 'count'. [default, looks in basedir]" ),
         make_option( c("-o","--outfile"), type="character", help="File to save results to.  [default: like infile, but with unique suffix]."),
         make_option( c("-u","--basedir"), type="character", default=NULL, help="Directory to put output in. [default: same as infile]"),
-        make_option( c("-l","--lwin"), type="integer", help="Size of left-hand context." ),
+        make_option( c("-l","--leftwin"), type="integer", help="Size of left-hand context." ),
         make_option( c("-m","--gmfile"), type="character", default="TRUE", help="File with precomputed generator matrix, or TRUE [default] to look for one. (otherwise, will compute)"),
         make_option( c("-x","--maxit"), type="integer", default=100, help="Number of iterations of optimization to run for. [default=%default]"),
         make_option( c("-j","--jobid"), type="character", default=formatC(1e6*runif(1),width=6,format="d",flag="0"), help="Unique job id. [default random]")
@@ -28,7 +28,7 @@ source("../context-inference-fns.R")
 attach(opt)
 if (interactive()) {
     opt$infile <- "simseqs/simseq-2014-08-01-14-18-0169113.counts"
-    opt$lwin <- 1
+    opt$leftwin <- 1
     opt$gmfile <- "genmatrices/genmatrix-4-singlebase.RData"
     opt$maxit <- 2
 }
@@ -38,13 +38,13 @@ stopifnot(file.exists(gmfile))
 load(gmfile)  # provides 'genmatrix'
 
 # read in counts
-counts <- read.counts(infile,opt$lwin)
+counts <- read.counts(infile,opt$leftwin)
 stopifnot( all( rownames(counts) == rownames(genmatrix) ) )
 
-projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin(counts), fpatterns=colnames(counts) )
+projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin(counts), fpatterns=colnames(counts) )
 
 # get ad hoc initial guesses at parameters
-adhoc <- countmuts(counts=counts,mutpats=mutpats,lwin=lwin(counts))
+adhoc <- countmuts(counts=counts,mutpats=mutpats,leftwin=leftwin(counts))
 adhoc.mutrates <- adhoc[1,]/adhoc[2,]
 adhoc.mutrates <- ifelse( is.finite(adhoc.mutrates) & adhoc.mutrates > 0, adhoc.mutrates, 1e-4 )
 
