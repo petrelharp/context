@@ -8,9 +8,9 @@ Infer parameters from output of sim-tree-cpg.R .\
 option_list <- list(
         make_option( c("-i","--infile"), type="character", default="mtCDNApri-sub.nuc", help=".nuc file with data. [default \"%default\"]"),
         make_option( c("-f","--basedir"), type="character", default="", help="Directory for output. [default infile with suffix removed]"),
-        make_option( c("-w","--win"), type="integer", default=2, help="Size of matching window. [default \"%default\"]" ),
-        make_option( c("-l","--lwin"), type="integer", default=1, help="Size of left-hand context. [default \"%default\"]" ),
-        make_option( c("-r","--rwin"), type="integer", default=1, help="Size of left-hand context. [default \"%default\"]" ),
+        make_option( c("-w","--shortwin"), type="integer", default=2, help="Size of matching window. [default \"%default\"]" ),
+        make_option( c("-l","--leftwin"), type="integer", default=1, help="Size of left-hand context. [default \"%default\"]" ),
+        make_option( c("-r","--rightwin"), type="integer", default=1, help="Size of left-hand context. [default \"%default\"]" ),
         make_option( c("-x","--maxit"), type="integer", default=0, help="Maximum number of iterates in optim for point estimate. [default \"%default\"]" ),
         make_option( c("-n","--nbatches"), type="integer", default=200, help="Number of MCMC batches. [default \"%default\"]" ),
         make_option( c("-b","--blen"), type="integer", default=1, help="Length of each MCMC batch. [default \"%default\"]" ),
@@ -22,17 +22,17 @@ option_list <- list(
         make_option( c("-d","--boundary"), type="character", default="none", help="Boundary conditions for generator matrix. [default \"%default\"]"),
         make_option( c("-y","--meanboundary"), type="integer", default=0, help="Average over this many neighboring bases in computing generator matrix. [default \"%default\"]" ),
         make_option( c("-z","--gmfile"), type="character", default="TRUE", help="File with precomputed generator matrix, or TRUE [default] to look for one. (otherwise, will compute)"),
-        make_option( c("-e","--countfile"), type="character", default="", help="Record tuple counts in this file. [default: countdata/counts-(lwin)-(win)-(rwin).RData]" ),
+        make_option( c("-e","--countfile"), type="character", default="", help="Record tuple counts in this file. [default: countdata/counts-(leftwin)-(shortwin)-(rightwin).RData]" ),
         make_option( c("-o","--logfile"), type="character", default="", help="Direct output to this file. [default appends .Rout]" )
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 attach(opt)
 
-winlen <- lwin+win+rwin
+longwin <- leftwin+shortwin+rightwin
 
-if (gmfile=="TRUE") { gmfile <- paste(paste("genmatrices/genmatrix",winlen,boundary,meanboundary,sep="-"),".RData",sep='') }
+if (gmfile=="TRUE") { gmfile <- paste(paste("genmatrices/genmatrix",longwin,boundary,meanboundary,sep="-"),".RData",sep='') }
 
-if (countfile=="") { countfile <- paste(paste("countdata/counts",lwin,win,rwin,sep="-"),".RData",sep="") }
+if (countfile=="") { countfile <- paste(paste("countdata/counts",leftwin,shortwin,rightwin,sep="-"),".RData",sep="") }
 
 if (basedir=="") { basedir <- gsub(".nuc","",infile,fixed=TRUE) }
 
@@ -49,7 +49,7 @@ source(paste(scriptdir,"context-inference-fns.R",sep=''))
 source(paste(scriptdir,"sim-context-fns.R",sep=''))
 
 if (!file.exists(basedir)) { dir.create(basedir) }
-basename <- paste(basedir,"/win-",lwin,"-",win,"-",rwin,sep='')
+basename <- paste(basedir,"/win-",leftwin,"-",shortwin,"-",rightwin,sep='')
 datafile <- paste( basename ,"-results.RData",sep='')
 
 if (logfile=="") {
@@ -65,7 +65,7 @@ if (file.exists(gmfile)) {
 } else {
     stop("Precompute generator matrix file.")
 }
-projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
+projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, rightwin=rightwin )
 subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE )
 
 # all pairwise counts
@@ -76,7 +76,7 @@ if (!file.exists(countfile)) {
     require(parallel)
     counts <- mclapply( names( mtCDNA ), function (x) {
             x <- lapply( names( mtCDNA ), function (y) {
-                    counttrans( rownames(projmatrix), colnames(projmatrix), mtCDNA[[x]],  mtCDNA[[y]],  lwin=lwin, shift=3 ) 
+                    counttrans( rownames(projmatrix), colnames(projmatrix), mtCDNA[[x]],  mtCDNA[[y]],  leftwin=leftwin, shift=3 ) 
                 } ) 
             names(x) <- names( mtCDNA )
             return(x)
@@ -179,4 +179,4 @@ frame.mrun <- mclapply( seq_along( counts[[1]][[1]] ), function (which.frame) {
             metrop( lud, initial=initparams[-length(initparams)], nbatch=nbatches, blen=blen, scale=stepscale, which.frame=which.frame )
         }, mc.cores=3 )
 
-save( opt, which.taxa, lwin, rwin, win, winlen, boundary, meanboundary, mmeans, ppriors, tpriors, nmuts, nfreqs, npats, patcomp, gmfile, projmatrix, subtransmatrix, counts, initcounts, frame.ans, frame.mrun, file=datafile )
+save( opt, which.taxa, leftwin, rightwin, shortwin, longwin, boundary, meanboundary, mmeans, ppriors, tpriors, nmuts, nfreqs, npats, patcomp, gmfile, projmatrix, subtransmatrix, counts, initcounts, frame.ans, frame.mrun, file=datafile )

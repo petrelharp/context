@@ -36,7 +36,7 @@ require(mcmc)
 
 load(infile)  # has mrun and previous things (called 'datafile' in -inference.R)
 
-winlen <- lwin + win + rwin
+longwin <- leftwin + shortwin + rightwin
 if (!exists("patlen")) { patlen <- opt$patlen } # workaround
 
 plotfile <- paste( basename ,"-plot",sep='')
@@ -58,13 +58,13 @@ if (length(mcmcdatafiles)>0) { load(grep(paste("-mcmc-",mcmcnum-1,".RData",sep='
 ########
 
 # Inference.
-if (gmfile=="TRUE") { gmfile <- paste(paste("genmatrices/genmatrix",winlen,boundary,meanboundary,patlen,sep="-"),".RData",sep='') }
+if (gmfile=="TRUE") { gmfile <- paste(paste("genmatrices/genmatrix",longwin,boundary,meanboundary,patlen,sep="-"),".RData",sep='') }
 if (file.exists(gmfile)) {
     load(gmfile)
 } else {
     stop("Can't find the generator matrix in", gmfile, " . Specify filename directly?")
 }
-projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
+projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, rightwin=rightwin )
 subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE, time="gamma" )
 
 # counts loaded from infile
@@ -109,7 +109,7 @@ if (restart) {
 date()
 savefile <- paste(basename,"-mcmc-",mcmcnum,".RData",sep='')
 cat("saving to: ", savefile, "\n")
-save( lwin, win, rwin, patlen, lud, mrun, initcounts, mcmcopt, file=savefile )
+save( leftwin, shortwin, rightwin, patlen, lud, mrun, initcounts, mcmcopt, file=savefile )
 
 param.names <- c( sapply(mutpats,function(x){paste(sapply(x,paste,collapse='->'),collapse='|')}), "shape" )
 

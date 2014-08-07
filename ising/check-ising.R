@@ -61,17 +61,17 @@ checkit(
     )
 
 checkit(
-        meangenmatrix( lwin=1, rwin=1, mutpats=mutpats, selpats=rep(0,length(selpats)), selcoef=selcoef, mutrates=mutrates, patlen=patlen, boundary="none" ),
+        meangenmatrix( leftwin=1, rightwin=1, mutpats=mutpats, selpats=rep(0,length(selpats)), selcoef=selcoef, mutrates=mutrates, patlen=patlen, boundary="none" ),
         fixfn(0)*true.mutrates
     )
 
 checkit(
-        meangenmatrix( lwin=1, rwin=1, mutpats=mutpats, selpats=selpats, selcoef=selcoef, mutrates=mutrates, patlen=patlen, boundary="none" ),
+        meangenmatrix( leftwin=1, rightwin=1, mutpats=mutpats, selpats=selpats, selcoef=selcoef, mutrates=mutrates, patlen=patlen, boundary="none" ),
         fixfn(ds.mean)*true.mutrates
     )
 
 checkit(
-        meangenmatrix( lwin=1, rwin=1, mutpats=mutpats, selpats=selpats, selcoef=selcoef, mutrates=mutrates, patlen=patlen, boundary="wrap" ),
+        meangenmatrix( leftwin=1, rightwin=1, mutpats=mutpats, selpats=selpats, selcoef=selcoef, mutrates=mutrates, patlen=patlen, boundary="wrap" ),
         fixfn(ds.mean)*true.mutrates
     )
 
@@ -87,23 +87,23 @@ selcoef <- c(-.5,.5)
 simseqs <- simseq( seqlen, tlen, patlen=patlen, mutpats=mutpats, selpats=selpats, mutrates=mutrates, selcoef=selcoef, bases=bases )
 
 # counts
-lwin <- 2; rwin <- 2; win <- 2
-winlen <- lwin+win+rwin
-genmatrix <- makegenmatrix( patlen=winlen, mutpats=mutpats, selpats=selpats, mutrates=mutrates*tlen, selcoef=selcoef )
-projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
-counts <- counttrans( rownames(projmatrix), colnames(projmatrix), simseqs=simseqs, lwin=lwin )
+leftwin <- 2; rightwin <- 2; shortwin <- 2
+longwin <- leftwin+shortwin+rightwin
+genmatrix <- makegenmatrix( patlen=longwin, mutpats=mutpats, selpats=selpats, mutrates=mutrates*tlen, selcoef=selcoef )
+projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, rightwin=rightwin )
+counts <- counttrans( rownames(projmatrix), colnames(projmatrix), simseqs=simseqs, leftwin=leftwin )
 cwin <- 2
-subcounts <- projectcounts( lwin=lwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=counts )
+subcounts <- projectcounts( leftwin=leftwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=counts )
 
 all.genmats <- list (
-            "simple"=makegenmatrix( patlen=winlen, mutpats=mutpats, selpats=selpats, mutrates=mutrates*tlen, selcoef=selcoef, boundary="none" ),
-            "wrap"=makegenmatrix( mutpats=mutpats, selpats=selpats, patlen=winlen, mutrates=mutrates*tlen, selcoef=selcoef, boundary="wrap" ),
-            "mean"=meangenmatrix( lwin=1, rwin=1, patlen=winlen, mutpats=mutpats, selpats=selpats, mutrates=mutrates*tlen, selcoef=selcoef, boundary="wrap" )
+            "simple"=makegenmatrix( patlen=longwin, mutpats=mutpats, selpats=selpats, mutrates=mutrates*tlen, selcoef=selcoef, boundary="none" ),
+            "wrap"=makegenmatrix( mutpats=mutpats, selpats=selpats, patlen=longwin, mutrates=mutrates*tlen, selcoef=selcoef, boundary="wrap" ),
+            "mean"=meangenmatrix( leftwin=1, rightwin=1, patlen=longwin, mutpats=mutpats, selpats=selpats, mutrates=mutrates*tlen, selcoef=selcoef, boundary="wrap" )
         )
 
 all.expected <- lapply( all.genmats, function (genmatrix) {
-        expected <- predictcounts( win, lwin, rwin, initcounts=rowSums(counts), mutrates=tlen*mutrates, selcoef=selcoef, genmatrix=genmatrix, projmatrix=projmatrix )
-        subexpected <- projectcounts( lwin=lwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=expected )
+        expected <- predictcounts( shortwin, leftwin, rightwin, initcounts=rowSums(counts), mutrates=tlen*mutrates, selcoef=selcoef, genmatrix=genmatrix, projmatrix=projmatrix )
+        subexpected <- projectcounts( leftwin=leftwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=expected )
         return(list( expected=expected, subexpected=subexpected ) )
     } )
 
@@ -126,7 +126,7 @@ cat("\n\n  Simulations all good!\n")
 #####
 ## Inference works?
 
-genmatrix <- meangenmatrix( lwin=1, rwin=1, patlen=winlen, mutpats=mutpats, selpats=selpats, mutrates=mutrates*tlen, selcoef=selcoef, boundary="none" )
+genmatrix <- meangenmatrix( leftwin=1, rightwin=1, patlen=longwin, mutpats=mutpats, selpats=selpats, mutrates=mutrates*tlen, selcoef=selcoef, boundary="none" )
 
 nmuts <- length(mutpats); nsel <- length(selpats)
 # params are: mutrates*tlen, selcoef 
@@ -156,14 +156,14 @@ estimates$likfun <- apply( estimates, 1, likfun )
 # look at observed/expected counts
 all.expected <- lapply( 1:nrow(estimates), function (k) {
             x <- unlist(estimates[k,])
-            predictcounts( win, lwin, rwin, initcounts=rowSums(counts), mutrates=x[1:nmuts], selcoef=x[nmuts+(1:nsel)], genmatrix=genmatrix, projmatrix=projmatrix )
+            predictcounts( shortwin, leftwin, rightwin, initcounts=rowSums(counts), mutrates=x[1:nmuts], selcoef=x[nmuts+(1:nsel)], genmatrix=genmatrix, projmatrix=projmatrix )
     } )
 names(all.expected) <- rownames(estimates)
 
 # look at observed/expected counts in smaller windows
 cwin <- 2
-subcounts <- projectcounts( lwin=lwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=counts )
-all.subexpected <- lapply( all.expected, function (x) { projectcounts( lwin=lwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=x ) } )
+subcounts <- projectcounts( leftwin=leftwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=counts )
+all.subexpected <- lapply( all.expected, function (x) { projectcounts( leftwin=leftwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=x ) } )
 
 
 if (interactive()) {

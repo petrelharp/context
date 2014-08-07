@@ -5,8 +5,8 @@ source("sim-context-fns.R")
 
 # maximum size of pattern (for simulation)
 patlen <- 2
-lwin <- 0
-rwin <- 0
+leftwin <- 0
+rightwin <- 0
 mutpats <- c( 
         combn( bases, 2, simplify=FALSE ), 
         lapply( combn( bases, 2, simplify=FALSE ), rev),
@@ -28,18 +28,18 @@ simseqs <- simseq( seqlen, tlen, patlen=patlen, mutpats=mutpats, selpats=selpats
 
 ####
 # Inference.
-lwin <- 0
-rwin <- 2
-win <- 1
-winlen <- lwin+win+rwin
+leftwin <- 0
+rightwin <- 2
+shortwin <- 1
+longwin <- leftwin+shortwin+rightwin
 
-genmatrix <- makegenmatrix( mutpats, selpats, patlen=winlen)
+genmatrix <- makegenmatrix( mutpats, selpats, patlen=longwin)
 genmatrix@x <- update(genmatrix,mutrates*tlen,selcoef,Ne)
-projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
+projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, rightwin=rightwin )
 
 subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE )
 
-counts <- counttrans( rownames(subtransmatrix), colnames(subtransmatrix), simseqs=simseqs, lwin=lwin )
+counts <- counttrans( rownames(subtransmatrix), colnames(subtransmatrix), simseqs=simseqs, leftwin=leftwin )
 
 nmuts <- length(mutpats)
 nsel <- length(selpats)
@@ -89,4 +89,4 @@ for (k in 1:4) {
 }
 
 # indicator of counts where patterns have changed
-changed <- whichchanged(subtransmatrix,lwin=lwin,win=win)
+changed <- whichchanged(subtransmatrix,leftwin=leftwin,shortwin=shortwin)

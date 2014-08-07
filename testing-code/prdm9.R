@@ -31,5 +31,5 @@ system.time(
 # testing
 
 selpats <- list("CCGCC")
-winlen <- 8
-genmatrix <- makegenmatrix( patlen=winlen, mutpats=mutpats, selpats=selpats, boundary='none', Ne=1e4 )
+longwin <- 8
+genmatrix <- makegenmatrix( patlen=longwin, mutpats=mutpats, selpats=selpats, boundary='none', Ne=1e4 )

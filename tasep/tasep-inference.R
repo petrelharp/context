@@ -7,9 +7,9 @@ Infer parameters from output of sim-tasep.R .\
 
 option_list <- list(
         make_option( c("-i","--infile"), type="character", default=NULL, help=".RData file containing simulation." ),
-        make_option( c("-w","--win"), type="integer", default=3, help="Size of matching window. [default \"%default\"]" ),
-        make_option( c("-l","--lwin"), type="integer", default=3, help="Size of left-hand context. [default \"%default\"]" ),
-        make_option( c("-r","--rwin"), type="integer", default=3, help="Size of left-hand context. [default \"%default\"]" ),
+        make_option( c("-w","--shortwin"), type="integer", default=3, help="Size of matching window. [default \"%default\"]" ),
+        make_option( c("-l","--leftwin"), type="integer", default=3, help="Size of left-hand context. [default \"%default\"]" ),
+        make_option( c("-r","--rightwin"), type="integer", default=3, help="Size of left-hand context. [default \"%default\"]" ),
         make_option( c("-n","--nbatches"), type="integer", default=20, help="Number of MCMC batches. [default \"%default\"]" ),
         make_option( c("-b","--blen"), type="integer", default=10, help="Length of each MCMC batch. [default \"%default\"]" ),
         make_option( c("-m","--mmean"), type="double", default=1, help="Prior mean on jump rate. [default \"%default\"]" ),
@@ -19,7 +19,7 @@ opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 attach(opt)
 options(error=traceback)
 
-if (interactive()) { win <- lwin <- rwin <- 3; nbatches <- 10; blen <- 10; mmean <- 1 }
+if (interactive()) { shortwin <- leftwin <- rightwin <- 3; nbatches <- 10; blen <- 10; mmean <- 1 }
 
 if (is.null(infile) | is.null(nbatches)) { cat("Run\n  tasep-inference.R -h\n for help.") }
 
@@ -39,7 +39,7 @@ require(mcmc)
 load(infile)
 basedir <- gsub(".RData","",infile,fixed=TRUE)
 if (!file.exists(basedir)) { dir.create(basedir) }
-basename <- paste(basedir,"/win-",lwin,"-",win,"-",rwin,sep='')
+basename <- paste(basedir,"/win-",leftwin,"-",shortwin,"-",rightwin,sep='')
 datafile <- paste( basename ,"-results.RData",sep='')
 resultsfile <- paste( basename ,"-results.tsv",sep='')
 plotfile <- paste( basename ,"-plot",sep='')
@@ -48,18 +48,18 @@ plotfile <- paste( basename ,"-plot",sep='')
 bases <- c("X","O")
 
 # Inference.
-winlen <- lwin+win+rwin
+longwin <- leftwin+shortwin+rightwin
 
-genmatrix <- meangenmatrix( lwin=1, rwin=1, patlen=winlen, mutpats=mutpats, selpats=selpats, mutrates=mutrates*tlen, selcoef=numeric(0), boundary="none" )
-projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
+genmatrix <- meangenmatrix( leftwin=1, rightwin=1, patlen=longwin, mutpats=mutpats, selpats=selpats, mutrates=mutrates*tlen, selcoef=numeric(0), boundary="none" )
+projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, rightwin=rightwin )
 subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE )
 
 counts <- list(
-            counttrans( rownames(projmatrix), colnames(projmatrix), simseqs[[1]]$initseq, simseqs[[1]]$finalseq, lwin=lwin )
+            counttrans( rownames(projmatrix), colnames(projmatrix), simseqs[[1]]$initseq, simseqs[[1]]$finalseq, leftwin=leftwin )
         )
 # want only patterns that overlap little
 initcounts <- rowSums(counts[[1]])
-nonoverlapping <- ( leftchanged(rownames(counts[[1]]),colnames(counts[[1]]),lwin=lwin,win=win) & (initcounts>0) )
+nonoverlapping <- ( leftchanged(rownames(counts[[1]]),colnames(counts[[1]]),leftwin=leftwin,shortwin=shortwin) & (initcounts>0) )
 nov.counts <- counts[[1]][nonoverlapping]
 
 # (quasi)-likelihood function using all counts -- binomial
@@ -104,16 +104,16 @@ mrun <- metrop( lud, initial=estimates["ans","muttime"], nbatch=nbatches, blen=b
 # look at observed/expected counts
 all.expected <- lapply( 1:nrow(estimates), function (k) {
             x <- unlist(estimates[k,])
-            list( predictcounts( win, lwin, rwin, initcounts=rowSums(counts[[1]]), mutrates=x[1], selcoef=numeric(0), genmatrix=genmatrix, projmatrix=projmatrix ) )
+            list( predictcounts( shortwin, leftwin, rightwin, initcounts=rowSums(counts[[1]]), mutrates=x[1], selcoef=numeric(0), genmatrix=genmatrix, projmatrix=projmatrix ) )
     } )
 names(all.expected) <- rownames(estimates)
 
 # look at observed/expected counts in smaller windows
 cwin <- 2
-subcounts <- projectcounts( lwin=lwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=counts[[1]] )
-all.subexpected <- lapply( all.expected, function (x) { list( projectcounts( lwin=lwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=x[[1]] ) ) } )
+subcounts <- projectcounts( leftwin=leftwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=counts[[1]] )
+all.subexpected <- lapply( all.expected, function (x) { list( projectcounts( leftwin=leftwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=x[[1]] ) ) } )
 
-save( counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, truth, ans, estimates, nonoverlapping, nov.counts, mmean, all.expected, cwin, subcounts, all.subexpected, mrun, win, lwin, rwin, file=datafile )
+save( counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, truth, ans, estimates, nonoverlapping, nov.counts, mmean, all.expected, cwin, subcounts, all.subexpected, mrun, shortwin, leftwin, rightwin, file=datafile )
 
 pdf(file=paste(plotfile,"-mcmc.pdf",sep=''),width=6, height=4, pointsize=10)
 plot( mrun$batch, type='l', xlab="mcmc gens", ylab="tlen*jumprate" )

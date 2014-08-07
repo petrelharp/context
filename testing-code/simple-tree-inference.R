@@ -36,19 +36,19 @@ save( thisone, now, patlen, mutpats, selpats, selcoef, Ne, seqlen, tlen, branchl
 
 ####
 # Inference.
-lwin <- 0
-rwin <- 2
-win <- 1
-winlen <- lwin+win+rwin
+leftwin <- 0
+rightwin <- 2
+shortwin <- 1
+longwin <- leftwin+shortwin+rightwin
 
-genmatrix <- makegenmatrix( mutpats, selpats, patlen=winlen)
+genmatrix <- makegenmatrix( mutpats, selpats, patlen=longwin)
 genmatrix@x <- update(genmatrix,mutrates*tlen,selcoef,Ne)
-projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
+projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, rightwin=rightwin )
 subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE )
 
 counts <- list(
-            counttrans( rownames(projmatrix), colnames(projmatrix), simseqs[[1]]$finalseq, simseqs[[2]]$finalseq, lwin=lwin ),
-            counttrans( rownames(projmatrix), colnames(projmatrix), simseqs[[2]]$finalseq, simseqs[[1]]$finalseq, lwin=lwin )
+            counttrans( rownames(projmatrix), colnames(projmatrix), simseqs[[1]]$finalseq, simseqs[[2]]$finalseq, leftwin=leftwin ),
+            counttrans( rownames(projmatrix), colnames(projmatrix), simseqs[[2]]$finalseq, simseqs[[1]]$finalseq, leftwin=leftwin )
         )
 
 nmuts <- length(mutpats)
@@ -60,7 +60,7 @@ Ne.scale <- 1e4
 # move from base frequencies (what we estimate) to pattern frequencies
 npats <- nrow(genmatrix)
 patcomp <- apply( do.call(rbind, strsplit(rownames(genmatrix),'') ), 2, match, bases )
-onevec <- rep(1,winlen)
+onevec <- rep(1,longwin)
 likfun <- function (params) {
         # params are: Ne, branchlens[-1], mutrates, selcoef, basefreqs
         #  -> assume branches are equal length for now

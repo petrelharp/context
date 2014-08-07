@@ -4,7 +4,7 @@ dirs <- list.files(".",pattern="^0.*")
 mle.filenames <- unlist( lapply( dirs, function (x) { list.files(x,"-results.RData$",full.names=TRUE) } ) )
 mle.params <- as.numeric( t( sapply( strsplit( unlist(lapply(mle.filenames,sapply,basename)), "-" ), "[", 2:5 ) ) )
 dim(mle.params) <- c(length(mle.params)/4,4)
-colnames(mle.params) <- c("lwin","win","rwin","patlen")
+colnames(mle.params) <- c("leftwin","shortwin","rightwin","patlen")
 mle.files <- cbind( 
     data.frame( 
         dir=unlist(lapply(mle.filenames,sapply,dirname))

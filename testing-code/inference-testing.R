@@ -8,8 +8,8 @@ diagnostics <- interactive()
 
 # maximum size of pattern
 patlen <- 3
-lwin <- 0
-rwin <- 0
+leftwin <- 0
+rightwin <- 0
 
 # list of patterns that have mutation rates
 mutpats <- c(
@@ -25,7 +25,7 @@ mutrates <- runif( length(mutpats) )*1e-8
 selpats <- c(
         "[GC]",
         "[AT]",
-        # paste( paste(rep(".",lwin),collapse=''), paste( codons$codon[codons$aa %in% synons], paste(rep(".",rwin),collapse=''), sep='' ), sep='' ), # all codons
+        # paste( paste(rep(".",leftwin),collapse=''), paste( codons$codon[codons$aa %in% synons], paste(rep(".",rightwin),collapse=''), sep='' ), sep='' ), # all codons
         # codons$codon[! codons$aa %in% synons],  # stop codons
     NULL )
 # selection coefficients
@@ -45,20 +45,20 @@ simseqs <- simseq( seqlen, tlen, patlen=patlen, mutpats=mutpats, selpats=selpats
 
 ## transition probabilities?
 # size of window on either side of the focal site
-lwin <- 2
-rwin <- 2
-win <- 1
-winlen <- lwin+win+rwin
+leftwin <- 2
+rightwin <- 2
+shortwin <- 1
+longwin <- leftwin+shortwin+rightwin
 
-subtransmatrix <- gettransmatrix(mutpats*tlen, mutrates, selpats, selcoef, Ne, win, lwin, rwin)
-counts <- counttrans( rownames(subtransmatrix), colnames(subtransmatrix), simseqs=simseqs, lwin=lwin )
+subtransmatrix <- gettransmatrix(mutpats*tlen, mutrates, selpats, selcoef, Ne, shortwin, leftwin, rightwin)
+counts <- counttrans( rownames(subtransmatrix), colnames(subtransmatrix), simseqs=simseqs, leftwin=leftwin )
 
 # averaged
-expected <- (seqlen-winlen+1) * (1/nbases)^winlen * subtransmatrix
+expected <- (seqlen-longwin+1) * (1/nbases)^longwin * subtransmatrix
 # accounting for initial sequence
 in.expected <- rowSums(counts) * subtransmatrix
 # indicator of counts where patterns have changed
-changed <- whichchanged(subtransmatrix,lwin=lwin,win=win)
+changed <- whichchanged(subtransmatrix,leftwin=leftwin,shortwin=shortwin)
 
 # Compare observed and expected counts:
 layout(matrix(1:4,2))
@@ -73,9 +73,9 @@ exp.bin.vals <- tapply( as.vector(in.expected)[usethese], exp.bins, mean )
 points( tapply( as.vector(counts)[usethese], exp.bins, mean ), exp.bin.vals, pch=20 )
 
 # how many events per window?
-hist(simseqs$ntrans$loc,breaks=seq(0,seqlen+10,by=4*winlen))
-hist(simseqs$ntrans$loc,breaks=seq(0,seqlen+10,by=2*winlen))
-hist(simseqs$ntrans$loc,breaks=seq(0,seqlen+10,by=winlen))
+hist(simseqs$ntrans$loc,breaks=seq(0,seqlen+10,by=4*longwin))
+hist(simseqs$ntrans$loc,breaks=seq(0,seqlen+10,by=2*longwin))
+hist(simseqs$ntrans$loc,breaks=seq(0,seqlen+10,by=longwin))
 hist(simseqs$ntrans$loc,breaks=seq(0,seqlen+10,by=1))
 
 
@@ -83,17 +83,17 @@ hist(simseqs$ntrans$loc,breaks=seq(0,seqlen+10,by=1))
 ####
 # Inference?
 
-lwin <- 2
-rwin <- 2
-win <- 1
-winlen <- lwin+win+rwin
-genmatrix <- makegenmatrix( mutpats, selpats, patlen=winlen)
+leftwin <- 2
+rightwin <- 2
+shortwin <- 1
+longwin <- leftwin+shortwin+rightwin
+genmatrix <- makegenmatrix( mutpats, selpats, patlen=longwin)
 genmatrix@x <- update(genmatrix,mutrates,selcoef,Ne)
-projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
+projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, rightwin=rightwin )
 
 subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE )
 
-counts <- counttrans( rownames(subtransmatrix), colnames(subtransmatrix), simseqs, lwin )
+counts <- counttrans( rownames(subtransmatrix), colnames(subtransmatrix), simseqs, leftwin )
 
 nmuts <- length(mutpats)
 nsel <- length(selpats)
@@ -130,14 +130,14 @@ simseqs <- lapply(1:2, function (k) simseq( seqlen, tlen, patlen=patlen, mutpats
 
 ## transition probabilities?
 # size of window on either side of the focal site
-lwin <- 2
-rwin <- 2
-win <- 1
-winlen <- lwin+win+rwin
+leftwin <- 2
+rightwin <- 2
+shortwin <- 1
+longwin <- leftwin+shortwin+rightwin
 
-subtransmatrix <- gettransmatrix(mutpats, mutrates*tlen, selpats, selcoef, Ne, win, lwin, rwin)
+subtransmatrix <- gettransmatrix(mutpats, mutrates*tlen, selpats, selcoef, Ne, shortwin, leftwin, rightwin)
 for (k in seq_along(simseqs)) {
-    simseqs[[k]]$counts <- counttrans( rownames(subtransmatrix), colnames(subtransmatrix), simseqs=simseqs[[k]], lwin=lwin )
+    simseqs[[k]]$counts <- counttrans( rownames(subtransmatrix), colnames(subtransmatrix), simseqs=simseqs[[k]], leftwin=leftwin )
 }
 
 

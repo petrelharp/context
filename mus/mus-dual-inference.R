@@ -10,9 +10,9 @@ option_list <- list(
         make_option( c("-i","--infile"), type="character", default=NULL, help="Table of count data."),
         make_option( c("-v","--revfile"), type="character", default=NULL, help="Table of count data in the reverse orientation"),
         make_option( c("-j","--jobid"), type="character", default=formatC(1e6*runif(1),width=6,format="d",flag="0"), help="Unique job id. [default random]"),
-        make_option( c("-w","--win"), type="integer", default=1, help="Size of matching window. [default \"%default\"]" ),
-        make_option( c("-l","--lwin"), type="integer", default=1, help="Size of left-hand context. [default \"%default\"]" ),
-        make_option( c("-r","--rwin"), type="integer", default=1, help="Size of left-hand context. [default \"%default\"]" ),
+        make_option( c("-w","--shortwin"), type="integer", default=1, help="Size of matching window. [default \"%default\"]" ),
+        make_option( c("-l","--leftwin"), type="integer", default=1, help="Size of left-hand context. [default \"%default\"]" ),
+        make_option( c("-r","--rightwin"), type="integer", default=1, help="Size of left-hand context. [default \"%default\"]" ),
         make_option( c("-n","--nbatches"), type="integer", default=20, help="Number of MCMC batches. [default \"%default\"]" ),
         make_option( c("-b","--blen"), type="integer", default=10, help="Length of each MCMC batch. [default \"%default\"]" ),
         make_option( c("-s","--stepscale"), type="numeric", default=1e-4, help="Scale of proposal steps for Metropolis algorithm. [default \"%default\"]" ),
@@ -30,20 +30,20 @@ if (is.null(opt$infile) & is.null(opt$indir)) { stop("No input file.  Run\n  bce
 attach(opt)
 options(error=traceback)
 
-winlen <- lwin+win+rwin
+longwin <- leftwin+shortwin+rightwin
 
 if (gmfile=="TRUE") { 
-    gmfile <- paste(paste("genmatrices/genmatrix",winlen,boundary,meanboundary,sep="-"),".RData",sep='') 
+    gmfile <- paste(paste("genmatrices/genmatrix",longwin,boundary,meanboundary,sep="-"),".RData",sep='') 
 }
 
 if (substr(indir,nchar(indir),nchar(indir)) %in% c("/","\\")) { indir <- substr(indir,1,nchar(indir)-1) }
-if (is.null(opt$infile)) { infile <- paste(indir,"/", winlen,".",win,".counts",sep='') }
+if (is.null(opt$infile)) { infile <- paste(indir,"/", longwin,".",shortwin,".counts",sep='') }
 if (is.null(opt$revfile)) { revfile <- paste(dirname(infile),"/rev.",basename(infile),sep='') }
 if (!file.exists(infile) | !file.exists(revfile)) { stop("Cannot read file ", infile) }
 
 basedir <- paste(infile,"-dual-results",sep='')
 if (!file.exists(basedir)) { dir.create(basedir) }
-basename <- paste(basedir,"/win-",win,"-",lwin,"-",rwin,sep='')
+basename <- paste(basedir,"/win-",shortwin,"-",leftwin,"-",rightwin,sep='')
 datafile <- paste( basename ,"-results.RData",sep='')
 resultsfile <- paste( basename ,"-results.tsv",sep='')
 plotfile <- paste( basename ,"-plot",sep='')
@@ -66,7 +66,7 @@ if (file.exists(gmfile)) {
 } else {
     stop(paste("Cannot read",gmfile,"."))
 }
-projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
+projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, rightwin=rightwin )
 subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE )
 
 # read in counts (produced with count-paired-tuples.py)
@@ -82,7 +82,7 @@ counts <- lapply( list(infile,revfile), function (ifile) {
 initcounts <- lapply( counts, rowSums )
 
 # simple point estimates for starting positions
-adhoc <- lapply(counts, countmuts,mutpats=mutpats,lwin=lwin)
+adhoc <- lapply(counts, countmuts,mutpats=mutpats,leftwin=leftwin)
 adhoc <- lapply( adhoc, function (x) x[1,]/x[2,] )
 
 # move from base frequencies (what we estimate) to pattern frequencies
@@ -171,6 +171,6 @@ write.table( estimates, file=resultsfile, quote=FALSE, sep="\t" )
 #  mrun <- mccollect(mcrun.parjob)
 mrun <- metrop( lud, initial=mle.par[-length(mle.par)], nbatch=nbatches, blen=blen, scale=stepscale )
 
-save( opt, counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, mle, estimates, initpar, mmeans, ppriors, mrun, win, lwin, rwin, nmuts, nfreqs, npats, patcomp, file=datafile )
+save( opt, counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, mle, estimates, initpar, mmeans, ppriors, mrun, shortwin, leftwin, rightwin, nmuts, nfreqs, npats, patcomp, file=datafile )
 
 print(format(Sys.time(),"%Y-%m-%d-%H-%M"))

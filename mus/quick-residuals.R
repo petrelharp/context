@@ -2,8 +2,8 @@
 
 source("../context-inference-fns.R")
 
-# long.win <- list( lwin=2, rwin=2, win=3, winlen=7 )
-long.win <- list( lwin=1, rwin=1, win=5, winlen=7 )
+# long.win <- list( leftwin=2, rightwin=2, shortwin=3, longwin=7 )
+long.win <- list( leftwin=1, rightwin=1, shortwin=5, longwin=7 )
 
 bases <- c("A","T","C","G")
 mutpats <- c(
@@ -16,8 +16,8 @@ fixfn <- function (...) { 1 }
 boundary <- 'none'
 meanboundary <- 0
 
-long.win$genmatrix <- with(long.win, makegenmatrix( patlen=winlen, mutpats=mutpats, selpats=list(), boundary=boundary ) )
-long.win$projmatrix <- with(long.win, collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin ) )
+long.win$genmatrix <- with(long.win, makegenmatrix( patlen=longwin, mutpats=mutpats, selpats=list(), boundary=boundary ) )
+long.win$projmatrix <- with(long.win, collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, rightwin=rightwin ) )
 
 # all kmer -> kmer changes
 long.mutpats <- lapply(1:3, function (k) {
@@ -34,8 +34,8 @@ long.mutpats <- lapply(1:3, function (k) {
 
 setwd("mm9rn5")
 
-getcounts <- function (winlen,win,genmatrix,projmatrix) {
-    infile <- paste(winlen,win,"counts",sep='.')
+getcounts <- function (longwin,shortwin,genmatrix,projmatrix) {
+    infile <- paste(longwin,shortwin,"counts",sep='.')
     revfile <- paste("rev.",infile,sep='')
     counts <- lapply( list(infile,revfile), function (ifile) {
             count.table <- read.table(ifile,header=TRUE,stringsAsFactors=FALSE)
@@ -49,7 +49,7 @@ getcounts <- function (winlen,win,genmatrix,projmatrix) {
     return(counts)
 }
 
-long.win$counts <- with(long.win, getcounts(winlen,win,genmatrix,projmatrix))
+long.win$counts <- with(long.win, getcounts(longwin,shortwin,genmatrix,projmatrix))
 
 
 load("3.1.counts-results/win-3-1-1-results.RData")
@@ -62,7 +62,7 @@ if (mrun$nbatch * mrun$blen > 1e4) {
            mean=c(colMeans(mrun$batch),1-sum(colMeans(mrun$batch[,length(mrun$final)-0:2])),NA))
 }
 
-expected <- function (x,win,lwin,rwin,genmatrix,projmatrix,counts) {
+expected <- function (x,shortwin,leftwin,rightwin,genmatrix,projmatrix,counts) {
             x <- as.numeric(x)
             branchlens <- c(x[1],1-x[1])
             mutrates <- x[1+(1:nmuts)]
@@ -70,14 +70,14 @@ expected <- function (x,win,lwin,rwin,genmatrix,projmatrix,counts) {
             initfreqs <- initfreqs/sum(initfreqs)
             names(initfreqs) <- bases
             list( 
-                    predicttreecounts( win, lwin, rwin, initcounts=rowSums(counts[[1]]), mutrates=list(mutrates,mutrates), selcoef=list(numeric(0),numeric(0)), 
+                    predicttreecounts( shortwin, leftwin, rightwin, initcounts=rowSums(counts[[1]]), mutrates=list(mutrates,mutrates), selcoef=list(numeric(0),numeric(0)), 
                             genmatrix=genmatrix, projmatrix=projmatrix, initfreqs=initfreqs, tlens=rev(branchlens) ),
-                    predicttreecounts( win, lwin, rwin, initcounts=rowSums(counts[[2]]), mutrates=list(mutrates,mutrates), selcoef=list(numeric(0),numeric(0)), 
+                    predicttreecounts( shortwin, leftwin, rightwin, initcounts=rowSums(counts[[2]]), mutrates=list(mutrates,mutrates), selcoef=list(numeric(0),numeric(0)), 
                             genmatrix=genmatrix, projmatrix=projmatrix, initfreqs=initfreqs, tlens=branchlens )
                 )
 }
 
-all.expected <- with( long.win, apply(estimates,1,expected,win,lwin,rwin,genmatrix,projmatrix,counts) )
+all.expected <- with( long.win, apply(estimates,1,expected,shortwin,leftwin,rightwin,genmatrix,projmatrix,counts) )
 names(all.expected) <- rownames(estimates)
 
 # all.resids <- with(long.win, lapply( all.expected, function (x) mapply(function(u,v) (u-v)/sqrt(u),x,counts) ) )
@@ -88,10 +88,10 @@ for (i in seq_along(all.resids)) for (j in seq_along(all.resids[[i]])) {
         dimnames(all.resids[[i]][[j]]) <- with(long.win,  dimnames(counts[[1]]) ) 
     }
 
-resid.counts <- with(long.win, lapply( all.resids[['mle']], countmuts, mutpats=long.mutpats[[2]], lwin=lwin) )
+resid.counts <- with(long.win, lapply( all.resids[['mle']], countmuts, mutpats=long.mutpats[[2]], leftwin=leftwin) )
 
-resid.counts.mle <- with(long.win, mclapply( long.mutpats, function (mutpats) { lapply( all.resids[['mle']], countmuts, mutpats=mutpats, lwin=lwin) }, mc.cores=3 ) )
-resid.counts.mean <- with(long.win, mclapply( long.mutpats, function (mutpats) { lapply( all.resids[['mean']], countmuts, mutpats=mutpats, lwin=lwin) }, mc.cores=3 ) )
+resid.counts.mle <- with(long.win, mclapply( long.mutpats, function (mutpats) { lapply( all.resids[['mle']], countmuts, mutpats=mutpats, leftwin=leftwin) }, mc.cores=3 ) )
+resid.counts.mean <- with(long.win, mclapply( long.mutpats, function (mutpats) { lapply( all.resids[['mean']], countmuts, mutpats=mutpats, leftwin=leftwin) }, mc.cores=3 ) )
 
 resid.table.mle <- do.call( cbind, lapply( resid.counts.mle[[2]], function (x) { x[1,] } ) )
 resid.table.mle <- resid.table.mle[order(rowMeans(resid.table.mle)),] 
@@ -150,7 +150,7 @@ plot( 0, 0, xlim=c(.01,.1), ylim=c(0,100) )
 for (k in 2:13) { hist(mrun$batch[200:1000,k],breaks=40,main=names(mrun$final[k]), add=TRUE, col=adjustcolor(rainbow(20)[k],.25), border=NA) }
 
 
-save(list=ls(),file=with(long.win, paste("resids-",win,"-",lwin,".RData",sep='')))
+save(list=ls(),file=with(long.win, paste("resids-",shortwin,"-",leftwin,".RData",sep='')))
 
 
 layout(matrix(1:6,nrow=2))
@@ -169,11 +169,11 @@ lapply( lapply(all.resids[2:4],"[[",2), matplot, type='l', col=adjustcolor(1:6,.
 
 ###
 
-cwin <- min(2,win); lrcwin <- min(1,lwin,rwin)
+cwin <- min(2,shortwin); lrcwin <- min(1,leftwin,rightwin)
 subcounts <- lapply( counts, function (x) 
-        projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=x ) )
+        projectcounts( leftwin=leftwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=x ) )
 all.subexpected <- lapply( all.expected, lapply, function (x)
-        projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=x ) )
+        projectcounts( leftwin=leftwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=x ) )
 all.subresids <- lapply( all.subexpected, function (x) mapply(function(u,v) (u-v)/sqrt(v),x,subcounts) )
 
 layout(matrix(seq_along(subcounts)))
