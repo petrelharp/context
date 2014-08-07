@@ -18,10 +18,15 @@ Rscript ../fit-model.R -i sim-cpg-123456.4.2.l1.counts -l 1 -m genmatrices/genma
 # and a more complex one
 Rscript ../fit-model.R -i sim-cpg-123456.4.2.l1.counts -l 1 -m genmatrices/genmatrix-4-dualbases.RData -o complex-fit.RData
 
-# look at residuals, width 4
-Rscript ../compute-resids.R -i sim-cpg-123456-modelfit-54321.RData
+# first look at residuals, width 4 (what it was fit with)
+Rscript ../compute-resids.R -i simple-fit.RData
 
-# look at residuals, width 5
+# and, shorter residuals:
+Rscript ../compute-resids.R -i simple-fit.RData -w 4 -s 1 -l 2 
+
+# now, longer residuals (length 5)
 #   first compute counts
 Rscript ../count-seq.R -i sim-cpg-123456.RData -w 5 -s 3 -l 1
-Rscript ../compute-resids.R -i sim-cpg-123456-modelfit-54321.RData
+#   then get the residuals
+Rscript ../compute-resids.R -i simple-fit.RData -m genmatrices/genmatrix-5-singlebase.RData -c sim-cpg-123456.5.3.l1.counts -w 5 -s 1 -l 2 
+

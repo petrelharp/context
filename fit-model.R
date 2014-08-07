@@ -22,14 +22,6 @@ if (is.null(opt$outfile)) { opt$outfile <- paste( opt$basedir, "/", gsub("\\.[^.
 print(opt) # this will go in the pbs log
 options(error = quote({dump.frames(to.file = TRUE); q()}))
 
-
-if (interactive()) {
-    opt$infile <- "sim-cpg-123456.counts"
-    opt$leftwin <- 1
-    opt$gmfile <- "genmatrices/genmatrix-4-singlebase.RData"
-    opt$maxit <- 2
-}
-
 source("../context-inference-fns.R")
 
 attach(opt)

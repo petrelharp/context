@@ -293,8 +293,9 @@ setMethod("rowSums", signature=c(x="context"), definition=function (x) { rowSums
 setMethod("fitted", signature=c(object="context"), definition=function (object,...) { predictcounts.context(object,...) } )
 setMethod("residuals", signature=c(object="context"), definition=function (object,...) { resid.context(object,...) } )
 
-setMethod("-",signature=c("tuplecounts","ANY"), definition=function(e1,e2) { new("tuplecounts",leftwin=e1@leftwin,counts=Matrix(e1@counts-e2),bases=e1@bases) } )
-setMethod("-",signature=c("ANY","tuplecounts"), definition=function(e1,e2) { new("tuplecounts",leftwin=e2@leftwin,counts=Matrix(e1-e2@counts),bases=e2@bases) } )
+## This makes everything go all to hell, for some reason:
+# setMethod("-",signature=c("tuplecounts","ANY"), definition=function(e1,e2) { new("tuplecounts",leftwin=e1@leftwin,counts=Matrix(e1@counts-e2),bases=e1@bases) } )
+# setMethod("-",signature=c("ANY","tuplecounts"), definition=function(e1,e2) { new("tuplecounts",leftwin=e2@leftwin,counts=Matrix(e1-e2@counts),bases=e2@bases) } )
 
 
 ####
@@ -543,7 +544,7 @@ predictcounts <- function (longwin, shortwin, leftwin, initcounts, mutrates, sel
 }
 
 projectcounts <- function( counts, lcountwin, countwin, rcountwin ) {
-    # using counts for (leftwin,shortwin,rightwin) compute counts for (lcountwin,countwin,rcountwin).
+    # using counts for c(leftwin,shortwin,rightwin) compute counts for c(lcountwin,countwin,rcountwin).
     #   valid ranges for parameters are
     #    (l-lc)^+ <= k < (l+w)-(lc+wc)+(r-rc)^-
     leftwin <- leftwin(counts)
@@ -584,12 +585,14 @@ predicttreecounts <- function (shortwin, leftwin=0, rightwin=0, initcounts, mutr
 ###
 # stuff for looking at residuals and finding motifs there
 
-resid.context <- function (model, counts=model@data, genmatrix=model@genmatrix, pretty=FALSE) {
-    expected <- fitted(model, initcounts=rowSums(counts),
+resid.context <- function (object, counts=object@data, genmatrix=object@genmatrix, pretty=FALSE) {
+    expected <- fitted(object, initcounts=rowSums(counts),
                        longwin=longwin(counts), shortwin=shortwin(counts), leftwin=leftwin(counts),
                        genmatrix=genmatrix )
     stopifnot( all( rownames(expected)==rownames(counts) ) && all( colnames(expected)==colnames(counts) ) )
-    return( counts - expected )
+    resids <- counts
+    resids@counts <- ( counts@counts - expected@counts )
+    return( resids )
 }
 
 listresids <- function (counts, expected, file, trim=20, leftwin=(nchar(rownames(counts)[1])-nchar(colnames(counts)[1]))/2) {
