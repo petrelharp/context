@@ -8,7 +8,7 @@ frame_files <- Filter(Negate(is.null), frame_files)
 .PATH <- dirname(frame_files[[length(frame_files)]])
 # source(paste(.PATH,"/expm-simple.R",sep=''))  # expAtv is faster
 source(paste(.PATH,"/expAtv.R",sep=''))  # fixed upstream
-source(paste(.PATH,"/gammaAtv.R",sep=''))  # fixed upstream
+source(paste(.PATH,"/gammaAtv.R",sep='')) 
 source(paste(.PATH,"/input-output.R",sep='')) 
 
 getpatterns <- function(patlen,bases) {
@@ -27,7 +27,7 @@ mutpatchanges <- function (mutpats) {
             } ) ) } )
 }
 
-getmutpats <- function(patlen,nchanges=1) {
+getmutpats <- function(bases,patlen,nchanges=1) {
     # all kmer -> kmer changes
     # that involve at most nchanges changes
     mutpats <- list()
@@ -36,7 +36,7 @@ getmutpats <- function(patlen,nchanges=1) {
         kmers <- getpatterns(k,bases)
         mutpats <- c( mutpats,
                 apply(combn(kmers,2),2,list), # make lists of rows (2 = apply over columns), giving 2-element lists of kmers
-                apply(combn(kmers,2)[2:1,],2,list) # and the reverse of the 2-element lists
+                apply(combn(kmers,2)[2:1,,drop=FALSE],2,list) # and the reverse of the 2-element lists
             )
     }
     obschanges <- sapply(mutpatchanges(mutpats),nrow)
@@ -205,7 +205,7 @@ null.fixfn <- function (...) { 1 }
 ###
 # genmatrix code
 # genmatrix gives the instantaneous rate for going from patterns x -> y
-# genmatrix extends the sparse matrix class, carrying along more information.
+# genmatrix extends a sparse matrix class, carrying along more information.
 
 check.context <- function (cont) {
     return(
@@ -224,18 +224,22 @@ check.context <- function (cont) {
 setClass("genmatrix", representation(
                                      muttrans="Matrix",
                                      seltrans="Matrix",
+                                     bases="character",
                                      mutpats="list",
                                      selpats="list",
                                      boundary="character",
                                      fixfn="function"),
          contains = "dgCMatrix")
 
-setClass("tuplecounts",representation(leftwin="numeric",counts="Matrix"))
-setMethod("dim", signature=(x="tuplecounts"), definition=function (x) { dim(x@counts) } )
-setMethod("dimnames", signature=(x="tuplecounts"), definition=function (x) { dimnames(x@counts) } )
+setClass("tuplecounts",representation(leftwin="numeric",counts="Matrix",bases="character"))
+setMethod("dim", signature=c(x="tuplecounts"), definition=function (x) { dim(x@counts) } )
+setMethod("dimnames", signature=c(x="tuplecounts"), definition=function (x) { dimnames(x@counts) } )
 setMethod("dimnames<-", signature=c(x="tuplecounts",value="ANY"), definition=function (x,value) { dimnames(x@counts)<-value } )
-setMethod("as.matrix", signature=(x="tuplecounts"), definition=function (x) { as.matrix(x@counts) } )
-setMethod("as.vector", signature=(x="tuplecounts"), definition=function (x) { as.vector(x@counts) } )
+setMethod("as.matrix", signature=c(x="tuplecounts"), definition=function (x) { as.matrix(x@counts) } )
+setMethod("as.vector", signature=c(x="tuplecounts"), definition=function (x) { as.vector(x@counts) } )
+setMethod("%*%", signature=c(x="tuplecounts",y="ANY"), definition=function (x,y) { x@counts %*% y } )
+setMethod("%*%", signature=c(x="ANY",y="tuplecounts"), definition=function (x,y) { x %*% y@counts } )
+
 
 setClass("context",
          representation(data="tuplecounts",
@@ -263,13 +267,13 @@ setMethod("likfun", signature=c(x="context"), definition=function(x) {
 setGeneric("longwin", function(x) { standardGeneric("longwin") })
 setGeneric("shortwin", function(x) { standardGeneric("shortwin") })
 setGeneric("leftwin", function(x) { standardGeneric("leftwin") })
-setMethod("longwin", signature=c(x="genmatrix"), definition=function(x) { nchar(rownames(genmatrix)[1]) } )
+setMethod("longwin", signature=c(x="genmatrix"), definition=function(x) { nchar(rownames(x)[1]) } )
 setMethod("longwin", signature=c(x="tuplecounts"), definition=function(x) { nchar(rownames(x@counts)[1]) } )
-setMethod("longwin", signature=c(x="context"), definition=function(x) { longwin(context@data) } )
+setMethod("longwin", signature=c(x="context"), definition=function(x) { longwin(x@data) } )
 setMethod("shortwin", signature=c(x="tuplecounts"), definition=function(x) { nchar(colnames(x@counts)[1]) } )
-setMethod("shortwin", signature=c(x="context"), definition=function(x) { shortwin(context@data) } )
+setMethod("shortwin", signature=c(x="context"), definition=function(x) { shortwin(x@data) } )
 setMethod("leftwin", signature=c(x="tuplecounts"), definition=function(x) { x@leftwin } )
-setMethod("leftwin", signature=c(x="context"), definition=function(x) { leftwin(context@data) } )
+setMethod("leftwin", signature=c(x="context"), definition=function(x) { leftwin(x@data) } )
 # convenience functions
 setGeneric("nmuts", function (x) { standardGeneric("nmuts") } )
 setGeneric("nsel", function (x) { standardGeneric("nsel") } )
@@ -277,14 +281,24 @@ setMethod("nmuts", signature=c(x="genmatrix"), definition=function (x) { length(
 setMethod("nsel", signature=c(x="genmatrix"), definition=function (x) { length(x@selpats) } )
 
 # and methods related to model fitting
-setGeneric("counts", function (x) { standardGeneric("counts") } )
-setMethod("counts", signature=c(x="context"), definition=function (x) {x@data} )
+setGeneric("tuplecounts", function (x) { standardGeneric("tuplecounts") } )
+setMethod("tuplecounts", signature=c(x="context"), definition=function (x) {x@data} )
 setMethod("coef", signature=c(object="context"), definition=function (object) {
           coef <- c( object@mutrates, object@selcoef, object@params )
           names(coef) <- c( mutnames( object@genmatrix@mutpats ), mutnames( object@genmatrix@selpats ), names(object@params) )
           return(coef) } )
-# setMethod("fitted", signature=c(object="context"), definition=function (object) {
-# predictcounts <- function (shortwin, leftwin=0, rightwin=0, initcounts, mutrates, selcoef, mutpats, selpats, genmatrix, projmatrix, ... ) {
+setMethod("rowSums", signature=c(x="tuplecounts"), definition=function (x) { rowSums(x@counts) } )
+setMethod("image", signature=c(x="tuplecounts"), definition=function (x) { image(x@counts) } )
+setMethod("rowSums", signature=c(x="context"), definition=function (x) { rowSums(x@data@counts) } )
+setMethod("fitted", signature=c(object="context"), definition=function (object,...) { predictcounts.context(object,...) } )
+setMethod("residuals", signature=c(object="context"), definition=function (object,...) { resid.context(object,...) } )
+
+setMethod("-",signature=c("tuplecounts","ANY"), definition=function(e1,e2) { new("tuplecounts",leftwin=e1@leftwin,counts=Matrix(e1@counts-e2),bases=e1@bases) } )
+setMethod("-",signature=c("ANY","tuplecounts"), definition=function(e1,e2) { new("tuplecounts",leftwin=e2@leftwin,counts=Matrix(e1-e2@counts),bases=e2@bases) } )
+
+
+####
+#
 
 makegenmatrix <- function (mutpats, selpats=list(), patlen=nchar(patterns[1]), patterns=getpatterns(patlen,bases), bases, mutrates=rep(1,length(mutpats)),selcoef=rep(1,length(selpats)), boundary="none", fixfn=function(...){1}, ...) {
     # make the generator matrix, carrying with it the means to quickly update itself.
@@ -328,6 +342,7 @@ makegenmatrix <- function (mutpats, selpats=list(), patlen=nchar(patterns[1]), p
             seltrans=seltrans,
             mutpats=mutpats,
             selpats=selpats,
+            bases=bases,
             fixfn=fixfn,
             boundary=boundary
         ) )
@@ -343,7 +358,7 @@ update <- function (G, mutrates, selcoef, ...) {
     as.vector( G@muttrans %*% mutrates ) * fixprob
 }
 
-collapsepatmatrix <- function (ipatterns, leftwin, shortwin=nchar(fpatterns[1]), rightwin=nchar(ipatterns[1])-shortwin-leftwin, fpatterns=getpatterns(nchar(ipatterns[1])-leftwin-rightwin), bases ) {
+collapsepatmatrix <- function (ipatterns, leftwin, shortwin=nchar(fpatterns[1]), rightwin=nchar(ipatterns[1])-shortwin-leftwin, fpatterns=getpatterns(nchar(ipatterns[1])-leftwin-rightwin,bases), bases ) {
     # returns a (nbases)^k x (nbases)^k-m matrix projection matrix
     # map patterns onto the shorter patterns obtained by deleting leftwin characters at the start and rightwin characters at the end
     patlen <- nchar(ipatterns[1])
@@ -363,7 +378,7 @@ meangenmatrix <- function (leftwin,rightwin,patlen,...) {
     if (longpatlen == patlen) {  # no need to do anything else...
         return(genmat)
     }
-    projmat <- collapsepatmatrix(ipatterns=rownames(genmat),leftwin=leftwin,rightwin=rightwin)  # this is P
+    projmat <- collapsepatmatrix(ipatterns=rownames(genmat),leftwin=leftwin,rightwin=rightwin, bases=genmatrix@bases)  # this is P
     meanmat <- t( sweep( projmat, 2, colSums(projmat), "/" ) )  # this is M
     pgenmat <- meanmat %*% genmat %*% projmat   # this is H = M G P
     ii <- pgenmat@i
@@ -382,7 +397,10 @@ meangenmatrix <- function (leftwin,rightwin,patlen,...) {
     # pnonz <- t( apply( ij.H, 1, function (ij) { meanmat[ij[1],ij.G[,"i"]] * projmat[ij.G[,"j"],ij[2]] } ) )
     pp <- sapply( 0:ncol(pgenmat), function(k) sum(jj[nondiag]<k) )
     meangenmat <- new( "genmatrix", i=ii[nondiag], p=pp, x=pgenmat@x[nondiag], Dim=pgenmat@Dim, Dimnames=pgenmat@Dimnames,
-        muttrans = (pnonz %*% genmat@muttrans), seltrans = (pnonz %*% genmat@seltrans) )
+        muttrans = (pnonz %*% genmat@muttrans), seltrans = (pnonz %*% genmat@seltrans), 
+        bases=pgenmat@bases, mutpats=pgenmat@mutpats, selpats=pgenmat@selpats,
+        boundary=pgenmat@boundary, fixfn=pgenmat@fixfn
+        )
     args <- list(...)
     if (is.null(args$mutrates)) { args$mutrates <- rep(1,length(genmat@mutpats)) }
     if (is.null(args$selcoef)) { args$selcoef <- rep(1,length(genmat@selpats)) }
@@ -501,35 +519,48 @@ reverse.complement <- function (mutpats) {
 
 ###
 #
-
-predictcounts <- function (shortwin, leftwin=0, rightwin=0, initcounts, mutrates, selcoef, mutpats, selpats, genmatrix, projmatrix, ... ) {
-    # Compute expected counts of paired patterns:
-    longwin <- leftwin+shortwin+rightwin
-    if (missing(genmatrix)) { genmatrix <- makegenmatrix(patlen=leftwin+shortwin+rightwin,mutpats=mutpats,selpats=selpats, ...) }
-    if (!missing(mutrates)|!missing(selcoef)) { genmatrix@x <- update(genmatrix,mutrates=mutrates,selcoef=selcoef,...) }
-    if (missing(projmatrix)) { projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, rightwin=rightwin ) }
-    subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE, ... )
-    if (missing(initcounts)) { initcounts <- 1 }
-    fullcounts <- initcounts * subtransmatrix
-    return( fullcounts )
+predictcounts.context <- function (model, longwin=NULL, shortwin=NULL, leftwin=NULL, initcounts=rowSums(model), mutrates=model@mutrates, selcoef=model@selcoef, genmatrix=model@genmatrix, projmatrix=model@projmatrix ) {
+    # default values not cooperating with S4 methods:
+    if (is.null(longwin)) { longwin <- longwin(model) }
+    if (is.null(shortwin)) { shortwin <- shortwin(model) }
+    if (is.null(leftwin)) { leftwin <- leftwin(model) }
+    if (!missing(genmatrix) && missing(projmatrix)) { 
+        projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, fpatterns=getpatterns(shortwin,genmatrix@bases) )
+    }
+    predictcounts(longwin,shortwin,leftwin,initcounts,mutrates,selcoef,genmatrix,projmatrix)
 }
 
-projectcounts <- function( leftwin, lcountwin, countwin, rcountwin, counts ) {
-    # collapse: valid shift ranges is
-    #  (l-lc)^+ <= k < (l+w)-(lc+wc)+(r-rc)^-
-    #  using counts for (leftwin,shortwin,rightwin) compute counts for (lcountwin,countwin,rcountwin).
-    if ( max(0L,leftwin-lcountwin) > (leftwin+shortwin)-(lcountwin+countwin)+min(0L,rightwin-rcountwin) ) { stop("unreconcilable windows specified.") }
-    longwin <- nchar(rownames(counts)[1])
-    shortwin <- nchar(colnames(counts)[1])
+
+predictcounts <- function (longwin, shortwin, leftwin, initcounts, mutrates, selcoef, genmatrix, projmatrix, ... ) {
+    # Compute expected counts of paired patterns:
+    #  where the actual computation happens
     rightwin <- longwin-shortwin-leftwin
-    pcounts <- matrix(0,nrow=npatterns(lcountwin+countwin+rcountwin,bases),ncol=npatterns(countwin,bases))
+    if (!missing(mutrates)||!missing(selcoef)) { genmatrix@x <- update(genmatrix,mutrates=mutrates,selcoef=selcoef,...) }
+    if (missing(projmatrix)) { projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, rightwin=rightwin, bases=genmatrix@bases ) }
+    subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE, ... )
+    fullcounts <- initcounts * subtransmatrix
+    return( new("tuplecounts", leftwin=leftwin, counts=Matrix(fullcounts), bases=genmatrix@bases ) )
+}
+
+projectcounts <- function( counts, lcountwin, countwin, rcountwin ) {
+    # using counts for (leftwin,shortwin,rightwin) compute counts for (lcountwin,countwin,rcountwin).
+    #   valid ranges for parameters are
+    #    (l-lc)^+ <= k < (l+w)-(lc+wc)+(r-rc)^-
+    leftwin <- leftwin(counts)
+    longwin <- longwin(counts)
+    shortwin <- shortwin(counts)
+    rightwin <- longwin-shortwin-leftwin
+    if ( max(0L,leftwin-lcountwin) > (leftwin+shortwin)-(lcountwin+countwin)+min(0L,rightwin-rcountwin) ) { 
+        stop("unreconcilable windows specified.") 
+    }
+    pcounts <- matrix(0,nrow=npatterns(lcountwin+countwin+rcountwin,counts@bases),ncol=npatterns(countwin,counts@bases))
     for (k in max(0L,leftwin-lcountwin):((leftwin+shortwin)-(lcountwin+countwin)+min(0L,rightwin-rcountwin))) {
-        lpmat <- collapsepatmatrix( ipatterns=rownames(counts), leftwin=k, rightwin=longwin-(k+lcountwin+countwin+rcountwin) )
-        rpmat <- collapsepatmatrix( ipatterns=colnames(counts), leftwin=k+lcountwin-leftwin, rightwin=shortwin-(k+lcountwin-leftwin+countwin) )
+        lpmat <- collapsepatmatrix( ipatterns=rownames(counts), leftwin=k, rightwin=longwin-(k+lcountwin+countwin+rcountwin), bases=counts@bases )
+        rpmat <- collapsepatmatrix( ipatterns=colnames(counts), leftwin=k+lcountwin-leftwin, rightwin=shortwin-(k+lcountwin-leftwin+countwin), bases=counts@bases )
         pcounts <- pcounts + t(lpmat) %*% counts %*% (rpmat)
     }
     dimnames(pcounts) <- list( colnames(lpmat), colnames(rpmat) )
-    return(pcounts)
+    return( new("tuplecounts", leftwin=lcountwin, counts=Matrix(pcounts), bases=counts@bases) )
 }
 
 predicttreecounts <- function (shortwin, leftwin=0, rightwin=0, initcounts, mutrates, selcoef, mutpats, selpats, tlens, genmatrix, projmatrix, initfreqs, patcomp, ... ) {
@@ -552,6 +583,14 @@ predicttreecounts <- function (shortwin, leftwin=0, rightwin=0, initcounts, mutr
 
 ###
 # stuff for looking at residuals and finding motifs there
+
+resid.context <- function (model, counts=model@data, genmatrix=model@genmatrix, pretty=FALSE) {
+    expected <- fitted(model, initcounts=rowSums(counts),
+                       longwin=longwin(counts), shortwin=shortwin(counts), leftwin=leftwin(counts),
+                       genmatrix=genmatrix )
+    stopifnot( all( rownames(expected)==rownames(counts) ) && all( colnames(expected)==colnames(counts) ) )
+    return( counts - expected )
+}
 
 listresids <- function (counts, expected, file, trim=20, leftwin=(nchar(rownames(counts)[1])-nchar(colnames(counts)[1]))/2) {
     # make a readable output ordered by z-score

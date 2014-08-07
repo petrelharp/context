@@ -8,30 +8,31 @@ Infer parameters from paired counts file.
 option_list <- list(
     # input/output
         make_option( c("-i","--infile"), type="character", help="Input file with tuple counts, tab-separated, with header 'reference', 'derived', 'count'. [default, looks in basedir]" ),
-        make_option( c("-o","--outfile"), type="character", help="File to save results to.  [default: like infile, but with unique suffix]."),
+        make_option( c("-o","--outfile"), type="character", help="File to save results to.  [default: base of infile + base of genmatrix + jobid + .RData]"),
         make_option( c("-u","--basedir"), type="character", default=NULL, help="Directory to put output in. [default: same as infile]"),
         make_option( c("-l","--leftwin"), type="integer", help="Size of left-hand context." ),
-        make_option( c("-m","--gmfile"), type="character", default="TRUE", help="File with precomputed generator matrix, or TRUE [default] to look for one. (otherwise, will compute)"),
+        make_option( c("-m","--gmfile"), type="character", default="TRUE", help="File with precomputed generator matrix."),
         make_option( c("-x","--maxit"), type="integer", default=100, help="Number of iterations of optimization to run for. [default=%default]"),
         make_option( c("-j","--jobid"), type="character", default=formatC(1e6*runif(1),width=6,format="d",flag="0"), help="Unique job id. [default random]")
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 if (is.null(opt$infile)) { stop("No input file.  Run\n  bcells-inference.R -h\n for help.\n") }
 if (is.null(opt$basedir)) { opt$basedir <- dirname(opt$infile) }
-if (is.null(opt$outfile)) { opt$outfile <- paste( opt$basedir, "/", gsub("\\.[^.]*","",basename(opt$infile) ), "-modelfit-", opt$jobid, ".RData", sep='' ) }
+if (is.null(opt$outfile)) { opt$outfile <- paste( opt$basedir, "/", gsub("\\.[^.]*","",basename(opt$infile) ), "-", gsub("\\.[^.]*","",basename(opt$gmfile) ), "-", opt$jobid, ".RData", sep='' ) }
 print(opt) # this will go in the pbs log
 options(error = quote({dump.frames(to.file = TRUE); q()}))
 
 
-source("../context-inference-fns.R")
-
-attach(opt)
 if (interactive()) {
-    opt$infile <- "simseqs/simseq-2014-08-01-14-18-0169113.counts"
+    opt$infile <- "sim-cpg-123456.counts"
     opt$leftwin <- 1
     opt$gmfile <- "genmatrices/genmatrix-4-singlebase.RData"
     opt$maxit <- 2
 }
+
+source("../context-inference-fns.R")
+
+attach(opt)
 
 # load generator matrix
 stopifnot(file.exists(gmfile))

@@ -21,7 +21,8 @@ and even more usefully,
 - 'coef( )' : a named list of mutation and selection coefficients
 - 'fitted( )' : predicted counts under the model
 - 'residuals( )' : fitted - counts
-- 'residuals( ,pretty=TRUE)' : residuals, in a data frame, with z-scores, sorted by z-score
+- 'residuals( , pretty=TRUE)' : residuals, in a data frame, with z-scores, sorted by z-score
+Note that by default 'fitted(model)' predicts counts for the pattern lengths used to fit the model, but by passing other parameters, you can obtain predicted counts for other pattern lengths (but note: must pass in a new 'genmatrix').  The same goes for 'residuals(model)', but for patterns longer than those initially used, you must pass in the observed counts.
 
 An object of class 'tuplecounts' is a matrix of counts of paired tuples, that additionally carries:
 - 'counts' : a Matrix of counts 
@@ -31,13 +32,9 @@ An object of class 'tuplecounts' is a matrix of counts of paired tuples, that ad
 Note that although it is not stored in the 'context' object because it would be redundant, 'win' means the inner window width.
 
 An object of class 'genmatrix' is a sparse matrix that additionally carries the following information (and some more stuff):
+- 'bases' : character vector of allowed bases
 - 'rownames( )' and 'colnames( )' : character vectors; should match with e.g. 'headpats' above.
 - 'mutpats' : list of mutation motifs
 - 'selpats' : list of selection motifs
 - 'fixfn' : fixation function that translates differences in selection coefficient to mutation rate multipliers
 
-
-TODO:
-- switch sign so that 'likfun' is actually log likelihood.
-- add in tree information above
-- add a 'context.mcmc' or somesuch object carrying around relevant Bayesian whatnot also

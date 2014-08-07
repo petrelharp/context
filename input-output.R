@@ -16,5 +16,5 @@ read.counts <- function (infile,leftwin) {
     colnames(counts) <- shortpats
     stopifnot( all( count.table$reference %in% rownames(counts) ) & all(count.table$derived %in% colnames(counts)) ) 
     counts[cbind( match(count.table$reference,rownames(counts)), match(count.table$derived,colnames(counts)) )] <- count.table$count
-    return( new("tuplecounts", counts=counts, leftwin=leftwin ) )
+    return( new("tuplecounts", counts=counts, leftwin=leftwin, bases=bases ) )
 }

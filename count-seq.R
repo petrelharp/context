@@ -22,11 +22,18 @@ option_list <- list(
         make_option( c("-r","--revcounts"), action="store_true", default="FALSE", help="Count reversed?")
         )
 countseq.opt <- parse_args(OptionParser(option_list=option_list,description=usage))
-if (is.null(countseq.opt$outfile)) { outfile <- paste( gsub(".RData","",countseq.opt$infile), if(countseq.opt$revcounts){"-rev"}else{""}, ".counts", sep="") }
+if (is.null(countseq.opt$outfile)) { # default outfile
+    outfile <- paste( 
+                     gsub(".RData","",countseq.opt$infile), 
+                     if(countseq.opt$revcounts){"-rev"}else{""}, 
+                     ".", countseq.opt$longwin, ".", countseq.opt$shortwin, ".l", countseq.opt$leftwin,
+                     ".counts", 
+                 sep="") 
+}
 attach(countseq.opt)
 
-source("../context-inference-fns.R")
 source("../sim-context-fns.R")
+source("../context-inference-fns.R")
 
 load(infile)
 
