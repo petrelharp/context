@@ -7,9 +7,10 @@ frame_files <- lapply(sys.frames(), function(x) x$ofile)
 frame_files <- Filter(Negate(is.null), frame_files)
 .PATH <- dirname(frame_files[[length(frame_files)]])
 # source(paste(.PATH,"/expm-simple.R",sep=''))  # expAtv is faster
+
 source(paste(.PATH,"/expAtv.R",sep=''))  # fixed upstream
-source(paste(.PATH,"/gammaAtv.R",sep='')) 
-source(paste(.PATH,"/input-output.R",sep='')) 
+source(paste(.PATH,"/gammaAtv.R",sep=''))
+source(paste(.PATH,"/input-output.R",sep=''))
 
 getpatterns <- function(patlen,bases) {
     # construct a list of all patterns
@@ -134,7 +135,7 @@ getmutmats <- function(mutpats,patterns,boundary=c("none","wrap")) {
     # returns i and j's indexing the generator matrix.
     # that is, given a list of mutation patterns,
     #   which can be either pairs or lists of pairs,
-    # return a corresponding list of matrices with (1-based) indices of changes corresponding to mutation patterns
+    # return a corresponding list of two-column matrices with (1-based) indices of changes corresponding to mutation patterns
     #   i.e. if (i,j) is a row of output[[k]], then patterns[j] can be obtained from patterns[i]
     #   by performing the substitution from mutpats[[k]][1] -> mutpats[[k]][2]
     #   at some location within the string.
@@ -258,7 +259,7 @@ setMethod("dimnames", signature=c(x="context"), definition=function (x) { dimnam
 #  ... where is 'self'?!?
 # EVIL:
 setGeneric("likfun", function (x) { standardGeneric("likfun") } )
-setMethod("likfun", signature=c(x="context"), definition=function(x) { 
+setMethod("likfun", signature=c(x="context"), definition=function(x) {
           f <- x@likfun
           environment(f) <- list2env( list(genmatrix=x@genmatrix,projmatrix=x@projmatrix), parent=globalenv())
           return(f) } )
@@ -306,13 +307,15 @@ makegenmatrix <- function (mutpats, selpats=list(), patlen=nchar(patterns[1]), p
     #  DON'T do the diagonal, so that the updating is easier.
     if (!is.numeric(patlen)|(missing(patlen)&missing(patterns))) { stop("need patlen or patterns") }
     if ( (length(selpats)>0 && max(sapply(unlist(selpats),nchar))>patlen) | max(sapply(unlist(mutpats),nchar))>patlen ) { stop("some patterns longer than patlen") }
-    # list of matrices with indices of changes corresponding to mutation patterns
+    # mutmats is a list of matrices, with one matrix for each of mutpats describing the induced mutation process on patterns (see getmutpats function def'n)
     mutmats <- getmutmats(mutpats,patterns,boundary=boundary)
     allmutmats <- do.call( rbind, mutmats )
-    # convert to dgCMatrix format
+    # start converting to dgCMatrix format by getting the order of all of the "from" (i) and "to" (j) indices.
     dgCord <- order( allmutmats$j, allmutmats$i )
-    # use this to transfer these to list of values in mutation matrix
+    # nmutswitches is a vector with kth component equal to the number of mutations between patterns that can be induced by performing one of the substitutions in the kth mutpat.
     nmutswitches <- sapply(mutmats,NROW)
+    # We take these pattern mutations with repetition to be the implicit order on pattern mutations.
+    # We put a 1 in every (i,j) such that i indexes a pattern mutation that happens at the jth mutpat.
     muttrans <- dgTtodgC( new( "dgTMatrix", i=1:sum(nmutswitches)-1L, j=rep(seq_along(mutrates),times=nmutswitches)-1L, x=rep(1,sum(nmutswitches)), Dim=c(sum(nmutswitches),length(mutrates)) ) )
     muttrans <- muttrans[ dgCord , , drop=FALSE ]
     # selection?

@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -eu
+set -o pipefail
+
 # simulate up some sequence for testing
 Rscript ../sim-seq.R -c cpg-model.json -t .1 -s 1000 -d simseqs -o sim-cpg-123456.RData
 # and count the paired tuples, width 4 = 1+2+1

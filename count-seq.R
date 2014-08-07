@@ -47,7 +47,7 @@ counts <- if (revcounts) {
     counttrans( longpats, shortpats, simseqs[[1]]$finalseq, simseqs[[1]]$initseq, leftwin=countseq.opt$leftwin )
 }
 
-countframe <- data.frame( reference=rownames(counts)[row(counts)], 
+countframe <- data.frame( reference=rownames(counts)[row(counts)],
                          derived=colnames(counts)[col(counts)],
                          count=as.vector(counts)
                          )
