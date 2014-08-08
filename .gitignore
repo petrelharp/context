@@ -1,5 +1,6 @@
 .Rhistory
 *.RData
+*.counts
 .*.sw?
 *.pyc
 *.aux
