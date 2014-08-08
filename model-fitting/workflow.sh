@@ -13,6 +13,8 @@ Rscript ../count-seq.R -i sim-cpg-123456.RData -w 4 -s 2 -l 1
 Rscript ../flex-genmat.R -c genmatrices/singlebase.json -w 4
 #   width-5 with all one-base transitions
 Rscript ../flex-genmat.R -c genmatrices/singlebase.json -w 5
+#   width-2 with all one-base transitions
+Rscript ../flex-genmat.R -c genmatrices/singlebase.json -w 2
 #   width-4 with all two-base transitions
 Rscript ../flex-genmat.R -c genmatrices/dualbases.json -w 4
 
@@ -33,3 +35,7 @@ Rscript ../count-seq.R -i sim-cpg-123456.RData -w 5 -s 3 -l 1
 #   then get the residuals
 Rscript ../compute-resids.R -i simple-fit.RData -m genmatrices/genmatrix-5-singlebase.RData -c sim-cpg-123456.5.3.l1.counts -w 5 -s 1 -l 2 
 
+# and do some MCMC (er, not much...)
+Rscript ../mcmc-model.R -i simple-fit.RData -c simple-priors.json -b 2 -l 2 -j 13579
+# continue this run
+Rscript ../mcmc-model.R -i simple-fit-mcmc-13579.RData -c simple-priors.json -b 2 -l 2

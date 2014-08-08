@@ -273,7 +273,7 @@ setMethod("dimnames", signature=c(x="context"), definition=function (x) { dimnam
 setGeneric("likfun", function (x) { standardGeneric("likfun") } )
 setMethod("likfun", signature=c(x="context"), definition=function(x) {
           f <- x@likfun
-          environment(f) <- list2env( list(genmatrix=x@genmatrix,projmatrix=x@projmatrix), parent=globalenv())
+          environment(f) <- list2env( list(genmatrix=x@genmatrix,projmatrix=x@projmatrix,counts=x@data), parent=globalenv())
           return(f) } )
 
 # extract window lengths from these objects:
