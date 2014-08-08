@@ -78,7 +78,7 @@ model <- new( "contextMCMC",
              mutrates=mrun$final[1:nmuts(genmatrix)],
              selcoef=mrun$final[seq(nmuts(genmatrix),length.out=nsel(genmatrix))],
              params=numeric(0),
-             results=mrun,
+             results=as.list(mrun),
              likfun=likfun,
              mutprior=mutprior,
              selprior=selprior
