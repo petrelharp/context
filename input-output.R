@@ -18,3 +18,4 @@ read.counts <- function (infile,leftwin) {
     counts[cbind( match(count.table$reference,rownames(counts)), match(count.table$derived,colnames(counts)) )] <- count.table$count
     return( new("tuplecounts", counts=counts, leftwin=leftwin, bases=bases ) )
 }
+

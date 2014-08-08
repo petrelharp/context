@@ -255,9 +255,16 @@ setClass("context",
                         params="numeric",
                         projmatrix="Matrix",
                         likfun="function",
-                        optim.results="list"
+                        results="list"
                     )
          )
+
+setClass("contextMCMC", representation(
+                                       mutprior="numeric",
+                                       selprior="numeric"
+                                       ),
+         contains="context")
+
 setMethod("dimnames", signature=c(x="context"), definition=function (x) { dimnames(x@data) } )
 
 # We would like the likfun function to automatically have access to the stuff in the context object
@@ -285,6 +292,8 @@ setGeneric("nmuts", function (x) { standardGeneric("nmuts") } )
 setGeneric("nsel", function (x) { standardGeneric("nsel") } )
 setMethod("nmuts", signature=c(x="genmatrix"), definition=function (x) { length(x@mutpats) } )
 setMethod("nsel", signature=c(x="genmatrix"), definition=function (x) { length(x@selpats) } )
+setMethod("nmuts", signature=c(x="context"), definition=function (x) { nmuts(x@genmatrix) } )
+setMethod("nsel", signature=c(x="context"), definition=function (x) { nsel(x@genmatrix) } )
 
 # and methods related to model fitting
 setGeneric("tuplecounts", function (x) { standardGeneric("tuplecounts") } )

@@ -70,7 +70,7 @@ model <- new( "context",
              mutrates=adhoc.mutrates,
              selcoef=numeric(nsel(genmatrix)),
              params=numeric(0),
-             optim.results=optim.results,
+             results=optim.results,
              likfun=likfun
          )
 

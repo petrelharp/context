@@ -9,16 +9,15 @@ It should therefore carry around:
 - 'params' : other parameters (branch lengths, arguments to fixfn, etc)
 - 'projmatrix' : a (projection) matrix with rows indexed by 'headpats' and columns indexed by 'tailpats'
 - 'likfun' : the function that returns the negative log-likelihood of the data as a function of (mutrates,selcoef,params)
-- 'optim.results' : output from routine that estimated parameters (mutrates, selcoef, params)
+- 'results' : output from routine that estimated parameters (either optim() or metrop())
 Furthermore, it has the following methods:
 - 'winlen( )' : an integer giving the length of the patterns that index rows of 'data'
 - 'win( )' : an integer giving the length of the patterns that index columns of 'data'
 - 'lwin( )' : an integer giving the offset that aligns columns of 'data' with rows of 'data'
 - 'rownames( )' : a character vector of (winlen)-mers indexing the rows of 'data'
 - 'colnames( )' : a character vector of (win)-mers indexing the columns of 'data'
-- 'counts( )' : returns the (count) data
 and even more usefully,
-- 'coef( )' : a named list of mutation and selection coefficients
+- 'coef( )' : a named list of mutation and selection coefficients (mutrates, selcoef, params)
 - 'fitted( )' : predicted counts under the model
 - 'residuals( )' : fitted - counts
 - 'residuals( , pretty=TRUE)' : residuals, in a data frame, with z-scores, sorted by z-score
