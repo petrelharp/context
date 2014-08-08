@@ -25,7 +25,7 @@ option_list <- list(
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 if (is.null(opt$infile)) { stop("No input file.  Run\n  bcells-inference.R -h\n for help.\n") }
 if (is.null(opt$basedir)) { opt$basedir <- dirname(opt$infile) }
-if (is.null(opt$outfile)) { opt$outfile <- paste( opt$basedir, "/", gsub("\\.[^.]*","",basename(opt$infile) ), "-mcmc-", opt$jobid, ".RData", sep='' ) }
+if (is.null(opt$outfile)) { opt$outfile <- paste( opt$basedir, "/", gsub("(mcmc-[0-9]*)*\\.[^.]*","",basename(opt$infile) ), "-mcmc-", opt$jobid, ".RData", sep='' ) }
 print(opt) # this will go in the pbs log
 options(error = quote({dump.frames(to.file = TRUE); q()}))
 
@@ -78,11 +78,11 @@ model <- new( "contextMCMC",
              mutrates=mrun$final[1:nmuts(genmatrix)],
              selcoef=mrun$final[seq(nmuts(genmatrix),length.out=nsel(genmatrix))],
              params=numeric(0),
-             results=as.list(mrun),
+             results=unclass(mrun),
              likfun=likfun,
              mutprior=mutprior,
              selprior=selprior
          )
 
 
-save(model,file=outfile)
+save(model,file=opt$outfile)
