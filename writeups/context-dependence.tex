@@ -658,9 +658,9 @@ where $G(m+2\ell)$ is the sparse $|\calS|^{m+2\ell} \times |\calS|^{m+2\ell}$ ma
 The ``projection'' we need just marginalizes over long patterns $z$ that match the shorter pattern $y$:
 if we define the matrix $U$ in this way, so that $U_{zy}=1$ if $z_\ell^m=y$ and $U_{zy}=0$ otherwise,
 then
-\[
+\begin{align} \label{eqn:Tmer_trans}
     p_{m,\ell}(t,x,y) = \sum_{z \in \calS^{m+2\ell}} \left( e^{t G(m+2\ell)} \right)_{xz} U_{zy} ,
-\]
+\end{align}
 so in fact we don't need the entire matrix $e^{t G(m+2\ell)}$,
 just the product of this matrix with each of the columns of $U$.
 

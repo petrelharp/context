@@ -29,6 +29,7 @@ mutpatchanges <- function (mutpats) {
 }
 
 getmutpats <- function(bases,patlen,nchanges=1) {
+    # YYY suggested name change: gen_mutpatl for generate mutpat list
     # all kmer -> kmer changes where k <= `patlen`
     # that involve at most nchanges changes
     mutpats <- list()
@@ -65,7 +66,8 @@ divergence <- function (counts, leftwin) {
 }
 
 countmuts <- function (counts, mutpats, leftwin, ...) {
-    # given a contingency table of kmer changes from data, a collection of
+    # YYY suggest mutpatl rather than mutpats, because that's what we have
+    # given a contingency table of Tmers observed in a data set data, a collection of
     # mutation patterns, the leftwin, and a list of arguments to `sum`, this function
     # returns a matrix, the first row of which gives counts of how many of these could be produced by each of mutpats
     #   and the second of which gives the number of "from" matches of the mutpats (called the "total possible").
@@ -73,8 +75,8 @@ countmuts <- function (counts, mutpats, leftwin, ...) {
     # in other words, for each mutation pattern a -> b
     #  sum the values of counts[u,v] over choices of u,v such that:
     #   (i) 'a' matches 'u' at some position
-    #   (ii) in addition, 'b' matches 'v' at the same position
-    # and store in the first row
+    #   (ii) in addition, 'b' matches 'v' at the same position;
+    # store this in the first row
     #
     # note that if we estimate rates by
     #    r.est <- countmuts(...)[1,]/countmuts(...)[2,]
@@ -132,20 +134,25 @@ gradest <- function (likfun, params, eps=mean(params)/1000) {
 
 ###
 # functions to prepare mutation and selection matrices, and build fixation functions
+# In this section we start seing mutation pattern list lists. These objects make sense because the outer list
+# corresponds to the mutation rates, and the inner list corresponds to a set of mutpats that all have the
+# same rate.
 
 getmutmats <- function(mutpats,patterns,boundary=c("none","wrap")) {
     # returns i and j's indexing the generator matrix.
     # that is, given a list of mutation patterns,
     #   which can be either pairs or lists of pairs,
+    # YYY this option is kind of driving me batty. Could we have it just always be a mutpat list list?
     # return a corresponding list of two-column matrices with (1-based) indices of changes corresponding to mutation patterns
     #   i.e. if (i,j) is a row of output[[k]], then patterns[j] can be obtained from patterns[i]
     #   by performing the substitution from mutpats[[k]][1] -> mutpats[[k]][2]
     #   at some location within the string.
+    #   YYY I believe this description is a little flawed, in that mutpats is a mutpat list list
     boundary <- match.arg(boundary)
     longwin <- nchar(patterns[1])
     mutpats <- lapply( mutpats, function (x) { if (is.list(x)) { x } else { list(x) } } )
-    lapply( mutpats, function (y) {  # y is list of short pattern pairs
-            do.call( rbind, lapply(y, function (x) {  # x is short pattern pair (from, to)
+    lapply( mutpats, function (y) {  # y is mutpat list
+            do.call( rbind, lapply(y, function (x) {  # x is mutpat (from, to)
                 patlen <- nchar(x[1])
                 switch( boundary,
                     wrap={ # patterns are circular
@@ -159,9 +166,9 @@ getmutmats <- function(mutpats,patterns,boundary=c("none","wrap")) {
                         subsfun <- function (pat,topat,k) { substr( pat, k, k+patlen-1 ) <- topat; return(pat) }
                     }
                 )
-                do.call( rbind, lapply( 1:maxshift, function (k) {  # k is position of short pattern in long pattern
-                        i <- which( substr( wpatterns, k, k+patlen-1 ) == x[1] ) # which patterns match short from-pattern?
-                        replstr <- subsfun( patterns[i], x[2], k ) # substitute in to-pattern
+                do.call( rbind, lapply( 1:maxshift, function (k) {  # k is position of mutpat "from" in long pattern
+                        i <- which( substr( wpatterns, k, k+patlen-1 ) == x[1] ) # which long patterns match mutpat "from" at position k
+                        replstr <- subsfun( patterns[i], x[2], k ) # substitute in mutpat "to"
                         j <- match( replstr, patterns )  # indices of mutated strings
                         data.frame( i=i, j=j )
                     } ) )
@@ -198,7 +205,7 @@ getselmatches <- function (selpats, patterns, boundary=c("none","wrap"), names=F
 popgen.fixfn <- function (ds,Ne,...) {
     # total influx of fixation given selection coefficient (s[to] - s[from]) difference ds
     if (length(ds)==0) { 1 } else { ifelse( ds==0, 1, Ne*expm1(-2*ds)/expm1(-2*Ne*ds) ) }
-}
+n}
 
 ising.fixfn <- function (ds,...) { 1/(1+exp(-ds)) }
 
@@ -317,19 +324,21 @@ setMethod("residuals", signature=c(object="context"), definition=function (objec
 #
 
 makegenmatrix <- function (mutpats, selpats=list(), patlen=nchar(patterns[1]), patterns=getpatterns(patlen,bases), bases, mutrates=rep(1,length(mutpats)),selcoef=rep(1,length(selpats)), boundary="none", fixfn=function(...){1}, ...) {
-    # make the generator matrix, carrying with it the means to quickly update itself.
+    # YYY suggest mutpatll rather than mutpats
+    # make the generator matrix on Tmers (i.e. eqn:Tmer_trans in the tex),
+    # carrying with it the means to quickly update itself.
     #  DON'T do the diagonal, so that the updating is easier.
     if (!is.numeric(patlen)|(missing(patlen)&missing(patterns))) { stop("need patlen or patterns") }
     if ( (length(selpats)>0 && max(sapply(unlist(selpats),nchar))>patlen) | max(sapply(unlist(mutpats),nchar))>patlen ) { stop("some patterns longer than patlen") }
-    # mutmats is a list of matrices, with one matrix for each of mutpats describing the induced mutation process on patterns (see getmutpats function def'n)
+    # mutmats is a list of matrices, with one matrix for each of the mutpatls in mutpatll describing the induced mutation process on the specified patterns (see getmutmats function def'n)
     mutmats <- getmutmats(mutpats,patterns,boundary=boundary)
     allmutmats <- do.call( rbind, mutmats )
     # start converting to dgCMatrix format by getting the order of all of the "from" (i) and "to" (j) indices.
     dgCord <- order( allmutmats$j, allmutmats$i )
     # nmutswitches is a vector with kth component equal to the number of mutations between patterns that can be induced by performing one of the substitutions in the kth mutpat.
     nmutswitches <- sapply(mutmats,NROW)
-    # muttrans: translate the mutation rates into the pattern space
-    # We take these pattern mutations with repetition to be the implicit order on pattern mutations.
+    # muttrans: translate the specified mutation rates `mutrates` into the specified pattern space
+    # We take these pattern mutations with repetition to be the implicit order on mutation patterns.
     # We put a 1 in every (i,j) such that i indexes a pattern mutation that happens at the jth mutpat.
     muttrans <- dgTtodgC( new( "dgTMatrix", i=1:sum(nmutswitches)-1L, j=rep(seq_along(mutrates),times=nmutswitches)-1L, x=rep(1,sum(nmutswitches)), Dim=c(sum(nmutswitches),length(mutrates)) ) )
     muttrans <- muttrans[ dgCord , , drop=FALSE ]
@@ -380,8 +389,9 @@ update <- function (G, mutrates, selcoef, ...) {
 
 collapsepatmatrix <- function (ipatterns, leftwin, shortwin=nchar(fpatterns[1]), rightwin=nchar(ipatterns[1])-shortwin-leftwin, fpatterns=getpatterns(nchar(ipatterns[1])-leftwin-rightwin,bases), bases ) {
     # ipatterns are the "input" patterns, while fpatterns are the "projected" patterns
-    # returns a (nbases)^k by (nbases)^{k-lwin-rwin} matrix projection matrix
-    # mapping patterns onto the shorter patterns obtained by deleting lwin characters at the start and rwin characters at the end
+    # construct the matrix U described in the tex
+    # returns a (nbases)^k by (nbases)^{k-leftwin-rightwin} matrix projection matrix
+    # mapping patterns onto the shorter patterns obtained by deleting leftwin characters at the start and rightwin characters at the end
     # assumes that all input patterns are the same length
     patlen <- nchar(ipatterns[1])
     shortwin <- patlen - leftwin - rightwin
