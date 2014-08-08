@@ -29,7 +29,7 @@ mutpatchanges <- function (mutpats) {
 }
 
 getmutpats <- function(bases,patlen,nchanges=1) {
-    # all kmer -> kmer changes where k = `patlen`
+    # all kmer -> kmer changes where k <= `patlen`
     # that involve at most nchanges changes
     mutpats <- list()
     patterns <- getpatterns(patlen,bases)
@@ -338,6 +338,7 @@ makegenmatrix <- function (mutpats, selpats=list(), patlen=nchar(patterns[1]), p
         seltrans <- Matrix(numeric(0),nrow=nrow(muttrans),ncol=0)
     }
     # there may be duplicated rows (matching multiple patterns); deal with this
+    # XXX EM doesn't get this code yet
     dups <- c(FALSE,diff(allmutmats[dgCord,][,1])==0)
     dupproj <- new("dgTMatrix",i=cumsum(!dups)-1L,j=seq_along(dups)-1L,x=rep(1,length(dups)),Dim=c(nrow(allmutmats)-sum(dups),nrow(allmutmats)))
     muttrans <- dupproj %*% muttrans
@@ -396,6 +397,7 @@ meangenmatrix <- function (leftwin,rightwin,patlen,...) {
     meanmat <- t( sweep( projmat, 2, colSums(projmat), "/" ) )
     pgenmat <- meanmat %*% genmat %*% projmat   # this is H = M G P
     ii <- pgenmat@i
+    # XXX EM doesn't get this line... what is pgenmat@p?
     jj <- rep(1:ncol(pgenmat),times=diff(pgenmat@p)) - 1L
     nondiag <- ( ii != jj )
     # construct matrix to project from x values in big dgCMatrix to little one:
