@@ -1,0 +1,13 @@
+{
+    "bases" : [ "X", "O" ],
+    "mutpats" : [
+        [ [ "O", "X" ] ],
+        [ [ "X", "O" ] ]
+    ],
+    "comment": "first line is inverse temperature beta, second is magnetic field gamma",
+    "selpats" : [
+        [ "OX","XO" ],
+        [ "X" ]
+    ],
+    "fixfn" : "ising.fixfn"
+}
