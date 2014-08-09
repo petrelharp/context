@@ -451,7 +451,12 @@ if $p_{\ell,m}(x,y)$ is small enough (i.e.\ the pattern is not common),
 then $N(x,y)$ is close to Poisson.
 Using this observation, we can estimate parameters by composite likelihood,
 using all $N(x,y)$ as data.
-Maximum likelihood then gets an asymptotically unbiased estimate of the parameters.
+Specifically, this composite likelihood is
+\begin{align} \label{eqn:comp_like}
+  \prod_{x,y} F_{(x,y)}^{N(x,y)}
+\end{align}
+where $F$ is the $|\calS|^{m+2\ell} \times |\calS|^m$ matrix whose $(x,y)^\text{th}$ entry is $p_{m,\ell}(t,x,y)$ as described in the "Computation" section.
+Maximum likelihood then gets an asymptotically unbiased estimate of the parameters. (cite)
 However, since they are not independent, to get confidence intervals, we need to either simulate, or do something different.
 
 If we use only a subset of patterns $\{(x_k,y_k)\}$ chosen so that $\E[M_1(x,y) M_{k+1}(x,y)]$ is small (or zero),
@@ -648,7 +653,7 @@ but certainly is if we have all the single-base transitions as paramters.
 %%%%%%%%%%%
 \section{Computation}
 
-For inference, we need to compute the $|\calS|^{m+2\ell} \times |\calS|^m$ matrix whose $(x,y)^\text{th}$ entry is $p_{m,\ell}(t,x,y)$,
+For inference, we need to compute the $|\calS|^{m+2\ell} \times |\calS|^m$ matrix $F$ whose $(x,y)^\text{th}$ entry is $p_{m,\ell}(t,x,y)$,
 for various $t$.
 This matrix is a projection of the $|\calS|^{m+2\ell} \times |\calS|^{m+2\ell}$ matrix whose $(x,z)^\text{th}$ entry is
 \begin{align}

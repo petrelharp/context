@@ -67,9 +67,9 @@ divergence <- function (counts, leftwin) {
 
 countmuts <- function (counts, mutpats, leftwin, ...) {
     # YYY suggest mutpatl rather than mutpats, because that's what we have
-    # given a contingency table of Tmers observed in a data set data, a collection of
+    # given a contingency table `counts` of Tmers observed in a data set, a collection of
     # mutation patterns, the leftwin, and a list of arguments to `sum`, this function
-    # returns a matrix, the first row of which gives counts of how many of these could be produced by each of mutpats
+    # returns a matrix with columns indexed by the mutpats, the first row of which gives counts of how many of the counted mutations could be produced by each of mutpats
     #   and the second of which gives the number of "from" matches of the mutpats (called the "total possible").
     #
     # in other words, for each mutation pattern a -> b
@@ -139,7 +139,7 @@ gradest <- function (likfun, params, eps=mean(params)/1000) {
 # same rate.
 
 getmutmats <- function(mutpats,patterns,boundary=c("none","wrap")) {
-    # returns i and j's indexing the generator matrix.
+    # Returns i and j's indexing the generator matrix in terms of the given patterns.
     # that is, given a list of mutation patterns,
     #   which can be either pairs or lists of pairs,
     # YYY this option is kind of driving me batty. Could we have it just always be a mutpat list list?
@@ -325,7 +325,7 @@ setMethod("residuals", signature=c(object="context"), definition=function (objec
 
 makegenmatrix <- function (mutpats, selpats=list(), patlen=nchar(patterns[1]), patterns=getpatterns(patlen,bases), bases, mutrates=rep(1,length(mutpats)),selcoef=rep(1,length(selpats)), boundary="none", fixfn=function(...){1}, ...) {
     # YYY suggest mutpatll rather than mutpats
-    # make the generator matrix on Tmers (i.e. eqn:Tmer_trans in the tex),
+    # Make the generator matrix G on the specified set of patterns,
     # carrying with it the means to quickly update itself.
     #  DON'T do the diagonal, so that the updating is easier.
     if (!is.numeric(patlen)|(missing(patlen)&missing(patterns))) { stop("need patlen or patterns") }
@@ -388,11 +388,12 @@ update <- function (G, mutrates, selcoef, ...) {
 }
 
 collapsepatmatrix <- function (ipatterns, leftwin, shortwin=nchar(fpatterns[1]), rightwin=nchar(ipatterns[1])-shortwin-leftwin, fpatterns=getpatterns(nchar(ipatterns[1])-leftwin-rightwin,bases), bases ) {
+    # YYY it seems like calling this `getprojmatrix` would make things more consistent with the way the other functions are named.
+    # Construct the matrix U described in the tex.
     # ipatterns are the "input" patterns, while fpatterns are the "projected" patterns
-    # construct the matrix U described in the tex
     # returns a (nbases)^k by (nbases)^{k-leftwin-rightwin} matrix projection matrix
-    # mapping patterns onto the shorter patterns obtained by deleting leftwin characters at the start and rightwin characters at the end
-    # assumes that all input patterns are the same length
+    # mapping patterns onto the shorter patterns obtained by deleting leftwin characters at the start and rightwin characters at the end.
+    # This function assumes that all input patterns are the same length.
     patlen <- nchar(ipatterns[1])
     shortwin <- patlen - leftwin - rightwin
     stopifnot(shortwin>0)
@@ -721,6 +722,8 @@ leftchanged <- function (ipatterns,fpatterns,leftwin=0,shortwin=nchar(ipatterns[
 }
 
 getlikfun <- function (nmuts,nsel,genmatrix,projmatrix,const=0) {
+    # YYY appears DEPRECATED!
+    # Return the composite likelihood function.
     return( function (params) {
         # params are: mutrates, selcoef, Ne
         mutrates <- params[1:nmuts]
