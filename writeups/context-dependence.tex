@@ -154,8 +154,7 @@ saying ``pattern $u$ changes to $v$ at rate $\mu$'' means that
 regardless of the location $i$ along the sequence.
 If more than one pattern would match to cause the same change, their rates add.
 Such a rule is defined by its ``transition triple'' $(\mu,u,v)$.
-The set of all transition triples, $\calT$, determines the time evolution of the process.
-\todo{I'd suggest being more formal and defining a name for the class of processes you describe, and saying what it consists of.}
+The set of all transition triples, $\calT$, determines the time evolution of this process.
 
 
 \begin{example}[TASEP]
@@ -241,9 +240,9 @@ The set of all transition triples, $\calT$, determines the time evolution of the
 
 
 \paragraph{The generator matrix}
-For clarity, we describe how the set of transition rates determines the transition rate matrix,
+For clarity, we describe how the set of transition rates on patterns determines the transition rate matrix for complete sequences, that is,
 the $|\calS|^n \times |\calS|^n$ matrix $G(n)$ whose $(x,y)^\text{th}$ entry gives the instantaneous rate
-with which the process in state $x$ jumps to state $y$.
+with which the process in state $x \in \calS^n$ jumps to state $y \in \calS^n$.
 Recall that $x_i^{(h)} = (x_i, x_{i+1}, \ldots, x_{i+h-1})$ denotes the subsequence of length $h$ beginning at location $i$.
 For each $1\le i \le n$, pattern length $h > 0$, and patterns $u,v \in \calS^h$ define the relation
 \[

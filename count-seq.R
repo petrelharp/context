@@ -35,7 +35,7 @@ attach(countseq.opt)
 source("../sim-context-fns.R")
 source("../context-inference-fns.R")
 
-load(infile)
+load(infile) # provides simseq.opt, bases, mutpats, mutrates, selpats, selcoef, fixfn, seqlen, tlen, initfreqs, simseqs
 
 longpats <- getpatterns(countseq.opt$longwin,bases)
 shortpats <- getpatterns(countseq.opt$shortwin,bases)

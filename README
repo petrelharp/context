@@ -1,10 +1,10 @@
-General-purpose machinery is in this directory.  
+General-purpose machinery is in this directory.
 Code using this to simulate, then do inference on, various models is in subdirectories,
 for instance
   ising/    --  Ising model
   tasep/    --  TASEP model
   cpg/      --  nucleotide sequence with extra CpG mutation rate
-  tree-cpg/ --  CpG model above, but rather than inference using before-after observations, 
+  tree-cpg/ --  CpG model above, but rather than inference using before-after observations,
                     observations evolve along a two-taxon tree.
   huchgo/   --  Three-taxa tree, modeled after human-chimp-gorilla, with CpG and GC bias
                     (in progress)
@@ -26,7 +26,7 @@ To get point estimates of the parameters and start out an mcmc run, do
 
   Rscript ising-inference.R -i ising-sims/selsims-2013-05-26-14-12-0717215.RData [... more params ...]
 
-which records a log file at 
+which records a log file at
 
   ising-sims/selsims-2013-05-26-14-12-0717215.Rout
 
@@ -42,7 +42,7 @@ To change default parameters, e.g. to do it with lwin=rwin=4, run
 
   make ARGS="-l 4 -r 4" ising-sims/selsims-2013-05-26-14-12-0717215.Rout
 
-The analysis can be run on everything with 
+The analysis can be run on everything with
 
   make -j 4 analyses
 
@@ -58,7 +58,7 @@ which adds more files to
 
   ising-sims/selsims-2013-05-26-14-12-0717215
 
-Then, 
+Then,
 
   make info
 
@@ -78,6 +78,4 @@ Prerequisite packages:
 * Biostrings
 * IRanges
 * optparse
-
-and maybe later
 * jsonlite

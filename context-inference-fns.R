@@ -139,7 +139,10 @@ gradest <- function (likfun, params, eps=mean(params)/1000) {
 # same rate.
 
 getmutmats <- function(mutpats,patterns,boundary=c("none","wrap")) {
-    # Returns i and j's indexing the generator matrix in terms of the given patterns.
+    # The purpose of this function is to construct a translation table between
+    # mutpats and the entries of the generator matrix that can happen as a
+    # consequence of those mutpats.
+    # Specifically, returns i and j's indexing the generator matrix in terms of the given patterns.
     # that is, given a list of mutation patterns,
     #   which can be either pairs or lists of pairs,
     # YYY this option is kind of driving me batty. Could we have it just always be a mutpat list list?
@@ -337,8 +340,8 @@ makegenmatrix <- function (mutpats, selpats=list(), patlen=nchar(patterns[1]), p
     dgCord <- order( allmutmats$j, allmutmats$i )
     # nmutswitches is a vector with kth component equal to the number of mutations between patterns that can be induced by performing one of the substitutions in the kth mutpat.
     nmutswitches <- sapply(mutmats,NROW)
-    # muttrans: translate the specified mutation rates `mutrates` into the specified pattern space
-    # We take these pattern mutations with repetition to be the implicit order on mutation patterns.
+    # muttrans: build a matrix to translate the specified mutation rates into rates on the specified pattern space.
+    # We take these mutation patterns with repetition to be the implicit order on mutation patterns.
     # We put a 1 in every (i,j) such that i indexes a pattern mutation that happens at the jth mutpat.
     muttrans <- dgTtodgC( new( "dgTMatrix", i=1:sum(nmutswitches)-1L, j=rep(seq_along(mutrates),times=nmutswitches)-1L, x=rep(1,sum(nmutswitches)), Dim=c(sum(nmutswitches),length(mutrates)) ) )
     muttrans <- muttrans[ dgCord , , drop=FALSE ]
@@ -390,7 +393,7 @@ update <- function (G, mutrates, selcoef, ...) {
 collapsepatmatrix <- function (ipatterns, leftwin, shortwin=nchar(fpatterns[1]), rightwin=nchar(ipatterns[1])-shortwin-leftwin, fpatterns=getpatterns(nchar(ipatterns[1])-leftwin-rightwin,bases), bases ) {
     # YYY it seems like calling this `getprojmatrix` would make things more consistent with the way the other functions are named.
     # Construct the matrix U described in the tex.
-    # ipatterns are the "input" patterns, while fpatterns are the "projected" patterns
+    # ipatterns are the "input" patterns, while fpatterns are the "final" projected patterns
     # returns a (nbases)^k by (nbases)^{k-leftwin-rightwin} matrix projection matrix
     # mapping patterns onto the shorter patterns obtained by deleting leftwin characters at the start and rightwin characters at the end.
     # This function assumes that all input patterns are the same length.
