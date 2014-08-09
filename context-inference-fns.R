@@ -451,8 +451,10 @@ meangenmatrix <- function (leftwin,rightwin,patlen,...) {
     # the short version and columns the usual one.
     meanmat <- t( sweep( projmat, 2, colSums(projmat), "/" ) )
     pgenmat <- meanmat %*% genmat %*% projmat   # this is H = M G P
+    # ii gives the (zero-based) row indices of nonzero entries of pgenmat:
     ii <- pgenmat@i
-    # XXX EM doesn't get this line... what is pgenmat@p?
+    # jj gives the (zero-based) column indices of nonzero entries of pgenmat:
+    #   see ?"Csparsematrix-class" for explanation of @p.
     jj <- rep(1:ncol(pgenmat),times=diff(pgenmat@p)) - 1L
     nondiag <- ( ii != jj )
     # construct matrix to project from x values in big dgCMatrix to little one:
