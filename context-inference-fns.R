@@ -314,26 +314,72 @@ setMethod("residuals", signature=c(object="context"), definition=function (objec
 
 
 ####
+# Here is what happens in makegenmatrix:
 #
+# Let G be the generator matrix, i.e. G[i,j] is the instantaneous transition rate from patterns[i] to patterns[j].
+# Construct this as follows:
+#  For each mutation pattern u, let I(u) be the set of index pairs (i,j) such that patterns[i] -> patterns[j] can be obtained by applying u,
+#    ordered in some way, so I(u) = ( (i_1,j_1), (i_2,j_2), ..., (i_{n(u)},j_{n(u)}) ).
+#  Then let I_k be the concatenation of these lists for all mutation patterns in mutpats[[k]].
+#  Also, concatenate the I_k to form I.
+#  Note that the same pair (i,j) can occur in some I_k twice, or in different I_k,
+#    for instance if { C -> T } occurs at rate mutrates[1], and both { CG -> TG, CCG -> CTG } occur at rate mutrates[2],
+#    and patterns[1] == CCG, and patterns[23] == CTG, then the pair (1,23) would occur once in I_1 and twice in I_2.
+#  Now, 
+#    G[i,j] = \sum_k mutrates[k] * ( number of times (i,j) appears in I_k ) .
+#  Let (x_1, ..., x_N) be the nonzero entries of G, in some order.
+#    and let f_m = (i_m,j_m) be the row,column index of x_m in G.
+#  We need to compute P so that x = P %*% mutrates, i.e. the N x length(mutpats) matrix
+#    P[m,k] = ( number of times f_m appears in I_k )
+#  To do this, also note that if we define the N x length(I) matrix
+#    Q[m,l] = 1 if the l-th element of I is equal to f_m, and 0 otherwise
+#  and the the length(I) x length(mutpats) matrix
+#    J[l,k] = 1 if the l-th element of I came from I_k, and 0 otherwise,
+#  then
+#    P = Q %*% J .
 
 makegenmatrix <- function (mutpats, selpats=list(), patlen=nchar(patterns[1]), patterns=getpatterns(patlen,bases), bases, mutrates=rep(1,length(mutpats)),selcoef=rep(1,length(selpats)), boundary="none", fixfn=function(...){1}, ...) {
     # make the generator matrix, carrying with it the means to quickly update itself.
     #  DON'T do the diagonal, so that the updating is easier.
+    #
+    # Works with column-oriented sparse matrices (see ?"dgCMatrix-class" and ?"CsparseMatrix-class"),
+    # for which :
+    #   @i ; (0-based) row numbers of nonzero entries
+    #   @p : (0-based) indices of the first nonzero entries in each column (so diff(x@p) gives the number of nonzero entries by column)
     if (!is.numeric(patlen)|(missing(patlen)&missing(patterns))) { stop("need patlen or patterns") }
     if ( (length(selpats)>0 && max(sapply(unlist(selpats),nchar))>patlen) | max(sapply(unlist(mutpats),nchar))>patlen ) { stop("some patterns longer than patlen") }
-    # mutmats is a list of matrices, with one matrix for each of mutpats describing the induced mutation process on patterns (see getmutpats function def'n)
+    # mutmats is a list of matrices, one for each rule in mutmats,
+    #  with a row of mutmats[[k]] equal to (i,j) iff the rule mutpats[[k]] can change patterns[i] to patterns[j]
     mutmats <- getmutmats(mutpats,patterns,boundary=boundary)
+    # concatenate these matrices into one big matrix, allmutmats;
+    #   also compute nmutswitches to keep track of which rows of allmutmats correspond to which of mutpats.
+    # the row,column indices of allmutmats are exactly the nonzero entries of the resulting generator matrix,
+    #   with the first nmutswitches[1] obtainable by mutpats[[1]], the next nmutswitches[2] obtainable by mutpats[[2]], etcetera.
+    #   In other works, nmutswitches[k] gives the number of changes that mutpats[[k]] can induce.
+    # note that some rows in allmutmats may be identical:
+    #   this means that there is more than one way to apply mutation patterns to change patterns[i] to patterns[j].
+    #   We correct for this later.
     allmutmats <- do.call( rbind, mutmats )
-    # start converting to dgCMatrix format by getting the order of all of the "from" (i) and "to" (j) indices.
-    dgCord <- order( allmutmats$j, allmutmats$i )
-    # nmutswitches is a vector with kth component equal to the number of mutations between patterns that can be induced by performing one of the substitutions in the kth mutpat.
     nmutswitches <- sapply(mutmats,NROW)
-    # muttrans: translate the mutation rates into the pattern space
-    # We take these pattern mutations with repetition to be the implicit order on pattern mutations.
-    # We put a 1 in every (i,j) such that i indexes a pattern mutation that happens at the jth mutpat.
+    # allmutmats corresponds to nonzero entries of the generator matrix, 
+    #   but they come ordered by which mutpat they correspond to.
+    #  dgCord is the order that they will appear in the column-oriented generator matrix,
+    #   i.e. ordered by column first, then row.
+    # If there were no duplicated rows in allmutmats, then the nonzero entries of the generator matrix would be
+    #    @x == mutrates[ rep(1:length(mutpats),each=nmutswitches) ][ dgCord ]
+    dgCord <- order( allmutmats$j, allmutmats$i )
+    # Now compute helper matrices:
+    #   without selection, each nonzero entry in the generator matrix is a linear combination of mutrates;
+    #   muttrans is this linear transformation,
+    #   i.e. that @x == muttrans %*% mutrates .
+    # This is easily constructed: in the order of allmutmats, this is a nrow(allmutmats) x length(mutpats) matrix,
+    #   with 1's along a "fat, irregular, diagonal", the k-th row having nmutswitches[k] 1's, and the rest 0's.
+    # We then use dgCord to permute rows.
+    # In other words, muttrans[i,j] = 1 if mutpat[[j]] can produce the patterns change of allmutmats[i,].
+    # ( Construct via TMatrix, which stores row-and-column indices via @i and @j, then convert to CMatrix. )
     muttrans <- dgTtodgC( new( "dgTMatrix", i=1:sum(nmutswitches)-1L, j=rep(seq_along(mutrates),times=nmutswitches)-1L, x=rep(1,sum(nmutswitches)), Dim=c(sum(nmutswitches),length(mutrates)) ) )
     muttrans <- muttrans[ dgCord , , drop=FALSE ]
-    # selection?
+    # selection is similar to mutation.
     if (length(selpats)>0) {
         selmatches <- getselmatches( selpats, patterns, boundary=boundary )
         # transfer selection coefficients to selective differences involved in each mutation
@@ -346,14 +392,15 @@ makegenmatrix <- function (mutpats, selpats=list(), patlen=nchar(patterns[1]), p
     } else {
         seltrans <- Matrix(numeric(0),nrow=nrow(muttrans),ncol=0)
     }
-    # there may be duplicated rows (matching multiple patterns); deal with this
-    # XXX EM doesn't get this code yet
-    dups <- c(FALSE,diff(allmutmats[dgCord,][,1])==0)
+    # Now deal with the fact there may be duplicated rows in allmutmats:
+    #   dups[k] is TRUE if the k-th row of allmutmats[dgCord,] is equal to the (k-1)-th row.
+    # We then translate dups to a projection matrix.
+    dups <- c( FALSE, (diff(allmutmats[dgCord,,drop=FALSE][,1])==0) & (diff(allmutmats[dgCord,,drop=FALSE][,2])==0) )
     dupproj <- new("dgTMatrix",i=cumsum(!dups)-1L,j=seq_along(dups)-1L,x=rep(1,length(dups)),Dim=c(nrow(allmutmats)-sum(dups),nrow(allmutmats)))
     muttrans <- dupproj %*% muttrans
     seltrans <- dupproj %*% seltrans
     # full instantaneous mutation, and transition matrix
-    genmatrix <- with( allmutmats[dgCord,], new( "genmatrix",
+    genmatrix <- with( allmutmats[dgCord,,drop=FALSE], new( "genmatrix",
             i=(i-1L)[!dups],
             p=sapply(0:length(patterns), function (k) sum(j[!dups]<k+1)),
             x=rep(1,sum(!dups)),
@@ -368,7 +415,6 @@ makegenmatrix <- function (mutpats, selpats=list(), patlen=nchar(patterns[1]), p
         ) )
     rownames( genmatrix ) <- colnames( genmatrix ) <- patterns
     genmatrix@x <- update( genmatrix, mutrates, selcoef, ... )
-    # diag(genmatrix) <- (-1)*rowSums(genmatrix)  # this makes genmatrix a dgCMatrix
     return(genmatrix)
 }
 
