@@ -75,14 +75,14 @@ if (opt$pretty) {
                     )
     residframe$z <- residframe$resid/sqrt(as.vector(expected))
     residframe <- residframe[order(residframe$z),]
-    write.table(file=opt$outfile, x=residframe, sep=' ', quote=FALSE, row.names=FALSE )
+    write.table(file=opt$outfile, x=residframe, sep='\t', quote=FALSE, row.names=FALSE )
 } else {
     # concise matrix
     resids <- residuals( model, counts=counts, genmatrix=genmatrix )
     residframe <- as.vector(resids@counts)
     dim(residframe) <- dim(resids)
     dimnames(residframe) <- dimnames(resids)
-    write.table(file=opt$outfile, x=residframe, sep=' ', quote=FALSE, row.names=TRUE )
+    write.table(file=opt$outfile, x=residframe, sep='\t', quote=FALSE, row.names=TRUE )
 }
 
 
