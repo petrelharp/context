@@ -16,7 +16,7 @@ rinitseq <- function (seqlen,bases,basefreqs=rep(1/length(bases),length(bases)))
 }
 
 simseq <- function (seqlen, tlen, mutpats, mutrates, selpats=list(), selcoef=numeric(0), patlen, bases=c("A","C","G","T"), count.trans=FALSE, initseq, basefreqs=rep(1/length(bases),length(bases)), ... ) {
-    # simulate a random sequence and evolve it with genmatrix.
+    # Simulate a random sequence and evolve it with genmatrix, wrapping mutations around as needed.
     #  record transition counts if count.trans it TRUE (e.g. for debugging)
     # First make transition matrix
     #   Note that for a mutation pattern of length less than patlen, we will overcount.

@@ -2,7 +2,8 @@
 require(optparse)
 
 usage <- "\
-Simulate from the process whose parameters are given in the config file.\
+Simulate from the process whose parameters are given in the config file,\
+wrapping mutation patterns around to the beginning as needed.\
 \
 The config file is a JSON file defining: \
     bases : character vector of allowable bases \
