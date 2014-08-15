@@ -2,7 +2,7 @@
 require(optparse)
 
 usage <- "\
-Infer parameters from paired counts file.
+Infer parameters from paired counts file, which records instances of Tmer transitions.
 "
 
 option_list <- list(
@@ -27,11 +27,11 @@ source("../context-inference-fns.R")
 attach(opt)
 
 # load generator matrix
-stopifnot(file.exists(gmfile))
-load(gmfile)  # provides 'genmatrix'
+stopifnot(file.exists(opt$gmfile))
+load(opt$gmfile)  # provides 'genmatrix'
 
 # read in counts
-counts <- read.counts(infile,opt$leftwin)
+counts <- read.counts(opt$infile, opt$leftwin, bases=genmatrix@bases, longpats=rownames(genmatrix) )
 stopifnot( all( rownames(counts) == rownames(genmatrix) ) )
 
 projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin(counts), fpatterns=colnames(counts) )
@@ -42,14 +42,14 @@ adhoc.mutrates <- adhoc[1,]/adhoc[2,]
 adhoc.mutrates <- ifelse( is.finite(adhoc.mutrates) & adhoc.mutrates > 0, adhoc.mutrates, 1e-4 )
 
 
-# (quasi)-likelihood function using all counts -- multinomial
+# Compute (quasi)-likelihood function using all counts -- multinomial as described in eqn:comp_like.
 likfun <- function (params){
     # params are: mutrates*tlen, shape
     genmatrix@x <- update(genmatrix,mutrates=params[1:nmuts(genmatrix)],selcoef=params[seq(nmuts(genmatrix),length.out=nsel(genmatrix))])
     # this is collapsed transition matrix
     subtransmatrix <- computetransmatrix( genmatrix, projmatrix, tlen=1, time="fixed") # shape=params[length(params)], time="gamma" )
-    # return POSITIVE log-likelihood 
-    ans <- sum( counts@counts * log(subtransmatrix) ) 
+    # return POSITIVE log-likelihood
+    ans <- sum( counts@counts * log(subtransmatrix) )
     if (!is.finite(ans)) print(params)
     return(ans)
 }

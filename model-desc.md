@@ -28,8 +28,6 @@ An object of class 'tuplecounts' is a matrix of counts of paired tuples, that ad
 - 'lwin' : an integer giving the offset that aligns rownames(counts) with colnames(counts)
 
 
-Note that although it is not stored in the 'context' object because it would be redundant, 'win' means the inner window width.
-
 An object of class 'genmatrix' is a sparse matrix that additionally carries the following information (and some more stuff):
 - 'bases' : character vector of allowed bases
 - 'rownames( )' and 'colnames( )' : character vectors; should match with e.g. 'headpats' above.
