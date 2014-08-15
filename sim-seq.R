@@ -26,7 +26,8 @@ option_list <- list(
         make_option( c("-l","--logfile"), type="character", default="", help="Direct logging output to this file. [default appends -simrun.Rout]" )
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
-if ( is.null(opt$configfile) | !file.exists(opt$configfile) |(is.null(opt$tlen) | is.null(opt$seqlen)) ) { stop("Rscript sim-cpg.R -h for help.") }
+if ( is.null(opt$configfile) | (is.null(opt$tlen) | is.null(opt$seqlen)) ) { stop("Rscript sim-seq.R -h for help.") }
+if ( !file.exists(opt$configfile) ) { stop("Could not find config file `", opt$configfile, "`.") }
 attach(opt)
 
 source("../context-inference-fns.R")
@@ -49,7 +50,7 @@ if (exists("fixfn") && is.character(fixfn)) {
 
 # defaults:
 if (!exists("selpats")) { selpats <- list(); selcoef <- numeric(0); fixfn <- null.fixfn; fixfn.params=list() }
-stopifnot( 
+stopifnot(
           ( length(bases) == length(initfreqs ) ) &&
            ( length(mutpats) == length(mutrates) ) &&
            ( length(selpats) == length(selcoef) )
@@ -66,15 +67,15 @@ if (outfile == "") {
     basename <- gsub(".RData","",outfile)
 }
 if (logfile=="" & !interactive()) { logfile <- paste(basename,".Rout",sep='') }
-if (!is.null(logfile)) { 
+if (!is.null(logfile)) {
     logcon <- if (logfile=="-") { stdout() } else { file(logfile,open="wt") }
-    sink(file=logcon, type="message") 
-    sink(file=logcon, type="output") 
+    sink(file=logcon, type="message")
+    sink(file=logcon, type="output")
 }
 
 
 initseq <- rinitseq(seqlen,bases,basefreqs=initfreqs)
-system.time( 
+system.time(
         simseqs <- list(
                 simseq( seqlen=seqlen, tlen=tlen, mutpats=mutpats, mutrates=mutrates, selpats=selpats, selcoef=selcoef, initseq=initseq, bases=bases )
             )
