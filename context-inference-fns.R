@@ -208,7 +208,7 @@ getselmatches <- function (selpats, patterns, boundary=c("none","wrap"), names=F
 popgen.fixfn <- function (ds,Ne,...) {
     # total influx of fixation given selection coefficient (s[to] - s[from]) difference ds
     if (length(ds)==0) { 1 } else { ifelse( ds==0, 1, Ne*expm1(-2*ds)/expm1(-2*Ne*ds) ) }
-n}
+}
 
 ising.fixfn <- function (ds,...) { 1/(1+exp(-ds)) }
 
@@ -248,6 +248,7 @@ setClass("genmatrix", representation(
          contains = "dgCMatrix")
 
 setClass("tuplecounts",representation(leftwin="numeric",counts="Matrix",bases="character"))
+# things to make tuplecounts act like the matrix inside of it:
 setMethod("dim", signature=c(x="tuplecounts"), definition=function (x) { dim(x@counts) } )
 setMethod("dimnames", signature=c(x="tuplecounts"), definition=function (x) { dimnames(x@counts) } )
 setMethod("dimnames<-", signature=c(x="tuplecounts",value="ANY"), definition=function (x,value) { dimnames(x@counts)<-value } )
@@ -255,6 +256,8 @@ setMethod("as.matrix", signature=c(x="tuplecounts"), definition=function (x) { a
 setMethod("as.vector", signature=c(x="tuplecounts"), definition=function (x) { as.vector(x@counts) } )
 setMethod("%*%", signature=c(x="tuplecounts",y="ANY"), definition=function (x,y) { x@counts %*% y } )
 setMethod("%*%", signature=c(x="ANY",y="tuplecounts"), definition=function (x,y) { x %*% y@counts } )
+setMethod("head", signature=c(x="tuplecounts"), definition=function (x) { head(x@counts) } )
+setMethod("image", signature=c(x="tuplecounts"), definition=function (x) { image(x@counts) } )
 
 
 setClass("context",
@@ -724,23 +727,6 @@ leftchanged <- function (ipatterns,fpatterns,leftwin=0,shortwin=nchar(ipatterns[
     return( !is.na(meanpos) & meanpos <= (shortwin+1)/2 )
 }
 
-getlikfun <- function (nmuts,nsel,genmatrix,projmatrix,const=0) {
-    # YYY appears DEPRECATED!
-    # Return the composite likelihood function.
-    return( function (params) {
-        # params are: mutrates, selcoef, Ne
-        mutrates <- params[1:nmuts]
-        selcoef <- params[nmuts+(1:nsel)]
-        Ne <- params[nmuts+nsel+1]
-        # tlen <- params[nmuts+nsel+2]  # confounded.
-        # this is collapsed transition matrix
-        genmatrix@x <- update(genmatrix,mutrates,selcoef,Ne)
-        subtransmatrix <- computetransmatrix( genmatrix, projmatrix )
-        # return negative log-likelihood
-        (-1) * sum( counts * log(subtransmatrix) ) + const
-    } )
-}
-
 
 # Misc
 
@@ -776,28 +762,3 @@ dgTtodgC <- function (M) {
 }
 
 
-# Unused?
-if (FALSE ){
-
-regexplen <- function (xx) {
-    # length of the string matching a regexp that uses only "." and "[...]" (no other special characters!)
-    sapply( xx, function (x) {
-        y <- diff( c(0,grep("[]\\[]",strsplit(x,"")[[1]],value=FALSE),nchar(x)+1) ) - 1  # lengths of bits in and out of "[]"s
-        sum( y[(1 ==  (1:length(y))%%2)] ) + (length(y)-1)/2
-    } )
-}
-
-gettransmatrix <- function (mutpats, mutrates, selpats, selcoef, Ne, tlen=1, shortwin, leftwin=0, rightwin=0, expm=expm.poisson, ... ) {
-    # get reduced transition matrix: given (leftwin, shortwin, rightwin) context, return probability of pattern in shortwin
-    #   note: alternative is expm=expm::expm(x,method="Higham08")
-    longwin <- leftwin+shortwin+rightwin
-    fullgenmatrix <- makegenmatrix( mutpats, selpats, patlen=longwin,...)
-    fullgenmatrix@x <- update(fullgenmatrix,mutrates,selcoef,Ne)
-    projmatrix <- collapsepatmatrix( ipatterns=rownames(fullgenmatrix), leftwin=leftwin, rightwin=rightwin )
-    subtransmatrix <- computetransmatrix( genmatrix, tlen, projmatrix, names=TRUE )
-    # transmatrix <- expm( tlen * (fullgenmatrix-Diagonal(nrow(fullgenmatrix),rowSums(fullgenmatrix))) )  # exponentiate
-    # subtransmatrix <- transmatrix %*% projmatrix        # collapse
-    return( subtransmatrix )
-}
-
-}

@@ -10,11 +10,11 @@ Rscript ../count-seq.R -i sim-cpg-123456.RData -w 4 -s 2 -l 1
 
 # precompute generator matrices:
 #   width-4 with all one-base transitions
-Rscript ../flex-genmat.R -c genmatrices/singlebase.json -w 4
+Rscript ../flex-genmat.R -c genmatrices/singlebase.json -w 4 &
 #   width-5 with all one-base transitions
-Rscript ../flex-genmat.R -c genmatrices/singlebase.json -w 5
+Rscript ../flex-genmat.R -c genmatrices/singlebase.json -w 5 &
 #   width-2 with all one-base transitions
-Rscript ../flex-genmat.R -c genmatrices/singlebase.json -w 2
+Rscript ../flex-genmat.R -c genmatrices/singlebase.json -w 2 &
 #   width-4 with all two-base transitions
 Rscript ../flex-genmat.R -c genmatrices/dualbases.json -w 4
 
