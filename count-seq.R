@@ -52,4 +52,4 @@ countframe <- data.frame( reference=rownames(counts)[row(counts)],
                          count=as.vector(counts)
                          )
 
-write.table(countframe, file=outfile, row.names=FALSE, sep=' ', quote=FALSE)
+write.table(countframe, file=outfile, row.names=FALSE, sep='\t', quote=FALSE)

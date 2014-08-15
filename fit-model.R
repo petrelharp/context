@@ -32,6 +32,8 @@ load(gmfile)  # provides 'genmatrix'
 
 # read in counts
 counts <- read.counts(infile,opt$leftwin)
+stopifnot( all( sort(rownames(counts)) == sort(rownames(genmatrix)) ) )
+counts@counts <- counts@counts[match(rownames(counts),rownames(genmatrix)),]
 stopifnot( all( rownames(counts) == rownames(genmatrix) ) )
 
 projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin(counts), fpatterns=colnames(counts) )
