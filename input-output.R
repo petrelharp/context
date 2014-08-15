@@ -22,7 +22,8 @@ read.counts <- function (infile,leftwin,bases,longpats,shortpats) {
     counts <- Matrix(0,nrow=length(longpats),ncol=length(shortpats))
     rownames(counts) <- longpats
     colnames(counts) <- shortpats
-    stopifnot( all( count.table$reference %in% rownames(counts) ) & all(count.table$derived %in% colnames(counts)) ) 
+    stopifnot( all(count.table$reference %in% rownames(counts)) )
+    stopifnot( all(count.table$derived %in% colnames(counts)) )
     counts[cbind( match(count.table$reference,rownames(counts)), match(count.table$derived,colnames(counts)) )] <- count.table$count
     return( new("tuplecounts", counts=counts, leftwin=leftwin, bases=bases ) )
 }
