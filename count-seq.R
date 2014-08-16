@@ -41,7 +41,7 @@ longpats <- getpatterns(countseq.opt$longwin,bases)
 shortpats <- getpatterns(countseq.opt$shortwin,bases)
 
 # this returns a matrix
-counts <- if (revcounts) {
+counts <- if (!revcounts) {
     counttrans( longpats, shortpats, simseqs[[1]]$initseq, simseqs[[1]]$finalseq, leftwin=countseq.opt$leftwin )
 } else {
     counttrans( longpats, shortpats, simseqs[[1]]$finalseq, simseqs[[1]]$initseq, leftwin=countseq.opt$leftwin )
