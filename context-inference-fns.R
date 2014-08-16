@@ -11,6 +11,7 @@ frame_files <- Filter(Negate(is.null), frame_files)
 source(paste(.PATH,"/expAtv.R",sep=''))  # fixed upstream
 source(paste(.PATH,"/gammaAtv.R",sep=''))
 source(paste(.PATH,"/input-output.R",sep=''))
+source(paste(.PATH,"/helper-fns.R",sep=''))
 
 getpatterns <- function(patlen,bases) {
     # construct a list of all patterns of a given length
@@ -282,11 +283,11 @@ setMethod("dimnames", signature=c(x="context"), definition=function (x) { dimnam
 
 # We would like the likfun function to automatically have access to the stuff in the context object
 #  ... where is 'self'?!?
-# EVIL:
-setGeneric("likfun", function (x) { standardGeneric("likfun") } )
+# SUB-OPTIMAL:
+setGeneric("likfun", function (self,params) { standardGeneric("likfun") } )
 setMethod("likfun", signature=c(x="context"), definition=function(x) {
           f <- x@likfun
-          environment(f) <- list2env( list(genmatrix=x@genmatrix,projmatrix=x@projmatrix,counts=x@data), parent=globalenv())
+          environment(f) <- list2env( lapply( selfname(slotNames(model)), function (n) { slot(model,n)} ), parent=globalenv() )
           return(f) } )
 
 # extract window lengths from these objects:
