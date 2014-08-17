@@ -34,4 +34,4 @@ An object of class 'genmatrix' is a sparse matrix that additionally carries the 
 - 'mutpats' : list of mutation motifs
 - 'selpats' : list of selection motifs
 - 'fixfn' : fixation function that translates differences in selection coefficient to mutation rate multipliers
-
+- 'nmuts( )': the number of mutation patterns present in that genmatrix

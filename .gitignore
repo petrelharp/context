@@ -16,3 +16,4 @@ tmp
 *.toc
 *.snm
 *.tsv
+last.dump.rda
