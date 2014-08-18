@@ -88,4 +88,5 @@ if (meanboundary==0) {
     genmatrix <- meangenmatrix( leftwin=meanboundary, rightwin=meanboundary, patlen=opt$longwin, mutpats=mutpats, selpats=selpats, boundary=boundary, bases=bases, fixfn=fixfn )
 }
 
-save( boundary, meanboundary, bases, mutpats, selpats, fixfn, genmatrix, file=outfile )
+# save( boundary, meanboundary, bases, mutpats, selpats, fixfn, genmatrix, file=outfile )
+save( genmatrix, file=outfile )

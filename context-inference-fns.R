@@ -66,7 +66,7 @@ divergence <- function (counts, leftwin) {
     return( sum(nchanges*counts)/(sum(counts)*patlen) )
 }
 
-countmuts <- function (counts, mutpats, leftwin, ...) {
+countmuts <- function (counts, mutpats, leftwin=leftwin(counts), ...) {
     # YYY suggest mutpatl rather than mutpats, because that's what we have
     # given a contingency table `counts` of Tmers observed in a data set, a collection of
     # mutation patterns, the leftwin, and a list of arguments to `sum`, this function

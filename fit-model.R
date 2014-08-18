@@ -24,8 +24,6 @@ options(error = quote({dump.frames(to.file = TRUE); q()}))
 
 source("../context-inference-fns.R")
 
-attach(opt)
-
 # load generator matrix
 stopifnot(file.exists(opt$gmfile))
 load(opt$gmfile)  # provides 'genmatrix'
@@ -37,10 +35,12 @@ stopifnot( all( rownames(counts) == rownames(genmatrix) ) )
 projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin(counts), fpatterns=colnames(counts) )
 
 # get ad hoc initial guesses at parameters
-adhoc <- countmuts(counts=counts,mutpats=mutpats,leftwin=leftwin(counts))
+adhoc <- countmuts(counts=counts,mutpats=genmatrix@mutpats,leftwin=leftwin(counts))
 adhoc.mutrates <- adhoc[1,]/adhoc[2,]
 adhoc.mutrates <- ifelse( is.finite(adhoc.mutrates) & adhoc.mutrates > 0, adhoc.mutrates, 1e-4 )
-
+# start selection parameters at zero, why not
+adhoc.selcoef <- rep(1e-6,nsel(genmatrix))
+names(adhoc.selcoef) <- mutnames(genmatrix@selpats)
 
 # Compute (quasi)-likelihood function using all counts -- multinomial as described in eqn:comp_like.
 likfun <- function (params){
@@ -54,25 +54,25 @@ likfun <- function (params){
     return(ans)
 }
 
-initpar <- adhoc.mutrates
+initpar <- c( adhoc.mutrates, adhoc.selcoef )
 stopifnot( length(initpar) == nmuts(genmatrix)+nsel(genmatrix) )
-lbs <- rep(1e-6,nmuts(genmatrix))
-ubs <- rep(2,nmuts(genmatrix))
-parscale <- 1e-3 * rep(mean(adhoc.mutrates),length(adhoc.mutrates))
+lbs <- rep(1e-6,nmuts(genmatrix)+nsel(genmatrix))
+ubs <- rep(2,nmuts(genmatrix)+nsel(genmatrix))
+parscale <- 1e-3 * rep( mean(adhoc.mutrates), nmuts(genmatrix)+nsel(genmatrix) )
 
 baseval <- likfun(initpar)
 stopifnot( is.finite(baseval) )
-optim.results <- optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(fnscale=(-1)*abs(baseval), parscale=parscale, maxit=maxit) )
+optim.results <- optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(fnscale=(-1)*abs(baseval), parscale=parscale, maxit=opt$maxit) )
 
 model <- new( "context",
              counts=counts,
              genmatrix=genmatrix,
              projmatrix=projmatrix,
-             mutrates=adhoc.mutrates,
-             selcoef=numeric(nsel(genmatrix)),
+             mutrates=optim.results$par[1:nmuts(genmatrix)],
+             selcoef=optim.results$par[seq(nmuts(genmatrix)+1,length.out=nsel(genmatrix))],
              params=numeric(0),
              results=optim.results,
              likfun=likfun
          )
 
-save(model,file=outfile)
+save(model,file=opt$outfile)
