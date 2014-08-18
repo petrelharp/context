@@ -83,9 +83,9 @@ if (is.character(fixfn)) {
 }
 
 if (meanboundary==0) {
-    genmatrix <- makegenmatrix( patlen=opt$longwin, mutpats=mutpats, selpats=selpats, boundary=boundary, bases=bases )
+    genmatrix <- makegenmatrix( patlen=opt$longwin, mutpats=mutpats, selpats=selpats, boundary=boundary, bases=bases, fixfn=fixfn )
 } else {
-    genmatrix <- meangenmatrix( leftwin=meanboundary, rightwin=meanboundary, patlen=opt$longwin, mutpats=mutpats, selpats=selpats, boundary=boundary, bases=bases )
+    genmatrix <- meangenmatrix( leftwin=meanboundary, rightwin=meanboundary, patlen=opt$longwin, mutpats=mutpats, selpats=selpats, boundary=boundary, bases=bases, fixfn=fixfn )
 }
 
 save( boundary, meanboundary, bases, mutpats, selpats, fixfn, genmatrix, file=outfile )

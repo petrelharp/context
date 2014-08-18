@@ -22,8 +22,8 @@ option_list <- list(
         make_option( c("-c","--configfile"), type="character", help="Configuration file."),
         make_option( c("-t","--tlen"), type="numeric", help="Time to simulate for." ),
         make_option( c("-s","--seqlen"), type="numeric", help="Number of bases to simulate." ),
-        make_option( c("-d","--outdir"), type="character", default="", help="Direct output to this directory."),
         make_option( c("-o","--outfile"), type="character", default="", help="Direct output to this file."),
+        make_option( c("-d","--outdir"), type="character", default="", help="Direct output to this directory with default name if outfile is not specified."),
         make_option( c("-l","--logfile"), type="character", default="", help="Direct logging output to this file. [default appends -simrun.Rout]" )
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))

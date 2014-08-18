@@ -45,7 +45,7 @@ adhoc.mutrates <- ifelse( is.finite(adhoc.mutrates) & adhoc.mutrates > 0, adhoc.
 # Compute (quasi)-likelihood function using all counts -- multinomial as described in eqn:comp_like.
 likfun <- function (params){
     # params are: mutrates*tlen, shape
-    genmatrix@x <- update(genmatrix,mutrates=params[1:nmuts(genmatrix)],selcoef=params[seq(nmuts(genmatrix),length.out=nsel(genmatrix))])
+    genmatrix@x <- update(genmatrix,mutrates=params[1:nmuts(genmatrix)],selcoef=params[seq(1+nmuts(genmatrix),length.out=nsel(genmatrix))])
     # this is collapsed transition matrix
     subtransmatrix <- computetransmatrix( genmatrix, projmatrix, tlen=1, time="fixed") # shape=params[length(params)], time="gamma" )
     # return POSITIVE log-likelihood
