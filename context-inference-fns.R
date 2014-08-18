@@ -284,7 +284,7 @@ setMethod("dimnames", signature=c(x="context"), definition=function (x) { dimnam
 # We would like the likfun function to automatically have access to the stuff in the context object
 #  ... where is 'self'?!?
 # SUB-OPTIMAL:
-setGeneric("likfun", function (self,params) { standardGeneric("likfun") } )
+setGeneric("likfun", function (x) { standardGeneric("likfun") } )
 setMethod("likfun", signature=c(x="context"), definition=function(x) {
           f <- x@likfun
           environment(f) <- list2env( lapply( selfname(slotNames(model)), function (n) { slot(model,n)} ), parent=globalenv() )
