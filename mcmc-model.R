@@ -37,7 +37,7 @@ load(opt$infile)  # provides 'model'
 
 genmatrix <- model@genmatrix
 projmatrix <- model@projmatrix
-counts <- model@data
+counts <- model@counts
 
 # read in config file
 if (!is.null(opt$priorfile)) {
@@ -72,7 +72,7 @@ if (is.null(opt$stepscale)) { opt$stepscale <- mean(initpar)/100 }
 mrun <- metrop( likfun, initial=initpar, nbatch=opt$nbatches, blen=opt$blen, scale=opt$stepscale )
 
 model <- new( "contextMCMC",
-             data=model@data,
+             counts=model@counts,
              genmatrix=model@genmatrix,
              projmatrix=model@projmatrix,
              mutrates=mrun$final[1:nmuts(genmatrix)],

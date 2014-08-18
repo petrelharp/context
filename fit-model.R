@@ -55,6 +55,7 @@ likfun <- function (params){
 }
 
 initpar <- adhoc.mutrates
+stopifnot( length(initpar) == nmuts(genmatrix)+nsel(genmatrix) )
 lbs <- rep(1e-6,nmuts(genmatrix))
 ubs <- rep(2,nmuts(genmatrix))
 parscale <- 1e-3 * rep(mean(adhoc.mutrates),length(adhoc.mutrates))
@@ -64,7 +65,7 @@ stopifnot( is.finite(baseval) )
 optim.results <- optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(fnscale=(-1)*abs(baseval), parscale=parscale, maxit=maxit) )
 
 model <- new( "context",
-             data=counts,
+             counts=counts,
              genmatrix=genmatrix,
              projmatrix=projmatrix,
              mutrates=adhoc.mutrates,

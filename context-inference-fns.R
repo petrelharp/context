@@ -231,7 +231,7 @@ check.context <- function (cont) {
         all( colnames(cont@projmatrix) == cont@tailpats ) &
         all( nchar(cont@headpats) == cont@longwin ) &
         all( nchar(cont@tailpats) + cont@leftwin <= cont@longwin ) &
-        all( dim(cont@data) == dim(cont@projmatrix) ) &
+        all( dim(cont@counts) == dim(cont@projmatrix) ) &
         ( length(cont@mutrates) == length(cont@genmatrix@mutpats) ) &
         ( length(cont@selcoef) == length(cont@genmatrix@selpats) )
     )
@@ -262,7 +262,7 @@ setMethod("image", signature=c(x="tuplecounts"), definition=function (x) { image
 
 
 setClass("context",
-         representation(data="tuplecounts",
+         representation(counts="tuplecounts",
                         genmatrix="genmatrix",
                         mutrates="numeric",
                         selcoef="numeric",
@@ -279,7 +279,7 @@ setClass("contextMCMC", representation(
                                        ),
          contains="context")
 
-setMethod("dimnames", signature=c(x="context"), definition=function (x) { dimnames(x@data) } )
+setMethod("dimnames", signature=c(x="context"), definition=function (x) { dimnames(x@counts) } )
 
 # We would like the likfun function to automatically have access to the stuff in the context object
 #  ... where is 'self'?!?
@@ -296,11 +296,11 @@ setGeneric("shortwin", function(x) { standardGeneric("shortwin") })
 setGeneric("leftwin", function(x) { standardGeneric("leftwin") })
 setMethod("longwin", signature=c(x="genmatrix"), definition=function(x) { nchar(rownames(x)[1]) } )
 setMethod("longwin", signature=c(x="tuplecounts"), definition=function(x) { nchar(rownames(x@counts)[1]) } )
-setMethod("longwin", signature=c(x="context"), definition=function(x) { longwin(x@data) } )
+setMethod("longwin", signature=c(x="context"), definition=function(x) { longwin(x@counts) } )
 setMethod("shortwin", signature=c(x="tuplecounts"), definition=function(x) { nchar(colnames(x@counts)[1]) } )
-setMethod("shortwin", signature=c(x="context"), definition=function(x) { shortwin(x@data) } )
+setMethod("shortwin", signature=c(x="context"), definition=function(x) { shortwin(x@counts) } )
 setMethod("leftwin", signature=c(x="tuplecounts"), definition=function(x) { x@leftwin } )
-setMethod("leftwin", signature=c(x="context"), definition=function(x) { leftwin(x@data) } )
+setMethod("leftwin", signature=c(x="context"), definition=function(x) { leftwin(x@counts) } )
 # convenience functions
 setGeneric("nmuts", function (x) { standardGeneric("nmuts") } )
 setGeneric("nsel", function (x) { standardGeneric("nsel") } )
@@ -311,14 +311,14 @@ setMethod("nsel", signature=c(x="context"), definition=function (x) { nsel(x@gen
 
 # and methods related to model fitting
 setGeneric("tuplecounts", function (x) { standardGeneric("tuplecounts") } )
-setMethod("tuplecounts", signature=c(x="context"), definition=function (x) {x@data} )
+setMethod("tuplecounts", signature=c(x="context"), definition=function (x) {x@counts} )
 setMethod("coef", signature=c(object="context"), definition=function (object) {
           coef <- c( object@mutrates, object@selcoef, object@params )
           names(coef) <- c( mutnames( object@genmatrix@mutpats ), mutnames( object@genmatrix@selpats ), names(object@params) )
           return(coef) } )
 setMethod("rowSums", signature=c(x="tuplecounts"), definition=function (x) { rowSums(x@counts) } )
 setMethod("image", signature=c(x="tuplecounts"), definition=function (x) { image(x@counts) } )
-setMethod("rowSums", signature=c(x="context"), definition=function (x) { rowSums(x@data@counts) } )
+setMethod("rowSums", signature=c(x="context"), definition=function (x) { rowSums(x@counts@counts) } )
 setMethod("fitted", signature=c(object="context"), definition=function (object,...) { predictcounts.context(object,...) } )
 setMethod("residuals", signature=c(object="context"), definition=function (object,...) { resid.context(object,...) } )
 
@@ -679,7 +679,7 @@ predicttreecounts <- function (shortwin, leftwin=0, rightwin=0, initcounts, mutr
 ###
 # stuff for looking at residuals and finding motifs there
 
-resid.context <- function (object, counts=object@data, genmatrix=object@genmatrix, pretty=FALSE) {
+resid.context <- function (object, counts=object@counts, genmatrix=object@genmatrix, pretty=FALSE) {
     expected <- fitted(object, initcounts=rowSums(counts),
                        longwin=longwin(counts), shortwin=shortwin(counts), leftwin=leftwin(counts),
                        genmatrix=genmatrix )

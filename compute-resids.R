@@ -55,7 +55,7 @@ if (is.null(opt$countfile) && ( opt$longwin > longwin(model) || opt$shortwin > s
         stop("Supplied counts use a window that is too short.")
     }
 } else {
-    counts <- model@data
+    counts <- model@counts
 }
 if ( (opt$longwin < longwin(counts)) || (opt$shortwin < shortwin(counts)) ) {
     counts <- projectcounts( counts, opt$leftwin, opt$shortwin, opt$longwin-opt$leftwin-opt$shortwin )
