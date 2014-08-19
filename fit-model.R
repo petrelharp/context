@@ -50,7 +50,7 @@ likfun <- function (params){
     subtransmatrix <- computetransmatrix( genmatrix, projmatrix, tlen=1, time="fixed") # shape=params[length(params)], time="gamma" )
     # return POSITIVE log-likelihood
     ans <- sum( counts@counts * log(subtransmatrix) )
-    if (!is.finite(ans)) print(paste("Warning: non-finite likelihood with params:",params))
+    if (!is.finite(ans)) { print(paste("Warning: non-finite likelihood with params:",params)) }
     return(ans)
 }
 

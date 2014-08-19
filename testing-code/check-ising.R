@@ -80,36 +80,36 @@ cat("\n\n  Generator matrices all good!\n")
 
 ######
 # Simulates correctly?
-tlen <- .05
+tlen <- .1
 seqlen <- 1000/tlen
 mutrates <- c(1,1)
 selcoef <- c(-.5,.5)
-simseqs <- simseq( seqlen, tlen, patlen=patlen, mutpats=mutpats, selpats=selpats, mutrates=mutrates, selcoef=selcoef, bases=bases )
+simseqs <- simseq( seqlen, tlen, patlen=patlen, mutpats=mutpats, selpats=selpats, mutrates=mutrates, selcoef=selcoef, bases=bases, fixfn=fixfn )
 
 # counts
-leftwin <- 2; rightwin <- 2; shortwin <- 2
-longwin <- leftwin+shortwin+rightwin
-genmatrix <- makegenmatrix( patlen=longwin, mutpats=mutpats, selpats=selpats, mutrates=mutrates*tlen, selcoef=selcoef )
-projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, rightwin=rightwin )
-counts <- counttrans( rownames(projmatrix), colnames(projmatrix), simseqs=simseqs, leftwin=leftwin )
+left.win <- 2; right.win <- 2; short.win <- 2
+long.win <- left.win+short.win+right.win
+genmatrix <- makegenmatrix( patlen=long.win, mutpats=mutpats, selpats=selpats, mutrates=mutrates*tlen, selcoef=selcoef, bases=bases, fixfn=fixfn )
+projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=left.win, rightwin=right.win, bases=genmatrix@bases )
+counts <- counttrans( rownames(projmatrix), colnames(projmatrix), simseqs=simseqs, leftwin=left.win, bases=genmatrix@bases )
 cwin <- 2
-subcounts <- projectcounts( leftwin=leftwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=counts )
+subcounts <- projectcounts( counts, countwin=cwin, lcountwin=0, rcountwin=0 )
 
 all.genmats <- list (
-            "simple"=makegenmatrix( patlen=longwin, mutpats=mutpats, selpats=selpats, mutrates=mutrates*tlen, selcoef=selcoef, boundary="none" ),
-            "wrap"=makegenmatrix( mutpats=mutpats, selpats=selpats, patlen=longwin, mutrates=mutrates*tlen, selcoef=selcoef, boundary="wrap" ),
-            "mean"=meangenmatrix( leftwin=1, rightwin=1, patlen=longwin, mutpats=mutpats, selpats=selpats, mutrates=mutrates*tlen, selcoef=selcoef, boundary="wrap" )
+            "simple"=makegenmatrix( patlen=long.win, mutpats=mutpats, selpats=selpats, mutrates=mutrates*tlen, selcoef=selcoef, boundary="none", bases=bases, fixfn=fixfn ),
+            "wrap"=makegenmatrix( mutpats=mutpats, selpats=selpats, patlen=long.win, mutrates=mutrates*tlen, selcoef=selcoef, boundary="wrap", bases=bases, fixfn=fixfn ),
+            "mean"=meangenmatrix( leftwin=1, rightwin=1, patlen=long.win, mutpats=mutpats, selpats=selpats, mutrates=mutrates*tlen, selcoef=selcoef, boundary="wrap", bases=bases, fixfn=fixfn )
         )
 
 all.expected <- lapply( all.genmats, function (genmatrix) {
-        expected <- predictcounts( shortwin, leftwin, rightwin, initcounts=rowSums(counts), mutrates=tlen*mutrates, selcoef=selcoef, genmatrix=genmatrix, projmatrix=projmatrix )
-        subexpected <- projectcounts( leftwin=leftwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=expected )
+        expected <- predictcounts( longwin=long.win, shortwin=short.win, leftwin=left.win, initcounts=rowSums(counts), mutrates=tlen*mutrates, selcoef=selcoef, genmatrix=genmatrix, projmatrix=projmatrix )
+        subexpected <- projectcounts( counts=expected, lcountwin=0, countwin=cwin, rcountwin=0 )
         return(list( expected=expected, subexpected=subexpected ) )
     } )
 
 all.resids <- lapply( all.expected, function (x) {
-            list( full = counts-x[["expected"]],
-                sub = subcounts-x[["subexpected"]]
+            list( full = counts@counts-x[["expected"]]@counts,
+                sub = subcounts@counts-x[["subexpected"]]@counts
                 ) } )
 
 vars <- sapply( all.resids, function (x) as.vector(x[["sub"]]) )
@@ -126,27 +126,32 @@ cat("\n\n  Simulations all good!\n")
 #####
 ## Inference works?
 
-genmatrix <- meangenmatrix( leftwin=1, rightwin=1, patlen=longwin, mutpats=mutpats, selpats=selpats, mutrates=mutrates*tlen, selcoef=selcoef, boundary="none" )
+genmatrix <- meangenmatrix( leftwin=1, rightwin=1, patlen=long.win, mutpats=mutpats, selpats=selpats, mutrates=mutrates*tlen, selcoef=selcoef, boundary="none", bases=bases, fixfn=fixfn )
 
-nmuts <- length(mutpats); nsel <- length(selpats)
 # params are: mutrates*tlen, selcoef 
 likfun <- function (params) {
-        # params are: mutrates, selcoef
-        # this is collapsed transition matrix
-        mutrates <- params[1:nmuts]
-        selcoef <- params[nmuts+1:nsel]
-        genmatrix@x <- update(genmatrix,mutrates=mutrates,selcoef=selcoef)
-        subtransmatrix <- computetransmatrix( genmatrix, projmatrix )
-        # return negative log-likelihood 
-        (-1) * sum( counts * log(subtransmatrix) )
+    # params are: mutrates, selcoef
+    # this is collapsed transition matrix
+    mutrates <- params[1:nmuts(genmatrix)]
+    selcoef <- params[nmuts(genmatrix)+1:nsel(genmatrix)]
+    genmatrix@x <- update(genmatrix,mutrates=mutrates,selcoef=selcoef)
+    subtransmatrix <- computetransmatrix( genmatrix, projmatrix )
+    # return negative log-likelihood 
+    ans <- sum( counts@counts * log(subtransmatrix) )
+    if (!is.finite(ans)) { print(paste("Warning: non-finite likelihood with params:",paste(params,collapse=' '))) }
+    return(ans)
 }
 
 initpar <- c( 2*runif( length(mutpats) ), 2*runif( length(selpats) ) ) # random init
 truth <- c( mutrates * tlen, selcoef )  # truth
-lbs <- c( rep( 1e-6, nmuts ), rep( -Inf, nsel ) )
-cheating.ans <- optim( par=truth, fn=likfun, method="L-BFGS-B", lower=lbs, control=list(trace=3) )
-random.ans <- optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs, control=list(trace=3) )
+lbs <- c( rep( 1e-6, nmuts(genmatrix) ), rep( -Inf, nsel(genmatrix) ) )
+ubs <- c( rep( 1, nmuts(genmatrix) ), rep( 5, nsel(genmatrix) ) )
+parscale <- c( rep( mean(mutrates*tlen), nmuts(genmatrix) ), rep(mean(abs(selcoef)), nsel(genmatrix) ) )
+baseval <- likfun(truth)
+stopifnot( is.finite(baseval) )
 
+cheating.ans <- optim( par=truth, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(trace=3, fnscale=(-1)*abs(baseval), parscale=parscale) )
+random.ans <- optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(trace=3, fnscale=(-1)*abs(baseval), parscale=parscale) )
 
 estimates <- data.frame( rbind(init=initpar, ans=random.ans$par, cheating=cheating.ans$par, truth=truth ) )
 colnames(estimates) <- c( paste("muttime",seq_along(mutrates),sep=''), paste("selcoef",seq_along(selcoef),sep='') )
@@ -156,24 +161,24 @@ estimates$likfun <- apply( estimates, 1, likfun )
 # look at observed/expected counts
 all.expected <- lapply( 1:nrow(estimates), function (k) {
             x <- unlist(estimates[k,])
-            predictcounts( shortwin, leftwin, rightwin, initcounts=rowSums(counts), mutrates=x[1:nmuts], selcoef=x[nmuts+(1:nsel)], genmatrix=genmatrix, projmatrix=projmatrix )
+            predictcounts( longwin=long.win, shortwin=short.win, leftwin=left.win, initcounts=rowSums(counts), mutrates=x[1:nmuts(genmatrix)], selcoef=x[nmuts(genmatrix)+(1:nsel(genmatrix))], genmatrix=genmatrix, projmatrix=projmatrix )
     } )
 names(all.expected) <- rownames(estimates)
 
 # look at observed/expected counts in smaller windows
 cwin <- 2
-subcounts <- projectcounts( leftwin=leftwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=counts )
-all.subexpected <- lapply( all.expected, function (x) { projectcounts( leftwin=leftwin, countwin=cwin, lcountwin=0, rcountwin=0, counts=x ) } )
+subcounts <- projectcounts( countwin=cwin, lcountwin=0, rcountwin=0, counts=counts )
+all.subexpected <- lapply( all.expected, function (x) { projectcounts( countwin=cwin, lcountwin=0, rcountwin=0, counts=x ) } )
 
 
 if (interactive()) {
     layout(matrix(1:4,nrow=2))
     cols <- rainbow(2+length(all.expected))[1:length(all.expected)]
     for (k in 1:4) {
-        lord <- order( all.subexpected[["truth"]][,k] )
-        plot( subcounts[lord,k], xaxt='n', xlab='', main=colnames(subcounts)[k] )
+        lord <- order( all.subexpected[["truth"]]@counts[,k] )
+        plot( subcounts@counts[lord,k], xaxt='n', xlab='', main=colnames(subcounts)[k] )
         axis(1,at=1:nrow(subcounts),labels=rownames(subcounts)[lord],las=3)
-        invisible( lapply(seq_along(all.subexpected),function(j) { lines(all.subexpected[[j]][lord,k],col=cols[j]) } ) )
+        invisible( lapply(seq_along(all.subexpected),function(j) { lines(all.subexpected[[j]]@counts[lord,k],col=cols[j]) } ) )
         legend("topleft",legend=names(all.subexpected),lty=1,col=cols)
     }
 }

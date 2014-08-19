@@ -143,7 +143,7 @@ counttrans.list <- function (lpatterns, seqlist=lapply(simseqs,"[[","finalseq"),
     return(counts)
 }
 
-counttrans <- function (ipatterns, fpatterns, initseq=simseqs[["initseq"]], finalseq=simseqs[["finalseq"]], simseqs, leftwin=0, shift=0, cyclic=FALSE) {
+counttrans <- function (ipatterns, fpatterns, initseq=simseqs[["initseq"]], finalseq=simseqs[["finalseq"]], simseqs, leftwin=0, shift=0, cyclic=FALSE, bases=sort(unique(unlist(strsplit(ipatterns,""))))) {
     # count number of times initseq matches ipatterns while finalseq matches fpatterns
     #   optionally, cyclical
     # if shift is nonzero, return a list  with the counts in each of (shift) frames
@@ -169,7 +169,7 @@ counttrans <- function (ipatterns, fpatterns, initseq=simseqs[["initseq"]], fina
             }
         }
     }
-    counts <- lapply( counts, function (x) new("tuplecounts",counts=x,leftwin=leftwin) )
+    counts <- lapply( counts, function (x) new("tuplecounts",counts=x,leftwin=leftwin,bases=bases) )
     if (shift==0) { counts <- counts[[1]] }
     return(counts)
 }

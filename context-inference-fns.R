@@ -255,10 +255,18 @@ setMethod("dimnames", signature=c(x="tuplecounts"), definition=function (x) { di
 setMethod("dimnames<-", signature=c(x="tuplecounts",value="ANY"), definition=function (x,value) { dimnames(x@counts)<-value } )
 setMethod("as.matrix", signature=c(x="tuplecounts"), definition=function (x) { as.matrix(x@counts) } )
 setMethod("as.vector", signature=c(x="tuplecounts"), definition=function (x) { as.vector(x@counts) } )
-setMethod("%*%", signature=c(x="tuplecounts",y="ANY"), definition=function (x,y) { x@counts %*% y } )
-setMethod("%*%", signature=c(x="ANY",y="tuplecounts"), definition=function (x,y) { x %*% y@counts } )
 setMethod("head", signature=c(x="tuplecounts"), definition=function (x) { head(x@counts) } )
 setMethod("image", signature=c(x="tuplecounts"), definition=function (x) { image(x@counts) } )
+setMethod("%*%", signature=c(x="tuplecounts",y="ANY"), definition=function (x,y) { x@counts %*% y } )
+setMethod("%*%", signature=c(x="ANY",y="tuplecounts"), definition=function (x,y) { x %*% y@counts } )
+# add more fluff to avoid "Note: method with signature ‘ANY#tuplecounts’ chosen for function ..." messages
+setMethod("%*%", signature=c(x="tuplecounts",y="tuplecounts"), definition=function (x,y) { x@counts %*% y@counts } )
+setMethod("%*%", signature=c(x="dgCMatrix",y="tuplecounts"), definition=function (x,y) { x %*% y@counts } )
+setMethod("%*%", signature=c(x="tuplecounts",y="dgCMatrix"), definition=function (x,y) { x@counts %*% y } )
+setMethod("%*%", signature=c(x="dgTMatrix",y="tuplecounts"), definition=function (x,y) { x %*% y@counts } )
+setMethod("%*%", signature=c(x="tuplecounts",y="dgTMatrix"), definition=function (x,y) { x@counts %*% y } )
+setMethod("%*%", signature=c(x="TsparseMatrix",y="tuplecounts"), definition=function (x,y) { x %*% y@counts } )
+setMethod("%*%", signature=c(x="tuplecounts",y="TsparseMatrix"), definition=function (x,y) { x@counts %*% y } )
 
 
 setClass("context",
@@ -352,7 +360,7 @@ setMethod("residuals", signature=c(object="context"), definition=function (objec
 #  then
 #    P = Q %*% J .
 
-makegenmatrix <- function (mutpats, selpats=list(), patlen=nchar(patterns[1]), patterns=getpatterns(patlen,bases), bases, mutrates=rep(1,length(mutpats)),selcoef=rep(1,length(selpats)), boundary="none", fixfn=function(...){1}, ...) {
+makegenmatrix <- function (mutpats, selpats=list(), patlen=nchar(patterns[1]), patterns=getpatterns(patlen,bases), bases, fixfn, mutrates=rep(1,length(mutpats)),selcoef=rep(1,length(selpats)), boundary="none", ...) {
     # YYY suggest mutpatll rather than mutpats
     # Make the generator matrix G on the specified set of patterns,
     # carrying with it the means to quickly update itself.
