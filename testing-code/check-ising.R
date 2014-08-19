@@ -61,7 +61,7 @@ checkit(
     )
 
 checkit(
-        meangenmatrix( leftwin=1, rightwin=1, mutpats=mutpats, selpats=rep(0,length(selpats)), selcoef=selcoef, mutrates=mutrates, patlen=patlen, boundary="none", bases=bases, fixfn=fixfn ),
+        meangenmatrix( leftwin=1, rightwin=1, mutpats=mutpats, selpats=selpats, selcoef=rep(0,length(selpats)), mutrates=mutrates, patlen=patlen, boundary="none", bases=bases, fixfn=fixfn ),
         fixfn(0)*true.mutrates
     )
 
