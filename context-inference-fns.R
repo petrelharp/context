@@ -399,11 +399,10 @@ makegenmatrix <- function (mutpats, selpats=list(), patlen=nchar(patterns[1]), p
         selmatches <- getselmatches( selpats, patterns, boundary=boundary )
         # transfer selection coefficients to selective differences involved in each mutation
         #    these are ( transitions ) x ( mutpats ) matrix
-        #     ... make these sparse?
         ##  the following has (fromsel-tosel); combined to reduce memory usage
         ##  fromsel <- selmatches[,  allmutmats$i, drop=FALSE ]
         ##  tosel <- selmatches[,  allmutmats$j, drop=FALSE ]
-        seltrans <- Matrix(t( ( selmatches[,  allmutmats$i, drop=FALSE ] - selmatches[,  allmutmats$j, drop=FALSE ] )[,dgCord,drop=FALSE] ))
+        seltrans <- Matrix(t( ( selmatches[,  allmutmats$j, drop=FALSE ] - selmatches[,  allmutmats$i, drop=FALSE ] )[,dgCord,drop=FALSE] ))
     } else {
         seltrans <- Matrix(numeric(0),nrow=nrow(muttrans),ncol=0)
     }
@@ -468,7 +467,7 @@ meangenmatrix <- function (leftwin,rightwin,patlen,...) {
     if (longpatlen == patlen) {  # no need to do anything else...
         return(genmat)
     }
-    projmat <- collapsepatmatrix(ipatterns=rownames(genmat),leftwin=leftwin,rightwin=rightwin, bases=genmatrix@bases)  # this is P
+    projmat <- collapsepatmatrix(ipatterns=rownames(genmat),leftwin=leftwin,rightwin=rightwin, bases=genmat@bases)  # this is P
     # Divide entries by column sums, then transpose. Makes M, which is now has rows indexed by
     # the short version and columns the usual one.
     meanmat <- t( sweep( projmat, 2, colSums(projmat), "/" ) )
@@ -491,10 +490,19 @@ meangenmatrix <- function (leftwin,rightwin,patlen,...) {
     for (k in 1:nrow(ij.H)) { pnonz[k,] <-  meanmat[ij.H[k,"i"],ij.G[,"i"]] * projmat[ij.G[,"j"],ij.H[k,"j"]] }
     # pnonz <- t( apply( ij.H, 1, function (ij) { meanmat[ij[1],ij.G[,"i"]] * projmat[ij.G[,"j"],ij[2]] } ) )
     pp <- sapply( 0:ncol(pgenmat), function(k) sum(jj[nondiag]<k) )
-    meangenmat <- new( "genmatrix", i=ii[nondiag], p=pp, x=pgenmat@x[nondiag], Dim=pgenmat@Dim, Dimnames=pgenmat@Dimnames,
-        muttrans = (pnonz %*% genmat@muttrans), seltrans = (pnonz %*% genmat@seltrans),
-        bases=pgenmat@bases, mutpats=pgenmat@mutpats, selpats=pgenmat@selpats,
-        boundary=pgenmat@boundary, fixfn=pgenmat@fixfn
+    meangenmat <- new( "genmatrix", 
+            i=ii[nondiag], 
+            p=pp, 
+            x=pgenmat@x[nondiag], 
+            Dim=pgenmat@Dim, 
+            Dimnames=pgenmat@Dimnames,
+            muttrans = (pnonz %*% genmat@muttrans), 
+            seltrans = (pnonz %*% genmat@seltrans),
+            bases=genmat@bases, 
+            mutpats=genmat@mutpats, 
+            selpats=genmat@selpats,
+            boundary=genmat@boundary, 
+            fixfn=genmat@fixfn
         )
     args <- list(...)
     if (is.null(args$mutrates)) { args$mutrates <- rep(1,length(genmat@mutpats)) }

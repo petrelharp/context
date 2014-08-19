@@ -41,37 +41,37 @@ true.mutrates <- rbind(
 checkit <- function (x,y) { stopifnot( all.equal( as.vector(x), as.vector(y) ) ) }
 
 checkit(
-        makegenmatrix( mutpats=mutpats, selpats=selpats, selcoef=rep(0,length(selpats)), mutrates=mutrates, patlen=patlen, boundary="none" ),
+        makegenmatrix( mutpats=mutpats, selpats=selpats, selcoef=rep(0,length(selpats)), mutrates=mutrates, patlen=patlen, boundary="none", bases=bases, fixfn=fixfn ),
         fixfn(0)*true.mutrates
     )
 
 checkit(
-        makegenmatrix( mutpats=mutpats, selpats=selpats, selcoef=selcoef, mutrates=mutrates, patlen=patlen, boundary="none" ),
+        makegenmatrix( mutpats=mutpats, selpats=selpats, selcoef=selcoef, mutrates=mutrates, patlen=patlen, boundary="none", bases=bases, fixfn=fixfn ),
         fixfn(ds.nowrap)*true.mutrates
     )
 
 checkit( 
-        makegenmatrix( mutpats=mutpats, selpats=selpats, selcoef=rep(0,length(selpats)), mutrates=mutrates, patlen=patlen, boundary="wrap" ),
+        makegenmatrix( mutpats=mutpats, selpats=selpats, selcoef=rep(0,length(selpats)), mutrates=mutrates, patlen=patlen, boundary="wrap", bases=bases, fixfn=fixfn ),
         fixfn(0)*true.mutrates
     )
 
 checkit( 
-        makegenmatrix( mutpats=mutpats, selpats=selpats, selcoef=selcoef, mutrates=mutrates, patlen=patlen, boundary="wrap" ),
+        makegenmatrix( mutpats=mutpats, selpats=selpats, selcoef=selcoef, mutrates=mutrates, patlen=patlen, boundary="wrap", bases=bases, fixfn=fixfn ),
         fixfn(ds.wrap)*true.mutrates
     )
 
 checkit(
-        meangenmatrix( leftwin=1, rightwin=1, mutpats=mutpats, selpats=rep(0,length(selpats)), selcoef=selcoef, mutrates=mutrates, patlen=patlen, boundary="none" ),
+        meangenmatrix( leftwin=1, rightwin=1, mutpats=mutpats, selpats=rep(0,length(selpats)), selcoef=selcoef, mutrates=mutrates, patlen=patlen, boundary="none", bases=bases, fixfn=fixfn ),
         fixfn(0)*true.mutrates
     )
 
 checkit(
-        meangenmatrix( leftwin=1, rightwin=1, mutpats=mutpats, selpats=selpats, selcoef=selcoef, mutrates=mutrates, patlen=patlen, boundary="none" ),
+        meangenmatrix( leftwin=1, rightwin=1, mutpats=mutpats, selpats=selpats, selcoef=selcoef, mutrates=mutrates, patlen=patlen, boundary="none", bases=bases, fixfn=fixfn ),
         fixfn(ds.mean)*true.mutrates
     )
 
 checkit(
-        meangenmatrix( leftwin=1, rightwin=1, mutpats=mutpats, selpats=selpats, selcoef=selcoef, mutrates=mutrates, patlen=patlen, boundary="wrap" ),
+        meangenmatrix( leftwin=1, rightwin=1, mutpats=mutpats, selpats=selpats, selcoef=selcoef, mutrates=mutrates, patlen=patlen, boundary="wrap", bases=bases, fixfn=fixfn ),
         fixfn(ds.mean)*true.mutrates
     )
 

@@ -13,7 +13,7 @@ Config file gives prior means on model parameters, for instance:\
 
 option_list <- list(
     # input/output
-        make_option( c("-i","--infile"), type="character", help="Input file with tuple counts, tab-separated, with header 'reference', 'derived', 'count'. [default, looks in basedir]" ),
+        make_option( c("-i","--infile"), type="character", help="Input file with previously fit 'context' model object."),
         make_option( c("-o","--outfile"), type="character", help="File to save results to.  [default: base of infile + 'mcmc' + jobid + .RData]"),
         make_option( c("-u","--basedir"), type="character", default=NULL, help="Directory to put output in. [default: same as infile]"),
         make_option( c("-c","--priorfile"), type="character", help="JSON config file giving prior parameters."),
@@ -23,15 +23,15 @@ option_list <- list(
         make_option( c("-j","--jobid"), type="character", default=formatC(1e6*runif(1),width=6,format="d",flag="0"), help="Unique job id. [default random]")
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
-if (is.null(opt$infile)) { stop("No input file.  Run\n  bcells-inference.R -h\n for help.\n") }
+if (is.null(opt$infile)) { stop("No input file.  Run\n  Rscript mcmc-model.R -h\n for help.\n") }
 if (is.null(opt$basedir)) { opt$basedir <- dirname(opt$infile) }
-if (is.null(opt$outfile)) { opt$outfile <- paste( opt$basedir, "/", gsub("(mcmc-[0-9]*)*\\.[^.]*","",basename(opt$infile) ), "-mcmc-", opt$jobid, ".RData", sep='' ) }
+if (is.null(opt$outfile)) { opt$outfile <- paste( opt$basedir, "/", gsub("(-mcmc-[0-9]*)*\\.[^.]*","",basename(opt$infile) ), "-mcmc-", opt$jobid, ".RData", sep='' ) }
 print(opt) # this will go in the pbs log
 options(error = quote({dump.frames(to.file = TRUE); q()}))
 
 source("../context-inference-fns.R")
 
-# load generator matrix
+# load previously fit model
 stopifnot(file.exists(opt$infile))
 load(opt$infile)  # provides 'model'
 
