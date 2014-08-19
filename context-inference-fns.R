@@ -12,6 +12,7 @@ source(paste(.PATH,"/expAtv.R",sep=''))  # fixed upstream
 source(paste(.PATH,"/gammaAtv.R",sep=''))
 source(paste(.PATH,"/input-output.R",sep=''))
 source(paste(.PATH,"/helper-fns.R",sep=''))
+source(paste(.PATH,"/plotting-fns.R",sep=''))
 
 getpatterns <- function(patlen,bases) {
     # construct a list of all patterns of a given length

@@ -24,18 +24,18 @@ option_list <- list(
         make_option( c("-s","--seqlen"), type="numeric", help="Number of bases to simulate." ),
         make_option( c("-o","--outfile"), type="character", default="", help="Direct output to this file."),
         make_option( c("-d","--outdir"), type="character", default="", help="Direct output to this directory with default name if outfile is not specified."),
+        make_option( c("-j","--jobid"), type="numeric", default=formatC( floor(runif(1)*1e6) , digits=6,flag='0'), help="Unique identifier to append to output name if not specified."),
         make_option( c("-l","--logfile"), type="character", default="", help="Direct logging output to this file. [default appends -simrun.Rout]" )
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 if ( is.null(opt$configfile) | (is.null(opt$tlen) | is.null(opt$seqlen)) ) { stop("Rscript sim-seq.R -h for help.") }
 if ( !file.exists(opt$configfile) ) { stop("Could not find config file `", opt$configfile, "`.") }
-attach(opt)
 
 source("../context-inference-fns.R")
 source("../sim-context-fns.R")
 
 require(jsonlite)
-config <- fromJSON(configfile,simplifyMatrix=FALSE)
+config <- fromJSON(opt$configfile,simplifyMatrix=FALSE)
 attach(config)
 
 # turn fixfn into an actual function
@@ -52,38 +52,37 @@ if (exists("fixfn") && is.character(fixfn)) {
 # defaults:
 if (!exists("selpats")) { selpats <- list(); selcoef <- numeric(0); fixfn <- null.fixfn; fixfn.params=list() }
 stopifnot(
-          ( length(bases) == length(initfreqs ) ) &&
+          ( length(bases) == length(initfreqs) ) &&
            ( length(mutpats) == length(mutrates) ) &&
            ( length(selpats) == length(selcoef) )
         )
 
 
 # identifiers
-if (outfile == "") {
+if (opt$outfile == "") {
     now <- Sys.time()
-    jobid <- formatC( floor(runif(1)*1e6) , digits=6,flag='0')
-    basename <- paste(outdir,"/","simseq-",format(now,"%Y-%m-%d-%H-%M"),"-",jobid,sep='')
-    outfile <- paste(basename,".RData",sep='')
+    basename <- paste(outdir,"/","simseq-",format(now,"%Y-%m-%d-%H-%M"),"-",opt$jobid,sep='')
+    opt$outfile <- paste(basename,".RData",sep='')
 } else {
-    basename <- gsub(".RData","",outfile)
+    basename <- gsub(".RData","",opt$outfile)
 }
-if (logfile=="" & !interactive()) { logfile <- paste(basename,".Rout",sep='') }
-if (!is.null(logfile)) {
-    logcon <- if (logfile=="-") { stdout() } else { file(logfile,open="wt") }
+if (opt$logfile=="" & !interactive()) { opt$logfile <- paste(basename,".Rout",sep='') }
+if (!is.null(opt$logfile)) {
+    logcon <- if (opt$logfile=="-") { stdout() } else { file(opt$logfile,open="wt") }
     sink(file=logcon, type="message")
     sink(file=logcon, type="output")
 }
 
 
-initseq <- rinitseq(seqlen,bases,basefreqs=initfreqs)
+initseq <- rinitseq(opt$seqlen,bases,basefreqs=initfreqs)
 system.time(
         simseqs <- list(
-                simseq( seqlen=seqlen, tlen=tlen, mutpats=mutpats, mutrates=mutrates, selpats=selpats, selcoef=selcoef, initseq=initseq, bases=bases )
+                simseq( seqlen=opt$seqlen, tlen=opt$tlen, mutpats=mutpats, mutrates=mutrates, selpats=selpats, selcoef=selcoef, initseq=initseq, bases=bases, fixfn=fixfn )
             )
     )
 
 simseq.opt <- opt
 
-save( simseq.opt, bases, mutpats, mutrates, selpats, selcoef, fixfn, seqlen, tlen, initfreqs, simseqs, file=outfile )
+save( simseq.opt, bases, mutpats, mutrates, selpats, selcoef, fixfn, initfreqs, simseqs, file=opt$outfile )
 
 

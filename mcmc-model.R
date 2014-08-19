@@ -52,22 +52,22 @@ if (!is.null(opt$priorfile)) {
 # (quasi)-log-posterior 
 likfun <- function (params){
     # params are: mutrates*tlen
-    if (any(params<0)) { return( -Inf ) }
     mutrates <- params[1:nmuts(genmatrix)]
     selcoef <- params[seq( nmuts(genmatrix), length.out=nsel(genmatrix) )]
+    if (any(mutrates<0)) { return( -Inf ) }
     genmatrix@x <- update(genmatrix, mutrates=mutrates, selcoef=selcoef )
     # this is collapsed transition matrix
     subtransmatrix <- computetransmatrix( genmatrix, projmatrix, tlen=1, time="fixed") # shape=params[length(params)], time="gamma" )
     # return POSITIVE log-likelihood 
     ans <- sum( counts@counts * log(subtransmatrix) ) 
     if (!is.finite(ans)) print(params)
-    return( ans - sum(mutrates/mutprior) - sum(selcoef/selprior) )
+    return( ans - sum(mutrates/mutprior) - sum((selcoef/selprior)^2) )
 }
 
 initpar <- coef(model)
 baseval <- likfun(initpar)
 stopifnot( is.finite(baseval) )
-if (is.null(opt$stepscale)) { opt$stepscale <- mean(initpar)/100 }
+if (is.null(opt$stepscale)) { opt$stepscale <- mean(initpar)/10 }
 
 mrun <- metrop( likfun, initial=initpar, nbatch=opt$nbatches, blen=opt$blen, scale=opt$stepscale )
 
@@ -86,3 +86,4 @@ model <- new( "contextMCMC",
 
 
 save(model,file=opt$outfile)
+

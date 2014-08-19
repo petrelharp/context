@@ -17,6 +17,7 @@ option_list <- list(
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 if (is.null(opt$infile)) { stop("No input file.  Run\n  bcells-inference.R -h\n for help.\n") }
+if (!file.exists(opt$infile)) { stop("Cannot read input file.") }
 if (is.null(opt$basedir)) { opt$basedir <- dirname(opt$infile) }
 if (is.null(opt$outfile)) { opt$outfile <- paste( opt$basedir, "/", gsub("\\.[^.]*","",basename(opt$infile) ), "-", gsub("\\.[^.]*","",basename(opt$gmfile) ), "-", opt$jobid, ".RData", sep='' ) }
 print(opt) # this will go in the pbs log
@@ -56,9 +57,9 @@ likfun <- function (params){
 
 initpar <- c( adhoc.mutrates, adhoc.selcoef )
 stopifnot( length(initpar) == nmuts(genmatrix)+nsel(genmatrix) )
-lbs <- rep(1e-6,nmuts(genmatrix)+nsel(genmatrix))
-ubs <- rep(2,nmuts(genmatrix)+nsel(genmatrix))
-parscale <- 1e-3 * rep( mean(adhoc.mutrates), nmuts(genmatrix)+nsel(genmatrix) )
+lbs <- c( rep(1e-6,nmuts(genmatrix)), rep(-5,nsel(genmatrix)) )
+ubs <- c( rep(2,nmuts(genmatrix)), rep(5,nsel(genmatrix)) )
+parscale <- c( 1e-3 * rep( mean(adhoc.mutrates),nmuts(genmatrix)), rep(.05,nsel(genmatrix)) )
 
 baseval <- likfun(initpar)
 stopifnot( is.finite(baseval) )
