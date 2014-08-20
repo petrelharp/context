@@ -17,8 +17,9 @@ Rscript ../flex-genmat.R -c genmatrices/complete.json -w 3
 Rscript ../fit-model.R -i test-ising-123456.3.1.l1.counts -l 1 -m genmatrices/genmatrix-3-complete.RData -j 54321
 
 # mcmc also
-Rscript ../mcmc-model.R -i test-ising-123456-genmatrix-6-complete-54321.RData -c ising-prior.json -b 3 -j 2222
-Rscript ../mcmc-model.R -i test-ising-123456-genmatrix-6-complete-54321-mcmc-2222.RData -b 3 -j 3333
+Rscript ../mcmc-model.R -i test-ising-123456-genmatrix-3-complete-54321.RData -c ising-prior.json -b 3 -j 1111
+Rscript ../mcmc-model.R -i test-ising-123456-genmatrix-3-complete-54321-mcmc-1111.RData -b 100 -j 2222
+Rscript ../mcmc-model.R -i test-ising-123456-genmatrix-3-complete-54321-mcmc-2222.RData -b 1000 -j 3333
 
 
 # OK, now do this on more Tmer sizes:
