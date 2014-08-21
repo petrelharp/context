@@ -31,7 +31,6 @@ mutpatchanges <- function (mutpats) {
 }
 
 getmutpats <- function(bases,patlen,nchanges=1) {
-    # YYY suggested name change: gen_mutpatl for generate mutpat list
     # all kmer -> kmer changes where k <= `patlen`
     # that involve at most nchanges changes
     mutpats <- list()
@@ -68,7 +67,6 @@ divergence <- function (counts, leftwin) {
 }
 
 countmuts <- function (counts, mutpats, leftwin=leftwin(counts), ...) {
-    # YYY suggest mutpatl rather than mutpats, because that's what we have
     # given a contingency table `counts` of Tmers observed in a data set, a collection of
     # mutation patterns, the leftwin, and a list of arguments to `sum`, this function
     # returns a matrix with columns indexed by the mutpats, the first row of which gives counts of how many of the counted mutations could be produced by each of mutpats
@@ -147,12 +145,9 @@ getmutmats <- function(mutpats,patterns,boundary=c("none","wrap")) {
     # Specifically, returns i and j's indexing the generator matrix in terms of the given patterns.
     # that is, given a list of mutation patterns,
     #   which can be either pairs or lists of pairs,
-    # YYY this option is kind of driving me batty. Could we have it just always be a mutpat list list?
     # return a corresponding list of two-column matrices with (1-based) indices of changes corresponding to mutation patterns
     #   i.e. if (i,j) is a row of output[[k]], then patterns[j] can be obtained from patterns[i]
-    #   by performing the substitution from mutpats[[k]][1] -> mutpats[[k]][2]
-    #   at some location within the string.
-    #   YYY I believe this description is a little flawed, in that mutpats is a mutpat list list
+    #   by performing a substitution from mutpats[[k]] at some location within the string.
     boundary <- match.arg(boundary)
     longwin <- nchar(patterns[1])
     mutpats <- lapply( mutpats, function (x) { if (is.list(x)) { x } else { list(x) } } )
@@ -362,7 +357,6 @@ setMethod("residuals", signature=c(object="context"), definition=function (objec
 #    P = Q %*% J .
 
 makegenmatrix <- function (mutpats, selpats=list(), patlen=nchar(patterns[1]), patterns=getpatterns(patlen,bases), bases, fixfn, mutrates=rep(1,length(mutpats)),selcoef=rep(1,length(selpats)), boundary="none", ...) {
-    # YYY suggest mutpatll rather than mutpats
     # Make the generator matrix G on the specified set of patterns,
     # carrying with it the means to quickly update itself.
     #  DON'T do the diagonal (i.e. it must be left empty), so that the updating is easier.
@@ -453,7 +447,6 @@ update <- function (G, mutrates, selcoef, ...) {
 }
 
 collapsepatmatrix <- function (ipatterns, leftwin, shortwin=nchar(fpatterns[1]), rightwin=nchar(ipatterns[1])-shortwin-leftwin, fpatterns=getpatterns(nchar(ipatterns[1])-leftwin-rightwin,bases), bases ) {
-    # YYY it seems like calling this `getprojmatrix` would make things more consistent with the way the other functions are named.
     # Construct the matrix U described in the tex.
     # ipatterns are the "input" patterns, while fpatterns are the "final" projected patterns
     # returns a (nbases)^k by (nbases)^{k-leftwin-rightwin} matrix projection matrix
