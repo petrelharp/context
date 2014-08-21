@@ -499,18 +499,18 @@ meangenmatrix <- function (leftwin,rightwin,patlen,...) {
     for (k in 1:nrow(ij.H)) { pnonz[k,] <-  meanmat[ij.H[k,"i"],ij.G[,"i"]] * projmat[ij.G[,"j"],ij.H[k,"j"]] }
     # pnonz <- t( apply( ij.H, 1, function (ij) { meanmat[ij[1],ij.G[,"i"]] * projmat[ij.G[,"j"],ij[2]] } ) )
     pp <- sapply( 0:ncol(pgenmat), function(k) sum(jj[nondiag]<k) )
-    meangenmat <- new( "genmatrix", 
-            i=ii[nondiag], 
-            p=pp, 
-            x=pgenmat@x[nondiag], 
-            Dim=pgenmat@Dim, 
+    meangenmat <- new( "genmatrix",
+            i=ii[nondiag],
+            p=pp,
+            x=pgenmat@x[nondiag],
+            Dim=pgenmat@Dim,
             Dimnames=pgenmat@Dimnames,
-            muttrans = (pnonz %*% genmat@muttrans), 
+            muttrans = (pnonz %*% genmat@muttrans),
             seltrans = (pnonz %*% genmat@seltrans),
-            bases=genmat@bases, 
-            mutpats=genmat@mutpats, 
+            bases=genmat@bases,
+            mutpats=genmat@mutpats,
             selpats=genmat@selpats,
-            boundary=genmat@boundary, 
+            boundary=genmat@boundary,
             fixfn=genmat@fixfn
         )
     args <- list(...)
