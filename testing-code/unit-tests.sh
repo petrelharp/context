@@ -36,3 +36,22 @@ END
 if [ $TEST2 ]; then
     echo "Failed test 2."
 fi
+
+# Test 3
+Rscript ../make-genmat.R -c <(echo '{ "bases":["X","O"], "mutpats":[[["X","O"]],[["O","X"]],[["OX","XX"]],[["XO","XX"]]], "mutrates":[1,2,3,5] }') -w 3 -o $TEMPFILE
+TEST2=$( diff <(Rscript -e "source('../context-inference-fns.R'); load(\"$TEMPFILE\"); as.matrix(genmatrix)" | sed -e 's/^ *//' -e 's/ *$//' -e 's/  */ /g') <(( cat <<END
+    XXX OXX XOX OOX XXO OXO XOO OOO
+XXX   0   1   1   0   1   0   0   0
+OXX   5   0   0   1   0   1   0   0
+XOX  10   0   0   1   0   0   1   0
+OOX   0   5   2   0   0   0   0   1
+XXO   7   0   0   0   0   1   1   0
+OXO   0   7   0   0   5   0   0   1
+XOO   0   0   2   0   7   0   0   1
+OOO   0   0   0   2   0   2   2   0
+END
+) | sed -e 's/^ *//' -e 's/ *$//' -e 's/  */ /g') )
+
+if [ $TEST3 ]; then
+    echo "Failed test 3."
+fi

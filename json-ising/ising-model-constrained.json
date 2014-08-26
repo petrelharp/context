@@ -1,11 +1,11 @@
 {
+    "comment" : "This model is constrained so that X->O and O->X mutations are at the same rate.",
     "bases" : [ "X", "O" ],
     "initfreqs" : [ 0.5, 0.5 ],
     "mutpats" : [
-        [ [ "O", "X" ] ],
-        [ [ "X", "O" ] ]
+        [ [ "O", "X" ] , [ "X", "O" ] ]
     ],
-    "mutrates" : [ 0.5, 0.5 ],
+    "mutrates" : [ 0.5 ],
     "comment": "first line is inverse temperature beta, second is magnetic field gamma",
     "selpats" : [
         [ "OX","XO" ],
@@ -13,7 +13,7 @@
     ],
     "selcoef" : [ 1., 0.5 ],
     "fixfn" : "ising.fixfn",
-    "mutprior" : [ 1.0, 1.0 ],
-    "selprior" : [ 3.0, 3.0 ]
+    "mutprior" : [ 0.1 ],
+    "selprior" : [ 0.1, 0.1 ]
 }
 

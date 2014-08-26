@@ -14,7 +14,7 @@ debug.optparse <- function (command,option_list) {
 }
 
 # load a file, but not into the global environment, rather, into a list.
-load.to.list <- function (file) { e <- environment(); n <- load(file,,e); names(n) <- n; lapply( n, get, envir=e ) }
+load.to.list <- function (file) { e <- environment(); n <- load(file,envir=e); names(n) <- n; lapply( n, get, envir=e ) }
 
 # use to open stdin/stdout or process substitution things correctly
 #   from  http://stackoverflow.com/questions/15784373/process-substitution

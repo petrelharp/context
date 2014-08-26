@@ -51,14 +51,13 @@ if (!is.null(opt$priorfile)) {
     fixfn.prior <- model@paramsprior
 }
 
-fparams <- numeric(length(fixparams(model)))
-names(fparams) <- fixparams(model)
 # (quasi)-log-posterior 
 likfun <- function (params){
     # params are: mutrates*tlen
     mutrates <- params[1:nmuts(genmatrix)]
     selcoef <- params[seq( 1+nmuts(genmatrix), length.out=nsel(genmatrix) )]
-    fparams[] <- params[seq( 1+nmuts(genmatrix)+nsel(genmatrix), length.out=length(fparams) )]
+    fparams <- params[seq( 1+nmuts(genmatrix)+nsel(genmatrix), length.out=length(fixparams(genmatrix)) )]
+    names(fparams) <- fixparams(model)
     if (any(mutrates<0)) { return( -Inf ) }
     genmatrix@x <- do.call( update, c( list(G=genmatrix, mutrates=mutrates, selcoef=selcoef ), as.list(fparams) ) )
     # this is collapsed transition matrix
@@ -82,7 +81,7 @@ model <- new( "contextMCMC",
              projmatrix=model@projmatrix,
              mutrates=mrun$final[1:nmuts(genmatrix)],
              selcoef=mrun$final[seq(1+nmuts(genmatrix),length.out=nsel(genmatrix))],
-             params=mrun$final[seq(1+nmuts(genmatrix)+nsel(genmatrix),length.out=length(fparams))],
+             params=mrun$final[seq(1+nmuts(genmatrix)+nsel(genmatrix),length.out=length(fixparams(model)))],
              results=unclass(mrun),
              likfun=likfun,
              mutprior=mutprior,
