@@ -4,7 +4,7 @@ set -eu
 set -o pipefail
 
 # simulate up some sequence for testing
-Rscript ../sim-seq.R -c ising-model.json -t .1 -s 10000 -o test-ising-123456.RData
+Rscript ../sim-seq.R -c ising-model.json -t .1 -s 100000 -o test-ising-123456.RData
 
 # and count the Tmers
 Rscript ../count-seq.R -i test-ising-123456.RData -w 3 -s 1 -l 1
