@@ -89,7 +89,7 @@ simseq <- function (seqlen, tlen, mutpats, mutrates, selpats=list(), selcoef=num
         # sanity check:
         # if (nchar(finalseq) != nchar(initseq)) { browser() }
     }
-    output <- list( initseq=initseq, finalseq=finalseq, maxrate=maxrate, ntrans=ntrans, mutpats=mutpats, selpats=selpats, mutrates=mutrates, selcoef=selcoef, tlen=tlen, seqlen=seqlen, bases=bases, params=list(...) )
+    output <- list( initseq=initseq, finalseq=finalseq, maxrate=maxrate, ntrans=ntrans, mutpats=mutpats, selpats=selpats, mutrates=mutrates, selcoef=selcoef, tlen=tlen, seqlen=seqlen, bases=bases, fixfn.params=list(...) )
     class(output) <- "simseq"
     return(output)
 }

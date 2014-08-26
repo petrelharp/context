@@ -30,7 +30,7 @@ stopifnot(file.exists(opt$gmfile))
 load(opt$gmfile)  # provides 'genmatrix'
 
 # read in counts
-counts <- read.counts(opt$infile, opt$leftwin, bases=genmatrix@bases, longpats=rownames(genmatrix) )
+counts <- read.counts(opt$infile, leftwin=opt$leftwin, bases=genmatrix@bases, longpats=rownames(genmatrix) )
 stopifnot( all( rownames(counts) == rownames(genmatrix) ) )
 
 projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin(counts), fpatterns=colnames(counts) )
@@ -41,12 +41,17 @@ adhoc.mutrates <- adhoc[1,]/adhoc[2,]
 adhoc.mutrates <- ifelse( is.finite(adhoc.mutrates) & adhoc.mutrates > 0, adhoc.mutrates, 1e-4 )
 # start selection parameters at zero, why not
 adhoc.selcoef <- rep(1e-6,nsel(genmatrix))
-names(adhoc.selcoef) <- mutnames(genmatrix@selpats)
+names(adhoc.selcoef) <- selnames(genmatrix@selpats)
+# ditto for additional parameters
+adhoc.fixparams <- rep(1,length(fixparams(genmatrix)))
+names(adhoc.fixparams) <- fixparams(genmatrix)
+fparams <- adhoc.fixparams
 
 # Compute (quasi)-likelihood function using all counts -- multinomial as described in eqn:comp_like.
 likfun <- function (params){
-    # params are: mutrates*tlen, shape
-    genmatrix@x <- update(genmatrix,mutrates=params[1:nmuts(genmatrix)],selcoef=params[seq(1+nmuts(genmatrix),length.out=nsel(genmatrix))])
+    # params are: mutrates, selcoef, fixparams
+    fparams[] <- params[seq(1+nmuts(genmatrix)+nsel(genmatrix),length.out=length(fparams))]
+    genmatrix@x <- do.call( update, c( list( G=genmatrix,mutrates=params[1:nmuts(genmatrix)],selcoef=params[seq(1+nmuts(genmatrix),length.out=nsel(genmatrix))]), as.list(fparams) ) )
     # this is collapsed transition matrix
     subtransmatrix <- computetransmatrix( genmatrix, projmatrix, tlen=1, time="fixed") # shape=params[length(params)], time="gamma" )
     # return POSITIVE log-likelihood
@@ -55,11 +60,11 @@ likfun <- function (params){
     return(ans)
 }
 
-initpar <- c( adhoc.mutrates, adhoc.selcoef )
-stopifnot( length(initpar) == nmuts(genmatrix)+nsel(genmatrix) )
-lbs <- c( rep(1e-6,nmuts(genmatrix)), rep(-5,nsel(genmatrix)) )
-ubs <- c( rep(2,nmuts(genmatrix)), rep(5,nsel(genmatrix)) )
-parscale <- c( 1e-3 * rep( mean(adhoc.mutrates),nmuts(genmatrix)), rep(.05,nsel(genmatrix)) )
+initpar <- c( adhoc.mutrates, adhoc.selcoef, adhoc.fixparams )
+stopifnot( length(initpar) == nmuts(genmatrix)+nsel(genmatrix)+length(fixparams(genmatrix)) )
+lbs <- c( rep(1e-6,nmuts(genmatrix)), rep(-5,nsel(genmatrix)), rep(-Inf,length(fixparams(genmatrix))) )
+ubs <- c( rep(2,nmuts(genmatrix)), rep(5,nsel(genmatrix)), rep(Inf,length(fixparams(genmatrix))) )
+parscale <- c( 1e-3 * rep( mean(adhoc.mutrates),nmuts(genmatrix)), rep(.05,nsel(genmatrix)), rep(1,length(fixparams(genmatrix))) )
 
 baseval <- likfun(initpar)
 stopifnot( is.finite(baseval) )
@@ -71,7 +76,7 @@ model <- new( "context",
              projmatrix=projmatrix,
              mutrates=optim.results$par[1:nmuts(genmatrix)],
              selcoef=optim.results$par[seq(nmuts(genmatrix)+1,length.out=nsel(genmatrix))],
-             params=numeric(0),
+             params=optim.results$par[seq(1+nmuts(genmatrix)+nsel(genmatrix),length.out=length(fparams))],
              results=optim.results,
              likfun=likfun
          )

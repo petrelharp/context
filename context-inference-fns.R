@@ -55,6 +55,12 @@ mutnames <- function (mutpats) {
     return( unlist( sapply( sapply( mutpats, lapply, paste, collapse="->" ), paste, collapse="|" ) ) )
 }
 
+selnames <- function (selpats) {
+    # Stringify a list of selpats
+    return( sapply(selpats,paste,collapse="|") )
+}
+
+
 ###
 # Point estimates
 
@@ -279,7 +285,8 @@ setClass("context",
 
 setClass("contextMCMC", representation(
                                        mutprior="numeric",
-                                       selprior="numeric"
+                                       selprior="numeric",
+                                       paramsprior="numeric"
                                        ),
          contains="context")
 
@@ -308,17 +315,20 @@ setMethod("leftwin", signature=c(x="context"), definition=function(x) { leftwin(
 # convenience functions
 setGeneric("nmuts", function (x) { standardGeneric("nmuts") } )
 setGeneric("nsel", function (x) { standardGeneric("nsel") } )
+setGeneric("fixparams", function (x) { standardGeneric("fixparams") } )
 setMethod("nmuts", signature=c(x="genmatrix"), definition=function (x) { length(x@mutpats) } )
 setMethod("nsel", signature=c(x="genmatrix"), definition=function (x) { length(x@selpats) } )
+setMethod("fixparams", signature=c(x="genmatrix"), definition=function (x) { (setdiff(names(as.list(formals(x@fixfn))),"..."))[-1] } )
 setMethod("nmuts", signature=c(x="context"), definition=function (x) { nmuts(x@genmatrix) } )
 setMethod("nsel", signature=c(x="context"), definition=function (x) { nsel(x@genmatrix) } )
+setMethod("fixparams", signature=c(x="context"), definition=function (x) { fixparams(x@genmatrix) } )
 
 # and methods related to model fitting
 setGeneric("tuplecounts", function (x) { standardGeneric("tuplecounts") } )
 setMethod("tuplecounts", signature=c(x="context"), definition=function (x) {x@counts} )
 setMethod("coef", signature=c(object="context"), definition=function (object) {
           coef <- c( object@mutrates, object@selcoef, object@params )
-          names(coef) <- c( mutnames( object@genmatrix@mutpats ), mutnames( object@genmatrix@selpats ), names(object@params) )
+          names(coef) <- c( mutnames( object@genmatrix@mutpats ), selnames( object@genmatrix@selpats ), names(object@params) )
           return(coef) } )
 setMethod("rowSums", signature=c(x="tuplecounts"), definition=function (x) { rowSums(x@counts) } )
 setMethod("image", signature=c(x="tuplecounts"), definition=function (x) { image(x@counts) } )

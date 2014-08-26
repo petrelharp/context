@@ -41,21 +41,26 @@ counts <- model@counts
 
 # read in config file
 if (!is.null(opt$priorfile)) {
-    prior <- fromJSON(opt$priorfile,simplifyMatrix=FALSE)
+    prior <- read.config(opt$priorfile)
     mutprior <- prior$mutprior
     if (nsel(model)>0) { selprior <- prior$selprior } else { selprior <- numeric(0) }
+    if (length(fixparams(model))>0) { fixfn.prior <- prior$fixfn.prior } else { fixfn.prior <- numeric(0) }
 } else { 
     mutprior <- model@mutprior
     selprior <- model@selprior
+    fixfn.prior <- model@paramsprior
 }
 
+fparams <- numeric(length(fixparams(model)))
+names(fparams) <- fixparams(model)
 # (quasi)-log-posterior 
 likfun <- function (params){
     # params are: mutrates*tlen
     mutrates <- params[1:nmuts(genmatrix)]
-    selcoef <- params[seq( nmuts(genmatrix), length.out=nsel(genmatrix) )]
+    selcoef <- params[seq( 1+nmuts(genmatrix), length.out=nsel(genmatrix) )]
+    fparams[] <- params[seq( 1+nmuts(genmatrix)+nsel(genmatrix), length.out=length(fparams) )]
     if (any(mutrates<0)) { return( -Inf ) }
-    genmatrix@x <- update(genmatrix, mutrates=mutrates, selcoef=selcoef )
+    genmatrix@x <- do.call( update, c( list(G=genmatrix, mutrates=mutrates, selcoef=selcoef ), as.list(fparams) ) )
     # this is collapsed transition matrix
     subtransmatrix <- computetransmatrix( genmatrix, projmatrix, tlen=1, time="fixed") # shape=params[length(params)], time="gamma" )
     # return POSITIVE log-likelihood 
@@ -67,7 +72,7 @@ likfun <- function (params){
 initpar <- coef(model)
 baseval <- likfun(initpar)
 stopifnot( is.finite(baseval) )
-if (is.null(opt$stepscale)) { opt$stepscale <- mean(initpar)/10 }
+if (is.null(opt$stepscale)) { opt$stepscale <- mean(abs(initpar))/10 }
 
 mrun <- metrop( likfun, initial=initpar, nbatch=opt$nbatches, blen=opt$blen, scale=opt$stepscale )
 
@@ -76,8 +81,8 @@ model <- new( "contextMCMC",
              genmatrix=model@genmatrix,
              projmatrix=model@projmatrix,
              mutrates=mrun$final[1:nmuts(genmatrix)],
-             selcoef=mrun$final[seq(nmuts(genmatrix),length.out=nsel(genmatrix))],
-             params=numeric(0),
+             selcoef=mrun$final[seq(1+nmuts(genmatrix),length.out=nsel(genmatrix))],
+             params=mrun$final[seq(1+nmuts(genmatrix)+nsel(genmatrix),length.out=length(fparams))],
              results=unclass(mrun),
              likfun=likfun,
              mutprior=mutprior,

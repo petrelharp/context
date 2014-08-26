@@ -15,3 +15,24 @@ debug.optparse <- function (command,option_list) {
 
 # load a file, but not into the global environment, rather, into a list.
 load.to.list <- function (file) { e <- environment(); n <- load(file,,e); names(n) <- n; lapply( n, get, envir=e ) }
+
+# use to open stdin/stdout or process substitution things correctly
+#   from  http://stackoverflow.com/questions/15784373/process-substitution
+openread <- function(arg) {
+    if (arg %in% c("-", "/dev/stdin","stdin")) {
+       file("stdin", open = "r")
+    } else if (grepl("^/dev/fd/", arg)) {
+       fifo(arg, open = "r")
+    } else {
+       file(arg, open = "r")
+    }
+}
+openwrite <- function(arg) {
+    if (arg %in% c("-", "/dev/stdout","stdout")) {
+       file("stdout", open = "w")
+    } else if (grepl("^/dev/fd/", arg)) {
+       fifo(arg, open = "w")
+    } else {
+       file(arg, open = "w")
+    }
+}

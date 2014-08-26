@@ -35,10 +35,10 @@ attach(countseq.opt)
 source("../sim-context-fns.R")
 source("../context-inference-fns.R")
 
-load(infile) # provides simseq.opt, bases, mutpats, mutrates, selpats, selcoef, fixfn, seqlen, tlen, initfreqs, simseqs
+load(infile) # provides simseq.opt, config, and simseqs; config has bases, mutpats, mutrates, selpats, selcoef, fixfn, seqlen, tlen, initfreqs, 
 
-longpats <- getpatterns(countseq.opt$longwin,bases)
-shortpats <- getpatterns(countseq.opt$shortwin,bases)
+longpats <- getpatterns(countseq.opt$longwin,config$bases)
+shortpats <- getpatterns(countseq.opt$shortwin,config$bases)
 
 # this returns a matrix
 counts <- if (!revcounts) {

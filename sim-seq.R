@@ -13,9 +13,12 @@ The config file is a JSON file defining: \
     selpats : list of character vectors of patterns under selection (default: empty, in which case don't need the subsequent things either) \
     selcoef : numeric vector of same length as selpats giving selection coefficients \
     fixfn : character string giving name of the fixation function  \
-    fixparams: named list of additional parameters to pass to fixfn \
+    fixfn.params: named list of additional parameters to pass to fixfn \
 \
 This extends the information in config files for making a generator matrix. \
+\
+Example:\
+    Rscript ../sim-seq.R -c cpg-model.json -t .01 -s 1000 -o testseq.RData \
 "
 
 option_list <- list(
@@ -34,34 +37,41 @@ if ( !file.exists(opt$configfile) ) { stop("Could not find config file `", opt$c
 source("../context-inference-fns.R")
 source("../sim-context-fns.R")
 
-require(jsonlite)
-config <- fromJSON(opt$configfile,simplifyMatrix=FALSE)
-attach(config)
+config <- read.config(opt$configfile)
 
 # turn fixfn into an actual function
 # either by looking it up as a name
 # or parsing it directly
-if (exists("fixfn") && is.character(fixfn)) {
-    if (exists(fixfn,mode="function")) {
-        fixfn <- get(fixfn,mode="function")
-    } else {
-        fixfn <- eval(parse(text=fixfn))
+if (!is.null(config$fixfn)) {
+    if (is.character(config$fixfn)) {
+        if (exists(config$fixfn,mode="function")) {
+            config$fixfn <- get(config$fixfn,mode="function")
+        } else {
+            config$fixfn <- eval(parse(text=config$fixfn))
+        }
+    }
+    # check that fixfn.params match what fixfn expects:
+    #   first argument is selective differences
+    fixfn.argnames <- setdiff(names(as.list(formals(config$fixfn))),"...")[-1]
+    if (!all( fixfn.argnames == names(config$fixfn.params) )) { 
+        stop("fixfn.params (", paste( paste( names(config$fixfn.params), config$fixfn.params, sep='=' ), collapse=',' ), ") don't match arguments to fixfn (", fixfn.argnames, ").")
     }
 }
 
 # defaults:
-if (!exists("selpats")) { selpats <- list(); selcoef <- numeric(0); fixfn <- null.fixfn; fixfn.params=list() }
-stopifnot(
+if (!is.null(config$selpats)) { selpats <- list(); selcoef <- numeric(0); fixfn <- null.fixfn; fixfn.params=list() }
+stopifnot( with( config, 
           ( length(bases) == length(initfreqs) ) &&
            ( length(mutpats) == length(mutrates) ) &&
            ( length(selpats) == length(selcoef) )
+           )
         )
 
 
 # identifiers
 if (opt$outfile == "") {
     now <- Sys.time()
-    basename <- paste(outdir,"/","simseq-",format(now,"%Y-%m-%d-%H-%M"),"-",opt$jobid,sep='')
+    basename <- paste(opt$outdir,"/","simseq-",format(now,"%Y-%m-%d-%H-%M"),"-",opt$jobid,sep='')
     opt$outfile <- paste(basename,".RData",sep='')
 } else {
     basename <- gsub(".RData","",opt$outfile)
@@ -74,15 +84,15 @@ if (!is.null(opt$logfile)) {
 }
 
 
-initseq <- rinitseq(opt$seqlen,bases,basefreqs=initfreqs)
+initseq <- rinitseq(opt$seqlen,config$bases,basefreqs=config$initfreqs)
 system.time(
         simseqs <- list(
-                simseq( seqlen=opt$seqlen, tlen=opt$tlen, mutpats=mutpats, mutrates=mutrates, selpats=selpats, selcoef=selcoef, initseq=initseq, bases=bases, fixfn=fixfn )
+                do.call( simseq, c( list( seqlen=opt$seqlen, tlen=opt$tlen, mutpats=config$mutpats, mutrates=config$mutrates, selpats=config$selpats, selcoef=config$selcoef, initseq=initseq, bases=config$bases, fixfn=config$fixfn ), config$fixfn.params ) )
             )
     )
 
 simseq.opt <- opt
 
-save( simseq.opt, bases, mutpats, mutrates, selpats, selcoef, fixfn, initfreqs, simseqs, file=opt$outfile )
+save( simseq.opt, config, simseqs, file=opt$outfile )
 
 

@@ -3,6 +3,12 @@
 #
 # TODO: move some functions over from the other files
 ###
+frame_files <- lapply(sys.frames(), function(x) x$ofile)
+frame_files <- Filter(Negate(is.null), frame_files)
+.PATH <- dirname(frame_files[[length(frame_files)]])
+source(paste(.PATH,"/helper-fns.R",sep=''))
+
+require(jsonlite)
 
 read.counts <- function (infile,leftwin,bases,longpats,shortpats) {
     # read in a file of counts of the following form:
@@ -28,3 +34,12 @@ read.counts <- function (infile,leftwin,bases,longpats,shortpats) {
     return( new("tuplecounts", counts=counts, leftwin=leftwin, bases=bases ) )
 }
 
+read.config <- function (configfile) {
+    # read in JSON config file
+    con <- openread(configfile)
+    json <- paste(readLines(con, warn = FALSE), collapse = "\n")
+    close(con)
+    config <- fromJSON(json,simplifyMatrix=FALSE)
+    cat("Config: ", toJSON(config), "\n\n")
+    return(config)
+}
