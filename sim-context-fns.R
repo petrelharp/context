@@ -1,6 +1,6 @@
 # Simulate a sequence, with context-dependent mutation rates
-require(Biostrings,warn.conflicts=FALSE)
-require(IRanges,warn.conflicts=FALSE)
+suppressMessages( require(Biostrings) ) # these are NOISY.
+suppressMessages( require(IRanges) ) # these are NOISY.
 
 rinitseq <- function (seqlen,bases,basefreqs=rep(1/length(bases),length(bases))) {
     # return a random sequence.  bases can in fact be longer patterns.
@@ -92,6 +92,28 @@ simseq <- function (seqlen, tlen, mutpats, mutrates, selpats=list(), selcoef=num
     output <- list( initseq=initseq, finalseq=finalseq, maxrate=maxrate, ntrans=ntrans, mutpats=mutpats, selpats=selpats, mutrates=mutrates, selcoef=selcoef, tlen=tlen, seqlen=seqlen, bases=bases, fixfn.params=list(...) )
     class(output) <- "simseq"
     return(output)
+}
+
+simseq.tree <- function (seqlen,config) {
+    # return a list of the simulated sequences in the same order as the tips,nodes of the tree
+    simseqs <- lapply(nodenames(config$tree),function(e)NULL)
+    simseqs[[rootname(config$tree)]] <- list(finalseq=rinitseq(seqlen,config$bases,basefreqs=config$initfreqs))
+    for (k in 1:nrow(config$tree$edge)) {
+        # edge.pair is (from, to)
+        edge.pair <- config$tree$edge[k,]
+        modconfig <- config[[ nodenames(config$tree)[ edge.pair[2] ] ]]
+        # can't help but allow this
+        nn <- 1; while (is.character(modconfig)) { modconfig <- config[[ modconfig ]]; nn <- nn+1; if (nn>100){stop("Circular model reference.")} }
+        # simulate, with config for corresponding edge
+        simseqs[[ edge.pair[2] ]] <- do.call( simseq, c( 
+                list( initseq=simseqs[[ edge.pair[1] ]]$finalseq, 
+                    tlen=config$tree$edge.length[k],
+                    seqlen=seqlen, 
+                    mutpats=modconfig$mutpats, mutrates=modconfig$mutrates, selpats=modconfig$selpats, 
+                    selcoef=modconfig$selcoef, bases=config$bases, fixfn=modconfig$fixfn ), 
+                modconfig$fixfn.params ) )
+    }
+    return(simseqs)
 }
 
 countpats <- function (patterns, simseq ) {

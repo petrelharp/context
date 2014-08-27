@@ -39,45 +39,6 @@ source("../sim-context-fns.R")
 
 config <- read.config(opt$configfile)
 
-# parse tree, and edge-associated models
-if (is.null(config$tree)) {
-    if (is.null(opt$tlen)) { stop("Must specify timelengths on the tree.") }
-    config <- list( tree="(tip)root;", bases=config$bases, tip=config, initfreqs=config$initfreqs )
-}
-config$tree <- ape::read.tree(text=config$tree)
-if (is.null(config$tree$edge.length)) { 
-    # if tree has no edge lengths, bring these in from tlen
-    config$tree$edge.length <- eval(parse(text=opt$tlen))
-} else if (!is.null(opt$tlen)) { 
-    warning("Branch lengths specified in config file and on command line; ignoring the command line.") 
-}
-
-if (is.null(config$tree$tip.label) | is.null(config$tree$node.label)) { stop("Please label tips and nodes on the tree.") }
-
-# edges are labeled by the node/tip below them:
-nodenames <- selfname( c( config$tree$tip.label, config$tree$node.label ) )
-rootname <- nodenames[ get.root(config$tree) ]
-if (rootname=="") { rootname <- nodenames[get.root(config$tree)] <- "root"; nodenames <- selfname(nodenames) }
-edges <- selfname( setdiff( nodenames, rootname ) )
-if (!all(edges %in% names(config)) ) { stop("Must specify named models for each edge in the tree.") }
-# if in config an edge has a string rather than a model, it refers to something else in config
-edgerefs <- edges[ which( sapply( config[edges], is.character ) ) ]
-if (!all(unlist(config[edgerefs]) %in% names(config)) ) { stop("Must specify named models for each edge in the tree.") }
-# these are the names of the actual models
-edgemodels <- unique( c( edges[!sapply(config[edges],is.character)], unlist( config[edgerefs] ) ) )
-
-
-stopifnot( ( length(config$bases) == length(config$initfreqs) ) )
-
-for (modname in edgemodels) {
-    # turn fixfn into a function and check we have the right parameters
-    config[[modname]]$fixfn <- parse.fixfn(config[[modname]]$fixfn,config[[modname]]$fixfn.params)
-    # put in defaults if no selection
-    if (is.null(config[[modname]]$selpats)) { config[[modname]]$selpats <- list(); config[[modname]]$selcoef <- numeric(0); config[[modname]]$fixfn <- null.fixfn; config[[modname]]$fixfn.params=list() }
-    stopifnot( with( config[[modname]], ( length(mutpats) == length(mutrates) ) && ( length(selpats) == length(selcoef) )))
-}
-
-
 # identifiers
 if (is.null(opt$outfile)) {
     now <- Sys.time()
@@ -94,22 +55,7 @@ if (!is.null(opt$logfile)) {
 }
 
 # return a list of the simulated sequences in the same order as the tips,nodes of the tree
-simseqs <- lapply(nodenames,function(e)NULL)
-simseqs[[rootname]] <- list(finalseq=rinitseq(opt$seqlen,config$bases,basefreqs=config$initfreqs))
-for (k in 1:nrow(config$tree$edge)) {
-    # edge.pair is (from, to)
-    edge.pair <- config$tree$edge[k,]
-    modconfig <- config[[ nodenames[ edge.pair[2] ] ]]
-    nn <- 1; while (is.character(modconfig)) { modconfig <- config[[ modconfig ]]; nn <- nn+1; if (nn>100){stop("Circular model reference.")} }
-    # simulate, with config for corresponding edge
-    simseqs[[ edge.pair[2] ]] <- do.call( simseq, c( 
-            list( initseq=simseqs[[ edge.pair[1] ]]$finalseq, 
-                tlen=config$tree$edge.length[k],
-                seqlen=opt$seqlen, 
-                mutpats=modconfig$mutpats, mutrates=modconfig$mutrates, selpats=modconfig$selpats, 
-                selcoef=modconfig$selcoef, bases=config$bases, fixfn=modconfig$fixfn ), 
-            modconfig$fixfn.params ) )
-}
+simseqs <- simseq.tree(opt$seqlen,config)
 
 simseq.opt <- opt
 

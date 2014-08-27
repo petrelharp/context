@@ -1,6 +1,6 @@
 {
     "comment" : "Basic CpG model with GC-biased gene conversion, on a tree, with shared parameters on both branches.",
-    "tree" : [ "(sp1 : 0.1, sp2 : 0.2) root;" ],
+    "tree" : [ "(sp1 : .8, sp2 : 1.2) root;" ],
     "bases" : [ "A", "C", "G", "T" ],
     "initfreqs" : [ 0.25, 0.25, 0.25, 0.25 ],
     "sp1" : {
