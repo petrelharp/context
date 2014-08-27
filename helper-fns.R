@@ -36,9 +36,3 @@ openwrite <- function(arg) {
        file(arg, open = "w")
     }
 }
-
-branch.apply <- function (tree,fun,root,...) {
-    # to each node in the tree assign the value given by applying function fun to its parent,
-    # beginning with 'root' at the root
-
-}
