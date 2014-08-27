@@ -33,12 +33,12 @@ Rscript ../mcmc-model.R -i $BASE-123456-genmatrix-3-cpg-54321-mcmc-2222.RData -b
 # OK, now do this on more Tmer sizes:
 Rscript ../count-seq.R -i $BASE-123456.RData -w 4 -s 2 -l 1
 Rscript ../make-genmat.R -c ${MODEL} -w 4
-Rscript ../fit-model.R -i $BASE-123456.4.2.l1.counts -l 1 -m genmatrices/genmatrix-4-complete.RData -j 54321
+Rscript ../fit-model.R -i $BASE-123456.4.2.l1.counts -l 1 -m genmatrices/genmatrix-4-cpg-model.RData -j 54321
 
 Rscript ../count-seq.R -i $BASE-123456.RData -w 5 -s 3 -l 1
 Rscript ../make-genmat.R -c ${MODEL} -w 5
-Rscript ../fit-model.R -i $BASE-123456.5.3.l1.counts -l 1 -m genmatrices/genmatrix-5-complete.RData -j 54321
+Rscript ../fit-model.R -i $BASE-123456.5.3.l1.counts -l 1 -m genmatrices/genmatrix-5-cpg-model.RData -j 54321
 
 Rscript ../count-seq.R -i $BASE-123456.RData -w 6 -s 2 -l 2
 Rscript ../make-genmat.R -c ${MODEL} -w 6
-Rscript ../fit-model.R -i $BASE-123456.6.2.l2.counts -l 2 -m genmatrices/genmatrix-6-complete.RData -j 54321
+Rscript ../fit-model.R -i $BASE-123456.6.2.l2.counts -l 2 -m genmatrices/genmatrix-6-cpg-model.RData -j 54321

@@ -43,3 +43,31 @@ read.config <- function (configfile) {
     cat("Config: ", toJSON(config), "\n\n")
     return(config)
 }
+
+parse.fixfn <- function (fixfn,fixfn.params) {
+    # turn fixfn into an actual function
+    #   either by looking it up as a name
+    #   or parsing it directly
+    # also, check the arguments match fixfn.params
+    if (is.character(fixfn)) {
+        if (exists(fixfn,mode="function")) {
+            fixfn <- get(fixfn,mode="function")
+        } else {
+            fixfn <- eval(parse(text=fixfn))
+        }
+    }
+    if (!missing(fixfn.params)) {
+        # check that fixfn.params match what fixfn expects:
+        #   first argument is selective differences
+        fixfn.argnames <- setdiff(names(as.list(formals(fixfn))),"...")[-1]
+        if (!all( fixfn.argnames == names(fixfn.params) )) { 
+            stop("fixfn.params (", paste( paste( names(fixfn.params), fixfn.params, sep='=' ), collapse=',' ), ") don't match arguments to fixfn (", fixfn.argnames, ").")
+        }
+    }
+    return( fixfn )
+}
+
+get.root <- function (tr) {
+    # return the index of the root in (tips,nodes) order
+    setdiff( tr$edge[,1], tr$edge[,2] )
+}

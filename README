@@ -75,7 +75,8 @@ Prerequisite packages:
 * expm
 * mcmc
 * stringdist
-* Biostrings
-* IRanges
-* optparse
-* jsonlite
+* optparse (for running Rscripts)
+* jsonlite 
+* ape (for reading newick files)
+* Biostrings (for simulating sequence)
+* IRanges (for simulating sequence)
