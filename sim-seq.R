@@ -37,8 +37,6 @@ if ( !file.exists(opt$configfile) ) { stop("Could not find config file `", opt$c
 source("../context-inference-fns.R")
 source("../sim-context-fns.R")
 
-config <- read.config(opt$configfile)
-
 # identifiers
 if (is.null(opt$outfile)) {
     now <- Sys.time()
@@ -53,6 +51,13 @@ if (!is.null(opt$logfile)) {
     sink(file=logcon, type="message")
     sink(file=logcon, type="output")
 }
+
+config <- read.config(opt$configfile)
+# treeify, add defaults, etc
+config <- treeify.config(config)
+config <- parse.models(config)
+# error checks
+stopifnot( ( length(config$bases) == length(config$initfreqs) ) )
 
 # return a list of the simulated sequences in the same order as the tips,nodes of the tree
 simseqs <- simseq.tree(opt$seqlen,config)

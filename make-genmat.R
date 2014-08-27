@@ -1,7 +1,6 @@
 #!/usr/bin/Rscript --vanilla
 require(optparse)
 require(jsonlite)
-source("../input-output.R")
 
 usage <- '\
 Pre-compute a generator matrix and associated structures,  \
@@ -53,8 +52,6 @@ if (is.null(opt$configfile) | !file.exists(opt$configfile)) { stop("Need a confi
 if (is.null(opt$longwin)) { stop("Need a window length.") }
 options(error=traceback)
 
-config <- read.config(opt$configfile)
-
 if (is.null(opt$outfile)) { 
     opt$outfile <- paste(dirname(opt$configfile),"/",paste("genmatrix",opt$longwin,gsub(".json$","",basename(opt$configfile)),sep="-"),".RData",sep='') 
 }
@@ -68,6 +65,8 @@ if (!is.null(opt$logfile)) {
 
 source("../sim-context-fns.R")
 source("../context-inference-fns.R")
+
+config <- read.config(opt$configfile)
 
 # turn fixfn into an actual function
 # either by looking it up as a name

@@ -39,7 +39,7 @@ read.counts <- function (infile,leftwin,bases,longpats,shortpats) {
 ###
 # Config file stuff:
 
-read.config <- function (configfile) {
+read.config <- function (configfile,quiet=FALSE) {
     # read in JSON config file
     #   and put in default parameters if missing
     #   e.g. treeify it if not already
@@ -47,15 +47,7 @@ read.config <- function (configfile) {
     json <- paste(readLines(con, warn = FALSE), collapse = "\n")
     close(con)
     config <- fromJSON(json,simplifyMatrix=FALSE)
-    cat("Config: ", toJSON(config), "\n\n")
-
-    # treeify, add defaults, etc
-    config <- treeify.config(config)
-    config <- parse.models(config)
-
-    # error checks
-    stopifnot( ( length(config$bases) == length(config$initfreqs) ) )
-
+    if (!quiet) { cat("Config: ", toJSON(config), "\n\n") }
     return(config)
 }
 
