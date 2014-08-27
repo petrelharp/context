@@ -1,0 +1,26 @@
+{
+    "comment" : "Another tree sitch, for testing.",
+    "tree" : [ "((sp1 : 1, sp2 : 2) an5 : 1, (sp3 : 1, sp4 : 2) an6 : 1 );" ],
+    "bases" : [ "X", "O" ],
+    "initfreqs" : [ 0.5, 0.5 ],
+    "fast" : {
+        "mutpats" : [
+            [ [ "X", "O" ] ], 
+            [ [ "O", "X" ] ]
+        ],
+        "mutrates" : [ 10, 10 ]
+    },
+    "slow" : {
+        "mutpats" : [
+            [ [ "X", "O" ] ], 
+            [ [ "O", "X" ] ]
+        ],
+        "mutrates" : [ 0, 0 ]
+    },
+    "sp1" : "slow",
+    "sp2" : "fast",
+    "sp3" : "slow",
+    "sp4" : "fast",
+    "an5" : "slow",
+    "an6" : "fast"
+}
