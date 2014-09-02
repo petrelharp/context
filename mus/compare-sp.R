@@ -4,17 +4,17 @@ source("../context-inference-fns.R")
 
 aligns <- c( "mm9ornAna1", "mm9hg19", "mm9galGal3", "mm9oryCun2", "mm9rn5" )
 
-win <- 3
-lwin <- rwin <- 1
-winlen <- win+lwin+rwin
+shortwin <- 3
+leftwin <- rightwin <- 1
+longwin <- shortwin+leftwin+rightwin
 bases <- c("A","T","C","G")
 mutpats <- c(
         apply(combn(bases,2),2,list),  # single-base rates
         apply(combn(bases,2)[2:1,],2,list),  # single-base rates
         list( list( c("CG","TG"), c("CG","CA") ) )  # CpG rate
     ) 
-genmatrix <- makegenmatrix( patlen=winlen, mutpats=mutpats, selpats=list(), boundary='none' )
-projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
+genmatrix <- makegenmatrix( patlen=longwin, mutpats=mutpats, selpats=list(), boundary='none' )
+projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, rightwin=rightwin )
 
 count.files <- outer( aligns, c("5.1.counts","rev.5.1.counts"), paste, sep='/' )
 names(count.files) <- gsub("\\/.*","",count.files)
@@ -28,13 +28,13 @@ counts <- lapply(count.files, function (ifile) {
         counts[cbind( match(count.table$reference,rownames(genmatrix)), match(count.table$derived,colnames(projmatrix)) )] <- count.table$count
         return(counts)
     } )
-simple.counts <- lapply(counts, countmuts, mutpats=mutpats, lwin=lwin)
+simple.counts <- lapply(counts, countmuts, mutpats=mutpats, leftwin=leftwin)
 simple.table <- data.frame( do.call(rbind, lapply(simple.counts,t) ) )
 names(simple.table) <- c("numerator","denominator")
 simple.table$mut <- factor( sapply(simple.counts,colnames) )
 simple.table$sp <- factor( names(simple.counts)[rep(seq_along(simple.counts),sapply(simple.counts,ncol))] )
 
-divergences <- sapply( counts, divergence, lwin=lwin )
+divergences <- sapply( counts, divergence, leftwin=leftwin )
 
 with(simple.table, { plot( denominator, numerator, col=sp, pch=as.numeric(mut) );
         legend("topright", col=seq_along(levels(sp)), legend=levels(sp), pch=1);

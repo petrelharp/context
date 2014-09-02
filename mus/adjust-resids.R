@@ -32,9 +32,9 @@ expected <- function (x) {
             initfreqs <- initfreqs/sum(initfreqs)
             names(initfreqs) <- bases
             list( 
-                    predicttreecounts( win, lwin, rwin, initcounts=rowSums(counts[[1]]), mutrates=list(mutrates,mutrates), selcoef=list(numeric(0),numeric(0)), 
+                    predicttreecounts( shortwin, leftwin, rightwin, initcounts=rowSums(counts[[1]]), mutrates=list(mutrates,mutrates), selcoef=list(numeric(0),numeric(0)), 
                             genmatrix=genmatrix, projmatrix=projmatrix, initfreqs=initfreqs, tlens=rev(branchlens) ),
-                    predicttreecounts( win, lwin, rwin, initcounts=rowSums(counts[[2]]), mutrates=list(mutrates,mutrates), selcoef=list(numeric(0),numeric(0)), 
+                    predicttreecounts( shortwin, leftwin, rightwin, initcounts=rowSums(counts[[2]]), mutrates=list(mutrates,mutrates), selcoef=list(numeric(0),numeric(0)), 
                             genmatrix=genmatrix, projmatrix=projmatrix, initfreqs=initfreqs, tlens=branchlens )
                 )
 }
@@ -43,11 +43,11 @@ all.expected <- apply(estimates,1,expected)
 names(all.expected) <- rownames(estimates)
 
 
-cwin <- min(2,win); lrcwin <- min(1,lwin,rwin)
+cwin <- min(2,shortwin); lrcwin <- min(1,leftwin,rightwin)
 subcounts <- lapply( counts, function (x) 
-        projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=x ) )
+        projectcounts( leftwin=leftwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=x ) )
 all.subexpected <- lapply( all.expected, lapply, function (x)
-        projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=x ) )
+        projectcounts( leftwin=leftwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=x ) )
 all.subresids <- lapply( all.subexpected, function (x) mapply(function(u,v) (u-v)/sqrt(v),x,subcounts) )
 
 layout(matrix(seq_along(subcounts)))

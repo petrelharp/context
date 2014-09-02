@@ -30,18 +30,18 @@ load(thissim)
 
 ######
 # Inference.
-win <- 2
-lwin <- rwin <- 2
-winlen <- lwin+win+rwin
+shortwin <- 2
+leftwin <- rightwin <- 2
+longwin <- leftwin+shortwin+rightwin
 
-genmatrix <- makegenmatrix( mutpats, selpats=selpats, patlen=winlen, boundary="wrap")
+genmatrix <- makegenmatrix( mutpats, selpats=selpats, patlen=longwin, boundary="wrap")
 genmatrix@x <- update(genmatrix,mutrates,selcoef=selcoef,Ne=1)
-projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
+projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, rightwin=rightwin )
 subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE )
 
-counts <- list( counttrans( rownames(projmatrix), colnames(projmatrix), simseqs[[1]]$initseq, simseqs[[1]]$finalseq, lwin=lwin ) )
+counts <- list( counttrans( rownames(projmatrix), colnames(projmatrix), simseqs[[1]]$initseq, simseqs[[1]]$finalseq, leftwin=leftwin ) )
 # want only patterns with leftmost possible position changed
-nonoverlapping <- leftchanged(rownames(counts[[1]]),colnames(counts[[1]]),lwin=lwin,win=win)
+nonoverlapping <- leftchanged(rownames(counts[[1]]),colnames(counts[[1]]),leftwin=leftwin,shortwin=shortwin)
 ncounts <- counts[[1]][nonoverlapping]
 
 nmuts <- length(mutrates)

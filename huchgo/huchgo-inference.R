@@ -7,9 +7,9 @@ Infer parameters from output of sim-tree-cpg.R .\
 
 option_list <- list(
         make_option( c("-i","--infile"), type="character", default=NULL, help=".RData file containing simulation." ),
-        make_option( c("-w","--win"), type="integer", default=1, help="Size of matching window. [default \"%default\"]" ),
-        make_option( c("-l","--lwin"), type="integer", default=2, help="Size of left-hand context. [default \"%default\"]" ),
-        make_option( c("-r","--rwin"), type="integer", default=2, help="Size of left-hand context. [default \"%default\"]" ),
+        make_option( c("-w","--shortwin"), type="integer", default=1, help="Size of matching window. [default \"%default\"]" ),
+        make_option( c("-l","--leftwin"), type="integer", default=2, help="Size of left-hand context. [default \"%default\"]" ),
+        make_option( c("-r","--rightwin"), type="integer", default=2, help="Size of left-hand context. [default \"%default\"]" ),
         make_option( c("-n","--nbatches"), type="integer", default=20, help="Number of MCMC batches. [default \"%default\"]" ),
         make_option( c("-b","--blen"), type="integer", default=10, help="Length of each MCMC batch. [default \"%default\"]" ),
         make_option( c("-s","--stepscale"), type="numeric", default=1e-4, help="Scale of proposal steps for Metropolis algorithm. [default \"%default\"]" ),
@@ -29,9 +29,9 @@ if (length(opt$tprior)==1) { opt$tprior <- rep(opt$tprior,4) }
 attach(opt)
 options(error=traceback)
 
-winlen <- lwin+win+rwin
+longwin <- leftwin+shortwin+rightwin
 
-if (gmfile=="TRUE") { gmfile <- paste(paste("genmatrices/genmatrix",winlen,boundary,meanboundary,sep="-"),".RData",sep='') }
+if (gmfile=="TRUE") { gmfile <- paste(paste("genmatrices/genmatrix",longwin,boundary,meanboundary,sep="-"),".RData",sep='') }
 
 if (is.null(infile)) { cat("Run\n  huchgo-inference.R -h\n for help.") }
 
@@ -51,7 +51,7 @@ require(mcmc)
 load(infile)
 basedir <- gsub(".RData","",infile,fixed=TRUE)
 if (!file.exists(basedir)) { dir.create(basedir) }
-basename <- paste(basedir,"/win-",lwin,"-",win,"-",rwin,sep='')
+basename <- paste(basedir,"/win-",leftwin,"-",shortwin,"-",rightwin,sep='')
 datafile <- paste( basename ,"-results.RData",sep='')
 resultsfile <- paste( basename ,"-results.tsv",sep='')
 plotfile <- paste( basename ,"-plot",sep='')
@@ -60,18 +60,18 @@ if (file.exists(gmfile)) {
     load(gmfile)
 } else {
     if (meanboundary>0) {
-        genmatrix <- meangenmatrix( lwin=1, rwin=1, patlen=winlen, mutpats=mutpats, selpats=selpats, mutrates=mutrates*tlen[1], selcoef=selcoef, boundary=boundary )
+        genmatrix <- meangenmatrix( leftwin=1, rightwin=1, patlen=longwin, mutpats=mutpats, selpats=selpats, mutrates=mutrates*tlen[1], selcoef=selcoef, boundary=boundary )
     } else {
-        genmatrix <- makegenmatrix( patlen=winlen, mutpats=mutpats, selpats=selpats, mutrates=mutrates*tlen[1], selcoef=selcoef, boundary=boundary )
+        genmatrix <- makegenmatrix( patlen=longwin, mutpats=mutpats, selpats=selpats, mutrates=mutrates*tlen[1], selcoef=selcoef, boundary=boundary )
     }
 }
-projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
+projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, rightwin=rightwin )
 subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE )
 
 shifted.counts <- list(
-            "go.ch.hu"=counttrans.list( list(rownames(projmatrix),colnames(projmatrix),colnames(projmatrix)), simseqs=simseqs, lwin=lwin, shift=winlen ),
-            "ch.hu.go"=counttrans.list( list(rownames(projmatrix),colnames(projmatrix),colnames(projmatrix)), simseqs=simseqs[c(2,3,1)], lwin=lwin, shift=winlen ),
-            "hu.go.ch"=counttrans.list( list(rownames(projmatrix),colnames(projmatrix),colnames(projmatrix)), simseqs=simseqs[c(3,1,2)], lwin=lwin, shift=winlen )
+            "go.ch.hu"=counttrans.list( list(rownames(projmatrix),colnames(projmatrix),colnames(projmatrix)), simseqs=simseqs, leftwin=leftwin, shift=longwin ),
+            "ch.hu.go"=counttrans.list( list(rownames(projmatrix),colnames(projmatrix),colnames(projmatrix)), simseqs=simseqs[c(2,3,1)], leftwin=leftwin, shift=longwin ),
+            "hu.go.ch"=counttrans.list( list(rownames(projmatrix),colnames(projmatrix),colnames(projmatrix)), simseqs=simseqs[c(3,1,2)], leftwin=leftwin, shift=longwin )
         )
 first.counts <- lapply( shifted.counts, "[[", 1 )
 first.initcounts <- lapply(first.counts, rowSums )
@@ -181,20 +181,20 @@ all.expected <- lapply( 1:nrow(estimates), function (k) {
             initfreqs <- x[1+nmuts+(1:nfreqs)]
             initfreqs <- initfreqs/sum(initfreqs)
             list( 
-                    predicttreecounts( win, lwin, rwin, initcounts=rowSums(counts[[1]]), mutrates=list(mutrates,mutrates), selcoef=list(numeric(0),numeric(0)), genmatrix=genmatrix, projmatrix=projmatrix, initfreqs=initfreqs, tlens=rev(branchlens) ),
-                    predicttreecounts( win, lwin, rwin, initcounts=rowSums(counts[[2]]), mutrates=list(mutrates,mutrates), selcoef=list(numeric(0),numeric(0)), genmatrix=genmatrix, projmatrix=projmatrix, initfreqs=initfreqs, tlens=branchlens )
+                    predicttreecounts( shortwin, leftwin, rightwin, initcounts=rowSums(counts[[1]]), mutrates=list(mutrates,mutrates), selcoef=list(numeric(0),numeric(0)), genmatrix=genmatrix, projmatrix=projmatrix, initfreqs=initfreqs, tlens=rev(branchlens) ),
+                    predicttreecounts( shortwin, leftwin, rightwin, initcounts=rowSums(counts[[2]]), mutrates=list(mutrates,mutrates), selcoef=list(numeric(0),numeric(0)), genmatrix=genmatrix, projmatrix=projmatrix, initfreqs=initfreqs, tlens=branchlens )
                 )
     } )
 names(all.expected) <- rownames(estimates)
 
 # look at observed/expected counts in smaller windows
-cwin <- min(2,win); lrcwin <- min(1,lwin,rwin)
+cwin <- min(2,shortwin); lrcwin <- min(1,leftwin,rightwin)
 subcounts <- lapply( counts, function (x) 
-        projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=x ) )
+        projectcounts( leftwin=leftwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=x ) )
 all.subexpected <- lapply( all.expected, lapply, function (x)
-        projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=x ) )
+        projectcounts( leftwin=leftwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=x ) )
 
-save( opt, counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, truth, cheating.ans, random.ans, estimates, initpar, nonoverlapping, nov.counts, mmeans, ppriors, tpriors, all.expected, cwin, subcounts, all.subexpected, mrun, win, lwin, rwin, nmuts, nfreqs, npats, patcomp, file=datafile )
+save( opt, counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, truth, cheating.ans, random.ans, estimates, initpar, nonoverlapping, nov.counts, mmeans, ppriors, tpriors, all.expected, cwin, subcounts, all.subexpected, mrun, shortwin, leftwin, rightwin, nmuts, nfreqs, npats, patcomp, file=datafile )
 
 # plot (long) counts
 pdf(file=paste(plotfile,"-longcounts.pdf",sep=''),width=6, height=4, pointsize=10)

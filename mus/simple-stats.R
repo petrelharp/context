@@ -9,25 +9,25 @@ Plot simple statistics for count files in some directory.
 option_list <- list(
     # input/output
         make_option( c("-u","--basedir"), type="character", default=NULL, help="Directory to look for input in, and write output files to." ),
-        make_option( c("-o","--outfile"), type="character", default="", help="Direct output to this file. [default \"simple-stats-win-lwin-rwin.pdf\"]" ),
+        make_option( c("-o","--outfile"), type="character", default="", help="Direct output to this file. [default \"simple-stats-shortwin-leftwin-rightwin.pdf\"]" ),
         make_option( c("-g","--gmfile"), type="character", default="TRUE", help="File with precomputed generator matrix, or TRUE [default] to look for one. (otherwise, will compute)"),
     # context and pattern size
-        make_option( c("-w","--win"), type="integer", default=3, help="Size of matching window. [default \"%default\"]" ),
+        make_option( c("-w","--shortwin"), type="integer", default=3, help="Size of matching window. [default \"%default\"]" ),
         make_option( c("-l","--lrwin"), type="integer", default=1, help="Size of left-hand and right-hand context. [default \"%default\"]" )
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 if (is.null(opt$basedir)) { stop("No input directory  Run\n  bcells-inference.R -h\n for help.\n") }
 attach(opt)
 
-lwin <- rwin <- lrwin
-winlen <- win + lwin + rwin
+leftwin <- rightwin <- lrwin
+longwin <- shortwin + leftwin + rightwin
 
-if (opt$outfile=="") { outfile <- with(opt, paste(basedir,"/simple-stats",win,"-",lwin,"-",rwin,".pdf",sep='')) }
+if (opt$outfile=="") { outfile <- with(opt, paste(basedir,"/simple-stats",shortwin,"-",leftwin,"-",rightwin,".pdf",sep='')) }
 
 scriptdir <- "../"
 source(paste(scriptdir,"context-inference-fns.R",sep=''))
 
-countfiles <- list.files(basedir,paste("*",winlen,lrwin,"counts",sep="."), full.names=TRUE)
+countfiles <- list.files(basedir,paste("*",longwin,lrwin,"counts",sep="."), full.names=TRUE)
 names(countfiles) <- gsub(".*chr([0-9XY]*).*","chr\\1",countfiles)
 countfiles <- countfiles[ order( as.numeric( gsub("chr","",names(countfiles)) ) ) ]
 if (length(countfiles)==0) { stop("No input files.") }
@@ -35,13 +35,13 @@ if (length(countfiles)==0) { stop("No input files.") }
 boundary <- "none"
 meanboundary <- 0
 patlen <- 1
-if (gmfile=="TRUE") { gmfile <- paste(paste("genmatrices/genmatrix",winlen,boundary,meanboundary,patlen,sep="-"),".RData",sep='') }
+if (gmfile=="TRUE") { gmfile <- paste(paste("genmatrices/genmatrix",longwin,boundary,meanboundary,patlen,sep="-"),".RData",sep='') }
 if (file.exists(gmfile)) {
     load(gmfile)
 } else {
     stop("Can't find generator matrix in ", gmfile, " -- provide file name exactly?")
 }
-projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
+projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, rightwin=rightwin )
 
 counts <- lapply(countfiles, function (x) {
         count.table <- read.table(x,header=TRUE,stringsAsFactors=FALSE)
@@ -54,7 +54,7 @@ counts <- lapply(countfiles, function (x) {
     } )
 
 adhoc <- sapply( counts, function (counts) {
-        adhoc <- countmuts(counts=counts,mutpats=mutpats,lwin=lwin)
+        adhoc <- countmuts(counts=counts,mutpats=mutpats,lightwin=lightwin)
         adhoc <- adhoc[1,]/adhoc[2,]
     } )
 rownames(adhoc) <- mutnames <- sapply(mutpats,function(x){paste(sapply(x,paste,collapse='->'),collapse='/')})

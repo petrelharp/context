@@ -25,11 +25,11 @@ inseqs <- rep( sample(getpatterns(seqlen),nuniqs,replace=TRUE), each=nsamples/nu
 many.seqs <- lapply(inseqs, function (initseq) { simseq( seqlen, tlen, patlen=patlen, mutpats=mutpats, selpats=selpats, mutrates=mutrates, selcoef=selcoef, bases, initseq=initseq ) }  )
 
 # check transition matrix
-lwin <- 0
-rwin <- 0
-win <- seqlen
-winlen <- lwin+win+rwin
-subtransmatrix <- gettransmatrix(mutpats, mutrates*tlen, selpats, selcoef, Ne, win, lwin, rwin)
+leftwin <- 0
+rightwin <- 0
+shortwin <- seqlen
+longwin <- leftwin+shortwin+rightwin
+subtransmatrix <- gettransmatrix(mutpats, mutrates*tlen, selpats, selcoef, Ne, shortwin, leftwin, rightwin)
 allseqs <- data.frame( 
         initseq=factor(sapply(many.seqs,"[[","initseq"),levels=rownames(subtransmatrix)), 
         finalseq=factor(sapply(many.seqs,"[[","finalseq"),levels=colnames(subtransmatrix)) 
@@ -90,18 +90,18 @@ if (interactive()) {
 
 if (interactive()) {
 # size of window on either side of the focal site
-lwin <- 2
-rwin <- 2
-win <- 1
-winlen <- lwin+win+rwin
-subtransmatrix <- gettransmatrix(mutpats, mutrates, selpats, selcoef, Ne, tlen, win, lwin, rwin)
-counts <- counttrans( rownames(subtransmatrix), colnames(subtransmatrix), simseqs=simseqs, lwin=lwin )
+leftwin <- 2
+rightwin <- 2
+shortwin <- 1
+longwin <- leftwin+shortwin+rightwin
+subtransmatrix <- gettransmatrix(mutpats, mutrates, selpats, selcoef, Ne, tlen, shortwin, leftwin, rightwin)
+counts <- counttrans( rownames(subtransmatrix), colnames(subtransmatrix), simseqs=simseqs, leftwin=leftwin )
 # averaged
-expected <- (seqlen-winlen+1) * (1/nbases)^winlen * subtransmatrix
+expected <- (seqlen-longwin+1) * (1/nbases)^longwin * subtransmatrix
 # accounting for initial sequence
 in.expected <- rowSums(counts) * subtransmatrix
 # indicator of counts where patterns have changed
-changed <- whichchanged(subtransmatrix,lwin=lwin,win=win)
+changed <- whichchanged(subtransmatrix,leftwin=leftwin,shortwin=shortwin)
 
 tmp <- arrayInd( which(!changed & abs(counts-in.expected)<.5), .dim=dim(subtransmatrix) )
 tmp <- data.frame( iseq=factor(tmp[,1],levels=1:nrow(subtransmatrix)), fseq=factor(tmp[,2],levels=1:ncol(subtransmatrix)) )

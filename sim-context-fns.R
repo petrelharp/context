@@ -1,10 +1,10 @@
 # Simulate a sequence, with context-dependent mutation rates
-require(Biostrings,warn.conflicts=FALSE)
-require(IRanges,warn.conflicts=FALSE)
+suppressMessages( require(Biostrings) ) # these are NOISY.
+suppressMessages( require(IRanges) ) # these are NOISY.
 
 rinitseq <- function (seqlen,bases,basefreqs=rep(1/length(bases),length(bases))) {
     # return a random sequence.  bases can in fact be longer patterns.
-    # note that if bases are longer than 1 character, 
+    # note that if bases are longer than 1 character,
     #  DOES NOT actually produce a sting with frequencies basefreqs.
     stringfun <- if ( all(bases %in% c("A","C","G","T","-") ) ) { DNAString } else { BString }
     patlen <- mean( nchar(bases) )
@@ -16,7 +16,7 @@ rinitseq <- function (seqlen,bases,basefreqs=rep(1/length(bases),length(bases)))
 }
 
 simseq <- function (seqlen, tlen, mutpats, mutrates, selpats=list(), selcoef=numeric(0), patlen, bases=c("A","C","G","T"), count.trans=FALSE, initseq, basefreqs=rep(1/length(bases),length(bases)), ... ) {
-    # simulate a random sequence and evolve it with genmatrix.
+    # Simulate a random sequence and evolve it with genmatrix, wrapping mutations around as needed.
     #  record transition counts if count.trans it TRUE (e.g. for debugging)
     # First make transition matrix
     #   Note that for a mutation pattern of length less than patlen, we will overcount.
@@ -33,7 +33,7 @@ simseq <- function (seqlen, tlen, mutpats, mutrates, selpats=list(), selcoef=num
     if (patlen<mutlen) { stop("patlen too short") }
     pad.patlen <- patlen+2*max(0,(sellen-1))
     # construct generator matrix for (sellen-1,patlen,sellen-1) but with outer padding not changing
-    full.genmatrix <- makegenmatrix( mutpats, selpats, patlen=pad.patlen, boundary="none", ... )
+    full.genmatrix <- makegenmatrix( mutpats, selpats, patlen=pad.patlen, boundary="none", bases=bases, ... )
     if (! all( sapply(mutpatlens,length)==1 ) ) { stop("need each list in mutpats to have patterns of the same length") }
     mutrates <- mutrates / (patlen-mutpatlens+1)  # avoid overcounting (see above)
     full.genmatrix@x <- update(full.genmatrix,mutrates,selcoef,...)
@@ -43,13 +43,13 @@ simseq <- function (seqlen, tlen, mutpats, mutrates, selpats=list(), selcoef=num
     stopifnot( inherits(full.genmatrix,"dgCMatrix") )  # we access @i, @p, and @x directly...
     full.genmatrix.j <- rep( 0:(ncol(full.genmatrix)-1), times=diff(full.genmatrix@p) )  # column indices corresp to @i
     # remove entries that change in outer wings
-    unch <- ( ( substr( patterns[full.genmatrix@i+1L], 1, sellen-1 ) ==  substr( patterns[full.genmatrix.j+1L], 1, sellen-1 ) ) 
+    unch <- ( ( substr( patterns[full.genmatrix@i+1L], 1, sellen-1 ) ==  substr( patterns[full.genmatrix.j+1L], 1, sellen-1 ) )
         & ( substr( patterns[full.genmatrix@i+1L], sellen+patlen, patlen+2*(sellen-1) ) ==  substr( patterns[full.genmatrix.j+1L], sellen+patlen, patlen+2*(sellen-1) ) ) )
-    genmatrix <- new( "dgCMatrix", 
-            i=full.genmatrix@i[unch], 
-            x=full.genmatrix@x[unch], 
-            p=sapply(0:ncol(full.genmatrix), function(k) sum(full.genmatrix.j[unch]<k)), 
-            Dim=dim(full.genmatrix), Dimnames=dimnames(full.genmatrix) 
+    genmatrix <- new( "dgCMatrix",
+            i=full.genmatrix@i[unch],
+            x=full.genmatrix@x[unch],
+            p=sapply(0:ncol(full.genmatrix), function(k) sum(full.genmatrix.j[unch]<k)),
+            Dim=dim(full.genmatrix), Dimnames=dimnames(full.genmatrix)
         )
     genmatrix.j <- full.genmatrix.j[unch]
     stopifnot( all(genmatrix>=0) )  # assume this comes WITHOUT the diagonal
@@ -68,8 +68,8 @@ simseq <- function (seqlen, tlen, mutpats, mutrates, selpats=list(), selcoef=num
     for (k in seq_along(loc.events)) {
         subseq <- if (wrap.events[k]) { # from string (cyclical)
                 xscat( subseq( finalseq, loc.events[k], seqlen), subseq(finalseq, 1, loc.events[k]+pad.patlen-seqlen-1) )
-            } else {  
-                subseq(finalseq, loc.events[k], loc.events[k]+pad.patlen-1 ) 
+            } else {
+                subseq(finalseq, loc.events[k], loc.events[k]+pad.patlen-1 )
             }
         msubseq <- match( subseq, patstrings )  # which row for this string?
         isubseq <- which( (genmatrix@i + 1) == msubseq ) # transitions are these entries of genmatrix
@@ -89,9 +89,31 @@ simseq <- function (seqlen, tlen, mutpats, mutrates, selpats=list(), selcoef=num
         # sanity check:
         # if (nchar(finalseq) != nchar(initseq)) { browser() }
     }
-    output <- list( initseq=initseq, finalseq=finalseq, maxrate=maxrate, ntrans=ntrans, mutpats=mutpats, selpats=selpats, mutrates=mutrates, selcoef=selcoef, tlen=tlen, seqlen=seqlen, bases=bases, params=list(...) ) 
+    output <- list( initseq=initseq, finalseq=finalseq, maxrate=maxrate, ntrans=ntrans, mutpats=mutpats, selpats=selpats, mutrates=mutrates, selcoef=selcoef, tlen=tlen, seqlen=seqlen, bases=bases, fixfn.params=list(...) )
     class(output) <- "simseq"
     return(output)
+}
+
+simseq.tree <- function (seqlen,config) {
+    # return a list of the simulated sequences in the same order as the tips,nodes of the tree
+    simseqs <- lapply(nodenames(config$tree),function(e)NULL)
+    simseqs[[rootname(config$tree)]] <- list(finalseq=rinitseq(seqlen,config$bases,basefreqs=config$initfreqs))
+    for (k in 1:nrow(config$tree$edge)) {
+        # edge.pair is (from, to)
+        edge.pair <- config$tree$edge[k,]
+        modconfig <- config[[ nodenames(config$tree)[ edge.pair[2] ] ]]
+        # can't help but allow this
+        nn <- 1; while (is.character(modconfig)) { modconfig <- config[[ modconfig ]]; nn <- nn+1; if (nn>100){stop("Circular model reference.")} }
+        # simulate, with config for corresponding edge
+        simseqs[[ edge.pair[2] ]] <- do.call( simseq, c( 
+                list( initseq=simseqs[[ edge.pair[1] ]]$finalseq, 
+                    tlen=config$tree$edge.length[k],
+                    seqlen=seqlen, 
+                    mutpats=modconfig$mutpats, mutrates=modconfig$mutrates, selpats=modconfig$selpats, 
+                    selcoef=modconfig$selcoef, bases=config$bases, fixfn=modconfig$fixfn ), 
+                modconfig$fixfn.params ) )
+    }
+    return(simseqs)
 }
 
 countpats <- function (patterns, simseq ) {
@@ -102,47 +124,48 @@ countpats <- function (patterns, simseq ) {
     return( sapply( patterns, countPattern, simseq ) )
 }
 
-counttrans.list <- function (lpatterns, seqlist=lapply(simseqs,"[[","finalseq"), simseqs, lwin=0, shift=0, cyclic=FALSE) {
-    # count number of times each of seqlist matches corresponding lpatterns 
+counttrans.list <- function (lpatterns, seqlist=lapply(simseqs,"[[","finalseq"), simseqs, leftwin=0, shift=0, cyclic=FALSE) {
+    # count number of times each of seqlist matches corresponding lpatterns
     #   optionally, cyclical
     # if shift is nonzero, return a list  with the counts in each of (shift) frames
     patlen <- max( sapply( lapply( lpatterns, "[", 1 ), nchar ) )
     seqlen <- unique( sapply(seqlist, nchar) )
     stopifnot(length(seqlen)==1)
-    if (length(lwin)<length(seqlist)) { lwin <- c(0,rep(lwin,length.out=length(seqlist)-1)) }
+    if (length(leftwin)<length(seqlist)) { leftwin <- c(0,rep(leftwin,length.out=length(seqlist)-1)) }
     # cyclic-ize
     if (cyclic) { seqlist <- lapply( seqlist, function (x) { xscat( x, subseq(x,1,patlen-1) ) } ) }
     # Ok, count occurrences.  uses bioconductor stuff.
-    lmatches <- lapply( seq_along(seqlist), function (k) { 
+    lmatches <- lapply( seq_along(seqlist), function (k) {
             lapply( lpatterns[[k]], matchPattern, seqlist[[k]] )
         } )
     npats <- sapply(lmatches,length)
     if (length(seqlist)==2) {
-        counts <- lapply( 1:max(1,shift), function (k) Matrix( 0, nrow=length(initmatches), ncol=length(finalmatches), dimnames=list(ipatterns,fpatterns) ) ) 
+        counts <- lapply( 1:max(1,shift), function (k) Matrix( 0, nrow=length(initmatches), ncol=length(finalmatches), dimnames=list(ipatterns,fpatterns) ) )
     } else {
         counts <- lapply( 1:max(1,shift), function (k) array( 0, dim=npats, dimnames=lpatterns ) )
-    } 
+    }
     ii <- matrix( rep(1,length(npats)), nrow=1 )
     while( ii[1] <= npats[1] ) {
-        xycounts <- start(lmatches[[1]][[ii[1]]]) - lwin[1]
+        xycounts <- start(lmatches[[1]][[ii[1]]]) - leftwin[1]
         for (j in seq_along(ii)[-1]) {
             stopifnot( j %in% seq_along(lmatches) & ii[j] %in% seq_along(lmatches[[j]]) )
-            xycounts <- intersect( xycounts, (-lwin[j]) + start(lmatches[[j]][[ii[j]]]) )
+            xycounts <- intersect( xycounts, (-leftwin[j]) + start(lmatches[[j]][[ii[j]]]) )
         }
         if (length(xycounts)>0) {
             for (k in 0:max(0,shift-1)) {
                     counts[[k+1]][ii] <- sum( ( ( xycounts+k ) %% max(shift,1) ) == 0 )
             }
         }
-        ii[length(ii)] <- ii[length(ii)]+1 
+        ii[length(ii)] <- ii[length(ii)]+1
         for (j in rev(seq_along(ii)[-1])) { ii[j-1] <- ii[j-1] + ( ii[j] > npats[j] ) }
         ii[-1] <- 1 + ( (ii[-1]-1) %% npats[-1] )
     }
+    counts <- lapply( counts, function (x) new("tuplecounts",counts=x,leftwin=leftwin) )
     if (shift==0) { counts <- counts[[1]] }
     return(counts)
 }
 
-counttrans <- function (ipatterns, fpatterns, initseq=simseqs[["initseq"]], finalseq=simseqs[["finalseq"]], simseqs, lwin=0, shift=0, cyclic=FALSE) {
+counttrans <- function (ipatterns, fpatterns, initseq=simseqs[["initseq"]], finalseq=simseqs[["finalseq"]], simseqs, leftwin=0, shift=0, cyclic=FALSE, bases=sort(unique(unlist(strsplit(ipatterns,""))))) {
     # count number of times initseq matches ipatterns while finalseq matches fpatterns
     #   optionally, cyclical
     # if shift is nonzero, return a list  with the counts in each of (shift) frames
@@ -160,14 +183,15 @@ counttrans <- function (ipatterns, fpatterns, initseq=simseqs[["initseq"]], fina
     counts <- lapply( 1:max(1,shift), function (k) Matrix( 0, nrow=length(initmatches), ncol=length(finalmatches), dimnames=list(ipatterns,fpatterns) ) )
     for (x in seq_along(initmatches))  {
         for (y in seq_along(finalmatches)) {
-            xycounts <- intersect(start(initmatches[[x]]),(-lwin)+start(finalmatches[[y]]))
+            xycounts <- intersect(start(initmatches[[x]]),(-leftwin)+start(finalmatches[[y]]))
             if (length(xycounts)>0) {
                 for (k in 0:max(0,shift-1)) {
                     counts[[k+1]][x,y] <- sum( ( ( xycounts+k ) %% max(shift,1) ) == 0 )
                 }
             }
-        } 
+        }
     }
+    counts <- lapply( counts, function (x) new("tuplecounts",counts=x,leftwin=leftwin,bases=bases) )
     if (shift==0) { counts <- counts[[1]] }
     return(counts)
 }
@@ -177,7 +201,7 @@ changepos <- function (mutpats) {
     lapply( mutpats, lapply, function (x) { which(do.call("!=",strsplit(x,"")) ) } )
 }
 
-show.simseq <- function (x,printit=FALSE,maxchar=min(nchar(x$initseq),200),latex=FALSE) { 
+show.simseq <- function (x,printit=FALSE,maxchar=min(nchar(x$initseq),200),latex=FALSE) {
     # display the output of simulation by lowercasing or replacing with "." bases that didn't change
     x$initseq <- subseq(x$initseq,1,maxchar)
     fseq <- BString( subseq(x$finalseq,1,maxchar) )
@@ -193,22 +217,22 @@ show.simseq <- function (x,printit=FALSE,maxchar=min(nchar(x$initseq),200),latex
         }
         fseq[!eventlocs] <- "."
     }
-    outstrings <- c( 
-            paste(as.character(x$initseq),"\n",sep=''), 
+    outstrings <- c(
+            paste(as.character(x$initseq),"\n",sep=''),
             paste(as.character(fseq),"\n",sep='')
         )
     if (latex) {
         outstrings <- gsub("&\n&$", "\\\\\\\\\n", gsub( "^&", "", gsub("\\.","\\$\\\\centerdot\\$", gsub("","&", outstrings ) ) ) )
-        outstrings <- paste( c( 
+        outstrings <- paste( c(
                 paste( "\\begin{center} \\setlength{\\tabcolsep}{0pt} \\begin{tabular}{",
                     paste(rep('c',nchar(outstrings[[1]])),collapse=''), "}\n", sep='' ),
                 outstrings,
-                "\\end{tabular} \\end{center} \n" 
+                "\\end{tabular} \\end{center} \n"
             ), collapse="" )
     }
     if (printit | latex) { lapply( outstrings, cat ) }
     return(invisible(outstrings))
-} 
+}
 
 print.simseq <- function (x,...) {
     invisible( show.simseq(x,printit=TRUE,maxchar=min(nchar(x$initseq),200)) )

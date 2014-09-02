@@ -48,14 +48,14 @@ load(infile)
 ########
 
 # Inference.
-winlen <- lwin+win+rwin
-oldwin <- c(lwin,win,rwin)
-load(gmfile)   # contains lwin, win, rwin: check compatability
-stopifnot( all( oldwin == c(lwin,win,rwin) ) )
-projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
+longwin <- leftwin+shortwin+rightwin
+oldwin <- c(leftwin,shortwin,rightwin)
+load(gmfile)   # contains leftwin, shortwin, rightwin: check compatability
+stopifnot( all( oldwin == c(leftwin,shortwin,rightwin) ) )
+projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, rightwin=rightwin )
 subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE )
 
-countfile <- paste(paste("countdata/counts",lwin,win,rwin,sep="-"),".RData",sep="")
+countfile <- paste(paste("countdata/counts",leftwin,shortwin,rightwin,sep="-"),".RData",sep="")
 load(countfile)
 
 # initial parameters
@@ -104,7 +104,7 @@ frame.mrun <- mclapply( seq_along( counts[[1]][[1]] ), function (which.frame) {
             metrop( lud, initial=initparams, nbatch=nbatches, blen=blen, scale=stepscale, which.frame=which.frame )
         }, mc.cores=3 )
 
-save( opt, which.taxa, lwin, win, rwin, boundary, meanboundary, mmeans, ppriors, tpriors, patcomp, gmfile, frame.mrun, file=outfile )
+save( opt, which.taxa, leftwin, shortwin, rightwin, boundary, meanboundary, mmeans, ppriors, tpriors, patcomp, gmfile, frame.mrun, file=outfile )
 
 if (FALSE) {
     # rejigger this

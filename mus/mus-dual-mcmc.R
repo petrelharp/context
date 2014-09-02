@@ -10,9 +10,9 @@ option_list <- list(
         make_option( c("-i","--infile"), type="character", default=NULL, help=".RData file containing simulation." ),
         make_option( c("-v","--revfile"), type="character", default=NULL, help="Table of count data in the reverse orientation"),
         make_option( c("-j","--jobid"), type="character", default=formatC(1e6*runif(1),width=6,format="d",flag="0"), help="Unique job id. [default random]"),
-        make_option( c("-w","--win"), type="integer", default=1, help="Size of matching window. [default \"%default\"]" ),
-        make_option( c("-l","--lwin"), type="integer", default=1, help="Size of left-hand context. [default \"%default\"]" ),
-        make_option( c("-r","--rwin"), type="integer", default=1, help="Size of left-hand context. [default \"%default\"]" ),
+        make_option( c("-w","--shortwin"), type="integer", default=1, help="Size of matching window. [default \"%default\"]" ),
+        make_option( c("-l","--leftwin"), type="integer", default=1, help="Size of left-hand context. [default \"%default\"]" ),
+        make_option( c("-r","--rightwin"), type="integer", default=1, help="Size of left-hand context. [default \"%default\"]" ),
         make_option( c("-m","--mmean"), type="double", default=1, help="Prior mean on single base mutation rates. [default \"%default\"]" ),
         make_option( c("-c","--cpgmean"), type="double", default=1, help="Prior variance on CpG rate. [default \"%default\"]" ),
         make_option( c("-p","--pprior"), type="double", default=1, help="Parameter for Dirichlet prior on base frequencies. [default \"%default\"]" ),
@@ -40,16 +40,16 @@ source(paste(scriptdir,"context-inference-fns.R",sep=''))
 # source(paste(scriptdir,"sim-context-fns.R",sep=''))
 require(mcmc)
 
-winlen <- lwin+win+rwin
+longwin <- leftwin+shortwin+rightwin
 
 if (substr(indir,nchar(indir),nchar(indir)) %in% c("/","\\")) { indir <- substr(indir,1,nchar(indir)-1) }
-if (is.null(opt$infile)) { infile <- paste(indir,"/", winlen,".",win,".counts",sep='') }
+if (is.null(opt$infile)) { infile <- paste(indir,"/", longwin,".",shortwin,".counts",sep='') }
 if (is.null(opt$revfile)) { revfile <- paste(dirname(infile),"/rev.",basename(infile),sep='') }
 if (!file.exists(infile) | !file.exists(revfile)) { stop("Cannot read file ", infile) }
 
 basedir <- paste(infile,"-dual-results",sep='')
 if (!file.exists(basedir)) { dir.create(basedir) }
-basename <- paste(basedir,"/win-",win,"-",lwin,"-",rwin,sep='')
+basename <- paste(basedir,"/win-",shortwin,"-",leftwin,"-",rightwin,sep='')
 datafile <- paste( basename ,"-results.RData",sep='')
 plotfile <- paste( basename ,"-plot",sep='')
 mcmcdatafiles <- list.files(path=basedir,pattern="-mcmc.*RData",full.names=TRUE)
@@ -68,13 +68,13 @@ if (length(mcmcdatafiles)>0) { load(grep(paste("-mcmc-",mcmcnum-1,".RData",sep='
 ########
 
 # Inference.
-if (gmfile=="TRUE") { gmfile <- paste(paste("genmatrices/genmatrix",winlen,boundary,meanboundary,sep="-"),".RData",sep='') }
+if (gmfile=="TRUE") { gmfile <- paste(paste("genmatrices/genmatrix",longwin,boundary,meanboundary,sep="-"),".RData",sep='') }
 if (file.exists(gmfile)) {
     load(gmfile) 
 } else {
     stop("Cannot find gmfile.")
 }
-projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
+projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, rightwin=rightwin )
 
 # read in counts (produced with count-paired-tuples.py)
 counts <- lapply( list(infile,revfile), function (ifile) {
@@ -120,7 +120,7 @@ lud <- function (params) {
 }
 
 # simple point estimates for starting positions
-adhoc <- lapply(counts, countmuts,mutpats=mutpats,lwin=lwin)
+adhoc <- lapply(counts, countmuts,mutpats=mutpats,leftwin=leftwin)
 adhoc <- unlist( sapply( adhoc, function (x) x[1,]/x[2,] ) )
 
 # construct simplified proposal distribution for mcmc steps:
@@ -138,7 +138,7 @@ if (restart) {
 }
 colnames(mrun$batch) <- colnames(estimates[1:ncol(mrun$batch)])
 
-save( lwin, win, rwin, lud, mrun, file=paste(basename,"-mcmc-",mcmcnum,".RData",sep='') )
+save( leftwin, shortwin, rightwin, lud, mrun, file=paste(basename,"-mcmc-",mcmcnum,".RData",sep='') )
 
 npar <- ncol(estimates)-1
 mlepar <- estimates["mle",][1:npar]

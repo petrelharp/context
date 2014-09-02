@@ -13,9 +13,9 @@ option_list <- list(
         make_option( c("-o","--logfile"), type="character", default="", help="Direct output to this file. [default appends .Rout]" ),
         make_option( c("-j","--jobid"), type="character", default=formatC(1e6*runif(1),width=6,format="d",flag="0"), help="Unique job id. [default random]"),
     # context and pattern size
-        make_option( c("-w","--win"), type="integer", default=1, help="Size of matching window. [default \"%default\"]" ),
-        make_option( c("-l","--lwin"), type="integer", default=2, help="Size of left-hand context. [default \"%default\"]" ),
-        make_option( c("-r","--rwin"), type="integer", default=2, help="Size of right-hand context. [default \"%default\"]" ),
+        make_option( c("-w","--shortwin"), type="integer", default=1, help="Size of matching window. [default \"%default\"]" ),
+        make_option( c("-l","--leftwin"), type="integer", default=2, help="Size of left-hand context. [default \"%default\"]" ),
+        make_option( c("-r","--rightwin"), type="integer", default=2, help="Size of right-hand context. [default \"%default\"]" ),
         make_option( c("-k","--patlen"), type="integer", default=1, help="Include mutation rates for all tuples of this length. [default \"%default\"]" ),
         make_option( c("-d","--boundary"), type="character", default="none", help="Boundary conditions for generator matrix. [default \"%default\"]"),
         make_option( c("-y","--meanboundary"), type="integer", default=0, help="Average over this many neighboring bases in computing generator matrix. [default \"%default\"]" ),
@@ -34,14 +34,14 @@ print(opt) # this will go in the pbs log
 attach(opt)
 options(error = quote({dump.frames(to.file = TRUE); q()}))
 
-winlen <- lwin+win+rwin
+longwin <- leftwin+shortwin+rightwin
 
 if (substr(basedir,nchar(basedir),nchar(basedir)) %in% c("/","\\")) { basedir <- substr(basedir,1,nchar(basedir)-1) }
-if (is.null(opt$infile)) { infile <- paste(basedir,"/", basedir, ".tuples.",winlen,".",lwin,".counts",sep='') }
+if (is.null(opt$infile)) { infile <- paste(basedir,"/", basedir, ".tuples.",longwin,".",leftwin,".counts",sep='') }
 if (!file.exists(infile)) { stop("Cannot read file ", infile) }
 
 
-if (gmfile=="TRUE") { gmfile <- paste(paste("genmatrices/genmatrix",winlen,boundary,meanboundary,patlen,sep="-"),".RData",sep='') }
+if (gmfile=="TRUE") { gmfile <- paste(paste("genmatrices/genmatrix",longwin,boundary,meanboundary,patlen,sep="-"),".RData",sep='') }
 
 if (logfile=="") {
     logfile <- paste(infile,".Rout",sep='')
@@ -55,7 +55,7 @@ source(paste(scriptdir,"context-inference-fns.R",sep=''))
 
 require(mcmc)
 
-basename <- paste(basedir,"/win-",lwin,"-",win,"-",rwin,"-",patlen,sep='')
+basename <- paste(basedir,"/win-",leftwin,"-",shortwin,"-",rightwin,"-",patlen,sep='')
 datafile <- paste( basename ,"-results.RData",sep='')
 resultsfile <- paste( basename ,"-results.tsv",sep='')
 plotfile <- paste( basename ,"-plot",sep='')
@@ -70,7 +70,7 @@ if (file.exists(gmfile)) {
 } else {
     stop("Can't find generator matrix in ", gmfile, " -- provide file name exactly?")
 }
-projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
+projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, shortwin=shortwin )
 subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE, time="gamma" )
 
 # read in counts (produced with count-paired-tuples.py)
@@ -83,7 +83,7 @@ counts[cbind( match(count.table$reference,rownames(genmatrix)), match(count.tabl
 initcounts <- rowSums(counts)
 
 # ad-hoc estimate
-adhoc <- countmuts(counts=counts,mutpats=mutpats,lwin=lwin)
+adhoc <- countmuts(counts=counts,mutpats=mutpats,leftwin=leftwin)
 adhoc <- adhoc[1,]/adhoc[2,]
 
 nmuts <- length(mutpats)
@@ -140,7 +140,7 @@ names(point.estimate) <- c( sapply(mutpats,function(x){paste(sapply(x,paste,coll
 # likfun(initpar)
 # likfun(initpar*1.2)
 # gradest(likfun,initpar*1.05)
-# pcounts <- function (params) { predictcounts(win, lwin, rwin, initcounts=rowSums(counts), mutrates=params[1:nmuts], selcoef=numeric(0), scale=params[length(params)], genmatrix=genmatrix, projmatrix=projmatrix, time="gamma" ) }
+# pcounts <- function (params) { predictcounts(shortwin, leftwin, rightwin, initcounts=rowSums(counts), mutrates=params[1:nmuts], selcoef=numeric(0), scale=params[length(params)], genmatrix=genmatrix, projmatrix=projmatrix, time="gamma" ) }
 # ip <- pcounts(initpar)
 # ip2 <- pcounts(10*initpar)
 # layout(t(1:2))
@@ -161,19 +161,19 @@ stepscale <- c( rep(mean(point.estimate[1:nmuts]),nmuts), point.estimate[nmuts+1
 mrun <- metrop( lud, initial=point.estimate, nbatch=nbatches, blen=blen, scale=stepscale )
 
 # look at observed/expected counts
-pcounts <- function (params) { predictcounts(win, lwin, rwin, initcounts=rowSums(counts), mutrates=params[1:nmuts], selcoef=numeric(0), scale=params[length(params)], genmatrix=genmatrix, projmatrix=projmatrix, time="gamma" ) }
+pcounts <- function (params) { predictcounts(shortwin, leftwin, rightwin, initcounts=rowSums(counts), mutrates=params[1:nmuts], selcoef=numeric(0), scale=params[length(params)], genmatrix=genmatrix, projmatrix=projmatrix, time="gamma" ) }
 expected <- pcounts(point.estimate)
 
 # look at observed/expected counts in smaller windows
-cwin <- min(2,win); lrcwin <- min(1,lwin,rwin)
-subcounts <- projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=counts )
-subexpected <- projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=expected )
+cwin <- min(2,shortwin); lrcwin <- min(1,leftwin,rightwin)
+subcounts <- projectcounts( leftwin=leftwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=counts )
+subexpected <- projectcounts( leftwin=leftwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=expected )
 
 date()
 cat("done with computation.\n")
 cat("saving to: ", datafile, "\n")
 
-save( opt, counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, adhoc.ans, point.estimate, initpar, singlemean, doublemean, shapemean, expected, cwin, subcounts, subexpected, mrun, win, lwin, rwin, winlen, patlen, nmuts, file=datafile )
+save( opt, counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, adhoc.ans, point.estimate, initpar, singlemean, doublemean, shapemean, expected, cwin, subcounts, subexpected, mrun, shortwin, leftwin, rightwin, longwin, patlen, nmuts, file=datafile )
 
 # plot (long) counts
 pdf(file=paste(plotfile,"-longcounts.pdf",sep=''),width=11, height=8, pointsize=10)

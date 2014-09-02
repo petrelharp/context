@@ -1,0 +1,131 @@
+###
+# input and output functions
+#
+# TODO: move some functions over from the other files
+###
+frame_files <- lapply(sys.frames(), function(x) x$ofile)
+frame_files <- Filter(Negate(is.null), frame_files)
+.PATH <- dirname(frame_files[[length(frame_files)]])
+source(paste(.PATH,"/helper-fns.R",sep=''))
+
+require(jsonlite)
+
+read.counts <- function (infile,leftwin,bases,longpats,shortpats) {
+    # read in a file of counts of the following form:
+    #     reference derived count
+    #   1      AAAA      AA     1
+    #   2      CAAA      AA     2
+    #   3      GAAA      AA     2
+    #   4      TAAA      AA     3
+    # ... and convert it to a 'tuplecounts' object
+    # optionally passing in the orderings of the rows and columns
+    count.table <- read.table(infile,header=TRUE,stringsAsFactors=FALSE)
+    longwin <- nchar( count.table$reference[1] )
+    shortwin <- nchar( count.table$derived[1] )
+    if ( missing(bases) ) { bases <- sort( unique( unlist( strsplit( count.table$reference, "" ) ) ) ) }
+    if ( missing(longpats) ) { longpats <- getpatterns(longwin,bases) }
+    if ( missing(shortpats) ) { shortpats <- getpatterns(shortwin,bases) }
+    counts <- Matrix(0,nrow=length(longpats),ncol=length(shortpats))
+    rownames(counts) <- longpats
+    colnames(counts) <- shortpats
+    stopifnot( all(count.table$reference %in% rownames(counts)) )
+    stopifnot( all(count.table$derived %in% colnames(counts)) )
+    counts[cbind( match(count.table$reference,rownames(counts)), match(count.table$derived,colnames(counts)) )] <- count.table$count
+    return( new("tuplecounts", counts=counts, leftwin=leftwin, bases=bases ) )
+}
+
+
+
+###
+# Config file stuff:
+
+read.config <- function (configfile,quiet=FALSE) {
+    # read in JSON config file
+    #   and put in default parameters if missing
+    #   e.g. treeify it if not already
+    con <- openread(configfile)
+    json <- paste(readLines(con, warn = FALSE), collapse = "\n")
+    close(con)
+    config <- fromJSON(json,simplifyMatrix=FALSE)
+    if (!quiet) { cat("Config: ", toJSON(config), "\n\n") }
+    return(config)
+}
+
+treeify.config <- function (config,tlen=NULL) {
+    # Turn Newick tree representation into a tree, 
+    #   and do associated error checks.
+    # no tree at all =>  stick tree.
+    if (is.null(config$tree)) {
+        if (is.null(tlen)) { stop("Must specify timelengths on the tree.") }
+        config <- list( tree="(tip)root;", bases=config$bases, tip=config, initfreqs=config$initfreqs )
+    }
+    config$tree <- ape::read.tree(text=config$tree)
+    if (is.null(config$tree$edge.length)) { 
+        # if tree has no edge lengths, bring these in from tlen
+        config$tree$edge.length <- eval(parse(text=opt$tlen))
+    } else if (!is.null(tlen)) { 
+        warning("Branch lengths specified in config file and in tlen; ignoring tlen.")
+    }
+    if (is.null(config$tree$tip.label) | is.null(config$tree$node.label)) { stop("Please label tips and nodes on the tree.") }
+    return(config)
+}
+
+# tree helper functions
+nodenames <- function (tr) { selfname( c( tr$tip.label, tr$node.label ) ) }
+"nodenames<-" <- function (tr,value) { tr$tip.label <- value[seq_along(tr$tip.label)]; tr$node.label <- value[length(tr$tip.label)+seq(1,length.out=tr$Nnode)]; return(tr) }
+rootname <- function (tr) { nodenames(tr)[ get.root(tr) ] }
+"rootname<-" <- function (tr,value) { tr$node.label[get.root(tr)-length(tr$tip.label)] <- value; return(tr) }
+
+get.root <- function (tr) {
+    # return the index of the root in (tips,nodes) order
+    setdiff( tr$edge[,1], tr$edge[,2] )
+}
+
+parse.fixfn <- function (fixfn,fixfn.params) {
+    # turn fixfn into an actual function
+    #   either by looking it up as a name
+    #   or parsing it directly
+    # also, check the arguments match fixfn.params
+    if (is.character(fixfn)) {
+        if (exists(fixfn,mode="function")) {
+            fixfn <- get(fixfn,mode="function")
+        } else {
+            fixfn <- eval(parse(text=fixfn))
+        }
+    }
+    if (!missing(fixfn.params)) {
+        # check that fixfn.params match what fixfn expects:
+        #   first argument is selective differences
+        fixfn.argnames <- setdiff(names(as.list(formals(fixfn))),"...")[-1]
+        if (!all( fixfn.argnames == names(fixfn.params) )) { 
+            stop("fixfn.params (", paste( paste( names(fixfn.params), fixfn.params, sep='=' ), collapse=',' ), ") don't match arguments to fixfn (", fixfn.argnames, ").")
+        }
+    }
+    return( fixfn )
+}
+
+parse.models <- function (config) {
+    # Check that all models are specified, and turn each fixfn into a function.
+    #
+    # Edges are labeled by the node/tip below them:
+    nodenames <- nodenames(config$tree)
+    rootname <- rootname(config$tree)
+    # name root if isn't already (easy to miss)
+    if (rootname=="") { rootname <- rootname(config$tree) <- "root"; nodenames <- nodenames(config$tree) }
+    edgenodes <- selfname( setdiff( nodenames, rootname ) )
+    if (!all(edgenodes %in% names(config)) ) { stop("Must specify named models for each edge in the tree.") }
+    # if in config an edge has a string rather than a model, it refers to something else in config
+    edgerefs <- edgenodes[ which( sapply( config[edgenodes], is.character ) ) ]
+    if (!all(unlist(config[edgerefs]) %in% names(config)) ) { stop("Must specify named models for each edge in the tree.") }
+    # these are the names of the actual models
+    edgemodels <- unique( c( edgenodes[!sapply(config[edgenodes],is.character)], unlist( config[edgerefs] ) ) )
+    # get the fixfns in there
+    for (modname in edgemodels) {
+        # turn fixfn into a function and check we have the right parameters
+        config[[modname]]$fixfn <- parse.fixfn(config[[modname]]$fixfn,config[[modname]]$fixfn.params)
+        # put in defaults if no selection
+        if (is.null(config[[modname]]$selpats)) { config[[modname]]$selpats <- list(); config[[modname]]$selcoef <- numeric(0); config[[modname]]$fixfn <- null.fixfn; config[[modname]]$fixfn.params=list() }
+        stopifnot( with( config[[modname]], ( length(mutpats) == length(mutrates) ) && ( length(selpats) == length(selcoef) )))
+    }
+    return(config)
+}

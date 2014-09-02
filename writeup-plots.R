@@ -10,15 +10,19 @@ infile <- "ising/ising-sims/selsims-2013-05-28-17-12-0275615.RData"
 
 basedir <- gsub(".RData","",infile,fixed=TRUE)
 load(infile)
+# translate from old version
+lwin <- leftwin; rwin <- rightwin; win <- shortwin; winlen <- longwin
 
-lwin <- rwin <- win <- 3
-basename <- paste(basedir,"/win-",lwin,"-",win,"-",rwin,sep='')
+leftwin <- rightwin <- shortwin <- 3
+basename <- paste(basedir,"/win-",leftwin,"-",shortwin,"-",rightwin,sep='')
 datafile <- paste( basename ,"-results.RData",sep='')
 plotfile <- paste( "writeup-plots/", basename(basedir), sep='')
 mcmcdatafiles <- list.files(path=basedir,pattern="-mcmc.*RData",full.names=TRUE)
 mcmcnum <- 1+max(c(0,as.numeric(gsub(".*-mcmc-","",gsub(".RData","",mcmcdatafiles)))),na.rm=TRUE)
 
 load(datafile)
+# translate from old version
+lwin <- leftwin; rwin <- rightwin; win <- shortwin; winlen <- longwin
 
 varnames <- c("lambda","beta","gamma")
 
@@ -91,15 +95,19 @@ infile <- "tree-cpg/cpg-tree-sims/selsims-2013-06-03-13-17-0790276.RData"
 
 basedir <- gsub(".RData","",infile,fixed=TRUE)
 load(infile)
+# translate from old version
+lwin <- leftwin; rwin <- rightwin; win <- shortwin; winlen <- longwin
 
-lwin <- rwin <- 2; win <- 1
-basename <- paste(basedir,"/win-",lwin,"-",win,"-",rwin,sep='')
+leftwin <- rightwin <- 2; shortwin <- 1
+basename <- paste(basedir,"/win-",leftwin,"-",shortwin,"-",rightwin,sep='')
 datafile <- paste( basename ,"-results.RData",sep='')
 plotfile <- paste( "writeup-plots/", basename(basedir), sep='')
 mcmcdatafiles <- list.files(path=basedir,pattern="-mcmc.*RData",full.names=TRUE)
 mcmcnum <- 1+max(c(0,as.numeric(gsub(".*-mcmc-","",gsub(".RData","",mcmcdatafiles)))),na.rm=TRUE)
 
 load(datafile)
+# translate from old version
+lwin <- leftwin; rwin <- rightwin; win <- shortwin; winlen <- longwin
 
 varnames <- c( "branchlen", 
                 paste("mut:", unlist( sapply( sapply( mutpats, lapply, paste, collapse="->" ), paste, collapse=" | " ) ) ), 
@@ -158,15 +166,19 @@ infile <- "tree-cpg/cpg-tree-sims/selsims-2013-06-03-13-17-0187525.RData"
 
 basedir <- gsub(".RData","",infile,fixed=TRUE)
 load(infile)
+# translate from old version
+lwin <- leftwin; rwin <- rightwin; win <- shortwin; winlen <- longwin
 
-lwin <- rwin <- 2; win <- 1
-basename <- paste(basedir,"/win-",lwin,"-",win,"-",rwin,sep='')
+leftwin <- rightwin <- 2; shortwin <- 1
+basename <- paste(basedir,"/win-",leftwin,"-",shortwin,"-",rightwin,sep='')
 datafile <- paste( basename ,"-results.RData",sep='')
 plotfile <- paste( "writeup-plots/", basename(basedir), sep='')
 mcmcdatafiles <- list.files(path=basedir,pattern="-mcmc.*RData",full.names=TRUE)
 mcmcnum <- 1+max(c(0,as.numeric(gsub(".*-mcmc-","",gsub(".RData","",mcmcdatafiles)))),na.rm=TRUE)
 
 load(datafile)
+# translate from old version
+lwin <- leftwin; rwin <- rightwin; win <- shortwin; winlen <- longwin
 
 varnames <- c( "branchlen", 
                 paste("mut:", unlist( sapply( sapply( mutpats, lapply, paste, collapse="->" ), paste, collapse=" | " ) ) ), 

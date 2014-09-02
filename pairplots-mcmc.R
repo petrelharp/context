@@ -18,8 +18,8 @@ for (infile in list.files(simdir,"*RData",full.names=TRUE)) {
     basedir <- gsub(".RData","",infile,fixed=TRUE)
     load(infile)
 
-    lwin <- rwin <- 2; win <- 1
-    basename <- paste(basedir,"/win-",lwin,"-",win,"-",rwin,sep='')
+    leftwin <- rightwin <- 2; shortwin <- 1
+    basename <- paste(basedir,"/win-",leftwin,"-",shortwin,"-",rightwin,sep='')
     datafile <- paste( basename ,"-results.RData",sep='')
     plotfile <- paste( basename ,"-plot-all-mcmcs",sep='')
     mcmcdatafiles <- list.files(path=basedir,pattern="-mcmc.*RData",full.names=TRUE)

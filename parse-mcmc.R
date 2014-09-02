@@ -23,7 +23,7 @@ names(resultsfiles) <- names(simfiles) <- names(mcmcdatafiles) <- gsub(".*/","",
 truths <- lapply( resultsfiles, function (x) { load(x[1]); truth } )
 
 mcmcruns <- lapply( mcmcdatafiles, function (dfs) {
-        lapply(dfs, function (x) { tmp <- load(x);  list( lwin=lwin, win=win, rwin=rwin, mrun=mrun ) } ) } )
+        lapply(dfs, function (x) { tmp <- load(x);  list( leftwin=leftwin, shortwin=shortwin, rightwin=rightwin, mrun=mrun ) } ) } )
 mcmcbatches <- lapply( mcmcruns, function (dfs) {
         do.call( rbind, lapply(dfs,function(x)x$mrun$batch) ) } )
 hasmcmc <- (! sapply(mcmcbatches,is.null) )
@@ -36,7 +36,7 @@ mcmcinfo <- lapply( names(mcmcruns[hasmcmc]), function (x) {
                 # selcoef <- siminfo[[x]]$selcoef
                 z <- with(y, data.frame( 
                         fname=x, 
-                        lwin=lwin, win=win, rwin=rwin, 
+                        leftwin=leftwin, shortwin=shortwin, rightwin=rightwin, 
                         accept=mrun$accept, user.time=mrun$time[1], nbatch=mrun$nbatch, blen=mrun$blen, nspac=mrun$nspac
                         ) )
                 ret <- with( y, do.call( cbind, c( list( z ), 

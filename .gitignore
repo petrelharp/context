@@ -1,5 +1,6 @@
 .Rhistory
 *.RData
+*.counts
 .*.sw?
 *.pyc
 *.aux
@@ -14,3 +15,5 @@ tmp
 *.out
 *.toc
 *.snm
+*.tsv
+last.dump.rda

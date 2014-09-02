@@ -1,47 +1,69 @@
-#!/usr/bin/Rscript
-# Test inference from simulation
+#!/usr/bin/Rscript --vanilla
+require(optparse)
 
 usage <- "\
-Usage:\
-   Rscript sim-seq.R seqlen tlen\
+Simulate from the process whose parameters are given in the config file,\
+wrapping mutation patterns around to the beginning as needed.\
+\
+The config file is a JSON file defining: \
+    bases : character vector of allowable bases \
+    initfreqs : numeric vector of frequencies of the bases at the root \
+    mutpats : list of lists of length-two character vectors of mutation patterns \
+    mutrates : numeric vector of same length as mutpats giving mutation rates per generation \
+    selpats : list of character vectors of patterns under selection (default: empty, in which case don't need the subsequent things either) \
+    selcoef : numeric vector of same length as selpats giving selection coefficients \
+    fixfn : character string giving name of the fixation function  \
+    fixfn.params: named list of additional parameters to pass to fixfn \
+\
+This extends the information in config files for making a generator matrix. \
+\
+Example:\
+    Rscript ../sim-seq.R -c cpg-model.json -t .01 -s 1000 -o testseq.RData \
 "
 
-args <- commandArgs(TRUE)
-if (length(args)<2) {
-    stop(usage)
+option_list <- list(
+        make_option( c("-c","--configfile"), type="character", help="Configuration file."),
+        make_option( c("-t","--tlen"), type="character", help="Time to simulate for." ),
+        make_option( c("-s","--seqlen"), type="numeric", help="Number of bases to simulate." ),
+        make_option( c("-o","--outfile"), type="character", help="Direct output to this file."),
+        make_option( c("-d","--outdir"), type="character", default=".", help="Direct output to this directory with default name if outfile is not specified."),
+        make_option( c("-j","--jobid"), type="numeric", default=formatC( floor(runif(1)*1e6) , digits=6,flag='0'), help="Unique identifier to append to output name if not specified."),
+        make_option( c("-l","--logfile"), type="character", help="Direct logging output to this file. [default appends -simrun.Rout]" )
+    )
+opt <- parse_args(OptionParser(option_list=option_list,description=usage))
+if ( is.null(opt$configfile) | is.null(opt$seqlen) )  { stop("Rscript sim-seq.R -h for help.") }
+if ( !file.exists(opt$configfile) ) { stop("Could not find config file `", opt$configfile, "`.") }
+
+source("../context-inference-fns.R")
+source("../sim-context-fns.R")
+
+# identifiers
+if (is.null(opt$outfile)) {
+    now <- Sys.time()
+    basename <- paste(opt$outdir,"/","simseq-",format(now,"%Y-%m-%d-%H-%M"),"-",opt$jobid,sep='')
+    opt$outfile <- paste(basename,".RData",sep='')
 } else {
-    seqlen <- as.numeric(args[1])  # e.g. 1e4
-    tlen <- as.numeric(args[2]) # total length 6e7 gives lots of transitions (but still signal); 1e7 not so many
+    basename <- gsub(".RData","",opt$outfile)
+}
+if (is.null(opt$logfile) & !interactive()) { opt$logfile <- paste(basename,".Rout",sep='') }
+if (!is.null(opt$logfile)) {
+    logcon <- if (opt$logfile=="-") { stdout() } else { file(opt$logfile,open="wt") }
+    sink(file=logcon, type="message")
+    sink(file=logcon, type="output")
 }
 
-source("context.R")
-source("sim-context-fns.R")
-source("context-inference-fns.R")
+config <- read.config(opt$configfile)
+# treeify, add defaults, etc
+config <- treeify.config(config)
+config <- parse.models(config)
+# error checks
+stopifnot( ( length(config$bases) == length(config$initfreqs) ) )
 
-# maximum size of pattern (for simulation)
-patlen <- 2
-mutpats <- list( 
-        fwd=combn( bases, 2, simplify=FALSE ), 
-        rev=lapply( combn( bases, 2, simplify=FALSE ), rev),
-        gc=list( c("GC","TC") ) ,
-        ga=list( c("GA","CA") ) ,
-        ta=list( c("AT","GT") ) 
-    ) 
-mutrates <- runif( length(mutpats) )*1e-8
-selpats <- c( "[GC]", "[AT]" )
-selcoef <- runif( length(selpats) )*1e-3
-# other params
-Ne <- c(1e4,1e4)
-branchlens <- c(1,1)
+# return a list of the simulated sequences in the same order as the tips,nodes of the tree
+simseqs <- simseq.tree(opt$seqlen,config)
 
-initfreqs <- c(.3,.3,.2,.2)
-initseq <- rinitseq(seqlen,bases,basefreqs=initfreqs)
-system.time( 
-        simseqs <- lapply(1:2, function (k) simseq( seqlen, tlen*branchlens[k], patlen=patlen, mutpats=mutpats, selpats=selpats, mutrates=mutrates, selcoef=selcoef, Ne=Ne[k], initseq=initseq ) ) 
-    )
+simseq.opt <- opt
 
-thisone <- formatC( floor(runif(1)*1e6) , digits=6,flag='0')
-now <- format(Sys.time(), "%Y-%m-%d-%H-%M")
-save( thisone, now, patlen, mutpats, selpats, selcoef, Ne, seqlen, tlen, branchlens, initfreqs, simseqs, file=paste(now,thisone,"sims/selsims.RData",sep='') )
+save( simseq.opt, config, simseqs, file=opt$outfile )
 
 

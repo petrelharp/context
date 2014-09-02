@@ -8,7 +8,7 @@ Infer parameters from paired counts file.
 option_list <- list(
     # input/output
         make_option( c("-i","--infile"), type="character", default=NULL, help="Input file with tuple counts, tab-separated, with header 'reference', 'derived', 'count'. [default, looks in basedir]" ),
-        make_option( c("-l","--lwin"), type="integer", help="Size of left-hand context." ),
+        make_option( c("-l","--leftwin"), type="integer", help="Size of left-hand context." ),
         make_option( c("-u","--basedir"), type="character", default=NULL, help="Directory to put output in. [default: same as infile]"),
         make_option( c("-m","--gmfile"), type="character", default="TRUE", help="File with precomputed generator matrix, or TRUE [default] to look for one. (otherwise, will compute)"),
         make_option( c("-j","--jobid"), type="character", default=formatC(1e6*runif(1),width=6,format="d",flag="0"), help="Unique job id. [default random]")
@@ -50,14 +50,14 @@ if (file.exists(gmfile)) {
 count.table <- read.table(infile,header=TRUE,stringsAsFactors=FALSE)
 
 # check window sizes match
-winlen <- nchar(rownames(genmatrix)[1])
-stopifnot( winlen == nchar( count.table$reference[1] ) )
-rwin <- winlen - lwin - nchar( count.table$derived[1] )
-win <- winlen - lwin - rwin
-stopifnot( win == nchar( count.table$derived[1] ) & rwin > 0 & win > 0 & lwin > 0 )
+longwin <- nchar(rownames(genmatrix)[1])
+stopifnot( longwin == nchar( count.table$reference[1] ) )
+rightwin <- longwin - leftwin - nchar( count.table$derived[1] )
+shortwin <- longwin - leftwin - rightwin
+stopifnot( shortwin == nchar( count.table$derived[1] ) & rightwin > 0 & shortwin > 0 & leftwin > 0 )
 
 # projection matrix
-projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
+projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, rightwin=rightwin )
 
 # parse counts into a matrix
 counts <- Matrix(0,nrow=nrow(genmatrix),ncol=ncol(projmatrix))
@@ -68,7 +68,7 @@ counts[cbind( match(count.table$reference,rownames(genmatrix)), match(count.tabl
 initcounts <- rowSums(counts)
 
 # ad-hoc estimate
-adhoc <- countmuts(counts=counts,mutpats=mutpats,lwin=lwin)
+adhoc <- countmuts(counts=counts,mutpats=mutpats,leftwin=leftwin)
 adhoc <- adhoc[1,]/adhoc[2,]
 stopifnot( all( is.finite( adhoc ) )
 
@@ -106,7 +106,7 @@ cat("done with computation.\n")
 cat("saving to: ", datafile, "\n")
 
 save( opt, gmname, infile, adhoc, likfun, nmuts, counts, initpar, lbs, ubs, parscale, optim.point.estimate, point.estimate,
-     winlen, rwin, lwin, win, 
+     longwin, rightwin, leftwin, shortwin, 
      file=datafile )
 
 print(format(Sys.time(),"%Y-%m-%d-%H-%M"))

@@ -154,8 +154,7 @@ saying ``pattern $u$ changes to $v$ at rate $\mu$'' means that
 regardless of the location $i$ along the sequence.
 If more than one pattern would match to cause the same change, their rates add.
 Such a rule is defined by its ``transition triple'' $(\mu,u,v)$.
-The set of all transition triples, $\calT$, determines the time evolution of the process.
-\todo{I'd suggest being more formal and defining a name for the class of processes you describe, and saying what it consists of.}
+The set of all transition triples, $\calT$, determines the time evolution of this process.
 
 
 \begin{example}[TASEP]
@@ -241,9 +240,9 @@ The set of all transition triples, $\calT$, determines the time evolution of the
 
 
 \paragraph{The generator matrix}
-For clarity, we describe how the set of transition rates determines the transition rate matrix,
+For clarity, we describe how the set of transition rates on patterns determines the transition rate matrix for complete sequences, that is,
 the $|\calS|^n \times |\calS|^n$ matrix $G(n)$ whose $(x,y)^\text{th}$ entry gives the instantaneous rate
-with which the process in state $x$ jumps to state $y$.
+with which the process in state $x \in \calS^n$ jumps to state $y \in \calS^n$.
 Recall that $x_i^{(h)} = (x_i, x_{i+1}, \ldots, x_{i+h-1})$ denotes the subsequence of length $h$ beginning at location $i$.
 For each $1\le i \le n$, pattern length $h > 0$, and patterns $u,v \in \calS^h$ define the relation
 \[
@@ -284,8 +283,9 @@ This paper proposes an alternate strategy.
 
 First, it will be useful for later proofs to have an explicit construction of the process,
 also used for simulation,
-using a variant of the ``jump chain representation''.
-Briefly, this \todo{This is called the Gillespie algorithm, right?} works by first sampling a homogeneous Poisson process of times and locations of possible changes,
+using a variant of the ``jump chain representation'', also known as the ``Gillespie algorithm.''
+.
+Briefly, this  works by first sampling a homogeneous Poisson process of times and locations of possible changes,
 at an appropriate rate $\mu_*$ per site,
 and then resolving each possible change in temporal order.
 The rate $\mu_*$ should be the maximum ``local'' rate at which transitions occur, across sites and transition outcome states:
@@ -445,16 +445,17 @@ Similarly, if $(x_1,y_1) \neq (x_2,y_2)$ then
 %%%%
 \subsection{A likelihood function}
 
-\todo[inline]{In this section I believe that we are talking about the full likelihood, rather than the likelihood of just non-overlapping windows of the data.
-I'm also a little confused about "choosing" a subset of patterns.
-These pattern choices are determining our model?}
-
 The covariance calculations show that
 if $p_{\ell,m}(x,y)$ is small enough (i.e.\ the pattern is not common),
 then $N(x,y)$ is close to Poisson.
 Using this observation, we can estimate parameters by composite likelihood,
 using all $N(x,y)$ as data.
-Maximum likelihood then gets an asymptotically unbiased estimate of the parameters.
+Specifically, this composite likelihood is
+\begin{align} \label{eqn:comp_like}
+  \prod_{x,y} F_{(x,y)}^{N(x,y)}
+\end{align}
+where $F$ is the $|\calS|^{m+2\ell} \times |\calS|^m$ matrix whose $(x,y)^\text{th}$ entry is $p_{m,\ell}(t,x,y)$ as described in the "Computation" section.
+Maximum likelihood then gets an asymptotically unbiased estimate of the parameters. (cite)
 However, since they are not independent, to get confidence intervals, we need to either simulate, or do something different.
 
 If we use only a subset of patterns $\{(x_k,y_k)\}$ chosen so that $\E[M_1(x,y) M_{k+1}(x,y)]$ is small (or zero),
@@ -651,7 +652,7 @@ but certainly is if we have all the single-base transitions as paramters.
 %%%%%%%%%%%
 \section{Computation}
 
-For inference, we need to compute the $|\calS|^{m+2\ell} \times |\calS|^m$ matrix whose $(x,y)^\text{th}$ entry is $p_{m,\ell}(t,x,y)$,
+For inference, we need to compute the $|\calS|^{m+2\ell} \times |\calS|^m$ matrix $F$ whose $(x,y)^\text{th}$ entry is $p_{m,\ell}(t,x,y)$,
 for various $t$.
 This matrix is a projection of the $|\calS|^{m+2\ell} \times |\calS|^{m+2\ell}$ matrix whose $(x,z)^\text{th}$ entry is
 \begin{align}
@@ -661,9 +662,9 @@ where $G(m+2\ell)$ is the sparse $|\calS|^{m+2\ell} \times |\calS|^{m+2\ell}$ ma
 The ``projection'' we need just marginalizes over long patterns $z$ that match the shorter pattern $y$:
 if we define the matrix $U$ in this way, so that $U_{zy}=1$ if $z_\ell^m=y$ and $U_{zy}=0$ otherwise,
 then
-\[
+\begin{align} \label{eqn:Tmer_trans}
     p_{m,\ell}(t,x,y) = \sum_{z \in \calS^{m+2\ell}} \left( e^{t G(m+2\ell)} \right)_{xz} U_{zy} ,
-\]
+\end{align}
 so in fact we don't need the entire matrix $e^{t G(m+2\ell)}$,
 just the product of this matrix with each of the columns of $U$.
 

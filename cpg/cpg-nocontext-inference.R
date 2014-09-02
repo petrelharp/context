@@ -17,8 +17,8 @@ opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 attach(opt)
 options(error=traceback)
 
-lwin <- rwin <- 0; win <- 1
-winlen <- lwin + rwin + win
+leftwin <- rightwin <- 0; shortwin <- 1
+longwin <- leftwin + rightwin + shortwin
 
 if (is.null(infile)) { cat("Run\n  cpg-inference.R -h\n for help.") }
 
@@ -55,15 +55,15 @@ mutpats <- mutpats[ singlebase ]
 mutrates <- mutrates[ singlebase ]
 
 genmatrix <- makegenmatrix( patlen=1, mutpats=mutpats, selpats=list(), mutrates=mutrates*tlen, selcoef=numeric(0), boundary='none' )
-projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
+projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, rightwin=rightwin )
 subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE )
 
 counts <- list(
-            counttrans( rownames(projmatrix), colnames(projmatrix), simseqs[[1]]$initseq, simseqs[[1]]$finalseq, lwin=lwin )
+            counttrans( rownames(projmatrix), colnames(projmatrix), simseqs[[1]]$initseq, simseqs[[1]]$finalseq, leftwin=leftwin )
         )
 # want only patterns that overlap little
 initcounts <- rowSums(counts[[1]])
-nonoverlapping <- ( leftchanged(rownames(counts[[1]]),colnames(counts[[1]]),lwin=lwin,win=win) & (initcounts>0) )
+nonoverlapping <- ( leftchanged(rownames(counts[[1]]),colnames(counts[[1]]),leftwin=leftwin,shortwin=shortwin) & (initcounts>0) )
 nov.counts <- counts[[1]][nonoverlapping]
 
 nmuts <- length(mutrates)
@@ -110,16 +110,16 @@ mrun <- metrop( lud, initial=random.ans$par, nbatch=nbatches, blen=blen, scale=1
 # look at observed/expected counts
 all.expected <- lapply( 1:nrow(estimates), function (k) {
             x <- unlist(estimates[k,])
-            list( predictcounts( win, lwin, rwin, initcounts=rowSums(counts[[1]]), mutrates=x[1:nmuts], selcoef=numeric(0), genmatrix=genmatrix, projmatrix=projmatrix ) )
+            list( predictcounts( shortwin, leftwin, rightwin, initcounts=rowSums(counts[[1]]), mutrates=x[1:nmuts], selcoef=numeric(0), genmatrix=genmatrix, projmatrix=projmatrix ) )
     } )
 names(all.expected) <- rownames(estimates)
 
 # look at observed/expected counts in smaller windows
-cwin <- min(2,win); lrcwin <- min(1,lwin,rwin)
-subcounts <- projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=counts[[1]] )
-all.subexpected <- lapply( all.expected, function (x) { list( projectcounts( lwin=lwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=x[[1]] ) ) } )
+cwin <- min(2,shortwin); lrcwin <- min(1,leftwin,rightwin)
+subcounts <- projectcounts( leftwin=leftwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=counts[[1]] )
+all.subexpected <- lapply( all.expected, function (x) { list( projectcounts( leftwin=leftwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=x[[1]] ) ) } )
 
-save( opt, counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, truth, cheating.ans, random.ans, estimates, initpar, nonoverlapping, nov.counts, mmeans, all.expected, cwin, subcounts, all.subexpected, mrun, win, lwin, rwin, nmuts, file=datafile )
+save( opt, counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, truth, cheating.ans, random.ans, estimates, initpar, nonoverlapping, nov.counts, mmeans, all.expected, cwin, subcounts, all.subexpected, mrun, shortwin, leftwin, rightwin, nmuts, file=datafile )
 
 pdf(file=paste(plotfile,"-mcmc.pdf",sep=''),width=6, height=4, pointsize=10)
 layout(matrix(c(1,4,2,3),nrow=2))

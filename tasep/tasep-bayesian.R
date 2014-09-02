@@ -6,16 +6,16 @@ set.seed(42)
 pmean <- 1
 
 # Inference.
-lwin <- rwin <- thiswin
-winlen <- lwin+win+rwin
+leftwin <- rightwin <- thiswin
+longwin <- leftwin+shortwin+rightwin
 
-genmatrix <- makegenmatrix( mutpats, selpats=c(), patlen=winlen, boundary="wrap")
+genmatrix <- makegenmatrix( mutpats, selpats=c(), patlen=longwin, boundary="wrap")
 genmatrix@x <- update(genmatrix,mutrates,selcoef=numeric(0),Ne=1)
-projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), lwin=lwin, rwin=rwin )
+projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, rightwin=rightwin )
 subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE )
 
 counts <- list(
-            counttrans( rownames(projmatrix), colnames(projmatrix), simseqs[[1]]$initseq, simseqs[[1]]$finalseq, lwin=lwin )
+            counttrans( rownames(projmatrix), colnames(projmatrix), simseqs[[1]]$initseq, simseqs[[1]]$finalseq, leftwin=leftwin )
         )
 # allow nonmatches with small prob
 eps <- 1e-6

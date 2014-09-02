@@ -6,8 +6,8 @@ Pre-compute a generator matrix for the process with codon -> codon transitions.\
 "
 
 option_list <- list(
-        make_option( c("-s","--outfile"), type="character", default="", help="Save resulting matrix in this file.  [default: simple-genmatrices/genmatrix-winlen-boundary-meanboundary.RData]" ),
-        make_option( c("-w","--winlen"), type="integer", default=3, help="Size of matching window. [default \"%default\"]" ),
+        make_option( c("-s","--outfile"), type="character", default="", help="Save resulting matrix in this file.  [default: simple-genmatrices/genmatrix-longwin-boundary-meanboundary.RData]" ),
+        make_option( c("-w","--longwin"), type="integer", default=3, help="Size of matching window. [default \"%default\"]" ),
         make_option( c("-b","--boundary"), type="character", default="none", help="Boundary conditions. [default \"%default\"]" ),
         make_option( c("-m","--meanboundary"), type="integer", default=0, help="Average over this many neighboring bases. [default \"%default\"]" ),
         make_option( c("-o","--logfile"), type="character", default="", help="Direct logging output to this file. [default appends .Rout]" )
@@ -18,7 +18,7 @@ options(error=traceback)
 
 if (outfile=="") { 
     if (!file.exists("simple-genmatrices")) { dir.create("simple-genmatrices") }; 
-    outfile <- paste(paste("simple-genmatrices/genmatrix",winlen,boundary,meanboundary,sep="-"),".RData",sep='') 
+    outfile <- paste(paste("simple-genmatrices/genmatrix",longwin,boundary,meanboundary,sep="-"),".RData",sep='') 
 }
 basename <- gsub(".RData",'',outfile)
 if (logfile=="" & !interactive()) { logfile <- paste(basename,"-simrun.Rout",sep='') }
@@ -28,7 +28,7 @@ if (!is.null(logfile)) {
     sink(file=logcon, type="output") 
 }
 
-if (interactive()) { winlen <- 3; boundary <- "none"; meanboundary <- 0 }
+if (interactive()) { longwin <- 3; boundary <- "none"; meanboundary <- 0 }
 
 bases <- c("A","T","C","G")
 
@@ -49,9 +49,9 @@ selpats <- list()
 fixfn <- function (...) { 1 }
 
 if (meanboundary>0) {
-    genmatrix <- meangenmatrix( lwin=meanboundary, rwin=meanboundary, patlen=winlen, mutpats=mutpats, selpats=selpats, boundary=boundary )
+    genmatrix <- meangenmatrix( leftwin=meanboundary, rightwin=meanboundary, patlen=longwin, mutpats=mutpats, selpats=selpats, boundary=boundary )
 } else {
-    genmatrix <- makegenmatrix( patlen=winlen, mutpats=mutpats, selpats=selpats, boundary=boundary )
+    genmatrix <- makegenmatrix( patlen=longwin, mutpats=mutpats, selpats=selpats, boundary=boundary )
 }
 
-save( opt, winlen, boundary, meanboundary, bases, mutpats, selpats, fixfn, genmatrix, file=outfile )
+save( opt, longwin, boundary, meanboundary, bases, mutpats, selpats, fixfn, genmatrix, file=outfile )

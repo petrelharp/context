@@ -32,7 +32,7 @@ f <- function(params) {
     branchlens <- c(params[1],1-params[1])
     mutrates <- params[1+(1:nmuts)]
     initfreqs <- params[1+nmuts+(1:nfreqs)]
-    pred <- predicttreecounts( win, lwin, rwin, initcounts=rowSums(counts[[1]]), mutrates=list(mutrates,mutrates), selcoef=list(numeric(0),numeric(0)), genmatrix=genmatrix, projmatrix=projmatrix, initfreqs=initfreqs, tlens=rev(branchlens) )
+    pred <- predicttreecounts( shortwin, leftwin, rightwin, initcounts=rowSums(counts[[1]]), mutrates=list(mutrates,mutrates), selcoef=list(numeric(0),numeric(0)), genmatrix=genmatrix, projmatrix=projmatrix, initfreqs=initfreqs, tlens=rev(branchlens) )
     (counts[[1]]-pred)
 }
 
