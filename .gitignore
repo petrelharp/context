@@ -17,3 +17,5 @@ tmp
 *.snm
 *.tsv
 last.dump.rda
+*.md
+*.html

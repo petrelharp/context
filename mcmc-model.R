@@ -3,6 +3,8 @@ require(optparse)
 require(jsonlite)
 require(mcmc)
 
+invocation <- commandArgs()
+
 usage <- "\
 Sample from the posterior on the parameters given data,\
 beginning from a model fit already via likelihood or previous MCMC run. \
@@ -45,13 +47,13 @@ if (!is.null(opt$priorfile)) {
     mutprior <- prior$mutprior
     if (nsel(model)>0) { selprior <- prior$selprior } else { selprior <- numeric(0) }
     if (length(fixparams(model))>0) { fixfn.prior <- prior$fixfn.prior } else { fixfn.prior <- numeric(0) }
-} else { 
+} else {
     mutprior <- model@mutprior
     selprior <- model@selprior
     fixfn.prior <- model@paramsprior
 }
 
-# (quasi)-log-posterior 
+# (quasi)-log-posterior
 likfun <- function (params){
     # params are: mutrates*tlen
     mutrates <- params[1:nmuts(genmatrix)]
@@ -62,8 +64,8 @@ likfun <- function (params){
     genmatrix@x <- do.call( update, c( list(G=genmatrix, mutrates=mutrates, selcoef=selcoef ), as.list(fparams) ) )
     # this is collapsed transition matrix
     subtransmatrix <- computetransmatrix( genmatrix, projmatrix, tlen=1, time="fixed") # shape=params[length(params)], time="gamma" )
-    # return POSITIVE log-likelihood 
-    ans <- sum( counts@counts * log(subtransmatrix) ) 
+    # return POSITIVE log-likelihood
+    ans <- sum( counts@counts * log(subtransmatrix) )
     if (!is.finite(ans)) print(params)
     return( ans - sum(mutrates/mutprior) - sum((selcoef/selprior)^2) )
 }
@@ -85,7 +87,8 @@ model <- new( "contextMCMC",
              results=unclass(mrun),
              likfun=likfun,
              mutprior=mutprior,
-             selprior=selprior
+             selprior=selprior,
+             invocation=invocation
          )
 
 
