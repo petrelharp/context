@@ -52,7 +52,7 @@ npatterns <- function (patlen,bases) {
 
 mutnames <- function (mutpats) {
     # Stringify a list of mutpat lists.
-    return( unlist( sapply( sapply( mutpats, lapply, paste, collapse="->" ), paste, collapse="|" ) ) )
+    return( unlist( sapply( lapply( mutpats, lapply, paste, collapse="->" ), paste, collapse="|" ) ) )
 }
 
 selnames <- function (selpats) {
