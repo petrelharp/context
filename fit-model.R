@@ -21,7 +21,7 @@ if (!file.exists(opt$infile)) { stop("Cannot read input file.") }
 if (is.null(opt$basedir)) { opt$basedir <- dirname(opt$infile) }
 if (is.null(opt$outfile)) { opt$outfile <- paste( opt$basedir, "/", gsub("\\.[^.]*","",basename(opt$infile) ), "-", gsub("\\.[^.]*","",basename(opt$gmfile) ), "-", opt$jobid, ".RData", sep='' ) }
 print(opt) # this will go in the pbs log
-options(error = quote({dump.frames(to.file = TRUE); q()}))
+options(error = quote({cat(paste("Error in \"", paste(commandArgs(),collapse=' '), "\": dumping frames.\n")); dump.frames(to.file = TRUE); q(status=1)}))
 
 source("../context-inference-fns.R")
 
@@ -50,7 +50,7 @@ names(adhoc.fixparams) <- fixparams(genmatrix)
 likfun <- function (params){
     # params are: mutrates, selcoef, fixparams
     fparams <- params[seq( 1+nmuts(genmatrix)+nsel(genmatrix), length.out=length(fixparams(genmatrix)) )]
-    names(fparams) <- fixparams(model)
+    names(fparams) <- names(fixparams(genmatrix))
     genmatrix@x <- do.call( update, c( list( G=genmatrix,mutrates=params[1:nmuts(genmatrix)],selcoef=params[seq(1+nmuts(genmatrix),length.out=nsel(genmatrix))]), as.list(fparams) ) )
     # this is collapsed transition matrix
     subtransmatrix <- computetransmatrix( genmatrix, projmatrix, tlen=1, time="fixed") # shape=params[length(params)], time="gamma" )
