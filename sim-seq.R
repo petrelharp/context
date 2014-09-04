@@ -54,7 +54,7 @@ if (!is.null(opt$logfile)) {
 
 config <- read.config(opt$configfile)
 # treeify, add defaults, etc
-config <- treeify.config(config)
+config <- treeify.config(config,tlen=opt$tlen)
 config <- parse.models(config)
 # error checks
 stopifnot( ( length(config$bases) == length(config$initfreqs) ) )
