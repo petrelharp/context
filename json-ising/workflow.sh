@@ -41,6 +41,6 @@ Rscript ../fit-model.R -i test-ising-123456.6.2.l2.counts -l 2 -m genmatrices/ge
 Rscript ../sim-seq.R -c ising-model-constrained.json -t .1 -s 1000000 -o constrained-ising-123.RData
 Rscript ../count-seq.R -i constrained-ising-123.RData -w 9 -s 3 -l 3 -o constrained-ising-123.9.3.l3.counts
 Rscript ../make-genmat.R -c ising-model-constrained.json -w 9 -o genmatrices/genmatrix-9-ising-model-constrained.RData
-Rscript ../fit-model.R -i constrained-ising-123.9.3.l3.counts -l 3 -m genmatrices/genmatrix-9-complete.RData -o constrained-ising-123-genmatrix-9-ising-model-constrained.RData
+Rscript ../fit-model.R -i constrained-ising-123.9.3.l3.counts -l 3 -m genmatrices/genmatrix-9-ising-model-constrained.RData -o constrained-ising-123-genmatrix-9-ising-model-constrained.RData
 Rscript ../mcmc-model.R -i constrained-ising-123-genmatrix-9-ising-model-constrained.RData -c ising-model-constrained.json -b 3 -o constrained-ising-123-genmatrix-9-mcmc-1.RData
 Rscript ../mcmc-model.R -i constrained-ising-123-genmatrix-9-ising-model-constrained.RData -c ising-model-constrained.json -b 100 -o constrained-ising-123-genmatrix-9-mcmc-2.RData
