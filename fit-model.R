@@ -21,9 +21,9 @@ if (!file.exists(opt$infile)) { stop("Cannot read input file.") }
 if (is.null(opt$basedir)) { opt$basedir <- dirname(opt$infile) }
 if (is.null(opt$outfile)) { opt$outfile <- paste( opt$basedir, "/", gsub("\\.[^.]*","",basename(opt$infile) ), "-", gsub("\\.[^.]*","",basename(opt$gmfile) ), "-", opt$jobid, ".RData", sep='' ) }
 print(opt) # this will go in the pbs log
-options(error = quote({cat(paste("Error in \"", paste(commandArgs(),collapse=' '), "\": dumping frames.\n")); dump.frames(to.file = TRUE); q(status=1)}))
 
 source("../context-inference-fns.R")
+options(error = print.and.dump)
 
 # load generator matrix
 stopifnot(file.exists(opt$gmfile))

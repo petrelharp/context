@@ -20,9 +20,9 @@ opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 if (is.null(opt$infile)) { stop("No input file.  Run\n  compute-resids.R -h\n for help.\n") }
 if (is.null(opt$basedir)) { opt$basedir <- dirname(opt$infile) }
 print(opt) # this will go in the pbs log
-options(error = quote({dump.frames(to.file = TRUE); q()}))
 
 source("../context-inference-fns.R")
+options(error = print.and.dump)
 
 # and fitted model
 stopifnot(file.exists(opt$infile))

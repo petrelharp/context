@@ -27,9 +27,9 @@ if (is.null(opt$infile)) { stop("No input file.  Run\n  Rscript mcmc-model.R -h\
 if (is.null(opt$basedir)) { opt$basedir <- dirname(opt$infile) }
 if (is.null(opt$outfile)) { opt$outfile <- paste( opt$basedir, "/", gsub("(-mcmc-[0-9]*)*\\.[^.]*","",basename(opt$infile) ), "-mcmc-", opt$jobid, ".RData", sep='' ) }
 print(opt) # this will go in the pbs log
-options(error = quote({dump.frames(to.file = TRUE); q()}))
 
 source("../context-inference-fns.R")
+options(error = print.and.dump)
 
 # load previously fit model
 stopifnot(file.exists(opt$infile))

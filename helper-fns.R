@@ -36,3 +36,11 @@ openwrite <- function(arg) {
        file(arg, open = "w")
     }
 }
+
+###
+# use for debugging noninteractive stuff
+# options(error=print.and.dump)
+
+print.and.dump <- function () {
+ cat(paste("Error in \"", paste(commandArgs(),collapse=' '), "\": dumping frames.\n")); dump.frames(to.file = TRUE); q(status=1)
+} 
