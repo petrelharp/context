@@ -279,7 +279,8 @@ setClass("context",
                         params="numeric",
                         projmatrix="Matrix",
                         likfun="function",
-                        results="list"
+                        results="list",
+                        invocation="character"
                     )
          )
 

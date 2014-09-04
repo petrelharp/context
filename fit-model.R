@@ -1,6 +1,9 @@
 #!/usr/bin/Rscript --vanilla
 require(optparse)
 
+
+invocation <- commandArgs()
+
 usage <- "\
 Infer parameters from paired counts file, which records instances of Tmer transitions.
 "
@@ -70,6 +73,7 @@ baseval <- likfun(initpar)
 stopifnot( is.finite(baseval) )
 optim.results <- optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(fnscale=(-1)*abs(baseval), parscale=parscale, maxit=opt$maxit) )
 
+
 model <- new( "context",
              counts=counts,
              genmatrix=genmatrix,
@@ -78,7 +82,8 @@ model <- new( "context",
              selcoef=optim.results$par[seq(nmuts(genmatrix)+1,length.out=nsel(genmatrix))],
              params=optim.results$par[seq(1+nmuts(genmatrix)+nsel(genmatrix),length.out=length(adhoc.fixparams))],
              results=optim.results,
-             likfun=likfun
+             likfun=likfun,
+             invocation=invocation
          )
 
 save(model,file=opt$outfile)
