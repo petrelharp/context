@@ -1,8 +1,7 @@
 # Results from fitting procedure
 
-## Invocation
-
 ```{r}
+source("context-inference-fns.R")
 cat(model@invocation)
 ```
 
@@ -20,8 +19,8 @@ model@results[["par"]]
 counts <- model@counts@counts
 head(counts) # for some reason the code doesn't work if we don't print out some of the counts
 cat("left window size:", model@counts@leftwin,
-    "\ntotal window size:", nchar(rownames(counts)[[1]]))
-cat("total counts:", sum(counts))
+    "\ncomplete window size:", nchar(rownames(counts)[[1]]),
+    "\ntotal counts:", sum(counts))
 ```
 
 
@@ -33,6 +32,11 @@ cat("convergence: ", model@results$convergence,
 ```
 
 ## residuals for sufficiently short T-mers you can look at all of them (2-2? 3-1?)
+
+```{r}
+computeresids(model)
+```
+
 ## the top and bottom residuals for longer T-mers (9-5? 9-9?)
 ## if present, MCMC traces
 ## ... and posterior marginal distributions.

@@ -835,4 +835,57 @@ dgTtodgC <- function (M) {
     with(ijx, new( "dgCMatrix", i=i, p=sapply(0:ncol(M), function(k) sum(j<k)), x=x, Dim=dim(M) ) )
 }
 
+# compute and spit out residuals
+computeresids <- function (model, outfile="", pretty=TRUE, in_longwin=NULL, in_shortwin=NULL, in_leftwin=NULL, in_countfile=NULL, in_genmatrixfile=NULL) {
+    # pull in defaults for things if they are not specified
+    if (is.null(in_longwin)){ in_longwin <- longwin(model) }
+    if (is.null(in_shortwin)){ in_shortwin <- shortwin(model) }
+    if (is.null(in_leftwin)){ in_leftwin <- leftwin(model) }
+    # load generator matrix, if needed
+    if (!is.null(in_genmatrixfile)) {
+        stopifnot(file.exists(in_genmatrixfile))
+        load(in_genmatrixfile)  # provides 'genmatrix'
+    } else {
+        genmatrix <- model@genmatrix
+    }
+
+    # get counts
+    if (is.null(in_countfile) && ( in_longwin > longwin(model) || in_shortwin > shortwin(model) ) ) {
+        stop("If window lengths are longer than fitted model, then need to supply counts.")
+    } else if (!is.null(in_countfile)) {
+        counts <- read.counts(in_countfile,in_leftwin)
+        if ( ( in_longwin > longwin(counts) || in_shortwin > shortwin(counts) ) ) {
+            stop("Supplied counts use a window that is too short.")
+        }
+    } else {
+        counts <- model@counts
+    }
+    if ( (in_longwin < longwin(counts)) || (in_shortwin < shortwin(counts)) ) {
+        counts <- projectcounts( counts, in_leftwin, in_shortwin, in_longwin-in_leftwin-in_shortwin )
+    }
+    stopifnot( all( rownames(counts) == rownames(genmatrix) ) )
+
+    expected <- fitted( model, longwin=in_longwin, shortwin=in_shortwin, leftwin=in_leftwin, initcounts=rowSums(counts), genmatrix=genmatrix )
+
+    if (pretty) {
+        # data frame with columns for long pattern, short pattern, observed, expected, residual, z-score
+        residframe <- data.frame( inpat=rownames(counts)[row(counts)],
+                            outpat=colnames(counts)[col(counts)],
+                            observed=as.vector(counts),
+                            expected=as.vector(expected),
+                            resid=as.vector(counts)-as.vector(expected),
+                            stringsAsFactors=FALSE
+                        )
+        residframe$z <- residframe$resid/sqrt(as.vector(expected))
+        residframe <- residframe[order(residframe$z),]
+        write.table(file=outfile, x=residframe, sep='\t', quote=FALSE, row.names=FALSE )
+    } else {
+        # concise matrix
+        resids <- residuals( model, counts=counts, genmatrix=genmatrix )
+        residframe <- as.vector(resids@counts)
+        dim(residframe) <- dim(resids)
+        dimnames(residframe) <- dimnames(resids)
+        write.table(file=outfile, x=residframe, sep='\t', quote=FALSE, row.names=TRUE )
+    }
+}
 

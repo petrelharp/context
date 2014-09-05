@@ -28,62 +28,17 @@ options(error = print.and.dump)
 stopifnot(file.exists(opt$infile))
 load(opt$infile) # provides 'model'
 
-if (is.null(opt$longwin)){ opt$longwin <- longwin(model) }
-if (is.null(opt$shortwin)){ opt$shortwin <- shortwin(model) }
-if (is.null(opt$leftwin)){ opt$leftwin <- leftwin(model) }
-
 # set outfile name
-if (is.null(opt$outfile)) { 
-    opt$outfile <- paste( opt$basedir, "/", gsub("\\.[^.]*","",basename(opt$infile) ), "-resids", ".", opt$longwin, ".", opt$shortwin, ".l", opt$leftwin, ".tsv", sep='' ) 
+if (is.null(opt$outfile)) {
+    opt$outfile <- paste( opt$basedir, "/", gsub("\\.[^.]*","",basename(opt$infile) ), "-resids", ".", opt$longwin, ".", opt$shortwin, ".l", opt$leftwin, ".tsv", sep='' )
     print(opt$outfile)
 }
 
-# load generator matrix, if needed
-if (!is.null(opt$gmfile)) {
-    stopifnot(file.exists(opt$gmfile))
-    load(opt$gmfile)  # provides 'genmatrix'
-} else {
-    genmatrix <- model@genmatrix
-}
-
-# get counts
-if (is.null(opt$countfile) && ( opt$longwin > longwin(model) || opt$shortwin > shortwin(model) ) ) {
-    stop("If window lengths are longer than fitted model, then need to supply counts.")
-} else if (!is.null(opt$countfile)) {
-    counts <- read.counts(opt$countfile,opt$leftwin)
-    if ( ( opt$longwin > longwin(counts) || opt$shortwin > shortwin(counts) ) ) {
-        stop("Supplied counts use a window that is too short.")
-    }
-} else {
-    counts <- model@counts
-}
-if ( (opt$longwin < longwin(counts)) || (opt$shortwin < shortwin(counts)) ) {
-    counts <- projectcounts( counts, opt$leftwin, opt$shortwin, opt$longwin-opt$leftwin-opt$shortwin )
-}
-stopifnot( all( rownames(counts) == rownames(genmatrix) ) )
-
-expected <- fitted( model, longwin=opt$longwin, shortwin=opt$shortwin, leftwin=opt$leftwin, initcounts=rowSums(counts), genmatrix=genmatrix )
-
-if (opt$pretty) {
-    # data frame with columns for long pattern, short pattern, observed, expected, residual, z-score
-    residframe <- data.frame( inpat=rownames(counts)[row(counts)],
-                        outpat=colnames(counts)[col(counts)],
-                        observed=as.vector(counts),
-                        expected=as.vector(expected),
-                        resid=as.vector(counts)-as.vector(expected),
-                        stringsAsFactors=FALSE
-                    )
-    residframe$z <- residframe$resid/sqrt(as.vector(expected))
-    residframe <- residframe[order(residframe$z),]
-    write.table(file=opt$outfile, x=residframe, sep='\t', quote=FALSE, row.names=FALSE )
-} else {
-    # concise matrix
-    resids <- residuals( model, counts=counts, genmatrix=genmatrix )
-    residframe <- as.vector(resids@counts)
-    dim(residframe) <- dim(resids)
-    dimnames(residframe) <- dimnames(resids)
-    write.table(file=opt$outfile, x=residframe, sep='\t', quote=FALSE, row.names=TRUE )
-}
-
-
-
+computeresids (model,
+    pretty            = opt$pretty,
+    outfile           = opt$outfile,
+    in_longwin        = opt$longwin,
+    in_shortwin       = opt$shortwin,
+    in_leftwin        = opt$leftwin,
+    in_countfile      = opt$countfile,
+    in_genmatrixfile  = opt$genmatrixfile)
