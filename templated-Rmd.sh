@@ -10,11 +10,13 @@ test "$#" -eq 2 || {
 
 template=$1
 RData=$2
+output=$(basename $RData .RData).html
 
 R --vanilla --slave << EOF
 library("rmarkdown")
 
+source("$(dirname $0)/context-dependence-fns.R")
 load("$RData")
-render("$template")
+render("$template",output_file="$output")
 EOF
 

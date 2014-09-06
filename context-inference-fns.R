@@ -524,7 +524,7 @@ meangenmatrix <- function (leftwin,rightwin,patlen,...) {
     return( meangenmat )
 }
 
-computetransmatrix <- function( genmatrix, projmatrix, tlen=1, shape=1, names=FALSE, transpose=FALSE, time="fixed", ... ) {
+computetransmatrix <- function( genmatrix, projmatrix, tlen=1, shape=1, names=FALSE, transpose=FALSE, time="fixed") {
     # Compute the product of exp(tlen*genmatrix) and projmatrix, either on the left or the right (as transpose is true or false)
     #   either after a fixed time: exp(tlen*genmatrix)
     #   or after a gamma-distributed time
@@ -635,7 +635,7 @@ reverse.complement <- function (mutpats) {
 
 ###
 #
-predictcounts.context <- function (model, longwin=NULL, shortwin=NULL, leftwin=NULL, initcounts=rowSums(model), mutrates=model@mutrates, selcoef=model@selcoef, genmatrix=model@genmatrix, projmatrix=model@projmatrix ) {
+predictcounts.context <- function (model, longwin=NULL, shortwin=NULL, leftwin=NULL, initcounts=rowSums(model), mutrates=model@mutrates, selcoef=model@selcoef, genmatrix=model@genmatrix, projmatrix=model@projmatrix, params=model@params ) {
     # default values not cooperating with S4 methods:
     if (is.null(longwin)) { longwin <- longwin(model) }
     if (is.null(shortwin)) { shortwin <- shortwin(model) }
@@ -643,17 +643,17 @@ predictcounts.context <- function (model, longwin=NULL, shortwin=NULL, leftwin=N
     if (!missing(genmatrix) && missing(projmatrix)) {
         projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, fpatterns=getpatterns(shortwin,genmatrix@bases) )
     }
-    predictcounts(longwin,shortwin,leftwin,initcounts,mutrates,selcoef,genmatrix,projmatrix)
+    predictcounts(longwin,shortwin,leftwin,initcounts,mutrates,selcoef,genmatrix,projmatrix,params)
 }
 
 
-predictcounts <- function (longwin, shortwin, leftwin, initcounts, mutrates, selcoef, genmatrix, projmatrix, ... ) {
+predictcounts <- function (longwin, shortwin, leftwin, initcounts, mutrates, selcoef, genmatrix, projmatrix, params=NULL ) {
     # Compute expected counts of paired patterns:
     #  where the actual computation happens
     rightwin <- longwin-shortwin-leftwin
-    if (!missing(mutrates)||!missing(selcoef)) { genmatrix@x <- update(genmatrix,mutrates=mutrates,selcoef=selcoef,...) }
+    if (!missing(mutrates)||!missing(selcoef)) { genmatrix@x <- do.call( update, c( list(genmatrix,mutrates=mutrates,selcoef=selcoef), params ) ) }
     if (missing(projmatrix)) { projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, rightwin=rightwin, bases=genmatrix@bases ) }
-    subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE, ... )
+    subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE)
     fullcounts <- initcounts * subtransmatrix
     return( new("tuplecounts", leftwin=leftwin, counts=Matrix(fullcounts), bases=genmatrix@bases ) )
 }
