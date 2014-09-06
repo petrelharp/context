@@ -15,7 +15,7 @@ output=$(basename $RData .RData).html
 R --vanilla --slave << EOF
 library("rmarkdown")
 
-source("$(dirname $0)/context-dependence-fns.R")
+source("$(dirname $0)/context-inference-fns.R")
 load("$RData")
 render("$template",output_file="$output")
 EOF
