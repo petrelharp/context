@@ -274,7 +274,7 @@ setGeneric("countframe", function(x) { standardGeneric("countframe") })
 setMethod("countframe", signature=c(x="tuplecounts"), definition=function (x) { 
         cf <- cbind(
                 data.frame( rep.int(rownames(x@counts),ncol(x@counts)) ),
-                x@colpatterns[ rep.int(1:nrow(x@colpatterns),nrow(x@counts)), ],
+                x@colpatterns[ rep(1:nrow(x@colpatterns),each=nrow(x@counts)), ],
                 as.numeric(x@counts)
             )
         colnames(cf) <- c( rowtaxa(x), coltaxa(x), "count" )

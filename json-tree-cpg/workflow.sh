@@ -18,12 +18,12 @@ Rscript ../count-seq.R -i $BASEDIR/sim-tree-cpg.RData -c sp2 -w $LONGWIN -s $SHO
 # precompute generator matrices:
 #   width-3
 MODEL=tree-cpg-model.json
-GENMAT=genmatrix-${LONGWIN}-cpg.RData
-Rscript ../make-genmat.R -c $MODEL -w ${LONGWIN} -o ${GENMAT}
+GENMAT=genmatrices/genmatrix-${LONGWIN}-cpg.RData
+Rscript ../make-genmat.R -c $MODEL -w ${LONGWIN} -o ${GENMAT} -n sp1
 
 # fit a model
-Rscript ../fit-model.R -i $BASEDIR/sim-tree-cpg-3-sp1-1-sp2-l1.counts -l ${LEFTWIN} -m $GENMAT -j 54321
-Rscript ../fit-model.R -i $BASEDIR/sim-tree-cpg-3-sp2-1-sp1-l1.counts -l ${LEFTWIN} -m $GENMAT -j 54321
+Rscript ../fit-model.R -i $BASEDIR/sim-tree-cpg-3-sp1-1-sp2-l1.counts -l ${LEFTWIN} -m $GENMAT -j 001
+Rscript ../fit-model.R -i $BASEDIR/sim-tree-cpg-3-sp2-1-sp1-l1.counts -l ${LEFTWIN} -m $GENMAT -j 001
 
 # compute residuals
 Rscript ../compute-resids.R -i $BASE-123456-genmatrix-${LONGWIN}-cpg-54321.RData -w 3 -s 1 -l 1 -m ${GENMAT}

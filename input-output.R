@@ -35,6 +35,7 @@ read.counts <- function (infile,leftwin,bases,longpats,shortpats) {
     colnames(counts) <- apply(colpatterns, 1, paste, collapse='.')
     input.names <- apply( count.table[,-c(1,ncol(count.table)),drop=FALSE], 1, paste, collapse='.' )
     counts[cbind( match(count.table[,1],rownames(counts)), match(input.names,colnames(counts)) )] <- count.table[,ncol(count.table)]
+    # stopifnot( sum(counts) == sum(count.table[,ncol(count.table)]) )
     return( new("tuplecounts", 
             counts=counts, 
             leftwin=leftwin, 

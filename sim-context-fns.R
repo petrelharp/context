@@ -131,7 +131,7 @@ counttrans.list <- function (lpatterns, seqlist=lapply(simseqs,"[[","finalseq"),
     patlen <- max( sapply( lapply( lpatterns, "[", 1 ), nchar ) )
     seqlen <- unique( sapply(seqlist, nchar) )
     stopifnot(length(seqlen)==1)
-    if (length(leftwin)<length(seqlist)) { leftwin <- c(0,rep(leftwin,length.out=length(seqlist)-1)) }
+    if (length(leftwin)<length(seqlist)) { shiftwin <- c(0,rep(leftwin,length.out=length(seqlist)-1)) }
     # cyclic-ize
     if (cyclic) { seqlist <- lapply( seqlist, function (x) { xscat( x, subseq(x,1,patlen-1) ) } ) }
     # Ok, count occurrences.  uses bioconductor stuff.
@@ -142,10 +142,10 @@ counttrans.list <- function (lpatterns, seqlist=lapply(simseqs,"[[","finalseq"),
     counts <- lapply( 1:max(1,shift), function (k) array( 0, dim=npats, dimnames=lpatterns ) )
     ii <- matrix( rep(1,length(npats)), nrow=1 )
     while( ii[1] <= npats[1] ) {
-        xycounts <- start(lmatches[[1]][[ii[1]]]) - leftwin[1]
+        xycounts <- start(lmatches[[1]][[ii[1]]]) - shiftwin[1]
         for (j in seq_along(ii)[-1]) {
             stopifnot( j %in% seq_along(lmatches) & ii[j] %in% seq_along(lmatches[[j]]) )
-            xycounts <- intersect( xycounts, (-leftwin[j]) + start(lmatches[[j]][[ii[j]]]) )
+            xycounts <- intersect( xycounts, (-shiftwin[j]) + start(lmatches[[j]][[ii[j]]]) )
         }
         if (length(xycounts)>0) {
             for (k in 0:max(0,shift-1)) {
