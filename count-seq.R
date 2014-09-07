@@ -11,6 +11,11 @@ where the  length of the W's is 'longwin', the length of the l's is 'leftwin', a
 If --revcounts, count in the other direction, i.e. \
     llMMMMrrr \
     WWWWWWWWW \
+\
+If counts are on a tree (a named list of sequences),\
+need to also specify the name of the clade that gets the 'long' pattern, by e.g.\
+  --longclade=sp1
+.
 "
 
 option_list <- list(
@@ -19,32 +24,32 @@ option_list <- list(
         make_option( c("-w","--longwin"), type="integer", help="Size of long window." ),
         make_option( c("-s","--shortwin"), type="integer", help="Size of short window." ),
         make_option( c("-l","--leftwin"), type="integer", help="Size of offset of short window from the left."),
+        make_option( c("-c","--longclade"), type="character", help="Which clade, in a tree, gets the 'long' patterns."),
         make_option( c("-r","--revcounts"), action="store_true", default="FALSE", help="Count reversed?")
         )
-countseq.opt <- parse_args(OptionParser(option_list=option_list,description=usage))
-if (is.null(countseq.opt$outfile)) { # default outfile
+opt <- parse_args(OptionParser(option_list=option_list,description=usage))
+if (is.null(opt$outfile)) { # default outfile
     outfile <- paste(
-                     gsub(".RData","",countseq.opt$infile),
-                     if(countseq.opt$revcounts){"-rev"}else{""},
-                     ".", countseq.opt$longwin, ".", countseq.opt$shortwin, ".l", countseq.opt$leftwin,
+                     gsub(".RData","",opt$infile),
+                     if(opt$revcounts){"-rev"}else{""},
+                     ".", opt$longwin, ".", opt$shortwin, ".l", opt$leftwin,
                      ".counts",
                  sep="")
 }
-attach(countseq.opt)
 
 source("../sim-context-fns.R")
 source("../context-inference-fns.R")
 
-load(infile) # provides simseq.opt, config, and simseqs; config has bases, mutpats, mutrates, selpats, selcoef, fixfn, seqlen, tlen, initfreqs, 
+load(opt$infile) # provides simseq.opt, simseq.config, and simseqs; config has bases, mutpats, mutrates, selpats, selcoef, fixfn, seqlen, tlen, initfreqs, 
 
-longpats <- getpatterns(countseq.opt$longwin,config$bases)
-shortpats <- getpatterns(countseq.opt$shortwin,config$bases)
+longpats <- getpatterns(opt$longwin,simseq.config$bases)
+shortpats <- getpatterns(opt$shortwin,simseq.config$bases)
 
 # this returns a matrix
 counts <- if (!revcounts) {
-    counttrans( longpats, shortpats, simseqs[[1]]$initseq, simseqs[[1]]$finalseq, leftwin=countseq.opt$leftwin )
+    counttrans( longpats, shortpats, simseqs[[1]]$initseq, simseqs[[1]]$finalseq, leftwin=opt$leftwin )
 } else {
-    counttrans( longpats, shortpats, simseqs[[1]]$finalseq, simseqs[[1]]$initseq, leftwin=countseq.opt$leftwin )
+    counttrans( longpats, shortpats, simseqs[[1]]$finalseq, simseqs[[1]]$initseq, leftwin=opt$leftwin )
 }
 
 countframe <- data.frame( reference=rownames(counts)[row(counts)],

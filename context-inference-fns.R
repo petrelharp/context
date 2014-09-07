@@ -250,7 +250,36 @@ setClass("genmatrix", representation(
                                      fixfn="function"),
          contains = "dgCMatrix")
 
-setClass("tuplecounts",representation(leftwin="numeric",counts="Matrix",bases="character"))
+# tuplecounts is a (2D, flattened) contingency table
+setClass("tuplecounts",representation(
+        leftwin="numeric",
+        counts="Matrix",
+        bases="character",
+        rowtaxa="character",
+        colpatterns="data.frame"),
+    prototype=list(rowtaxa="long",colpatterns=data.frame())
+    )
+
+# extractor functions
+setGeneric("rowtaxa", function(x) { standardGeneric("rowtaxa") })
+setMethod("rowtaxa", signature=c(x="tuplecounts"), definition=function (x) { x@rowtaxa } )
+setGeneric("coltaxa", function(x) { standardGeneric("coltaxa") })
+setMethod("coltaxa", signature=c(x="tuplecounts"), definition=function (x) { if (length(x@colpatterns)>0) { colnames(x@colpatterns) } else { "short" } } )
+setGeneric("colpatterns", function(x) { standardGeneric("colpatterns") })
+setMethod("colpatterns", signature=c(x="tuplecounts"), definition=function (x) { if (length(x@colpatterns)>0) { x@colpatterns } else { data.frame(short=colnames(x@counts)) } } )
+setGeneric("counts", function(x) { standardGeneric("counts") })
+setMethod("counts", signature=c(x="tuplecounts"), definition=function (x) { x@counts } )
+setGeneric("countframe", function(x) { standardGeneric("countframe") })
+setMethod("countframe", signature=c(x="tuplecounts"), definition=function (x) { 
+        cf <- cbind(
+                data.frame( rep.int(rownames(x@counts),ncol(x@counts)) ),
+                x@colpatterns[ rep.int(1:nrow(x@colpatterns),nrow(x@counts)), ],
+                as.numeric(x@counts)
+            )
+        colnames(cf) <- c( rowtaxa(x), coltaxa(x), "count" )
+        return(cf)
+    } )
+
 # things to make tuplecounts act like the matrix inside of it:
 setMethod("dim", signature=c(x="tuplecounts"), definition=function (x) { dim(x@counts) } )
 setMethod("dimnames", signature=c(x="tuplecounts"), definition=function (x) { dimnames(x@counts) } )

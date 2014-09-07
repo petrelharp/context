@@ -9,9 +9,9 @@ option_list <- list(
     # input/output
         make_option( c("-i","--infile"), type="character", help="Input file, .RData with fitted model object."),
         make_option( c("-o","--outfile"), type="character", help="File to save results to.  [default: like infile, but with -resids.(longwin).(shortwin).l(leftwin).tsv appended]"),
-        make_option( c("-w","--longwin"), type="integer", help="Size of long window." ),
-        make_option( c("-s","--shortwin"), type="integer", help="Size of short window." ),
-        make_option( c("-l","--leftwin"), type="integer", help="Size of offset of short window from the left."),
+        make_option( c("-w","--longwin"), type="integer", help="Size of long window. [default: as in model]" ),
+        make_option( c("-s","--shortwin"), type="integer", help="Size of short window. [default: as in model]" ),
+        make_option( c("-l","--leftwin"), type="integer", help="Size of offset of short window from the left. [default: as in model]"),
         make_option( c("-p","--pretty"), type="logical", action="store_true", default=FALSE, help="Compute z-score and organize residuals by these?"),
         make_option( c("-m","--gmfile"), type="character", help="File with precomputed generator matrix."),
         make_option( c("-c","--countfile"), type="character", help="Input file with tuple counts, tab-separated, with header 'reference', 'derived', 'count'. (only necessary if longwin is longer than used to fit model)")
@@ -27,6 +27,10 @@ options(error = print.and.dump)
 # and fitted model
 stopifnot(file.exists(opt$infile))
 load(opt$infile) # provides 'model'
+
+if (is.null(opt$longwin)) { opt$longwin <- longwin(model) }
+if (is.null(opt$shortwin)) { opt$shortwin <- shortwin(model) }
+if (is.null(opt$leftwin)) { opt$leftwin <- leftwin(model) }
 
 # set outfile name
 if (is.null(opt$outfile)) {

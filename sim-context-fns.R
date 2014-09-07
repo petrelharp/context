@@ -139,11 +139,7 @@ counttrans.list <- function (lpatterns, seqlist=lapply(simseqs,"[[","finalseq"),
             lapply( lpatterns[[k]], matchPattern, seqlist[[k]] )
         } )
     npats <- sapply(lmatches,length)
-    if (length(seqlist)==2) {
-        counts <- lapply( 1:max(1,shift), function (k) Matrix( 0, nrow=length(initmatches), ncol=length(finalmatches), dimnames=list(ipatterns,fpatterns) ) )
-    } else {
-        counts <- lapply( 1:max(1,shift), function (k) array( 0, dim=npats, dimnames=lpatterns ) )
-    }
+    counts <- lapply( 1:max(1,shift), function (k) array( 0, dim=npats, dimnames=lpatterns ) )
     ii <- matrix( rep(1,length(npats)), nrow=1 )
     while( ii[1] <= npats[1] ) {
         xycounts <- start(lmatches[[1]][[ii[1]]]) - leftwin[1]
@@ -191,7 +187,7 @@ counttrans <- function (ipatterns, fpatterns, initseq=simseqs[["initseq"]], fina
             }
         }
     }
-    counts <- lapply( counts, function (x) new("tuplecounts",counts=x,leftwin=leftwin,bases=bases) )
+    counts <- lapply( counts, function (x) new("tuplecounts",counts=x,leftwin=leftwin,bases=bases,rowtaxa="long",colpatterns=data.frame(short=colnames(x))) )
     if (shift==0) { counts <- counts[[1]] }
     return(counts)
 }

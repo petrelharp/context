@@ -55,3 +55,6 @@ END
 if [ $TEST3 ]; then
     echo "Failed test 3."
 fi
+
+# Test 4
+Rscript -e "source('../context-inference-fns.R'); source('../input-output.R'); x <- read.counts('unit-test.counts',leftwin=0); stopifnot(all(as.numeric(x@counts)==c(5,5,5,2,6,6,3,4,3,6,6,4,6,6,5,6))); stopifnot(all(x@colpatterns\$sp2==c('A','T','A','T'))); stopifnot(all(x@colpatterns\$sp3==c('A','A','T','T'))); cat('read in count data: passed\n') "

@@ -37,6 +37,11 @@ if ( !file.exists(opt$configfile) ) { stop("Could not find config file `", opt$c
 source("../context-inference-fns.R")
 source("../sim-context-fns.R")
 
+if (!is.null(opt$outdir)) {
+    if (!file.exists(opt$outdir)) { dir.create(opt$outdir) }
+    if (dirname(opt$outfile) != opt$outdir) { opt$outfile <- paste(opt$outdir,opt$infile,sep='/') }
+}
+
 # identifiers
 if (is.null(opt$outfile)) {
     now <- Sys.time()
@@ -63,7 +68,8 @@ stopifnot( ( length(config$bases) == length(config$initfreqs) ) )
 simseqs <- simseq.tree(opt$seqlen,config)
 
 simseq.opt <- opt
+simseq.config <- config
 
-save( simseq.opt, config, simseqs, file=opt$outfile )
+save( simseq.opt, simseq.config, simseqs, file=opt$outfile )
 
 

@@ -12,26 +12,36 @@ require(jsonlite)
 
 read.counts <- function (infile,leftwin,bases,longpats,shortpats) {
     # read in a file of counts of the following form:
-    #     reference derived count
-    #   1      AAAA      AA     1
-    #   2      CAAA      AA     2
-    #   3      GAAA      AA     2
-    #   4      TAAA      AA     3
+    #        taxon1  taxon2 ... count
+    #   1      AAAA      AA ...    19
+    #   2      CAAA      AA ...     2
+    #   3      GAAA      AA ...     6
+    #   4      TAAA      AA ...     3
     # ... and convert it to a 'tuplecounts' object
     # optionally passing in the orderings of the rows and columns
     count.table <- read.table(infile,header=TRUE,stringsAsFactors=FALSE)
-    longwin <- nchar( count.table$reference[1] )
-    shortwin <- nchar( count.table$derived[1] )
-    if ( missing(bases) ) { bases <- sort( unique( unlist( strsplit( count.table$reference, "" ) ) ) ) }
+    longwin <- nchar( count.table[1,1] )
+    shortwin <- nchar( count.table[1,2] )
+    taxa <- colnames(count.table)[-ncol(count.table)]
+    if ( missing(bases) ) { bases <- sort( unique( unlist( strsplit( count.table[,1], "" ) ) ) ) }
     if ( missing(longpats) ) { longpats <- getpatterns(longwin,bases) }
     if ( missing(shortpats) ) { shortpats <- getpatterns(shortwin,bases) }
-    counts <- Matrix(0,nrow=length(longpats),ncol=length(shortpats))
+    counts <- Matrix(0,nrow=length(longpats),ncol=length(shortpats)^(length(taxa)-1))
     rownames(counts) <- longpats
-    colnames(counts) <- shortpats
-    stopifnot( all(count.table$reference %in% rownames(counts)) )
-    stopifnot( all(count.table$derived %in% colnames(counts)) )
-    counts[cbind( match(count.table$reference,rownames(counts)), match(count.table$derived,colnames(counts)) )] <- count.table$count
-    return( new("tuplecounts", counts=counts, leftwin=leftwin, bases=bases ) )
+    stopifnot( all(count.table[,1] %in% rownames(counts)) )
+    stopifnot( all( apply( count.table[,-c(1,ncol(count.table)),drop=FALSE], 2, "%in%", shortpats ) ) )
+    colpatterns <- do.call( expand.grid, list( shortpats )[rep.int(1,length(taxa)-1)] )
+    colnames(colpatterns) <- taxa[-1]
+    colnames(counts) <- apply(colpatterns, 1, paste, collapse='.')
+    input.names <- apply( count.table[,-c(1,ncol(count.table)),drop=FALSE], 1, paste, collapse='.' )
+    counts[cbind( match(count.table[,1],rownames(counts)), match(input.names,colnames(counts)) )] <- count.table[,ncol(count.table)]
+    return( new("tuplecounts", 
+            counts=counts, 
+            leftwin=leftwin, 
+            bases=bases,
+            colpatterns=colpatterns,
+            rowtaxa=taxa[1]
+            ) )
 }
 
 
