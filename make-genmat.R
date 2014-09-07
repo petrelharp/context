@@ -41,7 +41,8 @@ sink(NULL) \
 
 option_list <- list(
         make_option( c("-c","--configfile"), type="character", help="Input file of mutation and selection motifs." ),
-        make_option( c("-o","--outfile"), type="character", help="Save resulting matrix in this file.  [default: genmatrix-(longwin)-(configfile).RData]" ),
+        make_option( c("-n","--modelname"), type="character", help="Name of model in configfile to use (if more than one)."),
+        make_option( c("-o","--outfile"), type="character", help="Save resulting matrix in this file.  [default: genmatrix-(longwin)-(configfile)-(modelname).RData]" ),
         make_option( c("-w","--longwin"), type="integer", help="Size of matching window." ),
         make_option( c("-b","--boundary"), type="character", default="none", help="Boundary conditions. [default \"%default\"]" ),
         make_option( c("-m","--meanboundary"), type="integer", default=0, help="Average over this many neighboring bases. [default \"%default\"]" ),
@@ -50,12 +51,12 @@ option_list <- list(
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 if (is.null(opt$configfile) | !file.exists(opt$configfile)) { stop("Need a config file.") }
 if (is.null(opt$longwin)) { stop("Need a window length.") }
-options(error=traceback)
 
 if (is.null(opt$outfile)) { 
-    opt$outfile <- paste(dirname(opt$configfile),"/",paste("genmatrix",opt$longwin,gsub(".json$","",basename(opt$configfile)),sep="-"),".RData",sep='') 
+    opt$outfile <- paste(dirname(opt$configfile),"/",paste(c(paste("genmatrix",opt$longwin,gsub(".json$","",basename(opt$configfile)),sep="-"),opt$modelname),collapse="-"),".RData",sep='') 
 }
 basename <- gsub(".RData",'',opt$outfile)
+if (!file.exists(dirname(opt$outfile))) { dir.create(dirname(opt$outfile)) }
 if (is.null(opt$logfile) & !interactive()) { opt$logfile <- paste(basename,"-make-genmat.Rout",sep='') }
 if (!is.null(opt$logfile)) { 
     logcon <- if (opt$logfile=="-") { stdout() } else { file(opt$logfile,open="wt") }
@@ -66,19 +67,23 @@ if (!is.null(opt$logfile)) {
 source("../sim-context-fns.R")
 source("../context-inference-fns.R")
 
-config <- read.config(opt$configfile)
+options(error=print.and.dump)
 
-# turn fixfn into an actual function
-# either by looking it up as a name
-# or parsing it directly
-if (is.null(config$selpats)) { config$selpats <- list(); config$selcoef <- numeric(0); config$fixfn <- null.fixfn; config$fixfn.params=list() }
-if (is.null(config$fixfn)) { config$fixfn <- null.fixfn; config$fixfn.params=list() }
-if (is.character(config$fixfn)) {
-    if (exists(config$fixfn,mode="function")) {
-        config$fixfn <- get(config$fixfn,mode="function")
+config <- read.config(opt$configfile)
+if (!is.null(config$tree)) {
+    orig.config <- parse.models( treeify.config( config ) )
+    if ( (length(orig.config$.models)>1) & is.null(opt$modelname) ) { 
+        stop("More than one model: must specify a model name.") 
     } else {
-        config$fixfn <- eval(parse(text=config$fixfn))
+        modelname <- if (!is.null(opt$modelname)) { config.dereference(orig.config,opt$modelname) } else { orig.config$.models }
+        stopifnot( modelname %in% names(config) )
+        config <- orig.config[[ modelname ]]
+        for (x in c("selpats","bases","fixfn","fixfn.params")) {
+            if (is.null(config[[x]])) { config[[x]] <- orig.config[[x]] }
+        }
     }
+} else {
+    config$fixfn <- parse.fixfn( config$fixfn, config$fixfn.params )
 }
 
 if (opt$meanboundary==0) {

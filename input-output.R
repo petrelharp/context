@@ -66,13 +66,12 @@ treeify.config <- function (config,tlen=NULL) {
     #   and do associated error checks.
     # no tree at all =>  stick tree.
     if (is.null(config$tree)) {
-        if (is.null(tlen)) { stop("Must specify timelengths on the tree.") }
         config <- list( tree="(tip)root;", bases=config$bases, tip=config, initfreqs=config$initfreqs )
     }
     config$tree <- ape::read.tree(text=config$tree)
     if (is.null(config$tree$edge.length)) { 
         # if tree has no edge lengths, bring these in from tlen
-        config$tree$edge.length <- eval(parse(text=opt$tlen))
+        if (!is.null(tlen)) { config$tree$edge.length <- eval(parse(text=opt$tlen)) }
     } else if (!is.null(tlen)) { 
         warning("Branch lengths specified in config file and in tlen; ignoring tlen.")
     }
@@ -114,6 +113,11 @@ parse.fixfn <- function (fixfn,fixfn.params) {
     return( fixfn )
 }
 
+config.dereference <- function (config, x) {
+    # follow pointers in config: if config[[x]] is a string, it refers to another entry.
+    sapply(x, function (xx) { while (is.character(config[[xx]]) & (length(config[[xx]])==1) ) { xx <- config[[xx]] }; xx } )
+}
+
 parse.models <- function (config) {
     # Check that all models are specified, and turn each fixfn into a function.
     #
@@ -125,10 +129,10 @@ parse.models <- function (config) {
     edgenodes <- selfname( setdiff( nodenames, rootname ) )
     if (!all(edgenodes %in% names(config)) ) { stop("Must specify named models for each edge in the tree.") }
     # if in config an edge has a string rather than a model, it refers to something else in config
-    edgerefs <- edgenodes[ which( sapply( config[edgenodes], is.character ) ) ]
-    if (!all(unlist(config[edgerefs]) %in% names(config)) ) { stop("Must specify named models for each edge in the tree.") }
-    # these are the names of the actual models
-    edgemodels <- unique( c( edgenodes[!sapply(config[edgenodes],is.character)], unlist( config[edgerefs] ) ) )
+    #  ... so these are the names of the actual models
+    edgemodels <- unique( config.dereference(config,edgenodes ) )
+    if (any(is.na(edgemodels))) { stop("Must specify named models for each edge in the tree.") }
+    config$.models <- edgemodels
     # get the fixfns in there
     for (modname in edgemodels) {
         # turn fixfn into a function and check we have the right parameters

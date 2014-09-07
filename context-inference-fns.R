@@ -265,11 +265,11 @@ setGeneric("rowtaxa", function(x) { standardGeneric("rowtaxa") })
 setMethod("rowtaxa", signature=c(x="tuplecounts"), definition=function (x) { x@rowtaxa } )
 setGeneric("coltaxa", function(x) { standardGeneric("coltaxa") })
 setMethod("coltaxa", signature=c(x="tuplecounts"), definition=function (x) { if (length(x@colpatterns)>0) { colnames(x@colpatterns) } else { "short" } } )
-# this method repackages the counts in a more friendly-looking data frame
 setGeneric("colpatterns", function(x) { standardGeneric("colpatterns") })
 setMethod("colpatterns", signature=c(x="tuplecounts"), definition=function (x) { if (length(x@colpatterns)>0) { x@colpatterns } else { data.frame(short=colnames(x@counts)) } } )
 setGeneric("counts", function(x) { standardGeneric("counts") })
 setMethod("counts", signature=c(x="tuplecounts"), definition=function (x) { x@counts } )
+# this method repackages the counts in a more friendly-looking data frame
 setGeneric("countframe", function(x) { standardGeneric("countframe") })
 setMethod("countframe", signature=c(x="tuplecounts"), definition=function (x) { 
         cf <- cbind(
