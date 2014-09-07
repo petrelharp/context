@@ -119,7 +119,7 @@ config.dereference <- function (config, x) {
     sapply(x, function (xx) { while (is.character(config[[xx]]) & (length(config[[xx]])==1) ) { xx <- config[[xx]] }; xx } )
 }
 
-parse.models <- function (config) {
+parse.models <- function (config,do.fixfns=TRUE) {
     # Check that all models are specified, and turn each fixfn into a function.
     #
     # Edges are labeled by the node/tip below them:
@@ -135,7 +135,7 @@ parse.models <- function (config) {
     if (any(is.na(edgemodels))) { stop("Must specify named models for each edge in the tree.") }
     config$.models <- edgemodels
     # get the fixfns in there
-    for (modname in edgemodels) {
+    if (do.fixfns) for (modname in edgemodels) {
         # turn fixfn into a function and check we have the right parameters
         config[[modname]]$fixfn <- parse.fixfn(config[[modname]]$fixfn,config[[modname]]$fixfn.params)
         # put in defaults if no selection
