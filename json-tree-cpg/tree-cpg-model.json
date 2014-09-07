@@ -5,6 +5,7 @@
     "initfreqs" : [ 0.25, 0.25, 0.25, 0.25 ],
     "sp1" : {
         "comment" : "Model on branch leading to species 1",
+        "genmatrix" : "genmatrices/cpg-%.RData",
         "mutpats" : [
             [ [ "A", "T" ] ], 
             [ [ "T", "A" ] ],

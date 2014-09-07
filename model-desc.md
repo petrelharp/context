@@ -45,3 +45,25 @@ An object of class 'genmatrix' is a sparse matrix that additionally carries the 
 - 'selpats' : list of selection motifs
 - 'fixfn' : fixation function that translates differences in selection coefficient to mutation rate multipliers
 - 'nmuts( )': the number of mutation patterns present in that genmatrix
+
+
+= Config files =
+
+A full config file can have:
+- 'tree' : tree, in Newick format, with node labels and optional edge lengths, 
+- 'bases' : as above
+- 'named model stanzas' : including one for each node label, specifying the model that occurs on the branch above the named node.  This can also be a character string referring to a different named model stanza, indicating that the two edges should have the same model, and 'share parameters'.
+Other stuff (e.g. "comment") will be ignored.
+
+If the config file is to be used to simulate from, it should also have
+- 'initfreqs' : base frequencies at the root.
+
+A 'model stanza' has:
+- 'mutpats' : list of lists of character pairs (one list per mutation motif)
+- 'mutrates' : numeric, nonnegative, same length as mutpats
+- 'selpats' : list of lists of characters (one list per selection motif)
+- 'selcoef' : numeric, same length as selpats
+- 'fixfn' : name of a function, or R code (e.g. "function (x) { ... }"
+- 'fixfn.params' : named list of additional parameters to fixfn
+- 'genmatrix' : pattern for where to save genmatrix files, with `%` to be substituted for the pattern length
+- 'mutprior', 'selprior', 'fixfn.prior' : coefficients for priors on respective parameters

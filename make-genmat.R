@@ -41,7 +41,6 @@ sink(NULL) \
 
 option_list <- list(
         make_option( c("-c","--configfile"), type="character", help="Input file of mutation and selection motifs." ),
-        make_option( c("-n","--modelname"), type="character", help="Name of model in configfile to use (if more than one)."),
         make_option( c("-o","--outfile"), type="character", help="Save resulting matrix in this file.  [default: genmatrix-(longwin)-(configfile)-(modelname).RData]" ),
         make_option( c("-w","--longwin"), type="integer", help="Size of matching window." ),
         make_option( c("-b","--boundary"), type="character", default="none", help="Boundary conditions. [default \"%default\"]" ),
@@ -57,44 +56,36 @@ if (is.null(opt$outfile)) {
 }
 basename <- gsub(".RData",'',opt$outfile)
 if (!file.exists(dirname(opt$outfile))) { dir.create(dirname(opt$outfile)) }
-if (is.null(opt$logfile) & !interactive()) { opt$logfile <- paste(basename,"-make-genmat.Rout",sep='') }
-if (!is.null(opt$logfile)) { 
-    logcon <- if (opt$logfile=="-") { stdout() } else { file(opt$logfile,open="wt") }
-    sink(file=logcon, type="message") 
-    sink(file=logcon, type="output") 
-}
 
-source("../sim-context-fns.R")
+# source("../sim-context-fns.R")
 source("../context-inference-fns.R")
 
 options(error=print.and.dump)
 
 config <- read.config(opt$configfile)
 if (!is.null(config$tree)) {
-    orig.config <- parse.models( treeify.config( config ) )
-    if ( (length(orig.config$.models)>1) & is.null(opt$modelname) ) { 
-        stop("More than one model: must specify a model name.") 
-    } else {
-        modelname <- if (!is.null(opt$modelname)) { config.dereference(orig.config,opt$modelname) } else { orig.config$.models }
-        stopifnot( modelname %in% names(config) )
-        config <- orig.config[[ modelname ]]
+    config <- parse.models( treeify.config( config ) )
+    modelnames <- config$.models
+    for (mm in modelnames) {
         for (x in c("selpats","bases","fixfn","fixfn.params")) {
-            if (is.null(config[[x]])) { config[[x]] <- orig.config[[x]] }
+            if (is.null(config[[mm]][[x]])) { config[[mm]][[x]] <- config[[x]] }
         }
     }
 } else {
     config$fixfn <- parse.fixfn( config$fixfn, config$fixfn.params )
+    config$genmatrix <- opt$outfile
+    config <- list( default=config )
+    modelnames <- c("default")
 }
 
-if (opt$meanboundary==0) {
-    genmatrix <- do.call( makegenmatrix, c( list( patlen=opt$longwin, mutpats=config$mutpats, selpats=config$selpats, boundary=opt$boundary, bases=config$bases, fixfn=config$fixfn ), config$fixfn.params ) )
-} else {
-    genmatrix <- do.call( meangenmatrix, c( list( leftwin=opt$meanboundary, rightwin=opt$meanboundary, patlen=opt$longwin, mutpats=config$mutpats, selpats=config$selpats, boundary=opt$boundary, bases=config$bases, fixfn=config$fixfn ), config$fixfn.params ) )
+for (mm in modelnames) {
+    if (opt$meanboundary==0) {
+        genmatrix <- do.call( makegenmatrix, c( list( patlen=opt$longwin, mutpats=config[[mm]]$mutpats, selpats=config[[mm]]$selpats, boundary=opt$boundary, bases=config[[mm]]$bases, fixfn=config[[mm]]$fixfn ), config[[mm]]$fixfn.params ) )
+    } else {
+        genmatrix <- do.call( meangenmatrix, c( list( leftwin=opt$meanboundary, rightwin=opt$meanboundary, patlen=opt$longwin, mutpats=config[[mm]]$mutpats, selpats=config[[mm]]$selpats, boundary=opt$boundary, bases=config[[mm]]$bases, fixfn=config[[mm]]$fixfn ), config[[mm]]$fixfn.params ) )
+    }
+    if (!is.null(config$mutrates)) {
+        genmatrix@x <- do.call( update, c( list(G=genmatrix, mutrates=config[[mm]]$mutrates, selcoef=config[[mm]]$selcoef), config[[mm]]$fixfn.params ) )
+    }
+    save( genmatrix, file=gsub("%",opt$longwin,config[[mm]]$genmatrix,fixed=TRUE) )
 }
-
-if (!is.null(config$mutrates)) {
-    genmatrix@x <- do.call( update, c( list(G=genmatrix, mutrates=config$mutrates, selcoef=config$selcoef), config$fixfn.params ) )
-}
-
-# save( boundary, meanboundary, bases, mutpats, selpats, fixfn, genmatrix, file=outfile )
-save( genmatrix, file=opt$outfile )
