@@ -37,19 +37,17 @@ if ( !file.exists(opt$configfile) ) { stop("Could not find config file `", opt$c
 source("../context-inference-fns.R")
 source("../sim-context-fns.R")
 
-if (!is.null(opt$outdir)) {
-    if (!file.exists(opt$outdir)) { dir.create(opt$outdir) }
-    if (dirname(opt$outfile) != opt$outdir) { opt$outfile <- paste(opt$outdir,opt$infile,sep='/') }
-}
-
 # identifiers
 if (is.null(opt$outfile)) {
     now <- Sys.time()
-    basename <- paste(opt$outdir,"/","simseq-",format(now,"%Y-%m-%d-%H-%M"),"-",opt$jobid,sep='')
-    opt$outfile <- paste(basename,".RData",sep='')
-} else {
-    basename <- gsub(".RData","",opt$outfile)
+    opt$outfile <- paste(opt$outdir,"/","simseq-",format(now,"%Y-%m-%d-%H-%M"),"-",opt$jobid,".RData",sep='')
 }
+
+if (!is.null(opt$outdir)) {
+    if (!file.exists(opt$outdir)) { dir.create(opt$outdir) }
+    if (dirname(opt$outfile) != opt$outdir) { opt$outfile <- paste(opt$outdir,opt$outfile,sep='/') }
+}
+basename <- gsub(".RData","",opt$outfile)
 if (is.null(opt$logfile) & !interactive()) { opt$logfile <- paste(basename,".Rout",sep='') }
 if (!is.null(opt$logfile)) {
     logcon <- if (opt$logfile=="-") { stdout() } else { file(opt$logfile,open="wt") }

@@ -124,7 +124,7 @@ countpats <- function (patterns, simseq ) {
     return( sapply( patterns, countPattern, simseq ) )
 }
 
-counttrans.list <- function (lpatterns, seqlist=lapply(simseqs,"[[","finalseq"), simseqs, leftwin=0, shift=0, cyclic=FALSE) {
+counttrans.list <- function (lpatterns, seqlist=lapply(simseqs,"[[","finalseq"), simseqs, leftwin, shift=0, cyclic=FALSE, bases=sort(unique(unlist(strsplit(lpatterns[[1]],""))))) {
     # count number of times each of seqlist matches corresponding lpatterns
     #   optionally, cyclical
     # if shift is nonzero, return a list  with the counts in each of (shift) frames
@@ -156,7 +156,20 @@ counttrans.list <- function (lpatterns, seqlist=lapply(simseqs,"[[","finalseq"),
         for (j in rev(seq_along(ii)[-1])) { ii[j-1] <- ii[j-1] + ( ii[j] > npats[j] ) }
         ii[-1] <- 1 + ( (ii[-1]-1) %% npats[-1] )
     }
-    counts <- lapply( counts, function (x) new("tuplecounts",counts=x,leftwin=leftwin) )
+    colpatterns <- do.call( expand.grid, list( shortpats )[ rep.int(1,length(seqlist)-1) ] )
+    colnames(colpatterns) <- names(seqlist)[-1]
+    counts <- lapply( counts, function (x) {
+            dim(x) <- c(dim(x)[1],prod(dim(x)[-1]))
+            rownames(x) <- longpats
+            colnames(x) <- apply(colpatterns,1,paste,collapse='.')
+            new("tuplecounts", 
+                leftwin=leftwin,
+                counts=Matrix(x),
+                bases=bases,
+                rowtaxa=names(seqlist)[1],
+                colpatterns=colpatterns
+                ) 
+        } )
     if (shift==0) { counts <- counts[[1]] }
     return(counts)
 }

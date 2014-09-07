@@ -24,18 +24,11 @@ option_list <- list(
         make_option( c("-w","--longwin"), type="integer", help="Size of long window." ),
         make_option( c("-s","--shortwin"), type="integer", help="Size of short window." ),
         make_option( c("-l","--leftwin"), type="integer", help="Size of offset of short window from the left."),
-        make_option( c("-c","--longclade"), type="character", help="Which clade, in a tree, gets the 'long' patterns."),
-        make_option( c("-r","--revcounts"), action="store_true", default="FALSE", help="Count reversed?")
+        make_option( c("-c","--longclade"), type="character", help="Which clade, gets the 'long' patterns. [default: root for a stick tree]"),
+        make_option( c("-t","--shortclades"), type="character", help="Which clades, gets the 'short' patterns. [default: all tips except longclade]"),
+        make_option( c("-R","--RData"), type="logical", action="store_true", default=FALSE, help="Output as tuplecounts object in RData? [default: as csv]")
         )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
-if (is.null(opt$outfile)) { # default outfile
-    outfile <- paste(
-                     gsub(".RData","",opt$infile),
-                     if(opt$revcounts){"-rev"}else{""},
-                     ".", opt$longwin, ".", opt$shortwin, ".l", opt$leftwin,
-                     ".counts",
-                 sep="")
-}
 
 source("../sim-context-fns.R")
 source("../context-inference-fns.R")
@@ -45,16 +38,32 @@ load(opt$infile) # provides simseq.opt, simseq.config, and simseqs; config has b
 longpats <- getpatterns(opt$longwin,simseq.config$bases)
 shortpats <- getpatterns(opt$shortwin,simseq.config$bases)
 
-# this returns a matrix
-counts <- if (!revcounts) {
-    counttrans( longpats, shortpats, simseqs[[1]]$initseq, simseqs[[1]]$finalseq, leftwin=opt$leftwin )
+if (length(simseqs)==1) { # stick tree
+    if (is.null(opt$longclade)) { opt$longclade <- simseq.config$tree$node.label }
+    if (is.null(opt$shortclades)) { opt$shortclades <- simseq.config$tree$tip.label }
 } else {
-    counttrans( longpats, shortpats, simseqs[[1]]$finalseq, simseqs[[1]]$initseq, leftwin=opt$leftwin )
+    if (is.null(opt$longclade)) { stop("Must specify a long clade name.") }
+    if (is.null(opt$shortclades)) { opt$shortclades <- setdiff(simseq.config$tree$tip.label,opt$longclade) }
 }
 
-countframe <- data.frame( reference=rownames(counts)[row(counts)],
-                         derived=colnames(counts)[col(counts)],
-                         count=as.vector(counts)
-                         )
+if (is.null(opt$outfile)) { # default outfile
+    opt$outfile <- paste(
+                     gsub(".RData","",opt$infile),
+                     "-", opt$longwin, 
+                     "-", opt$longclade,
+                     "-", opt$shortwin, 
+                     "-", paste(opt$shortclades,collapse="-"),
+                     "-l", opt$leftwin,
+                     ".counts",
+                 sep="")
+}
 
-write.table(countframe, file=outfile, row.names=FALSE, sep='\t', quote=FALSE)
+
+counts <- counttrans.list( list(longpats,shortpats)[c(1,rep.int(2,length(opt$shortclades)))], simseqs=simseqs[c(opt$longclade,opt$shortclades)], leftwin=opt$leftwin, bases=simseq.config$bases )
+
+if (opt$RData) {
+    save( counts, file=gsub("\\.counts$",".RData",opt$outfile) )
+} else {
+    countframe <- countframe( counts )
+    write.table(countframe, file=opt$outfile, row.names=FALSE, sep='\t', quote=FALSE)
+}
