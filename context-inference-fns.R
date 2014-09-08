@@ -255,14 +255,14 @@ setClass("tuplecounts",representation(
         leftwin="numeric",
         counts="Matrix",
         bases="character",
-        rowtaxa="character",
+        rowtaxon="character",
         colpatterns="data.frame"),
-    prototype=list(rowtaxa="long",colpatterns=data.frame())
+    prototype=list(rowtaxon="long",colpatterns=data.frame())
     )
 
 # extractor functions
-setGeneric("rowtaxa", function(x) { standardGeneric("rowtaxa") })
-setMethod("rowtaxa", signature=c(x="tuplecounts"), definition=function (x) { x@rowtaxa } )
+setGeneric("rowtaxon", function(x) { standardGeneric("rowtaxon") })
+setMethod("rowtaxon", signature=c(x="tuplecounts"), definition=function (x) { x@rowtaxon } )
 setGeneric("coltaxa", function(x) { standardGeneric("coltaxa") })
 setMethod("coltaxa", signature=c(x="tuplecounts"), definition=function (x) { if (length(x@colpatterns)>0) { colnames(x@colpatterns) } else { "short" } } )
 setGeneric("colpatterns", function(x) { standardGeneric("colpatterns") })
@@ -277,7 +277,7 @@ setMethod("countframe", signature=c(x="tuplecounts"), definition=function (x) {
                 x@colpatterns[ rep(1:nrow(x@colpatterns),each=nrow(x@counts)), ],
                 as.numeric(x@counts)
             )
-        colnames(cf) <- c( rowtaxa(x), coltaxa(x), "count" )
+        colnames(cf) <- c( rowtaxon(x), coltaxa(x), "count" )
         return(cf)
     } )
 
@@ -610,16 +610,71 @@ downbranch <- function ( genmatrix, rootmatrix, mutrates, selcoef, tlen, ... ) {
 
 ##
 # pruning-ish algorithm
-#
-# outline:
-#   1) begin at the root, with initial frequencies.
-#   2) we'll move down, towards the focal (longest-pattern) tip
-#   3) before moving, resolve up the the other, non-focal branch, recursive in the same way.
 
-treetrans <- function (  ) {
-    # First, compute a good order
-
+cherry.transmats <- function (m1,m2) {
+    mm <- m1[,rep(1:ncol(m1),ncol(m2))] * m2[,rep(1:ncol(m2),each=ncol(m1))] 
+    return(mm)
 }
+twig.transmat <- function (m,x) { sweep(m,1,x,"*") }
+
+peel.transmat <- function (tree, rowtaxon, coltaxa, genmatrices, projmatrix, root.distrn, return.list=FALSE ) {
+    # indices of nodes:
+    root.node <- get.root(tree)
+    row.node <- match( rowtaxon, nodenames(tree) )
+    col.nodes <- match( coltaxa, nodenames(tree) )
+    # branch lengths, in order with terminal node
+    tlens <- tree$edge.length[match(seq_along(nodenames(tree)),tree$edge[,2])]
+    # long x short transition matrices
+    transmats <- lapply( nodenames(tree), function (x) NULL )
+    for (x in col.nodes) { transmats[[x]] <- projmatrix }
+    # find path from root to rowtaxon:
+    downpath <- c(row.node)
+    while( ! root.node %in% downpath ) { downpath <- c( get.parent(downpath[1],tree), downpath ) }
+    # list of active nodes that come off of the path from root to rowtaxon:
+    up.twigs <- col.nodes[ get.parent(col.nodes,tree) %in% downpath ]
+    # list of other active nodes
+    up.active <- setdiff( col.nodes, up.twigs )
+    while (length(up.active)>0) {
+        up.cherries <- get.cherries(up.active,tree)
+        uppair <- up.cherries[1,]
+        # compute and combine transition matrices across each branch
+        cat( "up: ", uppair, "\n" )
+        transmat1 <- computetransmatrix( genmatrices[[uppair[1]]], transmats[[uppair[1]]], tlen=tlens[uppair[1]], time="fixed")
+        transmat2 <- computetransmatrix( genmatrices[[uppair[2]]], transmats[[uppair[2]]], tlen=tlens[uppair[2]], time="fixed")
+        newmat <- cherry.transmats( transmat1, transmat2 )
+        # remove cherry
+        up.active <- setdiff( up.active, uppair )
+        newly.active <- get.parent( uppair[1], tree )
+        transmats[[newly.active]] <- newmat
+        if (get.parent(newly.active,tree) %in% downpath) {
+            up.twigs <- c( up.twigs, newly.active )
+        } else {
+            up.active <- c( up.active, newly.active )
+        }
+    }
+    # reorder up.twigs to match downpath
+    up.twigs <- up.twigs[ match( get.parent(up.twigs,tree), downpath ) ]
+    # now move back down from the root (=downpath[1]) to rowtaxon
+    transmats[[downpath[1]]] <- twig.transmat( transmats[[up.twigs[1]]], root.distrn )
+    if (length(downpath)>1) {
+        # now move back down
+        for (k in seq_along(up.twigs)[-1]) {
+            cat("down: ", downpath[k], up.twigs[k], "\n" )
+            transmat1 <- computetransmatrix( genmatrices[[downpath[k]]], transmats[[downpath[k-1]]], tlen=tlens[downpath[k]], transpose=TRUE, time="fixed")
+            transmat2 <- computetransmatrix( genmatrices[[up.twigs[k]]], transmats[[up.twigs[k]]], tlen=tlens[up.twigs[k]], time="fixed")
+            transmats[[downpath[k]]] <- cherry.transmats( transmat1, transmat2 )
+        }
+        # and finish off
+        cat("final: ", row.node, "\n")
+        transmats[[row.node]] <- computetransmatrix( genmatrices[[row.node]], transmats[[downpath[length(downpath)-1]]], tlen=tlens[row.node], transpose=TRUE, time="fixed")
+    }
+    if (return.list) {
+        return(transmats) 
+    } else {
+        return( transmats[[row.node]] )
+    }
+}
+
 
 ###
 # tree miscellany

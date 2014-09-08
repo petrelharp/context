@@ -30,10 +30,10 @@ An object of class 'tuplecounts' is a matrix of counts of paired tuples, that ad
 - 'counts' : a Matrix of counts, with rows indexed by long patterns and columns indexed by (combinations of) short patterns; and
   - 'rownames(counts)' : long patterns.
   - 'colnames(counts)' : either short patterns (for two taxa), or arbitrary, with corresponding information encoded by colpatterns
-- 'rowtaxa' : the taxon in which we count long patterns
+- 'rowtaxon' : the taxon in which we count long patterns
 - 'colpatterns' : a data frame whose columns are indexed by taxa in which short patterns are counted, and the k-th row of which gives the combination of short patterns corresponding to the k-th column of counts
 - 'coltaxa( )' : the column names of colpatterns.
-For instance, if the tree has taxa `sp1`, `sp2`, and `sp3`; `bases` is `A,T`; and `rowtaxa` is `sp1`; then `rownames(counts)` could be `AA,AT,TA,TT`, and the rows of `colpatterns` could be `A,A`, `A,T`, `T,A`, and `T,T`; meaning that, for instance, there were `counts[1,2]` times that `sp1` was found to have `AA` at a site where `sp2` had `A` while `sp3` had `T`.
+For instance, if the tree has taxa `sp1`, `sp2`, and `sp3`; `bases` is `A,T`; and `rowtaxon` is `sp1`; then `rownames(counts)` could be `AA,AT,TA,TT`, and the rows of `colpatterns` could be `A,A`, `A,T`, `T,A`, and `T,T`; meaning that, for instance, there were `counts[1,2]` times that `sp1` was found to have `AA` at a site where `sp2` had `A` while `sp3` had `T`.
 Methods:
 - 'countframe' : returns the `counts` as a data.frame, with the first, named, columns giving the patterns in each taxa, and the last (named `count`) giving the number of occurrences
 

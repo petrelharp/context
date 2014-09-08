@@ -41,7 +41,7 @@ read.counts <- function (infile,leftwin,bases,longpats,shortpats) {
             leftwin=leftwin, 
             bases=bases,
             colpatterns=colpatterns,
-            rowtaxa=taxa[1]
+            rowtaxon=taxa[1]
             ) )
 }
 

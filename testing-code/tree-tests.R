@@ -4,18 +4,14 @@ source("../context-inference-fns.R")
 
 config <- treeify.config( read.config("big-tree-model.json") )
 
-rowtaxa <- "sp1"
-coltaxa <- c("sp2","sp3","sp4")
+genmatrices <- lapply( selfname(c("forward","reverse")), function (x) {
+        makegenmatrix( mutpats=config[[x]]$mutpats, bases=config$bases, mutrates=config[[x]]$mutrates, patlen=2, fixfn=null.fixfn )
+    } )
+genmatrices <- genmatrices[ unlist(config[nodenames(config$tree)]) ]
 
-root.node <- get.root(config$tree)
-row.node <- match( rowtaxa, nodenames(config$tree) )
-col.nodes <- match( coltaxa, nodenames(config$tree) )
-# find path from root to rowtaxa:
-downpath <- c(row.node)
-while( ! root.node %in% downpath ) { downpath <- c( get.parent(downpath[1],config$tree), downpath ) }
-# list of active nodes that come off of the path from root to rowtaxa:
-up.twigs <- col.nodes[ get.parent(col.nodes,config$tree) %in% downpath ]
-# list of nodes in cherries
-up.cherries <- setdiff( col.nodes, up.twigs )
-while (length(up.cherries)>0) {
-}
+projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrices[[1]]), leftwin=0, fpatterns=getpatterns(1,config$bases) )
+root.distrn <- runif( nrow(projmatrix) )
+root.distrn <- root.distrn / sum(root.distrn)
+
+transmat <- peel.transmat( config$tree, rowtaxon="sp1", coltaxa=c("sp2","sp3","sp4"), genmatrices=genmatrices, projmatrix=projmatrix, root.distrn=root.distrn, return.list=TRUE )
+

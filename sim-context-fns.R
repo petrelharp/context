@@ -166,7 +166,7 @@ counttrans.list <- function (lpatterns, seqlist=lapply(simseqs,"[[","finalseq"),
                 leftwin=leftwin,
                 counts=Matrix(x),
                 bases=bases,
-                rowtaxa=names(seqlist)[1],
+                rowtaxon=names(seqlist)[1],
                 colpatterns=colpatterns
                 ) 
         } )
@@ -200,7 +200,7 @@ counttrans <- function (ipatterns, fpatterns, initseq=simseqs[["initseq"]], fina
             }
         }
     }
-    counts <- lapply( counts, function (x) new("tuplecounts",counts=x,leftwin=leftwin,bases=bases,rowtaxa="long",colpatterns=data.frame(short=colnames(x))) )
+    counts <- lapply( counts, function (x) new("tuplecounts",counts=x,leftwin=leftwin,bases=bases,rowtaxon="long",colpatterns=data.frame(short=colnames(x))) )
     if (shift==0) { counts <- counts[[1]] }
     return(counts)
 }

@@ -1,9 +1,9 @@
 # fixes issues in expm:::expAtv
 
 
-expAtv <- function (A, v, t = 1, method = "Sidje98", tol = 1e-07, btol = 1e-07, 
-    m.max = 30, mxrej = 10, verbose = getOption("verbose")) 
+expAtv <- function (A, v, t = 1, method = "Sidje98", tol = 1e-07, btol = 1e-07, m.max = 30, mxrej = 10, verbose = getOption("verbose")) 
 {
+    if (all(v==0)) { return( list(eAtv = v, error = 0, nstep = 0, n.reject = 0) ) }
     stopifnot(length(v) == (n <- nrow(A)), m.max >= 2)
     if (n <= 1) {
         if (n == 1) 

@@ -2,7 +2,7 @@
 set -eu
 set -o pipefail
 
-Rscript ../sim-seq.R -c big-tree-model.json -s 100 -o TEMP-tree-test.RData
+Rscript ../sim-seq.R -c fwds-rev-tree-model.json -s 100 -o TEMP-tree-test.RData
 Rscript -e 'load("TEMP-tree-test.RData");suppressMessages({require(Biostrings);require(IRanges)})' \
     -e 'x <- lapply(simseqs,function (z) strsplit(as.character(z$finalseq),"")[[1]])' \
     -e 'stopifnot(unique(x$sp1)=="O")' \
