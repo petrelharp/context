@@ -90,6 +90,17 @@ get.root <- function (tr) {
     # return the index of the root in (tips,nodes) order
     setdiff( tr$edge[,1], tr$edge[,2] )
 }
+get.parent <- function (node,tr) {
+    # return index of the parent of node in (tips,nodes) order
+    tr$edge[match(node,tr$edge[,2]),1]
+}
+get.cherries <- function (node,tr) {
+    # return pairs in node (or NA if none exists)
+    parents <- get.parent(node,tr)
+    siblings <- outer( parents, parents, "==" )
+    sib.indices <- which( siblings & upper.tri(siblings) , arr.ind=TRUE )
+    cbind( node[sib.indices[,1]], node[sib.indices[,2]] )
+}
 
 parse.fixfn <- function (fixfn,fixfn.params) {
     # turn fixfn into an actual function

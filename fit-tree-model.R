@@ -67,6 +67,51 @@ cherry.transmats <- function (m1,m2,x) {
 }
 twig.transmat <- function (m,x) { sweep(m,1,x,"*") }
 
+# indices of nodes:
+root.node <- get.root(config$tree)
+row.node <- match( rowtaxa(counts), nodenames(config$tree) )
+col.nodes <- match( coltaxa(counts), nodenames(config$tree) )
+
+# find path from root to rowtaxa:
+downpath <- c(row.node)
+while( ! root.node %in% downpath ) { downpath <- c( get.parent(downpath[1],config$tree), downpath ) }
+# list of active nodes that come off of the path from root to rowtaxa:
+up.twigs <- lapply( selfname( col.nodes[ get.parent(col.nodes,config$tree) %in% downpath ]), function (x) projmatrix )
+# list of other active nodes
+up.active <- lapply( selfname( setdiff( col.nodes, up.twigs )), function (x) projmatrix )
+while (length(up.active)>0) {
+    up.cherries <- get.cherries(names(up.active),config$tree)
+    uppair <- up.cherries[1,]
+    # do something
+    cat( "up: ", uppair, "\n" )
+    transmat1 <- computetransmatrix( genmatrices[[uppair[1]]], up.active[[uppair[1]]], tlen=tlens[uppair[1]], time="fixed")
+    transmat2 <- computetransmatrix( genmatrices[[uppair[2]]], up.active[[uppair[2]]], tlen=tlens[uppair[2]], time="fixed")
+    newmat <- cherry.transmats( transmat1, transmat2 )
+    # remove cherry
+    up.active <- up.active[-uppair]
+    newly.active <- get.parent( uppair[1], config$tree )
+    if (get.parent(newly.active,config$tree) %in% downpath) {
+        up.twigs <- c( up.twigs, list(newmat) )
+        names(up.twigs)[length(up.twigs)] <- newly.active
+    } else {
+        up.active <- c( up.active, list(newmat) )
+        names(up.active)[length(up.active)] <- newly.active
+    }
+}
+# reorder up.twigs to match downpath
+up.twigs <- up.twigs[ match( get.parent(up.twigs,config$tree), downpath ) ]
+# start things off at the root (which is downpath[1])
+cat("root: ", downpath[1], up.twigs[1], "\n" )
+full.transmat <- twig.transmat( up.twigs[1], root.distrn )
+# now move back down
+for (k in seq_along(up.twigs[-1])) {
+    cat("down: ", downpath[k+1], up.twigs[k+1], "\n" )
+    # XXX
+}
+# and finish off
+cat("final: ", row.node, "\n")
+
+
 # Compute (quasi)-likelihood function using all counts -- multinomial as described in eqn:comp_like.
 likfun <- function (params){
     # params are: mutrates, selcoef, fixparams
@@ -78,6 +123,9 @@ likfun <- function (params){
         genmatrices[[k]]@x <- do.call( update, c( list( G=genmatrices[[k]],mutrates=mutrates.list[[k]],selcoef=selcoef.list[[k]] ), as.list(fixparam.list[[k]]) ) )
     }
     # Now, peel XXX
+
+
+
     # this is collapsed transition matrix
     subtransmatrix <- computetransmatrix( genmatrix, projmatrix, tlen=1, time="fixed") # shape=params[length(params)], time="gamma" )
     # return POSITIVE log-likelihood
