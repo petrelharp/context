@@ -127,7 +127,7 @@ parse.fixfn <- function (fixfn,fixfn.params) {
 
 config.dereference <- function (config, x) {
     # follow pointers in config: if config[[x]] is a string, it refers to another entry.
-    sapply(x, function (xx) { while (is.character(config[[xx]]) & (length(config[[xx]])==1) ) { xx <- config[[xx]] }; xx } )
+    sapply(x, function (xx) { n <- 1; while (n < 20 && is.character(config[[xx]]) & (length(config[[xx]])==1) ) { xx <- config[[xx]]; n<-n+1 }; xx } )
 }
 
 parse.models <- function (config,do.fixfns=TRUE) {

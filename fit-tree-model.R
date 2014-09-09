@@ -21,10 +21,13 @@ option_list <- list(
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 if (is.null(opt$infile)) { stop("No input file.  Run\n  bcells-inference.R -h\n for help.\n") }
-if (is.null(opt$config)) { stop("No config file.  Run\n  bcells-inference.R -h\n for help.\n") }
+if (is.null(opt$configfile)) { stop("No config file.  Run\n  bcells-inference.R -h\n for help.\n") }
 if (!file.exists(opt$infile)) { stop("Cannot read input file.") }
 if (is.null(opt$basedir)) { opt$basedir <- dirname(opt$infile) }
-if (is.null(opt$outfile)) { opt$outfile <- paste( opt$basedir, "/", gsub("\\.[^.]*","",basename(opt$infile) ), "-", gsub("\\.[^.]*","",basename(opt$gmfile) ), "-", opt$jobid, ".RData", sep='' ) }
+if (is.null(opt$outfile)) { 
+    model.id <- if (is.null(opt$configfile)) { gsub("\\.[^.]*","",basename(opt$gmfile) ) } else { gsub("\\.[^.]*","",basename(opt$configfile) ) }
+    opt$outfile <- paste( opt$basedir, "/", gsub("\\.[^.]*","",basename(opt$infile) ), "-", model.id, "-", opt$jobid, ".RData", sep='' ) 
+}
 print(opt) # this will go in the pbs log
 
 source("../context-inference-fns.R")
@@ -33,8 +36,11 @@ options(error = print.and.dump)
 
 config <- parse.models( treeify.config( read.config(opt$configfile) ) )
 if (is.null(opt$longwin)) { stop("Must specify longwin and shortwin with tree-based models.") }
+# find the right generator matrix files
 for (mm in config$.models) { config[[mm]]$genmatrix <- gsub("%",opt$longwin,config[[mm]]$genmatrix,fixed=TRUE) }
 
+# which models go with which edges
+models <- config.dereference( config, nodenames(config$tree) )
 # load generator matrices
 genmatrices <- lapply( selfname(config$.models), function (mm) {
         if (!file.exists(config[[mm]]$genmatrix)) { stop(paste("Can't find file", config[[mm]]$genmatrix), ".") }
@@ -51,20 +57,43 @@ stopifnot( all( rownames(counts) == longpats ) )
 
 projmatrix <- collapsepatmatrix( ipatterns=longpats, leftwin=leftwin(counts), fpatterns=colnames(counts) )
 
-# order parameters (mutrates, selcoef, fixfn.params), then for each generator matrix
-.param.map <- function (gm,type,params) {
-    nparams <- sapply( genmatrices, function (x) { c( nmuts(x), nsel(x), length(fixparams(x)) ) } )
-    p <- params[ do.call( seq, as.list( c(0,cumsum(nparams))[ (gm-1)*3 + pmatch(type,c("mutrates","selcoef","fixparams")) + c(0,1) ] + c(1,0) ) ) ]
-    if ( pmatch(type,c("mutrates","selcoef","fixparams"))==3 ) { names(p) <- fixparams(genmatrices[[gm]]) }
+# parameters are ordered as: initfreqs, tlens, ( mutrates, selcoef, fixparams ) x genmatrices
+# this will parse a vector of params and give the ones requested
+.param.map <- function (gm=NULL,type,params) {
+    typeind <- pmatch(type,c("mutrates","selcoef","fixparams","initfreqs","tlens"))
+    nbases <- length( genmatrices[[1]]@bases )
+    ntimes <- nrow(config$tree$edge)
+    if (typeind==4) {
+        p <- params[1:nbases]
+    } else if (typeind==5) {
+        p <- params[nbases+(1:ntimes)]
+    } else {
+        nparams <- sapply( genmatrices, function (x) { c( nmuts(x), nsel(x), length(fixparams(x)) ) } )
+        p <- params[ nbases + ntimes + do.call( seq, as.list( c(0,cumsum(nparams))[ (gm-1)*3 + typeind + c(0,1) ] + c(1,0) ) ) ]
+        if ( typeind==3 ) { names(p) <- fixparams(genmatrices[[gm]]) }
+    }
     return(p)
 }
-initparam.list <- lapply( config[config$.models], "[", c("mutrates","selcoef","fixfn.params") )
+initparam.list <- c( list( config$initfreqs, runif(length(config$tree$edge)) ), lapply( config[config$.models], "[", c("mutrates","selcoef","fixfn.params") ) )
+names(initparam.list[[1]]) <- paste("init",config$bases,sep='.')
+names(initparam.list[[2]]) <- paste("tlen",nodenames(config$tree)[config$tree$edge[,2]],sep='.')
+initparams <- unlist( initparam.list )
 
-peel.transmat( config$tree, rowtaxon(counts), coltaxa(counts), genmatrices, projmatrix )
+# compute root distribution
+patcomp <- apply( do.call(rbind, strsplit(longpats,'') ), 2, match, config$bases )  # which base is at each position in each pattern
+initfreqs <- .param.map( type="init", params=initparams )
+initfreqs <- initfreqs/sum(initfreqs)
+patfreqs <- initfreqs[patcomp]
+dim(patfreqs) <- dim(patcomp)
+root.distrn <- apply( patfreqs, 1, prod )
+stopifnot(sum(root.distrn)==1)
+
+# test this works
+transmat <- peel.transmat( tree=config$tree, rowtaxon=rowtaxon(counts), coltaxa=coltaxa(counts), models=models, genmatrices=genmatrices, projmatrix=projmatrix, root.distrn=root.distrn, tlens=config$tree$edge.length )
 
 # Compute (quasi)-likelihood function using all counts -- multinomial as described in eqn:comp_like.
 likfun <- function (params){
-    # params are: mutrates, selcoef, fixparams
+    # params are: initfreqs, tlens, ( mutrates, selcoef, fixparams ) x genmatrices
     # First, update genmatrices:
     mutrates.list <- lapply( seq_along(genmatrices), .param.map, type="mut", params=params )
     selcoef.list <- lapply( seq_along(genmatrices), .param.map, type="sel", params=params )
@@ -72,27 +101,29 @@ likfun <- function (params){
     for (k in seq_along(genmatrices)) {
         genmatrices[[k]]@x <- do.call( update, c( list( G=genmatrices[[k]],mutrates=mutrates.list[[k]],selcoef=selcoef.list[[k]] ), as.list(fixparam.list[[k]]) ) )
     }
-    # Now, peel XXX
-
-
-
-    # this is collapsed transition matrix
-    subtransmatrix <- computetransmatrix( genmatrix, projmatrix, tlen=1, time="fixed") # shape=params[length(params)], time="gamma" )
+    # get branch lengths
+    tlens <- .param.map( type="tlen", params=params )
+    # compute root distribution
+    initfreqs <- .param.map( type="init", params=params )
+    initfreqs <- initfreqs/sum(initfreqs)
+    patfreqs <- initfreqs[patcomp]
+    dim(patfreqs) <- dim(patcomp)
+    root.distrn <- apply( patfreqs, 1, prod )
+    # Now, peel 
+    transmat <- peel.transmat( tree=config$tree, rowtaxon=rowtaxon(counts), coltaxa=coltaxa(counts), models=models, genmatrices=genmatrices, projmatrix=projmatrix, root.distrn=root.distrn, tlens=tlens )
     # return POSITIVE log-likelihood
-    ans <- sum( counts@counts * log(subtransmatrix) )
+    ans <- sum( counts@counts * log(transmat) )
     if (!is.finite(ans)) { print(paste("Warning: non-finite likelihood with params:",params)) }
     return(ans)
 }
 
-initparams <- unlist( initparam.list )
-stopifnot( length(initparams) == nmuts(genmatrix)+nsel(genmatrix)+length(fixparams(genmatrix)) )
-lbs <- c( rep(1e-6,nmuts(genmatrix)), rep(-5,nsel(genmatrix)), rep(-Inf,length(fixparams(genmatrix))) )
-ubs <- c( rep(2,nmuts(genmatrix)), rep(5,nsel(genmatrix)), rep(Inf,length(fixparams(genmatrix))) )
-parscale <- c( 1e-3 * rep( mean(adhoc.mutrates),nmuts(genmatrix)), rep(.05,nsel(genmatrix)), rep(1,length(fixparams(genmatrix))) )
+lbs <- unlist( c( rep(1e-6,length(config$bases)), lapply( genmatrices, function (gm) { c( rep(1e-6,nmuts(gm)), rep(-5,nsel(gm)), rep(-Inf,length(fixparams(gm))) ) } ) ) )
+ubs <- unlist( c( rep(1,length(config$bases)), lapply( genmatrices, function (gm) { c( rep(2,nmuts(gm)), rep(5,nsel(gm)), rep(Inf,length(fixparams(gm))) ) } ) ) )
+parscale <- 1e-2 * unlist( c( rep(1,length(config$bases)), lapply( genmatrices, function (gm) { c( rep(.1,nmuts(gm)), rep(.1,nsel(gm)), rep(1,length(fixparams(gm))) ) } ) ) )
 
 baseval <- likfun(initparams)
 stopifnot( is.finite(baseval) )
-optim.results <- optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(fnscale=(-1)*abs(baseval), parscale=parscale, maxit=opt$maxit) )
+optim.results <- optim( par=initparams, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(fnscale=(-1)*abs(baseval), parscale=parscale, maxit=opt$maxit) )
 
 
 model <- new( "context",

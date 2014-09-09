@@ -731,7 +731,7 @@ The steps for computing this are then:
 
   \item Compute $M_1(u,z) = p_{m,\ell}(t_C,u,z)$ (a $|\calS|^{m+2\ell} \times |\calS|^m$ matrix)
 
-  \item Compute $M_2(v,z) = \sum_{v \in \calS^{m+2\ell}}  p_{m+2\ell}(t_{AB},u,v) \pi(u) M_1(u,z)$ (still a $|\calS|^{m+2\ell} \times |\calS|^m$ matrix)
+  \item Compute $M_2(v,z) = \sum_{u \in \calS^{m+2\ell}}  p_{m+2\ell}(t_{AB},u,v) \pi(u) M_1(u,z)$ (still a $|\calS|^{m+2\ell} \times |\calS|^m$ matrix)
 
   \item Compute $M_3(v,y) = p_{m,\ell}(t_B,v,y)$ (a $|\calS|^{m+2\ell} \times |\calS|^m$ matrix)
 
@@ -765,11 +765,19 @@ Let $v_0=\rho, v_1, \ldots, v_\ell = a$ be the path from the root down to $a$,
 let $u_1, u_2, \ldots, u_m$ be the remaining internal nodes,
 and for each $v_i$ let $u(v_i)$ be the offspring of $v_i$ that is not one of the other $v$.
 For each node in the tree,
-we will compute the matrix of probabilities that a ``long'' sequence observed at that node
-is matched by the ``short'' sequences seen on all the tips of the tree
-further away from $a$ (i.e.\ below that node if it was rooted at $a$).
+we will compute a matrix of probabilities:
+for nodes not on the path from $a$ to the root,
+we compute the chance that that each ``long'' sequence observed at that node
+is matched by each possible combination of ``short'' sequences on the tips of the tree below it.
+For nodes on the path from $a$ to the root, we compute the probability of observing
+each ``long'' sequence at that node, along with the combinations of ``short'' sequences
+on all tips further away from $a$ (i.e.\ below that node if it was rooted at $a$).
 For a node $w$ this will be stored as a $|\calS|^{m+2\ell} \times |\calS|^{cm}$ matrix, for some $c$,
 and denoted $M(w)$.
+Rows of $M(u_j)$ sum to 1,
+while each entire matrix $M(v_i)$ sums to 1;
+the difference being that $M(v_i)$ sums over the prior at the root,
+and $M(u_j)$ takes the value at $u_j$ as given.
 
 \begin{enumerate}
 
@@ -793,7 +801,7 @@ and denoted $M(w)$.
     \begin{enumerate}
       \item let
         \begin{align}
-          M(v_k)_{x,(y,z)} = \left( e^{t(v_k) G} M(v_{k-1}) \right)_{x,y} \left( e^{t(u(v_k)) G} M(u(v_{k-1})) \right)_{x,z}  .
+          M(v_k)_{x,(y,z)} = \left( e^{t(v_k) G} M(v_{k-1}) \right)_{y,x} \left( e^{t(u(v_k)) G} M(u(v_{k-1})) \right)_{x,z}  .
         \end{align}
     \end{enumerate}
 
