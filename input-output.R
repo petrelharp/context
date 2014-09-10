@@ -72,7 +72,7 @@ treeify.config <- function (config,tlen=NULL) {
     config$tree <- ape::read.tree(text=config$tree)
     if (is.null(config$tree$edge.length)) { 
         # if tree has no edge lengths, bring these in from tlen
-        if (!is.null(tlen)) { config$tree$edge.length <- eval(parse(text=opt$tlen)) }
+        if (!is.null(tlen)) { config$tree$edge.length <- eval(parse(text=tlen)) }
     } else if (!is.null(tlen)) { 
         warning("Branch lengths specified in config file and in tlen; ignoring tlen.")
     }

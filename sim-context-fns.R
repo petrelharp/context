@@ -94,7 +94,7 @@ simseq <- function (seqlen, tlen, mutpats, mutrates, selpats=list(), selcoef=num
     return(output)
 }
 
-simseq.tree <- function (seqlen,config) {
+simseq.tree <- function (seqlen,config,...) {
     # return a list of the simulated sequences in the same order as the tips,nodes of the tree
     simseqs <- lapply(nodenames(config$tree),function(e)NULL)
     simseqs[[rootname(config$tree)]] <- list(finalseq=rinitseq(seqlen,config$bases,basefreqs=config$initfreqs))
@@ -111,6 +111,7 @@ simseq.tree <- function (seqlen,config) {
                     seqlen=seqlen, 
                     mutpats=modconfig$mutpats, mutrates=modconfig$mutrates, selpats=modconfig$selpats, 
                     selcoef=modconfig$selcoef, bases=config$bases, fixfn=modconfig$fixfn ), 
+                list(...),
                 modconfig$fixfn.params ) )
     }
     return(simseqs)
