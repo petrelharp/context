@@ -42,7 +42,13 @@ if (length(simseqs)==1) { # stick tree
     if (is.null(opt$longclade)) { opt$longclade <- simseq.config$tree$node.label }
     if (is.null(opt$shortclades)) { opt$shortclades <- simseq.config$tree$tip.label }
 } else {
-    if (is.null(opt$longclade)) { stop("Must specify a long clade name.") }
+    if (is.null(opt$longclade)) { 
+        if ('root' %in% names(simseqs)) {
+            opt$longclade <- "root"
+        } else {
+            stop("Must specify a long clade name.") 
+        }
+    }
     if (is.null(opt$shortclades)) { opt$shortclades <- setdiff(simseq.config$tree$tip.label,opt$longclade) }
 }
 
