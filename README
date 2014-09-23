@@ -72,11 +72,8 @@ which has trace plots of all the mcmc runs.
 
 Prerequisite packages:
 
-* expm
-* mcmc
-* stringdist
-* optparse (for running Rscripts)
-* jsonlite 
-* ape (for reading newick files)
-* Biostrings (for simulating sequence)
-* IRanges (for simulating sequence)
+```r
+install.packages(c("expm", "mcmc", "stringdist", "optparse", "jsonlite", "ape", "rmarkdown"))
+source("http://bioconductor.org/biocLite.R")
+biocLite(c("Biostrings", IRanges"))
+```
