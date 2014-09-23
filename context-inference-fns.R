@@ -271,7 +271,7 @@ setGeneric("counts", function(x) { standardGeneric("counts") })
 setMethod("counts", signature=c(x="tuplecounts"), definition=function (x) { x@counts } )
 # this method repackages the counts in a more friendly-looking data frame
 setGeneric("countframe", function(x) { standardGeneric("countframe") })
-setMethod("countframe", signature=c(x="tuplecounts"), definition=function (x) { 
+setMethod("countframe", signature=c(x="tuplecounts"), definition=function (x) {
         cf <- cbind(
                 data.frame( rep.int(rownames(x@counts),ncol(x@counts)) ),
                 x@colpatterns[ rep(1:nrow(x@colpatterns),each=nrow(x@counts)), ],
@@ -612,11 +612,11 @@ downbranch <- function ( genmatrix, rootmatrix, mutrates, selcoef, tlen, ... ) {
 # pruning-ish algorithm
 
 cherry.transmats <- function (m1,m2) {
-    mm <- m1[,rep(1:ncol(m1),ncol(m2))] * m2[,rep(1:ncol(m2),each=ncol(m1))] 
+    mm <- m1[,rep(1:ncol(m1),ncol(m2))] * m2[,rep(1:ncol(m2),each=ncol(m1))]
     return(mm)
 }
 
-peel.transmat <- function (tree, rowtaxon, coltaxa, models, genmatrices, projmatrix, root.distrn, 
+peel.transmat <- function (tree, rowtaxon, coltaxa, models, genmatrices, projmatrix, root.distrn,
     tlens=tree$edge.length,
     return.list=FALSE, debug=FALSE) {
     ###
@@ -676,12 +676,12 @@ peel.transmat <- function (tree, rowtaxon, coltaxa, models, genmatrices, projmat
         }
         # and finish off
         if (debug) cat("final: ", row.node, "\n")
-        transmats[[row.node]] <- computetransmatrix( genmatrices[[ models[nodenames(tree)[row.node]] ]], 
+        transmats[[row.node]] <- computetransmatrix( genmatrices[[ models[nodenames(tree)[row.node]] ]],
                 transmats[[downpath[length(downpath)-1]]], tlen=tlens[row.node], transpose=TRUE, time="fixed")
     }
     if (return.list) {
         # mostly for debugging purposes:
-        return(transmats) 
+        return(transmats)
     } else {
         # standard use:
         return( transmats[[row.node]] )
@@ -801,7 +801,7 @@ predicttreecounts <- function (shortwin, leftwin=0, rightwin=0, initcounts, mutr
 # stuff for looking at residuals and finding motifs there
 
 # compute and spit out residuals
-computeresids <- function (model, outfile="", pretty=TRUE, in_longwin=longwin(model), in_shortwin=shortwin(model), in_leftwin=leftwin(model), in_countfile=NULL, in_genmatrixfile=NULL) {
+computeresids <- function (model, pretty=TRUE, in_longwin=longwin(model), in_shortwin=shortwin(model), in_leftwin=leftwin(model), in_countfile=NULL, in_genmatrixfile=NULL) {
     # pull in defaults for things if they are not specified
     # load generator matrix, if needed
     if (!is.null(in_genmatrixfile)) {
@@ -840,16 +840,13 @@ computeresids <- function (model, outfile="", pretty=TRUE, in_longwin=longwin(mo
                         )
         residframe$z <- residframe$resid/sqrt(as.vector(expected))
         residframe <- residframe[order(residframe$z),]
-        write.table(file=outfile, x=residframe, sep='\t', quote=FALSE, row.names=FALSE )
     } else {
         # concise matrix
         resids <- residuals( model, counts=counts, genmatrix=genmatrix )
         residframe <- as.vector(resids@counts)
         dim(residframe) <- dim(resids)
         dimnames(residframe) <- dimnames(resids)
-        write.table(file=outfile, x=residframe, sep='\t', quote=FALSE, row.names=TRUE )
     }
-    class(residframe) <- "resids"
     return( invisible(residframe) )
 }
 

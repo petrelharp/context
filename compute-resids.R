@@ -38,11 +38,12 @@ if (is.null(opt$outfile)) {
     print(opt$outfile)
 }
 
-computeresids (model,
+residframe = computeresids (model,
     pretty            = opt$pretty,
-    outfile           = opt$outfile,
     in_longwin        = opt$longwin,
     in_shortwin       = opt$shortwin,
     in_leftwin        = opt$leftwin,
     in_countfile      = opt$countfile,
     in_genmatrixfile  = opt$genmatrixfile)
+
+write.table(file=opt$outfile, x=residframe, sep='\t', quote=FALSE, row.names=TRUE )
