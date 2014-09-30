@@ -38,12 +38,18 @@ if (is.null(opt$outfile)) {
     print(opt$outfile)
 }
 
+if (is.null(opt$countfile)) {
+    counts = NULL
+} else {
+    counts = read.counts(opt$countfile, opt$leftwin)
+}
+
 residframe = computeresids (model,
     pretty            = opt$pretty,
     in_longwin        = opt$longwin,
     in_shortwin       = opt$shortwin,
     in_leftwin        = opt$leftwin,
-    in_countfile      = opt$countfile,
-    in_genmatrixfile  = opt$genmatrixfile)
+    counts            = counts,
+    genmatrixfile     = opt$genmatrixfile)
 
 write.table(file=opt$outfile, x=residframe, sep='\t', quote=FALSE, row.names=TRUE )

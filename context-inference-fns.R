@@ -801,21 +801,20 @@ predicttreecounts <- function (shortwin, leftwin=0, rightwin=0, initcounts, mutr
 # stuff for looking at residuals and finding motifs there
 
 # compute and spit out residuals
-computeresids <- function (model, pretty=TRUE, in_longwin=longwin(model), in_shortwin=shortwin(model), in_leftwin=leftwin(model), in_countfile=NULL, in_genmatrixfile=NULL) {
+computeresids <- function (model, pretty=TRUE, in_longwin=longwin(model), in_shortwin=shortwin(model), in_leftwin=leftwin(model), counts=NULL, genmatrixfile=NULL) {
     # pull in defaults for things if they are not specified
     # load generator matrix, if needed
-    if (!is.null(in_genmatrixfile)) {
-        stopifnot(file.exists(in_genmatrixfile))
-        load(in_genmatrixfile)  # provides 'genmatrix'
+    if (!is.null(genmatrixfile)) {
+        stopifnot(file.exists(genmatrixfile))
+        load(genmatrixfile)  # provides 'genmatrix'
     } else {
         genmatrix <- model@genmatrix
     }
 
     # get counts
-    if (is.null(in_countfile) && ( in_longwin > longwin(model) || in_shortwin > shortwin(model) ) ) {
+    if (is.null(counts) && ( in_longwin > longwin(model) || in_shortwin > shortwin(model) ) ) {
         stop("If window lengths are longer than fitted model, then need to supply counts.")
-    } else if (!is.null(in_countfile)) {
-        counts <- read.counts(in_countfile,in_leftwin)
+    } else if (!is.null(counts)) {
         if ( ( in_longwin > longwin(counts) || in_shortwin > shortwin(counts) ) ) {
             stop("Supplied counts use a window that is too short.")
         }

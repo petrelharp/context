@@ -73,7 +73,7 @@ which has trace plots of all the mcmc runs.
 Prerequisite packages:
 
 ```r
-install.packages(c("expm", "mcmc", "stringdist", "optparse", "jsonlite", "ape", "rmarkdown"))
+install.packages(c("expm", "mcmc", "stringdist", "optparse", "jsonlite", "ape", "rmarkdown", "ggplot2"))
 source("http://bioconductor.org/biocLite.R")
-biocLite(c("Biostrings", IRanges"))
+biocLite(c("Biostrings", "IRanges"))
 ```
