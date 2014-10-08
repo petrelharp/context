@@ -1,18 +1,18 @@
 {
     "comment" : "Simple tree, for testing.",
-    "tree" : [ "(sp1 : .1, sp2 : .2) root;" ],
+    "tree" : [ "(sp1 : 0.1, sp2 : 0.2) root;" ],
     "bases" : [ "X", "O" ],
     "initfreqs" : [ 0.5, 0.5 ],
     "forward" : {
         "mutpats" : [
-            [ [ "X", "O" ] ], 
+            [ [ "X", "O" ] ],
             [ [ "O", "X" ] ]
         ],
         "mutrates" : [ 1, 0.5 ]
     },
     "reverse" : {
         "mutpats" : [
-            [ [ "X", "O" ] ], 
+            [ [ "X", "O" ] ],
             [ [ "O", "X" ] ]
         ],
         "mutrates" : [ 0.5, 1 ]
