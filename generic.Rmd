@@ -1,5 +1,7 @@
 # Results from fitting procedure
-```{r}
+
+*Invocation:*
+```{r, echo=FALSE}
 library(pander)
 library(ggplot2)
 panderOptions("table.split.table", Inf)  # Let tables become arbitrarily wide rather than wrapping.
@@ -31,7 +33,7 @@ cat(model@invocation)
 
 
 ## Fitted parameter values
-```{r, results="asis"}
+```{r, echo=FALSE, results="asis"}
 par_df = data.frame(value = model@results[["par"]], row.names = names(model@results[["par"]]))
 pandoc.table(par_df, style="rmarkdown")
 par_df$names = row.names(par_df)
@@ -43,9 +45,15 @@ ggplot(par_df, aes(x = names, y = value)) +
 
 
 ## Window sizes and amount of data used to fit
-```{r}
+```{r, echo=FALSE, results="hide"}
+# For some reason the code doesn't work if we don't print out some of the
+# counts, but we can do it in a hidden block.
 counts <- model@counts@counts
-head(counts) # for some reason the code doesn't work if we don't print out some of the counts
+head(counts)
+```
+
+
+```{r, echo=FALSE}
 cat("left window size:", model@counts@leftwin,
     "\ncomplete window size:", nchar(rownames(counts)[[1]]),
     "\ntotal counts:", sum(counts))
@@ -53,13 +61,13 @@ cat("left window size:", model@counts@leftwin,
 
 
 ## Result of fitting operation
-```{r}
+```{r, echo=FALSE}
 cat("convergence: ", model@results$convergence,
     "\nmessage: ", model@results$message)
 ```
 
 ## residuals for 2-2 Tmers
-```{r, results="asis"}
+```{r, echo=FALSE, results="asis"}
 counts_table(in_longwin=2, in_shortwin=2, half_n_show=5)
 ```
 
