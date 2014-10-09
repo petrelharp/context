@@ -1,0 +1,81 @@
+#!/usr/bin/env scons
+# -*- coding: utf-8 -*-
+
+'''
+SCons file for driving nestly to create a hierachy of directories
+and control files that can explore various model inference settings.
+
+Based on:
+https://github.com/fhcrc/nestly/blob/master/examples/scons/SConstruct
+https://github.com/cswarth/hiv-sim/blob/master/sims/SConstruct
+'''
+
+import os
+from os.path import join
+
+from nestly.scons import SConsWrap
+from nestly import Nest
+
+env = Environment()
+
+base = {'n_sites': 1000,
+        'time': 0.1
+        }
+
+# Passing an argument to `alias_environment` allows building targets based on nest
+# key.
+# For example, the `sim` files described below can be built by invoking
+# `scons sim`.
+nest = SConsWrap(Nest(base_dict=base), '_build', alias_environment=env)
+
+
+# # Add our aggregate targets, initializing collections that will get populated
+# # downstream. At the end of the pipeline, we will operate on these collections.
+# # The `add_argument` takes a key which will be the key used for accessing the
+# # collection. The `list` argument specifies that the collection will be a list.
+# nest.add_aggregate('count_agg', list)
+# nest.add_aggregate('cut_agg', list)
+
+# Add a nest level with the name 'input_file' that takes the files in the
+# inputs directory as its nestable list. Make its label function just the
+# basename.
+nest.add('model', [join('models', f) for f in os.listdir('models')],
+         label_func=os.path.basename)
+
+# This nest level determines the column range we will cut out of the file.
+nest.add('n_sites', [1000])
+nest.add('time', [0.1])
+nest.add('longwin', [3])
+nest.add('shortwin', [1])
+nest.add('leftwin', [1])
+
+@nest.add_target()
+def sim(outdir, c):
+    sim, = Command(join(outdir, 'sim.RData'),
+                   c['model'],
+                   'Rscript ../sim-seq.R -c $SOURCE -t {0[time]} -s {0[n_sites]} -o $TARGET'.format(c))
+    return sim
+
+
+@nest.add_target()
+def counts(outdir, c):
+    counts, = Command(join(outdir, 'counts.tsv'),
+                   c['sim'],
+                   'Rscript ../count-seq.R -i $SOURCE -w {0[longwin]} -s {0[shortwin]} -l {0[leftwin]} -o $TARGET'.format(c))
+    return counts
+
+
+@nest.add_target()
+def genmat(outdir, c):
+    genmat, = Command(join(outdir, 'genmat.Rdata'),
+                   c['model'],
+                   'Rscript ../make-genmat.R -c $SOURCE -w {0[longwin]} --meanboundary 1 -o $TARGET'.format(c))
+    return genmat
+
+
+# @nest.add_target()
+# def fit(outdir, c):
+#     fit, = Command(join(outdir, 'fit.Rdata'),
+#                    [c['counts'], c['genmat']],
+#                    'Rscript ../fit-model.R -i $SOURCE -l {0[longwin]} -m {0[genmat]}'.format(c))
+#     return fit
