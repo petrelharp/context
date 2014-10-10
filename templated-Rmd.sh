@@ -1,22 +1,23 @@
 #!/bin/sh
 
 set -e
-set -o
+set -u
+
+usage="Usage: $0 [-o OUTFILE] TEMPLATE RDATA"
 
 test "$#" -eq 2 || {
-  echo "Usage: $0 TEMPLATE RDATA" >&2
-  exit 1
+  echo $usage >&2
+  exit 2
 }
 
 template=$1
 RData=$2
-output=$(basename $RData .RData).html
+outfile=$(pwd)/$(dirname $RData)/$(basename $RData .RData).html
 
 R --vanilla --slave << EOF
 library("rmarkdown")
 
 source("$(dirname $0)/context-inference-fns.R")
 load("$RData")
-render("$template",output_file="$output")
+render("$template", output_file="$outfile")
 EOF
-

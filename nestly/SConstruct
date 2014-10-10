@@ -17,7 +17,11 @@ from nestly.scons import SConsWrap
 from nestly import Nest
 from SCons.Script import Environment, Command
 
-env = Environment()
+# The following pulls in environment variables from your setup. I had to do it
+# in order to have pandoc work through RMarkdown. Eventually I would like to
+# get rid of it for portability.
+environ = os.environ.copy()
+env = Environment(ENV=environ)
 
 # These "base" values will be available to all of our nests, but don't have any
 # levels in the directory hierarchy associated with them.
@@ -29,7 +33,6 @@ base = {'n_sites': 10000,
 # nest key. For example, the `sim` files described below can be built by
 # invoking `scons sim`.
 nest = SConsWrap(Nest(base_dict=base), '_build', alias_environment=env)
-
 
 # Add our aggregate targets, initializing collections that will get populated
 # downstream. At the end of the pipeline, we will operate on these collections.
@@ -78,7 +81,7 @@ def counts(outdir, c):
 # NOTE: Eventually re-evaluate use of meanboundary.
 @nest.add_target()
 def genmat(outdir, c):
-    genmat, = Command(join(outdir, 'genmat.Rdata'),
+    genmat, = Command(join(outdir, 'genmat.RData'),
                       c['model'],
                       'Rscript ../make-genmat.R \
                       -c $SOURCE \
@@ -89,10 +92,23 @@ def genmat(outdir, c):
 
 @nest.add_target()
 def fit(outdir, c):
-    fit, = Command(join(outdir, 'fit.Rdata'),
+    fit, = Command(join(outdir, 'fit.RData'),
                    [c['counts'], c['genmat']],
                    'Rscript ../fit-model.R \
                    -i ${{SOURCES[0]}} \
                    -l {0[leftwin]} \
-                   -m ${{SOURCES[1]}}'.format(c))
+                   -m ${{SOURCES[1]}} \
+                   -o $TARGET'.format(c))
     return fit
+
+
+# Here I use `add_target_with_env` so that it knows about my path (leading to a
+# recent pandoc).
+@nest.add_target_with_env(env)
+def report(env, outdir, c):
+    report, = env.Command(join(outdir, 'fit.html'),
+                          c['fit'],
+                          '../templated-Rmd.sh \
+                          ../generic.Rmd \
+                          $SOURCE')
+    return report

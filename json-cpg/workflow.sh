@@ -22,7 +22,9 @@ GENMAT=genmatrix-${LONGWIN}-cpg.RData
 Rscript ../make-genmat.R -c $MODEL -w ${LONGWIN} -o ${GENMAT}
 
 echo "fit a model"
-Rscript ../fit-model.R -i $BASE-123456.${LONGWIN}.${SHORTWIN}.l${LEFTWIN}.counts -l ${LEFTWIN} -m $GENMAT -j 54321
+Rscript ../fit-model.R -i $BASE-123456-${LONGWIN}-root-${SHORTWIN}-tip-l${LEFTWIN}.counts -l ${LEFTWIN} -m $GENMAT -j 54321
+
+exit 0
 
 echo "compute residuals"
 Rscript ../compute-resids.R -i $BASE-123456-genmatrix-${LONGWIN}-cpg-54321.RData -w 3 -s 1 -l 1 -m ${GENMAT}
