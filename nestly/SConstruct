@@ -15,11 +15,13 @@ from os.path import join
 
 from nestly.scons import SConsWrap
 from nestly import Nest
-# from scons import Environment, Command
+from SCons.Script import Environment, Command
 
 env = Environment()
 
-base = {'n_sites': 1000,
+# These "base" values will be available to all of our nests, but don't have any
+# levels in the directory hierarchy associated with them.
+base = {'n_sites': 10000,
         'time': 0.1
         }
 
@@ -43,8 +45,6 @@ nest.add('model', [join('models', f) for f in os.listdir('models')],
          label_func=os.path.basename)
 
 # This nest level determines the column range we will cut out of the file.
-nest.add('n_sites', [1000])
-nest.add('time', [0.1])
 nest.add('longwin', [3])
 nest.add('shortwin', [1])
 nest.add('leftwin', [1])
@@ -83,14 +83,16 @@ def genmat(outdir, c):
                       'Rscript ../make-genmat.R \
                       -c $SOURCE \
                       -w {0[longwin]} \
-                      --meanboundary 1 \
                       -o $TARGET'.format(c))
     return genmat
 
 
-# @nest.add_target()
-# def fit(outdir, c):
-#     fit, = Command(join(outdir, 'fit.Rdata'),
-#                    [c['counts'], c['genmat']],
-#                    'Rscript ../fit-model.R -i $SOURCE -l {0[longwin]} -m {0[genmat]}'.format(c))
-#     return fit
+@nest.add_target()
+def fit(outdir, c):
+    fit, = Command(join(outdir, 'fit.Rdata'),
+                   [c['counts'], c['genmat']],
+                   'Rscript ../fit-model.R \
+                   -i ${{SOURCES[0]}} \
+                   -l {0[leftwin]} \
+                   -m ${{SOURCES[1]}}'.format(c))
+    return fit
