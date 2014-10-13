@@ -57,10 +57,10 @@ nest.add('leftwin', [1])
 @nest.add_target()
 def sim(outdir, c):
     sim, = Command(join(outdir, 'sim.RData'),  # TARGET
-                   c['model'],  # SOURCE
-                   'Rscript ../sim-seq.R \
+                   ['../sim-seq.R', c['model']],  # SOURCES
+                   'Rscript ${{SOURCES[0]}} \
                    --seed {0[seed]} \
-                   -c $SOURCE \
+                   -c ${{SOURCES[1]}} \
                    -t {0[time]} \
                    -s {0[n_sites]} \
                    -o $TARGET'.format(c))
@@ -70,9 +70,9 @@ def sim(outdir, c):
 @nest.add_target()
 def counts(outdir, c):
     counts, = Command(join(outdir, 'counts.tsv'),
-                      c['sim'],
-                      'Rscript ../count-seq.R \
-                      -i $SOURCE \
+                      ['../count-seq.R', c['sim']],
+                      'Rscript ${{SOURCES[0]}} \
+                      -i ${{SOURCES[1]}} \
                       -w {0[longwin]} \
                       -s {0[shortwin]} \
                       -l {0[leftwin]} \
@@ -84,9 +84,9 @@ def counts(outdir, c):
 @nest.add_target()
 def genmat(outdir, c):
     genmat, = Command(join(outdir, 'genmat.RData'),
-                      c['model'],
-                      'Rscript ../make-genmat.R \
-                      -c $SOURCE \
+                      ['../make-genmat.R', c['model']],
+                      'Rscript ${{SOURCES[0]}} \
+                      -c ${{SOURCES[1]}} \
                       -w {0[longwin]} \
                       -o $TARGET'.format(c))
     return genmat
@@ -95,11 +95,11 @@ def genmat(outdir, c):
 @nest.add_target()
 def fit(outdir, c):
     fit, = Command(join(outdir, 'fit.RData'),
-                   [c['counts'], c['genmat']],
-                   'Rscript ../fit-model.R \
-                   -i ${{SOURCES[0]}} \
+                   ['../fit-model.R', c['counts'], c['genmat']],
+                   'Rscript ${{SOURCES[0]}} \
+                   -i ${{SOURCES[1]}} \
                    -l {0[leftwin]} \
-                   -m ${{SOURCES[1]}} \
+                   -m ${{SOURCES[2]}} \
                    -o $TARGET'.format(c))
     return fit
 
@@ -109,8 +109,8 @@ def fit(outdir, c):
 @nest.add_target_with_env(env)
 def report(env, outdir, c):
     report, = env.Command(join(outdir, 'fit.html'),
-                          c['fit'],
-                          '../templated-Rmd.sh \
-                          ../generic.Rmd \
-                          $SOURCE')
+                          ['../templated-Rmd.sh', '../generic.Rmd', c['fit']],
+                          '${SOURCES[0]} \
+                          ${SOURCES[1]} \
+                          ${SOURCES[2]}')
     return report
