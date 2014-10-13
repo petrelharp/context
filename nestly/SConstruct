@@ -26,7 +26,8 @@ env = Environment(ENV=environ)
 # These "base" values will be available to all of our nests, but don't have any
 # levels in the directory hierarchy associated with them.
 base = {'n_sites': 10000,
-        'time': 0.1
+        'time': 0.1,
+        'seed' : 0
         }
 
 # Passing an argument to `alias_environment` allows building targets based on
@@ -58,6 +59,7 @@ def sim(outdir, c):
     sim, = Command(join(outdir, 'sim.RData'),  # TARGET
                    c['model'],  # SOURCE
                    'Rscript ../sim-seq.R \
+                   --seed {0[seed]} \
                    -c $SOURCE \
                    -t {0[time]} \
                    -s {0[n_sites]} \
