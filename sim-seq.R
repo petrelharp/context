@@ -28,11 +28,14 @@ option_list <- list(
         make_option( c("-o","--outfile"), type="character", help="Direct output to this file."),
         make_option( c("-d","--outdir"), type="character", default=".", help="Direct output to this directory with default name if outfile is not specified."),
         make_option( c("-j","--jobid"), type="numeric", default=formatC( floor(runif(1)*1e6) , digits=6,flag='0'), help="Unique identifier to append to output name if not specified."),
-        make_option( c("-l","--logfile"), type="character", help="Direct logging output to this file. [default appends -simrun.Rout]" )
+        make_option( c("-l","--logfile"), type="character", help="Direct logging output to this file. [default appends -simrun.Rout]" ),
+        make_option( c("-z","--seed"), type="integer", help="Seed for pseudorandom number generator; an integer. [default: does not meddle]")
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 if ( is.null(opt$configfile) | is.null(opt$seqlen) )  { stop("Rscript sim-seq.R -h for help.") }
 if ( !file.exists(opt$configfile) ) { stop("Could not find config file `", opt$configfile, "`.") }
+
+if ( !is.null(opt$seed) ) { set.seed(opt$seed) }
 
 source("../context-inference-fns.R")
 source("../sim-context-fns.R")
