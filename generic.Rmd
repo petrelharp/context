@@ -3,7 +3,7 @@
 *Invocation:*
 ```{r, echo=FALSE}
 library(pander)
-library(ggplot2)
+# library(ggplot2)
 panderOptions("table.split.table", Inf)  # Let tables become arbitrarily wide rather than wrapping.
 source("context-inference-fns.R")
 top_n_bottom <- function(df, k) { # Take the top and bottom k rows
@@ -38,9 +38,17 @@ par_df = data.frame(value = model@results[["par"]], row.names = names(model@resu
 pandoc.table(par_df, style="rmarkdown")
 par_df$names = row.names(par_df)
 par_df = par_df[grep("->", par_df$names),]
-ggplot(par_df, aes(x = names, y = value)) +
-    geom_bar(stat = "identity", fill="white", color="gray") +
-    theme(axis.text.x = element_text(angle = 90))
+plot(1:2,type='n',xaxt='n',yaxt='n',bty='n',xlab='',ylab='')
+par(mar=c(max(strwidth(par_df$names))/(0.75*strheight("A")),3,1,1)+.1, new=TRUE)
+barplot( par_df$value, space=0.2 )
+axis(1, at=(1:nrow(par_df))*1.2-0.6, las=3, labels=par_df$names)
+plot(1:2,type='n',xaxt='n',yaxt='n',bty='n',xlab='',ylab='')
+par(mar=c(max(strwidth(par_df$names))/(0.75*strheight("A")),3,1,1)+.1, new=TRUE)
+barplot( par_df$value, log='y', space=0.2 )
+axis(1, at=(1:nrow(par_df))*1.2-0.6, las=3, labels=par_df$names)
+# ggplot(par_df, aes(x = names, y = value)) +
+#     geom_bar(stat = "identity", fill="white", color="gray") +
+#     theme(axis.text.x = element_text(angle = 90))
 ```
 
 
