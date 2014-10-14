@@ -15,7 +15,7 @@ from os.path import join
 
 from nestly.scons import SConsWrap
 from nestly import Nest
-from SCons.Script import Environment, Command
+from SCons.Script import Environment, Command, COMMAND_LINE_TARGETS
 
 # The following pulls in environment variables from your setup. I had to do it
 # in order to have pandoc work through RMarkdown. Eventually I would like to
@@ -23,37 +23,61 @@ from SCons.Script import Environment, Command
 environ = os.environ.copy()
 env = Environment(ENV=environ)
 
-# These "base" values will be available to all of our nests, but don't have any
-# levels in the directory hierarchy associated with them.
-base = {'n_sites': 10000,
-        'time': 0.1,
-        'seed' : 0
-        }
-
-# Passing an argument to `alias_environment` allows building targets based on
-# nest key. For example, the `sim` files described below can be built by
-# invoking `scons sim`.
-nest = SConsWrap(Nest(base_dict=base), '_build', alias_environment=env)
-
-# Add our aggregate targets, initializing collections that will get populated
-# downstream. At the end of the pipeline, we will operate on these collections.
-# The `add_argument` takes a key which will be the key used for accessing the
-# collection. The `list` argument specifies that the collection will be a list.
-# nest.add_aggregate('count_agg', list)
-# nest.add_aggregate('cut_agg', list)
-
-# Add a nest level with the name 'input_file' that takes the files in the
-# inputs directory as its nestable list. Make its label function just the
-# basename.
-nest.add('model', [join('models', f) for f in os.listdir('models')],
-         label_func=os.path.basename)
-
-# This nest level determines the column range we will cut out of the file.
-nest.add('longwin', [3])
-nest.add('shortwin', [1])
-nest.add('leftwin', [1])
+# *** The various types of simulations:
 
 
+# A simple example simulation.
+def _simple_sim():
+    name = 'simple'  # Inelegant, but I'm not going to worry about it.
+
+    # These "base" values will be available to all of our nests, but don't have
+    # any levels in the directory hierarchy associated with them.
+    base = {'n_sites': 10000,
+            'time': 0.1,
+            'seed': 0
+            }
+
+    # Passing an argument to `alias_environment` allows building targets based
+    # on nest key. For example, the `sim` files described below can be built by
+    # invoking `scons sim`.
+    nest = SConsWrap(Nest(base_dict=base), '_'+name, alias_environment=env)
+
+    # Add our aggregate targets, initializing collections that will get
+    # populated downstream. At the end of the pipeline, we will operate on
+    # these collections. The `add_argument` takes a key which will be the key
+    # used for accessing the collection. The `list` argument specifies that the
+    # collection will be a list.
+    # nest.add_aggregate('count_agg', list)
+    # nest.add_aggregate('cut_agg', list)
+
+    # Add a nest level with the name 'input_file' that takes the files in the
+    # inputs directory as its nestable list. Make its label function just the
+    # basename.
+    nest.add('model', [join('models', f) for f in os.listdir('models')],
+             label_func=os.path.basename)
+
+    nest.add('longwin', [3])
+    nest.add('shortwin', [1])
+    nest.add('leftwin', [1])
+    return nest
+
+cl_targets = {'simple': _simple_sim
+              }
+
+
+# *** Processing command line input:
+if not len(COMMAND_LINE_TARGETS) == 1:
+    error_str = "Please give exactly one of "+str(cl_targets.keys())
+    raise RuntimeError(error_str)
+
+target_str, = COMMAND_LINE_TARGETS
+nest = cl_targets[target_str]()
+
+for target_name in cl_targets.keys():
+    env.Alias(target_name, '_'+target_name)
+
+
+# *** Our lovely targets:
 @nest.add_target()
 def sim(outdir, c):
     sim, = Command(join(outdir, 'sim.RData'),  # TARGET
