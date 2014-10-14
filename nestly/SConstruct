@@ -56,9 +56,8 @@ def _simple_sim():
     nest.add('model', [join('models', f) for f in os.listdir('models')],
              label_func=os.path.basename)
 
-    nest.add('longwin', [3])
-    nest.add('shortwin', [1])
-    nest.add('leftwin', [1])
+    nest.add('wintriple', [(3, 1, 1)],
+             label_func=lambda t: "_".join(str(n) for n in t))
     return nest
 
 cl_targets = {'simple': _simple_sim
@@ -93,6 +92,7 @@ def sim(outdir, c):
 
 @nest.add_target()
 def counts(outdir, c):
+    (c['longwin'], c['shortwin'], c['leftwin']) = c['wintriple']
     counts, = Command(join(outdir, 'counts.tsv'),
                       ['../count-seq.R', c['sim']],
                       'Rscript ${{SOURCES[0]}} \
