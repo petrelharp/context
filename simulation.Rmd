@@ -32,27 +32,7 @@ cat(model@invocation)
 ```
 
 
-## Fitted parameter values
-```{r, echo=FALSE, results="asis"}
-mr_compare <- data.frame(fit=model@mutrates / time)
-mr_compare$names <- rownames(mr_compare)
-simvalues= data.frame(names=mutnames(simseq.config$tip$mutpats), 
-                      simulated=simseq.config$tip$mutrates)
-mr_compare <- merge(simvalues, mr_compare)
-pandoc.table(mr_compare, style="rmarkdown")
-```
-
-The corresponding plot, where bars are the simulated values, and points are the fit values:
-```{r, echo=FALSE, results="asis"}
-ggplot(mr_compare, aes(x=names)) +
-    geom_bar(aes(y=fit), stat = "identity", fill="white", color="gray") + 
-    geom_point(aes(y=simulated)) +
-    theme(axis.text.x = element_text(angle = 90),
-          axis.title.y = element_blank())
-```
-
-
-## Window sizes and amount of data used to fit
+## Details
 ```{r, echo=FALSE, results="hide"}
 # For some reason the code doesn't work if we don't print out some of the
 # counts, but we can do it in a hidden block.
@@ -64,7 +44,10 @@ head(counts)
 ```{r, echo=FALSE}
 cat("left window size:", model@counts@leftwin,
     "\ncomplete window size:", nchar(rownames(counts)[[1]]),
-    "\ntotal counts:", sum(counts))
+    "\ntotal counts:", sum(counts),
+    "\ntime:", simseq.opt$tlen,
+    "\nseed:", simseq.opt$seed
+    )
 ```
 
 
@@ -73,6 +56,29 @@ cat("left window size:", model@counts@leftwin,
 cat("convergence: ", model@results$convergence,
     "\nmessage: ", model@results$message)
 ```
+
+
+## Fitted parameter values
+```{r, echo=FALSE, results="asis"}
+time <- as.numeric(simseq.opt$tlen)
+mr_compare <- data.frame(fit=model@mutrates / time)
+mr_compare$names <- rownames(mr_compare)
+simvalues= data.frame(names=mutnames(simseq.config$tip$mutpats),
+                      simulated=simseq.config$tip$mutrates)
+mr_compare <- merge(simvalues, mr_compare)
+pandoc.table(mr_compare, style="rmarkdown")
+```
+
+
+The corresponding plot, where bars are the fit values, and points are the simulated values:
+```{r, echo=FALSE, results="asis"}
+ggplot(mr_compare, aes(x=names)) +
+    geom_bar(aes(y=fit), stat = "identity", fill="white", color="gray") +
+    geom_point(aes(y=simulated)) +
+    theme(axis.text.x = element_text(angle = 90),
+          axis.title.y = element_blank())
+```
+
 
 ## residuals for 2-2 Tmers
 ```{r, echo=FALSE, results="asis"}

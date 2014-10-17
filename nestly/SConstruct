@@ -26,7 +26,7 @@ env = Environment(ENV=environ)
 # *** The various types of simulations:
 
 
-# A simple example simulation.
+# A simple example simulation with lots of explanation.
 def _simple_sim():
     name = 'simple'
 
@@ -61,6 +61,25 @@ def _simple_sim():
     return nest
 
 cl_targets = {'simple': _simple_sim
+              }
+
+
+# A simulation comparing between different seeds.
+def _seed_sim():
+    name = 'seed'
+
+    base = {'n_sites': 10000,
+            'time': 0.1,
+            'wintriple': (3, 1, 1),
+            }
+    nest = SConsWrap(Nest(base_dict=base), '_'+name, alias_environment=env)
+    nest.add('model', [join('models', f) for f in os.listdir('models')],
+             label_func=os.path.basename)
+    nest.add('seed', range(3), label_func="seed_{}".format)
+    return nest
+
+cl_targets = {'simple': _simple_sim,
+              'seed': _seed_sim
               }
 
 
@@ -132,12 +151,11 @@ def fit(outdir, c):
 def complete(outdir, c):
     complete, = Command(join(outdir, 'complete.RData'),
                         [c['sim'], c['fit']],
-                        'Rscript -e\
-                        "load(\'${{SOURCES[0]}}\');\
-                        load(\'${{SOURCES[1]}}\');\
-                        time = {0[time]};\
-                        save(simseq.config, model, time, file=\'$TARGET\')"\
-                        '.format(c))
+                        'Rscript -e \
+                        "load(\'${SOURCES[0]}\'); \
+                        load(\'${SOURCES[1]}\'); \
+                        save(simseq.config, simseq.opt, \
+                             model, file=\'$TARGET\')"')
     return complete
 
 
