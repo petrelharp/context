@@ -131,10 +131,13 @@ def fit(outdir, c):
 @nest.add_target()
 def complete(outdir, c):
     complete, = Command(join(outdir, 'complete.RData'),
-                      [c['sim'], c['fit']],
-                      'Rscript -e \
-                      "load(\'${SOURCES[0]}\'); load(\'${SOURCES[1]}\'); \
-                      save(simseq.config, model,file=\'$TARGET\')"')
+                        [c['sim'], c['fit']],
+                        'Rscript -e\
+                        "load(\'${{SOURCES[0]}}\');\
+                        load(\'${{SOURCES[1]}}\');\
+                        time = {0[time]};\
+                        save(simseq.config, model, time, file=\'$TARGET\')"\
+                        '.format(c))
     return complete
 
 
@@ -142,8 +145,10 @@ def complete(outdir, c):
 # recent pandoc).
 @nest.add_target_with_env(env)
 def report(env, outdir, c):
-    report, = env.Command(join(outdir, 'fit.html'),
-                          ['../templated-Rmd.sh', '../simulation.Rmd', c['fit']],
+    report, = env.Command(join(outdir, 'complete.html'),
+                          ['../templated-Rmd.sh',
+                           '../simulation.Rmd',
+                           c['complete']],
                           '${SOURCES[0]} \
                           ${SOURCES[1]} \
                           ${SOURCES[2]}')

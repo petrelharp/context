@@ -34,17 +34,21 @@ cat(model@invocation)
 
 ## Fitted parameter values
 ```{r, echo=FALSE, results="asis"}
-par_df = data.frame(value = model@results[["par"]], row.names = names(model@results[["par"]]))
-pandoc.table(par_df, style="rmarkdown")
-par_df$names = row.names(par_df)
-par_df = par_df[grep("->", par_df$names),]
-ggplot(par_df, aes(x = names, y = value)) +
-    geom_bar(stat = "identity", fill="white", color="gray") +
-    theme(axis.text.x = element_text(angle = 90))
+mr_compare <- data.frame(fit=model@mutrates / time)
+mr_compare$names <- rownames(mr_compare)
+simvalues= data.frame(names=mutnames(simseq.config$tip$mutpats), 
+                      simulated=simseq.config$tip$mutrates)
+mr_compare <- merge(simvalues, mr_compare)
+pandoc.table(mr_compare, style="rmarkdown")
 ```
 
-```{r}
-model
+The corresponding plot, where bars are the simulated values, and points are the fit values:
+```{r, echo=FALSE, results="asis"}
+ggplot(mr_compare, aes(x=names)) +
+    geom_bar(aes(y=fit), stat = "identity", fill="white", color="gray") + 
+    geom_point(aes(y=simulated)) +
+    theme(axis.text.x = element_text(angle = 90),
+          axis.title.y = element_blank())
 ```
 
 
@@ -84,9 +88,4 @@ counts_table(in_longwin=3, in_shortwin=1, half_n_show=5)
 ```{r, results="asis"}
 counts_table(in_longwin=9, in_shortwin=5, half_n_show=5)
 ```
-
-## if present, MCMC traces
-
-
-## ... and posterior marginal distributions.
 
