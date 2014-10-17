@@ -1,0 +1,92 @@
+# Results from fitting procedure
+
+*Invocation:*
+```{r, echo=FALSE}
+library(pander)
+library(ggplot2)
+panderOptions("table.split.table", Inf)  # Let tables become arbitrarily wide rather than wrapping.
+source("context-inference-fns.R")
+top_n_bottom <- function(df, k) { # Take the top and bottom k rows
+    n = nrow(df)
+    if(2*k < n) {
+        df[c(1:k,(n-(k-1)):n), ]
+    }
+    else {
+        df
+    }
+}
+counts_table <- function(in_longwin, in_shortwin, half_n_show) {
+    if ( in_longwin > longwin(model@counts) || in_shortwin > shortwin(model@counts) ) {
+        cat("Window size of counts too small.")
+    }
+    else {
+        resids = computeresids(model,
+                in_longwin=in_longwin,
+                in_shortwin=in_shortwin,
+                in_leftwin=in_shortwin,
+                counts=model@counts)
+        pandoc.table(top_n_bottom(resids, half_n_show), style="rmarkdown")
+    }
+}
+cat(model@invocation)
+```
+
+
+## Fitted parameter values
+```{r, echo=FALSE, results="asis"}
+par_df = data.frame(value = model@results[["par"]], row.names = names(model@results[["par"]]))
+pandoc.table(par_df, style="rmarkdown")
+par_df$names = row.names(par_df)
+par_df = par_df[grep("->", par_df$names),]
+ggplot(par_df, aes(x = names, y = value)) +
+    geom_bar(stat = "identity", fill="white", color="gray") +
+    theme(axis.text.x = element_text(angle = 90))
+```
+
+```{r}
+model
+```
+
+
+## Window sizes and amount of data used to fit
+```{r, echo=FALSE, results="hide"}
+# For some reason the code doesn't work if we don't print out some of the
+# counts, but we can do it in a hidden block.
+counts <- model@counts@counts
+head(counts)
+```
+
+
+```{r, echo=FALSE}
+cat("left window size:", model@counts@leftwin,
+    "\ncomplete window size:", nchar(rownames(counts)[[1]]),
+    "\ntotal counts:", sum(counts))
+```
+
+
+## Result of fitting operation
+```{r, echo=FALSE}
+cat("convergence: ", model@results$convergence,
+    "\nmessage: ", model@results$message)
+```
+
+## residuals for 2-2 Tmers
+```{r, echo=FALSE, results="asis"}
+counts_table(in_longwin=2, in_shortwin=2, half_n_show=5)
+```
+
+## residuals for 3-1 Tmers
+```{r, results="asis"}
+counts_table(in_longwin=3, in_shortwin=1, half_n_show=5)
+```
+
+## residuals for 9-5 Tmers
+```{r, results="asis"}
+counts_table(in_longwin=9, in_shortwin=5, half_n_show=5)
+```
+
+## if present, MCMC traces
+
+
+## ... and posterior marginal distributions.
+

@@ -28,7 +28,7 @@ env = Environment(ENV=environ)
 
 # A simple example simulation.
 def _simple_sim():
-    name = 'simple'  # Inelegant, but I'm not going to worry about it.
+    name = 'simple'
 
     # These "base" values will be available to all of our nests, but don't have
     # any levels in the directory hierarchy associated with them.
@@ -128,12 +128,22 @@ def fit(outdir, c):
     return fit
 
 
+@nest.add_target()
+def complete(outdir, c):
+    complete, = Command(join(outdir, 'complete.RData'),
+                      [c['sim'], c['fit']],
+                      'Rscript -e \
+                      "load(\'${SOURCES[0]}\'); load(\'${SOURCES[1]}\'); \
+                      save(simseq.config, model,file=\'$TARGET\')"')
+    return complete
+
+
 # Here I use `add_target_with_env` so that it knows about my path (leading to a
 # recent pandoc).
 @nest.add_target_with_env(env)
 def report(env, outdir, c):
     report, = env.Command(join(outdir, 'fit.html'),
-                          ['../templated-Rmd.sh', '../generic.Rmd', c['fit']],
+                          ['../templated-Rmd.sh', '../simulation.Rmd', c['fit']],
                           '${SOURCES[0]} \
                           ${SOURCES[1]} \
                           ${SOURCES[2]}')
