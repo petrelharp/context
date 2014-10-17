@@ -35,7 +35,8 @@ opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 if ( is.null(opt$configfile) | is.null(opt$seqlen) )  { stop("Rscript sim-seq.R -h for help.") }
 if ( !file.exists(opt$configfile) ) { stop("Could not find config file `", opt$configfile, "`.") }
 
-if ( !is.null(opt$seed) ) { set.seed(opt$seed) }
+if ( is.null(opt$seed) ) { opt$seed <- as.numeric(Sys.time()); }
+set.seed(opt$seed)
 
 source("../context-inference-fns.R")
 source("../sim-context-fns.R")
