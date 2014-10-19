@@ -52,8 +52,6 @@ read.counts <- function (infile,leftwin,bases,longpats,shortpats) {
 
 read.config <- function (configfile,quiet=FALSE) {
     # read in JSON config file
-    #   and put in default parameters if missing
-    #   e.g. treeify it if not already
     con <- openread(configfile)
     json <- paste(readLines(con, warn = FALSE), collapse = "\n")
     close(con)
@@ -78,6 +76,20 @@ treeify.config <- function (config,tlen=NULL) {
     }
     if (is.null(config$tree$tip.label) | is.null(config$tree$node.label)) { stop("Please label tips and nodes on the tree.") }
     return(config)
+}
+
+fill.default.config <- function (config, defaults=NULL) {
+    # fill in default values in a config list
+    # for selpats, bases, fixfn, fixfn.params
+    for (x in c("selpats","bases","fixfn.params")) {
+        if (is.null(config[[x]])) {
+            config[[x]] <- if (is.null(defaults[[x]])) { list() } else { defaults[[x]] }
+        }
+    }
+    if (is.null(config[["fixfn"]])) { 
+        config[["fixfn"]] <- if(is.null(defaults[["fixfn"]])) { null.fixfn } else { defaults[["fixfn"]] }
+    }
+    return( config )
 }
 
 # tree helper functions
@@ -107,6 +119,7 @@ parse.fixfn <- function (fixfn,fixfn.params) {
     #   either by looking it up as a name
     #   or parsing it directly
     # also, check the arguments match fixfn.params
+    if (is.null(fixfn)) { fixfn <- null.fixfn }
     if (is.character(fixfn)) {
         if (exists(fixfn,mode="function")) {
             fixfn <- get(fixfn,mode="function")

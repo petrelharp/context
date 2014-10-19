@@ -3,7 +3,7 @@
 set -e
 set -u
 
-usage="Usage: $0 [-o OUTFILE] TEMPLATE RDATA"
+usage="Usage: $0 TEMPLATE RDATA"
 
 test "$#" -eq 2 || {
   echo $usage >&2

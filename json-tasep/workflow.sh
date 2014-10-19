@@ -9,7 +9,7 @@ Rscript ../sim-seq.R -c tasep-model.json -t 0.1 -s 10000 -d simseqs -o sim-tasep
 
 # and count the Tmers
 echo "counting"
-Rscript ../count-seq.R -i sim-tasep-123456.RData -w 4 -s 2 -l 1
+Rscript ../count-seq.R -i simseqs/sim-tasep-123456.RData -w 4 -s 2 -l 1
 
 # precompute generator matrices:
 #   width-4 with all selection
@@ -17,7 +17,10 @@ echo "making genmatrix, width 4"
 Rscript ../make-genmat.R -c genmatrices/complete.json -w 4 --meanboundary 1
 
 echo "fitting, width 4"
-Rscript ../fit-model.R -i sim-tasep-123456.4.2.l1.counts -l 1 -m genmatrices/genmatrix-4-complete.RData -j 54321
+Rscript ../fit-model.R -i simseqs/sim-tasep-123456-4-root-2-tip-l1.counts -l 1 -m genmatrices/genmatrix-4-complete.RData -j 54321
 
 echo "computing residuals"
-Rscript ../compute-resids.R -i sim-tasep-123456-genmatrix-4-complete-54321.RData
+Rscript ../compute-resids.R -i simseqs/sim-tasep-123456-4-root-2-tip-l1-genmatrix-4-complete-54321.RData
+
+echo "look at results"
+../templated-Rmd.sh ../simulation.Rmd simseqs/sim-tasep-123456-4-root-2-tip-l1-genmatrix-4-complete-54321.RData

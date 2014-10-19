@@ -3,7 +3,7 @@
 *Invocation:*
 ```{r, echo=FALSE}
 library(pander)
-# library(ggplot2)
+library(ggplot2)
 panderOptions("table.split.table", Inf)  # Let tables become arbitrarily wide rather than wrapping.
 source("context-inference-fns.R")
 top_n_bottom <- function(df, k) { # Take the top and bottom k rows
@@ -23,32 +23,23 @@ counts_table <- function(in_longwin, in_shortwin, half_n_show) {
         resids = computeresids(model,
                 in_longwin=in_longwin,
                 in_shortwin=in_shortwin,
-                in_leftwin=in_shortwin,
+                in_leftwin=floor((in_longwin-in_shortwin)/2),
                 counts=model@counts)
         pandoc.table(top_n_bottom(resids, half_n_show), style="rmarkdown")
     }
 }
-cat(model@invocation)
+cat(model@invocation,"\n")
 ```
 
 
 ## Fitted parameter values
 ```{r, echo=FALSE, results="asis"}
-par_df = data.frame(value = model@results[["par"]], row.names = names(model@results[["par"]]))
+par_df = coef(model)
 pandoc.table(par_df, style="rmarkdown")
-par_df$names = row.names(par_df)
-par_df = par_df[grep("->", par_df$names),]
-plot(1:2,type='n',xaxt='n',yaxt='n',bty='n',xlab='',ylab='')
-par(mar=c(max(strwidth(par_df$names))/(0.75*strheight("A")),3,1,1)+.1, new=TRUE)
-barplot( par_df$value, space=0.2 )
-axis(1, at=(1:nrow(par_df))*1.2-0.6, las=3, labels=par_df$names)
-plot(1:2,type='n',xaxt='n',yaxt='n',bty='n',xlab='',ylab='')
-par(mar=c(max(strwidth(par_df$names))/(0.75*strheight("A")),3,1,1)+.1, new=TRUE)
-barplot( par_df$value, log='y', space=0.2 )
-axis(1, at=(1:nrow(par_df))*1.2-0.6, las=3, labels=par_df$names)
-# ggplot(par_df, aes(x = names, y = value)) +
-#     geom_bar(stat = "identity", fill="white", color="gray") +
-#     theme(axis.text.x = element_text(angle = 90))
+par_df = par_df[grep("->", names(par_df))]
+ggplot(data.frame(names=names(par_df),value=par_df), aes(x = names, y = value)) +
+    geom_bar(stat = "identity", fill="white", color="gray") +
+    theme(axis.text.x = element_text(angle = 90))
 ```
 
 
@@ -64,14 +55,14 @@ head(counts)
 ```{r, echo=FALSE}
 cat("left window size:", model@counts@leftwin,
     "\ncomplete window size:", nchar(rownames(counts)[[1]]),
-    "\ntotal counts:", sum(counts))
+    "\ntotal counts:", sum(counts), "\n")
 ```
 
 
 ## Result of fitting operation
 ```{r, echo=FALSE}
 cat("convergence: ", model@results$convergence,
-    "\nmessage: ", model@results$message)
+    "\nmessage: ", model@results$message, "\n")
 ```
 
 ## residuals for 2-2 Tmers

@@ -67,16 +67,16 @@ if (!is.null(config$tree)) {
     config <- parse.models( treeify.config( config ) )
     modelnames <- config$.models
     for (mm in modelnames) {
-        for (x in c("selpats","bases","fixfn","fixfn.params")) {
-            if (is.null(config[[mm]][[x]])) { config[[mm]][[x]] <- config[[x]] }
-        }
+        config[[mm]] <- fill.default.config( config[[mm]], defaults=config )
     }
 } else {
     config$fixfn <- parse.fixfn( config$fixfn, config$fixfn.params )
+    config <- fill.default.config( config )
     config$genmatrix <- opt$outfile
     config <- list( default=config )
     modelnames <- c("default")
 }
+
 
 for (mm in modelnames) {
     if (opt$meanboundary==0) {
