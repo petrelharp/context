@@ -34,7 +34,7 @@ def _simple_sim():
     # any levels in the directory hierarchy associated with them.
     base = {'n_sites': 10000,
             'time': 0.1,
-            'seed': 0
+            'seed': 0  # Note: always set the seed, otherwise code will halt.
             }
 
     # Passing an argument to `alias_environment` allows building targets based
@@ -98,6 +98,7 @@ for target_name in cl_targets.keys():
 # *** Our lovely targets:
 @nest.add_target()
 def sim(outdir, c):
+    assert("{0[seed]}".format(c) != "")  # Setting the seed makes sense.
     sim, = Command(join(outdir, 'sim.RData'),  # TARGET
                    ['../sim-seq.R', c['model']],  # SOURCES
                    'Rscript ${{SOURCES[0]}} \
