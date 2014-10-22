@@ -11,7 +11,7 @@
         [ "OX","XO" ],
         [ "X" ]
     ],
-    "selcoef" : [ 1., 0.5 ],
+    "selcoef" : [ 1.0, 0.5 ],
     "fixfn" : "ising.fixfn",
     "mutprior" : [ 0.1 ],
     "selprior" : [ 0.1, 0.1 ]

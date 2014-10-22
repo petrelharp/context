@@ -16,6 +16,9 @@ Rscript ../count-seq.R -i simseqs/sim-tasep-123456.RData -w 4 -s 2 -l 1
 echo "making genmatrix, width 4"
 Rscript ../make-genmat.R -c genmatrices/complete.json -w 4 --meanboundary 1
 
+echo "check simulated model matches expected"
+../templated-Rmd.sh ../testing-code/check-sim.Rmd simseqs/sim-tasep-123456.RData genmatrices/genmatrix-4-complete.RData
+
 echo "fitting, width 4"
 Rscript ../fit-model.R -i simseqs/sim-tasep-123456-4-root-2-tip-l1.counts -l 1 -m genmatrices/genmatrix-4-complete.RData -j 54321
 

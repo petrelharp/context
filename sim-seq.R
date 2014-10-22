@@ -59,18 +59,17 @@ if (!is.null(opt$logfile)) {
     sink(file=logcon, type="output")
 }
 
-config <- read.config(opt$configfile)
+simseq.config <- read.config(opt$configfile)
 # treeify, add defaults, etc
-config <- treeify.config(config,tlen=opt$tlen)
-config <- parse.models(config)
+simseq.config <- treeify.config(simseq.config,tlen=opt$tlen)
+simseq.config <- parse.models(simseq.config)
 # error checks
-stopifnot( ( length(config$bases) == length(config$initfreqs) ) )
+stopifnot( ( length(simseq.config$bases) == length(simseq.config$initfreqs) ) )
 
 # return a list of the simulated sequences in the same order as the tips,nodes of the tree
-simseqs <- simseq.tree(opt$seqlen,config)
+simseqs <- simseq.tree(opt$seqlen,simseq.config)
 
 simseq.opt <- opt
-simseq.config <- config
 
 save( simseq.opt, simseq.config, simseqs, file=opt$outfile )
 

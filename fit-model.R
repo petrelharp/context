@@ -16,6 +16,7 @@ option_list <- list(
         make_option( c("-l","--leftwin"), type="integer", help="Size of left-hand context." ),
         make_option( c("-m","--gmfile"), type="character", default="TRUE", help="File with precomputed generator matrix."),
         make_option( c("-x","--maxit"), type="integer", default=100, help="Number of iterations of optimization to run for. [default=%default]"),
+        make_option( c("-z","--dummy"), type="character", help="If this is the name of a config file, skip optimization and put the parameters into the resulting model object."),
         make_option( c("-j","--jobid"), type="character", default=formatC(1e6*runif(1),width=6,format="d",flag="0"), help="Unique job id. [default random]")
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))

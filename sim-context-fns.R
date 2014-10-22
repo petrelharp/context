@@ -157,7 +157,7 @@ counttrans.list <- function (lpatterns, seqlist=lapply(simseqs,"[[","finalseq"),
         for (j in rev(seq_along(ii)[-1])) { ii[j-1] <- ii[j-1] + ( ii[j] > npats[j] ) }
         ii[-1] <- 1 + ( (ii[-1]-1) %% npats[-1] )
     }
-    colpatterns <- do.call( expand.grid, list( shortpats )[ rep.int(1,length(seqlist)-1) ] )
+    colpatterns <- do.call( expand.grid, lpatterns[-1] )
     colnames(colpatterns) <- names(seqlist)[-1]
     counts <- lapply( counts, function (x) {
             dim(x) <- c(dim(x)[1],prod(dim(x)[-1]))

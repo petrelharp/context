@@ -2,7 +2,7 @@
 set -eu
 set -o pipefail
 
-Rscript ../sim-seq.R -c fwds-rev-tree-model.json -s 100 -o TEMP-tree-test.RData
+Rscript ../sim-seq.R -c fwds-rev-model.json -s 100 -o TEMP-tree-test.RData 2>/dev/null
 Rscript -e 'load("TEMP-tree-test.RData");suppressMessages({require(Biostrings);require(IRanges)})' \
     -e 'x <- lapply(simseqs,function (z) strsplit(as.character(z$finalseq),"")[[1]])' \
     -e 'stopifnot(unique(x$sp1)=="O")' \
@@ -12,7 +12,7 @@ Rscript -e 'load("TEMP-tree-test.RData");suppressMessages({require(Biostrings);r
     -e 'stopifnot(unique(x$an5)=="X")' \
     -e 'stopifnot(all(x$an6==x$root))'
 
-Rscript ../sim-seq.R -c fast-slow-tree.json -s 100 -o TEMP-tree-test.RData
+Rscript ../sim-seq.R -c fast-slow-tree.json -s 100 -o TEMP-tree-test.RData 2>/dev/null
 Rscript -e 'load("TEMP-tree-test.RData");suppressMessages({require(Biostrings);require(IRanges)})' \
     -e 'x <- lapply(simseqs,function (z) strsplit(as.character(z$finalseq),"")[[1]])' \
     -e 'stopifnot(all(x$sp1==x$an5))' \

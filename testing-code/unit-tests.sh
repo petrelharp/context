@@ -8,8 +8,9 @@
 TEMPFILE=$(mktemp tempXXXXX.RData)
 
 # TEST 1
-Rscript ../make-genmat.R -c <(echo '{ "bases":["X","O"], "mutpats":[[["X","O"],["O","X"]]], "mutrates":[1] }') -w 2 -o $TEMPFILE
-TEST1=$( diff <(Rscript -e "source('../context-inference-fns.R'); load(\"$TEMPFILE\"); as.matrix(genmatrix)" | sed -e 's/^ *//' -e 's/ *$//' -e 's/  */ /g') <(( cat <<END
+echo "Test 1:"
+Rscript ../make-genmat.R -c <(echo '{ "bases":["X","O"], "mutpats":[[["X","O"],["O","X"]]], "mutrates":[1] }') -w 2 -o $TEMPFILE 2>/dev/null
+TEST1=$( diff <(Rscript -e "source('../context-inference-fns.R'); load(\"$TEMPFILE\"); as.matrix(genmatrix)" 2>/dev/null | sed -e 's/^ *//' -e 's/ *$//' -e 's/  */ /g') <(( cat <<END
       XX OX XO OO
    XX  0  1  1  0
    OX  1  0  0  1
@@ -19,12 +20,15 @@ END
 ) | sed -e 's/^ *//' -e 's/ *$//' -e 's/  */ /g') )
 
 if [ $TEST1 ]; then
-    echo "Failed test 1."
+    echo "  Failed test 1."
+else
+    echo "  Passed."
 fi
 
 # Test 2
-Rscript ../make-genmat.R -c <(echo '{ "bases":["X","O"], "mutpats":[[["X","O"]],[["O","X"]]], "mutrates":[1,2] }') -w 2 -o $TEMPFILE
-TEST2=$( diff <(Rscript -e "source('../context-inference-fns.R'); load(\"$TEMPFILE\"); as.matrix(genmatrix)" | sed -e 's/^ *//' -e 's/ *$//' -e 's/  */ /g') <(( cat <<END
+echo "Test 2:"
+Rscript ../make-genmat.R -c <(echo '{ "bases":["X","O"], "mutpats":[[["X","O"]],[["O","X"]]], "mutrates":[1,2] }') -w 2 -o $TEMPFILE 2>/dev/null
+TEST2=$( diff <(Rscript -e "source('../context-inference-fns.R'); load(\"$TEMPFILE\"); as.matrix(genmatrix)" 2>/dev/null | sed -e 's/^ *//' -e 's/ *$//' -e 's/  */ /g') <(( cat <<END
       XX OX XO OO
    XX  0  1  1  0
    OX  2  0  0  1
@@ -35,11 +39,13 @@ END
 
 if [ $TEST2 ]; then
     echo "Failed test 2."
+else
+    echo "Passed."
 fi
 
 # Test 3
-Rscript ../make-genmat.R -c <(echo '{ "bases":["X","O"], "mutpats":[[["X","O"]],[["O","X"]],[["OX","XX"]],[["XO","XX"]]], "mutrates":[1,2,3,5] }') -w 3 -o $TEMPFILE
-TEST2=$( diff <(Rscript -e "source('../context-inference-fns.R'); load(\"$TEMPFILE\"); as.matrix(genmatrix)" | sed -e 's/^ *//' -e 's/ *$//' -e 's/  */ /g') <(( cat <<END
+Rscript ../make-genmat.R -c <(echo '{ "bases":["X","O"], "mutpats":[[["X","O"]],[["O","X"]],[["OX","XX"]],[["XO","XX"]]], "mutrates":[1,2,3,5] }') -w 3 -o $TEMPFILE 2>/dev/null
+TEST2=$( diff <(Rscript -e "source('../context-inference-fns.R'); load(\"$TEMPFILE\"); as.matrix(genmatrix)" 2>/dev/null | sed -e 's/^ *//' -e 's/ *$//' -e 's/  */ /g') <(( cat <<END
     XXX OXX XOX OOX XXO OXO XOO OOO
 XXX   0   1   1   0   1   0   0   0
 OXX   5   0   0   1   0   1   0   0
@@ -54,6 +60,8 @@ END
 
 if [ $TEST3 ]; then
     echo "Failed test 3."
+else
+    echo "Passed."
 fi
 
 # Test 4

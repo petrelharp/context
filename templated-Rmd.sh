@@ -14,7 +14,7 @@ template=$1
 RData=$2
 shift
 RDataList="c(\""$(echo $@| sed -e 's/ /", "/g')"\")"
-outfile=$(pwd)/$(dirname $RData)/$(basename $RData .RData).html
+outfile=$(pwd)/$(dirname $RData)/$(basename $RData .RData)-$(basename $template .Rmd).html
 
 R --vanilla --slave << EOF
 library("rmarkdown")

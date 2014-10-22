@@ -1,0 +1,83 @@
+# Compare simulation to expected counts under true parameters
+
+```{r, echo=FALSE}
+# Should load: simulation results; generator matrix
+library(pander)
+library(ggplot2)
+panderOptions("table.split.table", Inf)  # Let tables become arbitrarily wide rather than wrapping.
+source("../context-inference-fns.R")
+source("../sim-context-fns.R")
+top_n_bottom <- function(df, k) { # Take the top and bottom k rows
+    n = nrow(df)
+    if(2*k < n) {
+        df[c(1:k,(n-(k-1)):n), ]
+    }
+    else {
+        df
+    }
+}
+counts_table <- function(in_longwin, in_shortwin, half_n_show) {
+    if ( in_longwin > longwin(genmatrix) || in_shortwin > longwin(genmatrix) ) {
+        cat("Window size of counts too small.")
+    }
+    else {
+        observed <- projectcounts( counttab, lcountwin=floor((in_longwin-in_shortwin)/2), countwin=in_shortwin, rcountwin=ceiling((in_longwin-in_shortwin)/2) )
+        expected <- projectcounts( expected, lcountwin=floor((in_longwin-in_shortwin)/2), countwin=in_shortwin, rcountwin=ceiling((in_longwin-in_shortwin)/2) )
+        obsexp <- cbind( as.matrix(observed@counts), as.matrix(expected@counts) )
+        colnames(obsexp) <- c( paste("obs:",colnames(observed),sep=''), paste("exp:",colnames(observed),sep='') )
+        obsexp <- obsexp[, rbind(1:ncol(observed),ncol(observed)+(1:ncol(observed)))]
+        pandoc.table(top_n_bottom(obsexp, half_n_show), style="rmarkdown")
+    }
+}
+longpats <- getpatterns(longwin(genmatrix),simseq.config$bases)
+counttab <- counttrans.list( list(longpats,longpats), simseqs=simseqs, leftwin=0, bases=simseq.config$bases )
+initcounts <- rowSums(counttab)
+time <- as.numeric(simseq.opt$tlen)
+expected <- predictcounts(longwin=longwin(genmatrix), shortwin=longwin(genmatrix), leftwin=0, initcounts=initcounts, 
+        mutrates=time*simseq.config$tip$mutrates, selcoef=simseq.config$tip$selcoef, genmatrix=genmatrix, params=simseq.config$tip$fixfn.params )
+```
+
+# Simulated parameter values
+```{r, echo=FALSE, results="asis"}
+params <- as.data.frame( matrix( c(
+        time,
+        simseq.config$tip$mutrates,
+        simseq.config$tip$selcoef,
+        simseq.config$tip$fixfn.params
+    ), nrow=1 ) )
+colnames(params) <- c(
+        "time",
+        mutnames(simseq.config$tip$mutpats),
+        selnames(simseq.config$tip$selpats),
+        names(simseq.config$tip$fixfn.params)
+    )
+pandoc.table(params, style="rmarkdown")
+```
+
+
+```{r, echo=FALSE}
+cat("window size:", longwin(genmatrix),
+    "\ntotal counts:", sum(counttab@counts),
+    "\ntime:", simseq.opt$tlen,
+    "\nseed:", simseq.opt$seed,
+    "\n"
+    )
+```
+
+
+
+## residuals for 2-2 Tmers
+```{r, echo=FALSE, results="asis"}
+counts_table(in_longwin=2, in_shortwin=2, half_n_show=5)
+```
+
+## residuals for 3-1 Tmers
+```{r, results="asis"}
+counts_table(in_longwin=3, in_shortwin=1, half_n_show=5)
+```
+
+## residuals for 9-5 Tmers
+```{r, results="asis"}
+counts_table(in_longwin=9, in_shortwin=5, half_n_show=5)
+```
+
