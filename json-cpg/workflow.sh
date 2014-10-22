@@ -8,11 +8,11 @@ BASEDIR=simseqs/
 MODEL=cpg-model.json
 
 echo "simulate up some sequence for testing"
-Rscript ../sim-seq.R -c $MODEL -t .1 -s 10000 -d $BASEDIR -o $BASE-123456.RData
+Rscript ../sim-seq.R -c $MODEL -t .1 -s 1000000 -d $BASEDIR -o $BASE-123456.RData
 
 echo "and count the Tmers"
-LONGWIN=3
-SHORTWIN=1
+LONGWIN=4
+SHORTWIN=2
 LEFTWIN=1
 
 Rscript ../count-seq.R -i ${BASEDIR}$BASE-123456.RData -w $LONGWIN -s $SHORTWIN -l $LEFTWIN
@@ -28,11 +28,11 @@ echo "check simulated model matches expected"
 echo "fit a model"
 Rscript ../fit-model.R -i ${BASEDIR}$BASE-123456-${LONGWIN}-root-${SHORTWIN}-tip-l${LEFTWIN}.counts -l ${LEFTWIN} -m $GENMAT -j 54321
 
-echo "compute residuals"
-Rscript ../compute-resids.R -i ${BASEDIR}$BASE-123456-${LONGWIN}-root-${SHORTWIN}-tip-l${LEFTWIN}-genmatrix-${LONGWIN}-cpg-54321.RData -w 3 -s 1 -l 1 -m ${GENMAT}
-
 echo "look at results"
 ../templated-Rmd.sh ../simulation.Rmd ${BASEDIR}$BASE-123456-${LONGWIN}-root-${SHORTWIN}-tip-l${LEFTWIN}-genmatrix-${LONGWIN}-cpg-54321.RData ${BASEDIR}$BASE-123456.RData
+
+echo "compute residuals"
+Rscript ../compute-resids.R -i ${BASEDIR}$BASE-123456-${LONGWIN}-root-${SHORTWIN}-tip-l${LEFTWIN}-genmatrix-${LONGWIN}-cpg-54321.RData -w 3 -s 1 -l 1 -m ${GENMAT}
 
 ## STOP HERE FOR NOW
 exit 0

@@ -80,6 +80,9 @@ cat("\n\n  Generator matrices all good!\n")
 
 ######
 # Simulates correctly?
+
+
+#  Long sequences:
 tlen <- .1
 seqlen <- 1000/tlen
 mutrates <- c(1,1)

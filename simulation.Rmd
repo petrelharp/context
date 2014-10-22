@@ -18,6 +18,7 @@ top_n_bottom <- function(df, k) { # Take the top and bottom k rows
 counts_table <- function(in_longwin, in_shortwin, half_n_show) {
     if ( in_longwin > longwin(model@counts) || in_shortwin > shortwin(model@counts) ) {
         cat("Window size of counts too small.")
+        return(NULL)
     }
     else {
         resids = computeresids(model,
@@ -26,6 +27,17 @@ counts_table <- function(in_longwin, in_shortwin, half_n_show) {
                 in_leftwin=floor((in_longwin-in_shortwin)/2),
                 counts=model@counts)
         pandoc.table(top_n_bottom(resids, half_n_show), style="rmarkdown")
+        return(invisible(resids))
+    }
+}
+counts_plot <- function (resids) {
+    if (NROW(resids)>0) { 
+        hist(resids$z, xlab="z-score", ylab='') 
+        outfac <- factor(resids$outpat)
+        with(resids, plot(observed, expected, xlab='observed', ylab='expected', col=rainbow(nlevels(outfac))[as.numeric(outfac)], pch=20 ) )
+        abline(0,1)
+        with(resids, plot(observed, expected, xlab='observed', ylab='expected', log='xy', col=rainbow(nlevels(outfac))[as.numeric(outfac)], pch=20 ) )
+        abline(0,1)
     }
 }
 cat(model@invocation,"\n")
@@ -46,7 +58,7 @@ cat("left window size:", model@counts@leftwin,
     "\ncomplete window size:", nchar(rownames(counttab)[[1]]),
     "\ntotal counts:", sum(counttab),
     "\ntime:", simseq.opt$tlen,
-    "\nseed:", simseq.opt$seed,
+    "\nseed:", formatC(simseq.opt$seed,format="d"),
     "\n"
     )
 ```
@@ -63,17 +75,27 @@ cat("convergence: ", model@results$convergence,
 ## Fitted parameter values
 ```{r, echo=FALSE, results="asis"}
 time <- as.numeric(simseq.opt$tlen)
-mr_compare <- data.frame(fit=model@mutrates / time)
-mr_compare$names <- rownames(mr_compare)
-simvalues= data.frame(names=mutnames(simseq.config$tip$mutpats),
-                      simulated=simseq.config$tip$mutrates)
-mr_compare <- merge(simvalues, mr_compare)
+mr_compare <- data.frame( 
+    fit=c( model@mutrates / time, model@selcoef, model@params), 
+    stringsAsFactors=FALSE )
+simvalues <- data.frame(
+        names=c(
+            mutnames(simseq.config$tip$mutpats), 
+            selnames(simseq.config$tip$selpats), 
+            names(simseq.config$tip$fixfn.params) ),
+        simulated=unlist(c(
+            simseq.config$tip$mutrates,
+            simseq.config$tip$selcoef,
+            simseq.config$tip$fixfn.params ) )
+)
+mr_compare$simulated <- simvalues$simulated[match(rownames(mr_compare),simvalues$names)]
 pandoc.table(mr_compare, style="rmarkdown")
 ```
 
 
 The corresponding plot, where bars are the fit values, and points are the simulated values:
 ```{r, echo=FALSE, results="asis"}
+mr_compare$names <- factor(rownames(mr_compare), levels=rownames(mr_compare))
 ggplot(mr_compare, aes(x=names)) +
     geom_bar(aes(y=fit), stat = "identity", fill="white", color="gray") +
     geom_point(aes(y=simulated)) +
@@ -84,16 +106,19 @@ ggplot(mr_compare, aes(x=names)) +
 
 ## residuals for 2-2 Tmers
 ```{r, echo=FALSE, results="asis"}
-counts_table(in_longwin=2, in_shortwin=2, half_n_show=5)
+resids <- counts_table(in_longwin=2, in_shortwin=2, half_n_show=20)
+counts_plot(resids)
 ```
 
 ## residuals for 3-1 Tmers
 ```{r, results="asis"}
-counts_table(in_longwin=3, in_shortwin=1, half_n_show=5)
+resids <- counts_table(in_longwin=3, in_shortwin=1, half_n_show=20)
+counts_plot(resids)
 ```
 
 ## residuals for 9-5 Tmers
 ```{r, results="asis"}
-counts_table(in_longwin=9, in_shortwin=5, half_n_show=5)
+resids <- counts_table(in_longwin=9, in_shortwin=5, half_n_show=20)
+counts_plot(resids)
 ```
 

@@ -13,6 +13,9 @@ Rscript ../count-seq.R -i simseqs/test-ising-123456.RData -w 3 -s 1 -l 1
 #   width-3
 Rscript ../make-genmat.R -c genmatrices/complete.json -w 3
 
+echo "check simulated model matches expected"
+../templated-Rmd.sh ../testing-code/check-sim.Rmd simseqs/test-ising-123456.RData genmatrices/genmatrix-3-complete.RData 
+
 echo "fitting the model"
 Rscript ../fit-model.R -i simseqs/test-ising-123456-3-root-1-tip-l1.counts -l 1 -m genmatrices/genmatrix-3-complete.RData -j 54321
 
