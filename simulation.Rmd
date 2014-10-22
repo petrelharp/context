@@ -23,12 +23,12 @@ counts_table <- function(in_longwin, in_shortwin, half_n_show) {
         resids = computeresids(model,
                 in_longwin=in_longwin,
                 in_shortwin=in_shortwin,
-                in_leftwin=in_shortwin,
+                in_leftwin=floor((in_longwin-in_shortwin)/2),
                 counts=model@counts)
         pandoc.table(top_n_bottom(resids, half_n_show), style="rmarkdown")
     }
 }
-cat(model@invocation)
+cat(model@invocation,"\n")
 ```
 
 
@@ -36,17 +36,18 @@ cat(model@invocation)
 ```{r, echo=FALSE, results="hide"}
 # For some reason the code doesn't work if we don't print out some of the
 # counts, but we can do it in a hidden block.
-counts <- model@counts@counts
-head(counts)
+counttab <- counts(model)
+head(counttab)
 ```
 
 
 ```{r, echo=FALSE}
 cat("left window size:", model@counts@leftwin,
-    "\ncomplete window size:", nchar(rownames(counts)[[1]]),
-    "\ntotal counts:", sum(counts),
+    "\ncomplete window size:", nchar(rownames(counttab)[[1]]),
+    "\ntotal counts:", sum(counttab),
     "\ntime:", simseq.opt$tlen,
-    "\nseed:", simseq.opt$seed
+    "\nseed:", simseq.opt$seed,
+    "\n"
     )
 ```
 
@@ -54,7 +55,8 @@ cat("left window size:", model@counts@leftwin,
 ## Result of fitting operation
 ```{r, echo=FALSE}
 cat("convergence: ", model@results$convergence,
-    "\nmessage: ", model@results$message)
+    "\nmessage: ", model@results$message,
+    "\n" )
 ```
 
 

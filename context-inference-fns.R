@@ -322,6 +322,7 @@ setClass("contextMCMC", representation(
          contains="context")
 
 setMethod("dimnames", signature=c(x="context"), definition=function (x) { dimnames(x@counts) } )
+setMethod("counts", signature=c(x="context"), definition=function (x) { counts(x@counts) } )
 
 # We would like the likfun function to automatically have access to the stuff in the context object
 #  ... where is 'self'?!?
@@ -821,12 +822,13 @@ computeresids <- function (model, pretty=TRUE, in_longwin=longwin(model), in_sho
     } else {
         counts <- model@counts
     }
+
+    expected <- fitted( model, longwin=longwin(model), shortwin=shortwin(model), leftwin=leftwin(model), initcounts=rowSums(counts), genmatrix=genmatrix )
+
     if ( (in_longwin < longwin(counts)) || (in_shortwin < shortwin(counts)) ) {
         counts <- projectcounts( counts, in_leftwin, in_shortwin, in_longwin-in_leftwin-in_shortwin )
+        expected <- projectcounts( expected, in_leftwin, in_shortwin, in_longwin-in_leftwin-in_shortwin )
     }
-    stopifnot( all( rownames(counts) == rownames(genmatrix) ) )
-
-    expected <- fitted( model, longwin=in_longwin, shortwin=in_shortwin, leftwin=in_leftwin, initcounts=rowSums(counts), genmatrix=genmatrix )
 
     if (pretty) {
         # data frame with columns for long pattern, short pattern, observed, expected, residual, z-score

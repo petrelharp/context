@@ -23,4 +23,4 @@ echo "computing residuals"
 Rscript ../compute-resids.R -i simseqs/sim-tasep-123456-4-root-2-tip-l1-genmatrix-4-complete-54321.RData
 
 echo "look at results"
-../templated-Rmd.sh ../simulation.Rmd simseqs/sim-tasep-123456-4-root-2-tip-l1-genmatrix-4-complete-54321.RData
+../templated-Rmd.sh ../simulation.Rmd simseqs/sim-tasep-123456-4-root-2-tip-l1-genmatrix-4-complete-54321.RData simseqs/sim-tasep-123456.RData

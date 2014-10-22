@@ -64,6 +64,7 @@ likfun <- function (params){
 }
 
 initpar <- c( adhoc.mutrates, adhoc.selcoef, adhoc.fixparams )
+names(initpar) <- c( mutnames(genmatrix@mutpats), selnames(genmatrix@selpats), fixparams(genmatrix) )
 stopifnot( length(initpar) == nmuts(genmatrix)+nsel(genmatrix)+length(fixparams(genmatrix)) )
 lbs <- c( rep(1e-6,nmuts(genmatrix)), rep(-5,nsel(genmatrix)), rep(-Inf,length(fixparams(genmatrix))) )
 ubs <- c( rep(2,nmuts(genmatrix)), rep(5,nsel(genmatrix)), rep(Inf,length(fixparams(genmatrix))) )
