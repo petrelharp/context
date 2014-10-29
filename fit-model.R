@@ -16,7 +16,6 @@ option_list <- list(
         make_option( c("-l","--leftwin"), type="integer", help="Size of left-hand context." ),
         make_option( c("-m","--gmfile"), type="character", default="TRUE", help="File with precomputed generator matrix."),
         make_option( c("-x","--maxit"), type="integer", default=100, help="Number of iterations of optimization to run for. [default=%default]"),
-        make_option( c("-z","--dummy"), type="character", help="If this is the name of a config file, skip optimization and put the parameters into the resulting model object."),
         make_option( c("-j","--jobid"), type="character", default=formatC(1e6*runif(1),width=6,format="d",flag="0"), help="Unique job id. [default random]")
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
@@ -43,18 +42,19 @@ projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin(
 adhoc <- countmuts(counts=counts,mutpats=genmatrix@mutpats,leftwin=leftwin(counts))
 adhoc.mutrates <- adhoc[1,]/adhoc[2,]
 adhoc.mutrates <- ifelse( is.finite(adhoc.mutrates) & adhoc.mutrates > 0, adhoc.mutrates, 1e-4 )
-# start selection parameters at zero, why not
+# start selection parameters at zero, why not?
 adhoc.selcoef <- rep(1e-6,nsel(genmatrix))
 names(adhoc.selcoef) <- selnames(genmatrix@selpats)
-# ditto for additional parameters
+# how to choose additional parameters?? Need guidance here.
 adhoc.fixparams <- rep(1,length(fixparams(genmatrix)))
 names(adhoc.fixparams) <- fixparams(genmatrix)
+adhoc.fixparams[names(adhoc.fixparams)=="Ne"] <- 200 + 2000*runif(1)
 
 # Compute (quasi)-likelihood function using all counts -- multinomial as described in eqn:comp_like.
 likfun <- function (params){
     # params are: mutrates, selcoef, fixparams
     fparams <- params[seq( 1+nmuts(genmatrix)+nsel(genmatrix), length.out=length(fixparams(genmatrix)) )]
-    names(fparams) <- names(fixparams(genmatrix))
+    names(fparams) <- fixparams(genmatrix)
     genmatrix@x <- do.call( update, c( list( G=genmatrix,mutrates=params[1:nmuts(genmatrix)],selcoef=params[seq(1+nmuts(genmatrix),length.out=nsel(genmatrix))]), as.list(fparams) ) )
     # this is collapsed transition matrix
     subtransmatrix <- computetransmatrix( genmatrix, projmatrix, tlen=1, time="fixed") # shape=params[length(params)], time="gamma" )
@@ -69,7 +69,7 @@ names(initpar) <- c( mutnames(genmatrix@mutpats), selnames(genmatrix@selpats), f
 stopifnot( length(initpar) == nmuts(genmatrix)+nsel(genmatrix)+length(fixparams(genmatrix)) )
 lbs <- c( rep(1e-6,nmuts(genmatrix)), rep(-5,nsel(genmatrix)), rep(-Inf,length(fixparams(genmatrix))) )
 ubs <- c( rep(2,nmuts(genmatrix)), rep(5,nsel(genmatrix)), rep(Inf,length(fixparams(genmatrix))) )
-parscale <- c( 1e-3 * rep( mean(adhoc.mutrates),nmuts(genmatrix)), rep(.05,nsel(genmatrix)), rep(1,length(fixparams(genmatrix))) )
+parscale <- c( 1e-3 * rep( mean(adhoc.mutrates),nmuts(genmatrix)), rep(.05,nsel(genmatrix)), 0.1*adhoc.fixparams )
 
 baseval <- likfun(initpar)
 stopifnot( is.finite(baseval) )

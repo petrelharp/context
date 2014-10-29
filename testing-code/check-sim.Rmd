@@ -30,7 +30,7 @@ counts_table <- function(in_longwin, in_shortwin, half_n_show) {
     }
 }
 longpats <- getpatterns(longwin(genmatrix),simseq.config$bases)
-counttab <- counttrans.list( list(longpats,longpats), simseqs=simseqs, leftwin=0, bases=simseq.config$bases )
+counttab <- counttrans.list( list(longpats,longpats), simseqs=simseqs[c("root","tip")], leftwin=0, bases=simseq.config$bases )
 initcounts <- rowSums(counttab)
 time <- as.numeric(simseq.opt$tlen)
 expected <- predictcounts(longwin=longwin(genmatrix), shortwin=longwin(genmatrix), leftwin=0, initcounts=initcounts, 
@@ -45,12 +45,12 @@ params <- as.data.frame( matrix( c(
         simseq.config$tip$selcoef,
         simseq.config$tip$fixfn.params
     ), nrow=1 ) )
-colnames(params) <- c(
+colnames(params) <- gsub("|","\\|",c(
         "time",
         mutnames(simseq.config$tip$mutpats),
         selnames(simseq.config$tip$selpats),
         names(simseq.config$tip$fixfn.params)
-    )
+    ), fixed=TRUE)
 pandoc.table(params, style="rmarkdown")
 ```
 

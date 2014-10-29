@@ -96,11 +96,15 @@ pandoc.table(mr_compare, style="rmarkdown")
 The corresponding plot, where bars are the fit values, and points are the simulated values:
 ```{r, echo=FALSE, results="asis"}
 mr_compare$names <- factor(rownames(mr_compare), levels=rownames(mr_compare))
-ggplot(mr_compare, aes(x=names)) +
-    geom_bar(aes(y=fit), stat = "identity", fill="white", color="gray") +
-    geom_point(aes(y=simulated)) +
-    theme(axis.text.x = element_text(angle = 90),
-          axis.title.y = element_blank())
+param_sizes <- floor(log10(abs(mr_compare$simulated)+1e-4)/2)
+for (k in unique(param_sizes)) {
+    print( ggplot(mr_compare[param_sizes==k,], aes(x=names)) + xlab("") +
+        geom_bar(aes(y=fit), stat = "identity", fill="white", color="gray") +
+        geom_point(aes(y=simulated)) +
+        theme(axis.text.x = element_text(angle = 90),
+              axis.title.y = element_blank())
+      )
+}
 ```
 
 

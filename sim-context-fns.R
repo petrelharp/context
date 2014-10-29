@@ -97,7 +97,13 @@ simseq <- function (seqlen, tlen, mutpats, mutrates, selpats=list(), selcoef=num
 simseq.tree <- function (seqlen,config,...) {
     # return a list of the simulated sequences in the same order as the tips,nodes of the tree
     simseqs <- lapply(nodenames(config$tree),function(e)NULL)
-    simseqs[[rootname(config$tree)]] <- list(finalseq=rinitseq(seqlen,config$bases,basefreqs=config$initfreqs))
+    more.args <- list(...)
+    simseqs[[rootname(config$tree)]] <- if ("initseq" %in% names(more.args)) {
+        list(finalseq=more.args[["initseq"]])
+    }else {
+        list(finalseq=rinitseq(seqlen,config$bases,basefreqs=config$initfreqs))
+    }
+    more.args[["initseq"]] <- NULL # remove it now if it's there
     for (k in 1:nrow(config$tree$edge)) {
         # edge.pair is (from, to)
         edge.pair <- config$tree$edge[k,]
@@ -111,7 +117,7 @@ simseq.tree <- function (seqlen,config,...) {
                     seqlen=seqlen, 
                     mutpats=modconfig$mutpats, mutrates=modconfig$mutrates, selpats=modconfig$selpats, 
                     selcoef=modconfig$selcoef, bases=config$bases, fixfn=modconfig$fixfn ), 
-                list(...),
+                more.args,
                 modconfig$fixfn.params ) )
     }
     return(simseqs)
@@ -129,6 +135,7 @@ counttrans.list <- function (lpatterns, seqlist=lapply(simseqs,"[[","finalseq"),
     # count number of times each of seqlist matches corresponding lpatterns
     #   optionally, cyclical
     # if shift is nonzero, return a list  with the counts in each of (shift) frames
+    if (!is.null(names(seqlist)) & all( names(seqlist) == c("tip","root") ) ) { warning("Rows in counts correspond to tip, not root node.") }
     patlen <- max( sapply( lapply( lpatterns, "[", 1 ), nchar ) )
     seqlen <- unique( sapply(seqlist, nchar) )
     stopifnot(length(seqlen)==1)
@@ -161,7 +168,7 @@ counttrans.list <- function (lpatterns, seqlist=lapply(simseqs,"[[","finalseq"),
     colnames(colpatterns) <- names(seqlist)[-1]
     counts <- lapply( counts, function (x) {
             dim(x) <- c(dim(x)[1],prod(dim(x)[-1]))
-            rownames(x) <- longpats
+            rownames(x) <- lpatterns[[1]]
             colnames(x) <- apply(colpatterns,1,paste,collapse='.')
             new("tuplecounts", 
                 leftwin=leftwin,
