@@ -164,7 +164,7 @@ def complete(outdir, c):
 # recent pandoc).
 @nest.add_target_with_env(env)
 def report(env, outdir, c):
-    report, = env.Command(join(outdir, 'complete.html'),
+    report, = env.Command(join(outdir, 'complete-simulation.html'),
                           ['../templated-Rmd.sh',
                            '../simulation.Rmd',
                            c['complete']],
