@@ -555,7 +555,7 @@ meangenmatrix <- function (leftwin,rightwin,patlen,...) {
     return( meangenmat )
 }
 
-computetransmatrix <- function( genmatrix, projmatrix, tlen=1, shape=1, names=FALSE, transpose=FALSE, time="fixed") {
+computetransmatrix <- function( genmatrix, projmatrix, tlen=1, shape=1, names=FALSE, transpose=FALSE, time="fixed",...) {
     # Compute the product of exp(tlen*genmatrix) and projmatrix, either on the left or the right (as transpose is true or false)
     #   either after a fixed time: exp(tlen*genmatrix)
     #   or after a gamma-distributed time
@@ -567,7 +567,7 @@ computetransmatrix <- function( genmatrix, projmatrix, tlen=1, shape=1, names=FA
         scale.t <- mean(totalrates)
         A <- (1/scale.t) * ( ( if (transpose) { t(genmatrix) } else {genmatrix} ) - Diagonal(nrow(genmatrix),totalrates) )
         if (is.null(dim(projmatrix))) { dim(projmatrix) <- c(length(projmatrix),1) }
-        subtransmatrix <- sapply( 1:ncol(projmatrix), function (k) { expAtv( A=A, t=tlen*scale.t, v=projmatrix[,k] )$eAtv } )
+        subtransmatrix <- sapply( 1:ncol(projmatrix), function (k) { expAtv( A=A, t=tlen*scale.t, v=projmatrix[,k], ... )$eAtv } )
     }
     if (names) {
         rownames(subtransmatrix) <- rownames(genmatrix)
@@ -843,10 +843,10 @@ computeresids <- function (model, pretty=TRUE, in_longwin=longwin(model), in_sho
         residframe <- residframe[order(residframe$z),]
     } else {
         # concise matrix
-        resids <- residuals( model, counts=counts, genmatrix=genmatrix )
-        residframe <- as.vector(resids@counts)
-        dim(residframe) <- dim(resids)
-        dimnames(residframe) <- dimnames(resids)
+        resids <- counts@counts - expected@counts  # residuals( model, counts=counts, genmatrix=genmatrix )
+        residframe <- as.vector(resids)
+        dim(residframe) <- dim(counts)
+        dimnames(residframe) <- dimnames(counts)
     }
     return( invisible(residframe) )
 }

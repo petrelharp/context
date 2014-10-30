@@ -52,4 +52,5 @@ residframe = computeresids (model,
     counts            = counts,
     genmatrixfile     = opt$genmatrixfile)
 
-write.table(file=opt$outfile, x=residframe, sep='\t', quote=FALSE, row.names=TRUE )
+options(scipen=10)
+write.table(file=opt$outfile, x=format(residframe,digits=3), sep='\t', quote=FALSE, row.names=TRUE )
