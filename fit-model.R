@@ -84,7 +84,7 @@ baseval <- likfun(initpar)
 stopifnot( is.finite(baseval) )
 # adjust parscale if necessary
 for (k in seq_along(initpar)) {
-    while ( parscale[k] > 1e-8 && (!is.finite(likfun(params+ifelse(seq_along(parscale)==k,parscale,0))) ) || (!is.finite(likfun(params+ifelse(seq_along(parscale)==k,parscale,0))) ) ) {
+    while ( parscale[k] > 1e-8 && (!is.finite(likfun(initpar+ifelse(seq_along(parscale)==k,parscale,0))) ) || (!is.finite(likfun(initpar+ifelse(seq_along(parscale)==k,parscale,0))) ) ) {
         cat("Reducing parscale for ", names(initpar)[k], ".\n")
         parscale[k] <- parscale[k]/4
     }
