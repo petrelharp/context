@@ -6,12 +6,25 @@ invocation <- commandArgs()
 
 usage <- "\
 Infer parameters from paired counts file, which records instances of Tmer transitions.
+\
+The config file is a JSON file defining initial values for: \
+    mutrates : numeric vector of same length as mutpats giving mutation rates per generation \
+    selcoef : numeric vector of same length as selpats giving selection coefficients \
+    fixfn.params: named list of additional parameters to pass to fixfn \
+as well as the appropriate scale to search for parameter values over, by \
+    mutrate.scale : numeric vector for mutrates \
+    selcoef.scale : numeric vector for selcoef \
+    fixfn.params.scale : numeric vector for fixfn.params \
+\
+Parameters whose scale is set to zero *will be regarded as fixed.* \
+\
+If any of these are missing, possibly inappropriate values will be guessed. \
 "
 
 option_list <- list(
     # input/output
         make_option( c("-i","--infile"), type="character", help="Input file with tuple counts, tab-separated, with header 'reference', 'derived', 'count'. [default, looks in basedir]" ),
-        make_option( c("-c","--configfile"), type="character", help="Config file with initial guesses at parameter values. [default: makes cheap guesses]"), 
+        make_option( c("-c","--configfile"), type="character", help="Config file with initial guesses at parameter values and parameters to constrain. [default: makes cheap guesses]"), 
         make_option( c("-o","--outfile"), type="character", help="File to save results to.  [default: base of infile + base of genmatrix + jobid + .RData]"),
         make_option( c("-u","--basedir"), type="character", default=NULL, help="Directory to put output in. [default: same as infile]"),
         make_option( c("-l","--leftwin"), type="integer", help="Size of left-hand context." ),
@@ -28,6 +41,7 @@ if (is.null(opt$outfile)) { opt$outfile <- paste( opt$basedir, "/", gsub("\\.[^.
 print(opt) # this will go in the pbs log
 
 source("../context-inference-fns.R")
+
 options(error = print.and.dump)
 
 # load generator matrix
@@ -40,31 +54,47 @@ stopifnot( all( rownames(counts) == rownames(genmatrix) ) )
 
 projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin(counts), fpatterns=colnames(counts) )
 
-if (!is.null(opt$configfile)) {
-    init.config <- read.config(opt$configfile)
-    initpar <- with( init.config, c( mutrates, selcoef, unlist(fixfn.params) ) )
-    parscale <- c( 1e-3 * rep( mean(init.config$mutrates),nmuts(genmatrix)), rep(max(1e-4,mean(abs(init.config$selcoef))),nsel(genmatrix)), 0.1*unlist(init.config$fixfn.params) )
-    names(initpar) <- c( mutnames(genmatrix@mutpats), selnames(genmatrix@selpats), fixparams(genmatrix) )
-} else {
+init.config <- read.config(opt$configfile)  # returns NULL if it is NULL
+if (is.null(init.config$mutrates)) {
     # get ad hoc initial guesses at parameters
     adhoc <- countmuts(counts=counts,mutpats=genmatrix@mutpats,leftwin=leftwin(counts))
-    adhoc.mutrates <- adhoc[1,]/adhoc[2,]
-    adhoc.mutrates <- ifelse( is.finite(adhoc.mutrates) & adhoc.mutrates > 0, adhoc.mutrates, 1e-4 )
+    init.config$mutrates <- adhoc[1,]/adhoc[2,]
+    init.config$mutrates <- ifelse( is.finite(init.config$mutrates) & init.config$mutrates > 0, init.config$mutrates, 1e-4 )
+}
+if (is.null(init.config$selcoef)) {
     # start selection parameters at zero, why not?
-    adhoc.selcoef <- rep(1e-6,nsel(genmatrix))
-    names(adhoc.selcoef) <- selnames(genmatrix@selpats)
+    init.config$selcoef <- rep(1e-6,nsel(genmatrix))
+    names(init.config$selcoef) <- selnames(genmatrix@selpats)
+}
+if (is.null(init.config$fixfn.params)) {
     # how to choose additional parameters?? Need guidance here.
-    adhoc.fixparams <- rep(1,length(fixparams(genmatrix)))
-    names(adhoc.fixparams) <- fixparams(genmatrix)
-    adhoc.fixparams[names(adhoc.fixparams)=="Ne"] <- 200 + 2000*runif(1)
-    initpar <- c( adhoc.mutrates, adhoc.selcoef, adhoc.fixparams )
-    parscale <- c( 1e-3 * rep( mean(adhoc.mutrates),nmuts(genmatrix)), rep(.05,nsel(genmatrix)), 0.1*adhoc.fixparams )
-    names(initpar) <- c( mutnames(genmatrix@mutpats), selnames(genmatrix@selpats), fixparams(genmatrix) )
+    init.config$fixfn.params <- rep(1,length(fixparams(genmatrix)))
+    names(init.config$fixfn.params) <- fixparams(genmatrix)
+    init.config$fixfn.params[names(init.config$fixfn.params)=="Ne"] <- 200 + 2000*runif(1)
+}
+# scale tuning parameters
+if (is.null(init.config$mutrates.scale)) {
+    init.config$mutrates.scale <- 1e-3 * rep( mean(init.config$mutrates),nmuts(genmatrix) ) 
+}
+if (is.null(init.config$selcoef.scale)) {
+    init.config$selcoef.scale <- rep(.001,nsel(genmatrix))
+}
+if (is.null(init.config$fixfn.params.scale)) {
+    init.config$fixfn.params.scale <- 0.1*init.config$fixfn.params
 }
 
+initpar <- with(init.config, unlist(c(mutrates,selcoef,fixfn.params)) )
+parscale <- with(init.config, unlist( c(mutrates.scale, selcoef.scale, fixfn.params.scale) ) )
+names(initpar) <- names(parscale) <- c( mutnames(genmatrix@mutpats), selnames(genmatrix@selpats), fixparams(genmatrix) )
+
+# skip these parameters
+use.par <- ( parscale!=0 )
+params <- initpar
+
 # Compute (quasi)-likelihood function using all counts -- multinomial as described in eqn:comp_like.
-likfun <- function (params){
+likfun <- function (sub.params){
     # params are: mutrates, selcoef, fixparams
+    params[use.par] <- sub.params
     fparams <- params[seq( 1+nmuts(genmatrix)+nsel(genmatrix), length.out=length(fixparams(genmatrix)) )]
     names(fparams) <- fixparams(genmatrix)
     genmatrix@x <- do.call( update, c( list( G=genmatrix,mutrates=params[1:nmuts(genmatrix)],selcoef=params[seq(1+nmuts(genmatrix),length.out=nsel(genmatrix))]), as.list(fparams) ) )
@@ -80,17 +110,22 @@ stopifnot( length(initpar) == nmuts(genmatrix)+nsel(genmatrix)+length(fixparams(
 lbs <- c( rep(1e-6,nmuts(genmatrix)), rep(-5,nsel(genmatrix)), rep(-Inf,length(fixparams(genmatrix))) )
 ubs <- c( rep(2,nmuts(genmatrix)), rep(5,nsel(genmatrix)), rep(Inf,length(fixparams(genmatrix))) )
 
-baseval <- likfun(initpar)
+baseval <- likfun(initpar[use.par])
 stopifnot( is.finite(baseval) )
-# adjust parscale if necessary
-for (k in seq_along(initpar)) {
-    while ( parscale[k] > 1e-8 && (!is.finite(likfun(initpar+ifelse(seq_along(parscale)==k,parscale,0))) ) || (!is.finite(likfun(initpar+ifelse(seq_along(parscale)==k,parscale,0))) ) ) {
-        cat("Reducing parscale for ", names(initpar)[k], ".\n")
-        parscale[k] <- parscale[k]/4
-    }
-}
+# # adjust parscale if necessary
+# for (k in seq_along(initpar)) {
+#     while ( parscale[k] > 1e-8 && (!is.finite(likfun(initpar+ifelse(seq_along(parscale)==k,parscale,0))) ) || (!is.finite(likfun(initpar+ifelse(seq_along(parscale)==k,parscale,0))) ) ) {
+#         cat("Reducing parscale for ", names(initpar)[k], ".\n")
+#         parscale[k] <- parscale[k]/4
+#     }
+# }
 
-optim.results <- optim( par=initpar, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(fnscale=(-1)*abs(baseval), parscale=parscale, maxit=opt$maxit) )
+optim.results <- optim( par=initpar[use.par], fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(fnscale=(-1)*abs(baseval), parscale=parscale[use.par], maxit=opt$maxit) )
+
+optim.results$use.par <- use.par
+optim.par <- initpar
+optim.par[use.par] <- optim.results$par
+optim.results$par <- optim.par
 
 
 model <- new( "context",

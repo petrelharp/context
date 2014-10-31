@@ -52,6 +52,7 @@ read.counts <- function (infile,leftwin,bases,longpats,shortpats) {
 
 read.config <- function (configfile,quiet=FALSE) {
     # read in JSON config file
+    if (is.null(configfile)) { cat("Config: NULL.\n"); return(NULL) }
     con <- openread(configfile)
     json <- paste(readLines(con, warn = FALSE), collapse = "\n")
     close(con)

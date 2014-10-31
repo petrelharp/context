@@ -18,12 +18,8 @@ LEFTWIN=1
 Rscript ../count-seq.R -i ${BASEDIR}$BASE-123456.RData -w $LONGWIN -s $SHORTWIN -l $LEFTWIN
 
 echo "precompute generator matrices:"
-#   width-3
 GENMAT=genmatrices/genmatrix-${LONGWIN}-cpg.RData
 Rscript ../make-genmat.R -c $MODEL -w ${LONGWIN} -o ${GENMAT}
-
-echo "check simulated model matches expected"
-../templated-Rmd.sh ../testing-code/check-sim.Rmd ${BASEDIR}$BASE-123456.RData  ${GENMAT}
 
 echo "fit a model"
 Rscript ../fit-model.R -i ${BASEDIR}$BASE-123456-${LONGWIN}-root-${SHORTWIN}-tip-l${LEFTWIN}.counts -l ${LEFTWIN} -m $GENMAT -j 54321

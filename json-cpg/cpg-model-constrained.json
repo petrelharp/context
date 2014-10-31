@@ -1,4 +1,5 @@
 {
+    "description" : "CpG model, but with selection coefficient and Ne fixed.",
     "bases" : [ "A", "C", "G", "T" ],
     "initfreqs" : [ 0.25, 0.25, 0.25, 0.25 ],
     "mutpats" : [
@@ -22,10 +23,10 @@
         [ "C","G" ]
     ],
     "selcoef" : [ 0.001 ],
-    "selcoef.scale" : [ 0.01 ],
+    "selcoef.scale" : [ 0.0 ],
     "fixfn" : "popgen.fixfn",
     "fixfn.params" : { "Ne" : 1000 },
-    "fixfn.params.scale" : { "Ne" : 100 },
+    "fixfn.params.scale" : { "Ne" : 0.0 },
     "mutprior" : [ 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1 ],
     "selprior" : [ 0.001 ],
     "fixfn.prior" : [ 1000 ]
