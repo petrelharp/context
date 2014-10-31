@@ -14,12 +14,15 @@ echo "and count the Tmers"
 LONGWIN=4
 SHORTWIN=2
 LEFTWIN=1
+GENMAT=genmatrices/genmatrix-${LONGWIN}-cpg.RData
 
 Rscript ../count-seq.R -i ${BASEDIR}$BASE-123456.RData -w $LONGWIN -s $SHORTWIN -l $LEFTWIN
 
 echo "precompute generator matrices:"
-GENMAT=genmatrices/genmatrix-${LONGWIN}-cpg.RData
 Rscript ../make-genmat.R -c $MODEL -w ${LONGWIN} -o ${GENMAT}
+
+echo "check simulated model matches expected"
+../templated-Rmd.sh ../testing-code/check-sim.Rmd ${BASEDIR}$BASE-123456.RData  ${GENMAT}
 
 echo "fit a model"
 Rscript ../fit-model.R -i ${BASEDIR}$BASE-123456-${LONGWIN}-root-${SHORTWIN}-tip-l${LEFTWIN}.counts -l ${LEFTWIN} -m $GENMAT -j 54321
@@ -28,7 +31,8 @@ echo "look at results"
 ../templated-Rmd.sh ../simulation.Rmd ${BASEDIR}$BASE-123456-${LONGWIN}-root-${SHORTWIN}-tip-l${LEFTWIN}-genmatrix-${LONGWIN}-cpg-54321.RData ${BASEDIR}$BASE-123456.RData
 
 echo "compute residuals"
-Rscript ../compute-resids.R -i ${BASEDIR}$BASE-123456-${LONGWIN}-root-${SHORTWIN}-tip-l${LEFTWIN}-genmatrix-${LONGWIN}-cpg-54321.RData -w 3 -s 1 -l 1 -m ${GENMAT}
+Rscript ../compute-resids.R -i ${BASEDIR}$BASE-123456-${LONGWIN}-root-${SHORTWIN}-tip-l${LEFTWIN}-genmatrix-${LONGWIN}-cpg-54321.RData -w ${LONGWIN} -s 2 -l 1 -m ${GENMAT}
+Rscript ../compute-resids.R -i ${BASEDIR}$BASE-123456-${LONGWIN}-root-${SHORTWIN}-tip-l${LEFTWIN}-genmatrix-${LONGWIN}-cpg-54321.RData -w 2 -s 2 -l 0 -m ${GENMAT}
 
 ## STOP HERE FOR NOW
 exit 0

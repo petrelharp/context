@@ -29,5 +29,5 @@
     "fixfn.params.scale" : { "Ne" : 0.0 },
     "mutprior" : [ 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1 ],
     "selprior" : [ 0.001 ],
-    "fixfn.prior" : [ 1000 ]
+    "paramsprior" : [ 1000 ]
 }
