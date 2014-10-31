@@ -20,11 +20,15 @@ Rscript ../fit-model.R -i testsim/test-cpg-01-counts-3.RData -l 1 -m genmatrices
 
 echo "do mcmc"
 Rscript ../mcmc-model.R -i testsim/test-cpg-01-fit.RData -o testsim/test-cpg-01-mcmc-1.RData -c cpg-model-constrained.json --blen 3
-Rscript ../mcmc-model.R -i testsim/test-cpg-01-mcmc-1.RData -o testsim/test-cpg-01-mcmc-w.RData -c cpg-model-constrained.json --blen 100
+Rscript ../mcmc-model.R -i testsim/test-cpg-01-mcmc-1.RData -o testsim/test-cpg-01-mcmc-2.RData -c cpg-model-constrained.json --blen 100 -b 1000
+
+Rscript ../mcmc-model.R -i testsim/test-cpg-01-mcmc-1.RData -o testsim/test-cpg-01-mcmc-3.RData -c cpg-model-constrained.json --blen 100 -b 10
 
 
-echo "look at results"
-../templated-Rmd.sh ../simulation.Rmd testsim/test-cpg-01-fit.RData testsim/test-cpg-01.RData
+echo "look at results: MLE"
+../templated-Rmd.sh ../simulation.Rmd testsim/test-cpg-01-fit.RData testsim/test-cpg-01.RData testsim/test-cpg-01-mcmc-2.RData
+echo "look at results: MCMC"
+../templated-Rmd.sh ../simulation.Rmd testsim/test-cpg-01-mcmc-2.RData testsim/test-cpg-01.RData 
 
 
 # stop here for now
