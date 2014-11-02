@@ -66,9 +66,18 @@ cat("left window size:", model@counts@leftwin,
 
 ## Result of fitting operation
 ```{r, echo=FALSE}
-cat("convergence: ", model@results$convergence,
-    "\nmessage: ", model@results$message,
-    "\n" )
+if (class(model)=="context") {
+    cat("convergence: ", model@results$convergence,
+        "\nmessage: ", model@results$message,
+        "\n" )
+} else if (class(model)=="contextMCMC") {
+    cat(
+        "number of batches: ", model@results$nbatch,
+        "\nbatch length: ", model@results$blen,
+        "\nacceptance rate: ", model@results$accept,
+        "\nrun time: ", model@results$time['elapsed'],
+        "\n" )
+}
 ```
 
 
@@ -127,11 +136,11 @@ counts_plot(resids)
 ```
 
 # Pairwise marginal posteriors from MCMC, colored by time in MCMC run
-```{r, results="asis"}
+```{r, results="asis", echo=FALSE, fig.align='center', }
 if (class(model)=="contextMCMC") {
-    mcmcrun <- model@results$batch
-    subseq <- seq(1,nrow(mcmcrun),length.out=1000)
-    x <- rbind( mcmcrun[subseq,], mr_compare$simulated ) 
+    subseq <- seq(1,nrow(model@results$batch),length.out=min(1000,nrow(model@results$batch)))
+    x <- rbind( model@results$batch[subseq,], mr_compare$simulated[model@results$use.par] ) 
+    colnames(x) <- rownames(mr_compare)[model@results$use.par]
     # color by time
     cols <- c( adjustcolor(rainbow(64),.2)[1+floor(65*(1:(nrow(x)-1))/nrow(x))], adjustcolor("black",.5) )
     pairs( x, col=cols, pch=20, cex=c(rep(.5,nrow(x)-1),2) )
