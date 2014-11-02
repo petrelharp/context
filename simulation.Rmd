@@ -45,11 +45,10 @@ cat(model@invocation,"\n")
 
 
 ## Details
-```{r, echo=FALSE, results="hide"}
+```{r, include=FALSE}
 # For some reason the code doesn't work if we don't print out some of the
 # counts, but we can do it in a hidden block.
 counttab <- counts(model)
-head(counttab)
 ```
 
 
@@ -103,7 +102,7 @@ pandoc.table(mr_compare, style="rmarkdown")
 
 
 The corresponding plot, where bars are the fit values, and points are the simulated values:
-```{r, echo=FALSE, results="asis"}
+```{r, echo=FALSE, results="asis", fig.align='center'}
 mr_compare$names <- factor(rownames(mr_compare), levels=rownames(mr_compare))
 param_sizes <- floor(log10(abs(mr_compare$simulated)+1e-4)/2)
 for (k in unique(param_sizes)) {
@@ -118,32 +117,46 @@ for (k in unique(param_sizes)) {
 
 
 ## residuals for 2-2 Tmers
-```{r, echo=FALSE, results="asis"}
+```{r, echo=FALSE, results="asis", fig.align='center'}
 resids <- counts_table(in_longwin=2, in_shortwin=2, half_n_show=20)
 counts_plot(resids)
 ```
 
 ## residuals for 3-1 Tmers
-```{r, results="asis"}
+```{r, results="asis", fig.align='center'}
 resids <- counts_table(in_longwin=3, in_shortwin=1, half_n_show=20)
 counts_plot(resids)
 ```
 
 ## residuals for 9-5 Tmers
-```{r, results="asis"}
+```{r, results="asis", fig.align='center'}
 resids <- counts_table(in_longwin=9, in_shortwin=5, half_n_show=20)
 counts_plot(resids)
 ```
 
+# Trace plot of the MCMC run:
+```{r, results="asis", echo=FALSE, fig.width=12, fig.height=7, fig.align='center'}
+if (class(model)=="contextMCMC") {
+    subseq <- seq(1,nrow(model@results$batch),length.out=min(1000,nrow(model@results$batch)))
+    x <- model@results$batch[subseq,]
+    colnames(x) <- rownames(mr_compare)[model@results$use.par]
+    matplot( model@results$blen*subseq, x, type='l', col=1:5, lty=1:6, xlab='number of MCMC iterations' )
+    abline(h=mr_compare$simulated[model@results$use.par], col=1:5, lty=1:6)
+    legend("topright",legend=colnames(x),col=1:5,lty=1:6)
+} else {
+    cat("Not an MCMC run.")
+}
+```
+
 # Pairwise marginal posteriors from MCMC, colored by time in MCMC run
-```{r, results="asis", echo=FALSE, fig.align='center', }
+```{r, results="asis", echo=FALSE, fig.width=12, fig.height=12, fig.align='center'}
 if (class(model)=="contextMCMC") {
     subseq <- seq(1,nrow(model@results$batch),length.out=min(1000,nrow(model@results$batch)))
     x <- rbind( model@results$batch[subseq,], mr_compare$simulated[model@results$use.par] ) 
     colnames(x) <- rownames(mr_compare)[model@results$use.par]
     # color by time
     cols <- c( adjustcolor(rainbow(64),.2)[1+floor(65*(1:(nrow(x)-1))/nrow(x))], adjustcolor("black",.5) )
-    pairs( x, col=cols, pch=20, cex=c(rep(.5,nrow(x)-1),2) )
+    pairs( x, col=cols, pch=20, cex=c(rep(.5,nrow(x)-1),2), gap=0 )
 } else {
     cat("Not an MCMC run.")
 }
