@@ -25,7 +25,7 @@ Rscript ../mcmc-model.R -i testsim/test-cpg-01-mcmc-1.RData -o testsim/test-cpg-
 
 
 echo "look at results: MLE"
-../templated-Rmd.sh ../simulation.Rmd testsim/test-cpg-01-fit.RData testsim/test-cpg-01.RData testsim/test-cpg-01-mcmc-2.RData
+../templated-Rmd.sh ../simulation.Rmd testsim/test-cpg-01-fit.RData testsim/test-cpg-01.RData
 echo "look at results: MCMC"
 ../templated-Rmd.sh ../simulation.Rmd testsim/test-cpg-01-mcmc-2.RData testsim/test-cpg-01.RData 
 
