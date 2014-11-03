@@ -369,6 +369,7 @@ setMethod("fitted", signature=c(object="context"), definition=function (object,.
 setMethod("residuals", signature=c(object="context"), definition=function (object,...) { resid.context(object,...) } )
 
 ## This makes everything go all to hell, for some reason:
+# setMethod("-",signature=c("tuplecounts","tuplecounts"), definition=function(e1,e2) { e1@counts <- (e1@counts-e2@counts); return(e1) } )
 # setMethod("-",signature=c("tuplecounts","ANY"), definition=function(e1,e2) { new("tuplecounts",leftwin=e1@leftwin,counts=Matrix(e1@counts-e2),bases=e1@bases) } )
 # setMethod("-",signature=c("ANY","tuplecounts"), definition=function(e1,e2) { new("tuplecounts",leftwin=e2@leftwin,counts=Matrix(e1-e2@counts),bases=e2@bases) } )
 
@@ -752,7 +753,7 @@ predictcounts <- function (longwin, shortwin, leftwin, initcounts, mutrates, sel
     # Compute expected counts of paired patterns:
     #  where the actual computation happens
     rightwin <- longwin-shortwin-leftwin
-    if (!missing(mutrates)||!missing(selcoef)) { genmatrix@x <- do.call( update, c( list(genmatrix,mutrates=mutrates,selcoef=selcoef), params ) ) }
+    if (!missing(mutrates)||!missing(selcoef)||!is.null(params)) { genmatrix@x <- do.call( update, c( list(genmatrix,mutrates=mutrates,selcoef=selcoef), params ) ) }
     if (missing(projmatrix)) { projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, rightwin=rightwin, bases=genmatrix@bases ) }
     subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE)
     fullcounts <- initcounts * subtransmatrix
