@@ -151,12 +151,11 @@ def fit(outdir, c):
 @nest.add_target()
 def complete(outdir, c):
     complete, = Command(join(outdir, 'complete.RData'),
-                        [c['sim'], c['fit']],
-                        'Rscript -e \
-                        "load(\'${SOURCES[0]}\'); \
-                        load(\'${SOURCES[1]}\'); \
-                        save(simseq.config, simseq.opt, \
-                             model, file=\'$TARGET\')"')
+                        ['../gather-results.R', c['sim'], c['fit']],
+                        'Rscript ${{SOURCES[0]}} \
+                        --sim ${{SOURCES[1]}} \
+                        --fit ${{SOURCES[2]}} \
+                        --outfile $TARGET'.format(c))
     return complete
 
 
