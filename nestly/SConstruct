@@ -103,6 +103,7 @@ def sim(outdir, c):
                    ['../sim-seq.R', c['model']],  # SOURCES
                    'Rscript ${{SOURCES[0]}} \
                    --seed {0[seed]} \
+                   --jobid {0[seed]} \
                    -c ${{SOURCES[1]}} \
                    -t {0[time]} \
                    -s {0[n_sites]} \
@@ -141,6 +142,8 @@ def fit(outdir, c):
     fit, = Command(join(outdir, 'fit.RData'),
                    ['../fit-model.R', c['counts'], c['genmat']],
                    'Rscript ${{SOURCES[0]}} \
+                   --seed {0[seed]} \
+                   --jobid {0[seed]} \
                    -i ${{SOURCES[1]}} \
                    -l {0[leftwin]} \
                    -m ${{SOURCES[2]}} \
