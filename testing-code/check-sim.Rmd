@@ -22,8 +22,8 @@ counts_table <- function(in_longwin, in_shortwin, half_n_show) {
         return(NULL)
     }
     else {
-        observed <- projectcounts( counttab, new.leftwin=floor((in_longwin-in_shortwin)/2), new.shortwin=in_shortwin, new.longwin=in_longwin, overlap=TRUE )
-        expected <- projectcounts( expected, new.leftwin=floor((in_longwin-in_shortwin)/2), new.shortwin=in_shortwin, new.longwin=in_longwin, overlap=TRUE )
+        observed <- projectcounts( counttab, new.leftwin=floor((in_longwin-in_shortwin)/2), new.shortwin=in_shortwin, new.longwin=in_longwin, overlapping=TRUE )
+        expected <- projectcounts( expected, new.leftwin=floor((in_longwin-in_shortwin)/2), new.shortwin=in_shortwin, new.longwin=in_longwin, overlapping=TRUE )
         obsexp <- cbind( as.matrix(observed@counts), as.matrix(expected@counts) )
         colnames(obsexp) <- c( paste("obs:",colnames(observed),sep=''), paste("exp:",colnames(observed),sep='') )
         obsexp <- obsexp[, rbind(1:ncol(observed),ncol(observed)+(1:ncol(observed)))]

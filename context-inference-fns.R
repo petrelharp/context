@@ -760,7 +760,7 @@ predictcounts <- function (longwin, shortwin, leftwin, initcounts, mutrates, sel
     return( new("tuplecounts", leftwin=leftwin, counts=Matrix(fullcounts), bases=genmatrix@bases ) )
 }
 
-projectcounts <- function( counts, new.leftwin, new.shortwin, new.longwin, spacing=1 ) {
+projectcounts <- function( counts, new.leftwin, new.shortwin, new.longwin, overlapping=FALSE ) {
     # compute counts for shorter Tmers.
     #   valid ranges for parameters are
     #    (l-lc)^+ <= k < (l+w)-(lc+wc)+(r-rc)^-
@@ -769,15 +769,16 @@ projectcounts <- function( counts, new.leftwin, new.shortwin, new.longwin, spaci
     #       w = shortwin, wc = new.shortwin
     #       r = rightwin, rc = new.rightwin
     # if the original counts were from overlapping windows, then this will overcount the resulting patterns:
-    #    if you slide a window of length L in steps of size S then a subwindow of size W
-    #      will be seen in floor( (L-W)/S ) big windows;
-    #    so we need to divide the counts by min( floor( (longwin-new.longwin)/spacing ), floor( (shortwin-new.shortwin)/spacing ) )
-    #      ... but patterns at the boundary of the sequence will not be overcounted; take the ceiling of the resulting counts to fix these.
+    #    if you slide a window of length L in steps of size 1 then a subwindow of size W
+    #      will be seen in ( (L-W) ) big windows;
+    #    so we need to divide the counts by the factor 'overcount' below
+    #      ... but patterns at the boundary of the sequence will not be overcounted. 
+    #     Take the ceiling of the resulting counts to fix these.
     leftwin <- leftwin(counts)
     longwin <- longwin(counts)
     shortwin <- shortwin(counts)
     rightwin <- longwin-shortwin-leftwin
-    new.rightwin <- new.longwin-new.shortwin-new.rightwin
+    new.rightwin <- new.longwin-new.shortwin-new.leftwin
     if ( max(0L,leftwin-new.leftwin) > (leftwin+shortwin)-(new.leftwin+new.shortwin)+min(0L,rightwin-new.rightwin) ) {
         stop("unreconcilable windows specified.")
     }
@@ -788,6 +789,13 @@ projectcounts <- function( counts, new.leftwin, new.shortwin, new.longwin, spaci
         pcounts <- pcounts + t(lpmat) %*% counts %*% (rpmat)
     }
     dimnames(pcounts) <- list( colnames(lpmat), colnames(rpmat) )
+    if (overlapping) {
+        overcount <- sum( 
+                ( (0:(longwin-1))+new.longwin <= longwin ) &
+                ( (0:(longwin-1))+new.leftwin >= leftwin ) &
+                ( (0:(longwin-1))+new.leftwin+new.shortwin <= leftwin+shortwin ) )
+        pcounts <- ( pcounts/overcount )
+    }
     return( new("tuplecounts", leftwin=new.leftwin, counts=Matrix(pcounts), bases=counts@bases) )
 }
 
