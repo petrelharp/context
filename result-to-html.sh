@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -eo
+
 for f in $@; do
     base=$(basename $f .RData)
     test $f = $base || { # If it indeed has an .RData extension then process.

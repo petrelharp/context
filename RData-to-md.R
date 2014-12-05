@@ -2,6 +2,10 @@
 require(methods)
 require(optparse)
 require(pander)
+require(ape)
+
+
+source("../sim-context-fns.R")
 
 usage <- '\
 Convert an RData file to a Markdown file. \
@@ -30,6 +34,15 @@ custom_pander <- function(x, sec_depth=1) {
     if (x_class == "dgTMatrix" || x_class == "dgCMatrix") {
         pander(as.matrix(x))
     }
+    else if (x_class == "DNAString") {
+        pander(as.character(x))
+    }
+    else if (x_class == "simseq") {
+        custom_pander(show.simseq(x))
+    }
+    else if (x_class == "phylo") {
+        write.tree(x)
+    }
     # S4 general treatment.
     else if (isS4(x)) {
         sapply(
@@ -42,10 +55,10 @@ custom_pander <- function(x, sec_depth=1) {
     }
     else if(x_class == "function") { }
     else if (x_class == "list") {
-        if(length(x) > 0) pander(x)
+        if(length(x) > 0) pander(sapply(x, custom_pander))
     }
     else {
-        if(length(x) > 0) cat(x)
+        if(length(x) > 0) pander(x)
     }
     cat("\n\n")
 }

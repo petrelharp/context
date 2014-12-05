@@ -47,8 +47,7 @@ def _simple_sim():
     # these collections. The `add_argument` takes a key which will be the key
     # used for accessing the collection. The `list` argument specifies that the
     # collection will be a list.
-    # nest.add_aggregate('count_agg', list)
-    # nest.add_aggregate('cut_agg', list)
+    nest.add_aggregate('complete_agg', list)
 
     # Add a nest level with the name 'input_file' that takes the files in the
     # inputs directory as its nestable list. Make its label function just the
@@ -73,6 +72,7 @@ def _seed_sim():
             'wintriple': (3, 1, 1),
             }
     nest = SConsWrap(Nest(base_dict=base), '_'+name, alias_environment=env)
+    nest.add_aggregate('complete_agg', list)
     nest.add('model', [join('models', f) for f in os.listdir('models')],
              label_func=os.path.basename)
     nest.add('seed', range(3), label_func="seed_{}".format)
@@ -103,6 +103,7 @@ def sim(outdir, c):
                    ['../sim-seq.R', c['model']],  # SOURCES
                    'Rscript ${{SOURCES[0]}} \
                    --seed {0[seed]} \
+                   --jobid {0[seed]} \
                    -c ${{SOURCES[1]}} \
                    -t {0[time]} \
                    -s {0[n_sites]} \
@@ -141,6 +142,8 @@ def fit(outdir, c):
     fit, = Command(join(outdir, 'fit.RData'),
                    ['../fit-model.R', c['counts'], c['genmat']],
                    'Rscript ${{SOURCES[0]}} \
+                   --seed {0[seed]} \
+                   --jobid {0[seed]} \
                    -i ${{SOURCES[1]}} \
                    -l {0[leftwin]} \
                    -m ${{SOURCES[2]}} \
@@ -151,12 +154,12 @@ def fit(outdir, c):
 @nest.add_target()
 def complete(outdir, c):
     complete, = Command(join(outdir, 'complete.RData'),
-                        [c['sim'], c['fit']],
-                        'Rscript -e \
-                        "load(\'${SOURCES[0]}\'); \
-                        load(\'${SOURCES[1]}\'); \
-                        save(simseq.config, simseq.opt, \
-                             model, file=\'$TARGET\')"')
+                        ['../gather-results.R', c['sim'], c['fit']],
+                        'Rscript ${{SOURCES[0]}} \
+                        --sim ${{SOURCES[1]}} \
+                        --fit ${{SOURCES[2]}} \
+                        --outfile $TARGET'.format(c))
+    c['complete_agg'].append(complete)
     return complete
 
 
@@ -172,3 +175,17 @@ def report(env, outdir, c):
                           ${SOURCES[1]} \
                           ${SOURCES[2]}')
     return report
+
+
+# Move us back up to the directory that contains the models, which is our top.
+nest.pop('model')
+
+
+@nest.add_target()
+def summarize_across(outdir, c):
+    summary_across, = Command(join(outdir, 'summary-across.tsv'),
+                              ['../summarize-across.R'] + c['complete_agg'],
+                              'Rscript ${{SOURCES[0]}} \
+                              --outfile $TARGET \
+                              ${{SOURCES[1:]}}'.format(c))
+    return summary_across

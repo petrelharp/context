@@ -24,13 +24,15 @@ If any of these are missing, possibly inappropriate values will be guessed. \
 option_list <- list(
     # input/output
         make_option( c("-i","--infile"), type="character", help="Input file with tuple counts, tab-separated, with header 'reference', 'derived', 'count'. [default, looks in basedir]" ),
-        make_option( c("-c","--configfile"), type="character", help="Config file with initial guesses at parameter values and parameters to constrain. [default: makes cheap guesses]"), 
+        make_option( c("-c","--configfile"), type="character", help="Config file with initial guesses at parameter values and parameters to constrain. [default: makes cheap guesses]"),
         make_option( c("-o","--outfile"), type="character", help="File to save results to.  [default: base of infile + base of genmatrix + jobid + .RData]"),
         make_option( c("-u","--basedir"), type="character", default=NULL, help="Directory to put output in. [default: same as infile]"),
         make_option( c("-l","--leftwin"), type="integer", help="Size of left-hand context." ),
         make_option( c("-m","--gmfile"), type="character", default="TRUE", help="File with precomputed generator matrix."),
         make_option( c("-x","--maxit"), type="integer", default=100, help="Number of iterations of optimization to run for. [default=%default]"),
-        make_option( c("-j","--jobid"), type="character", default=formatC(1e6*runif(1),width=6,format="d",flag="0"), help="Unique job id. [default random]")
+        make_option( c("-j","--jobid"), type="character", default=formatC(1e6*runif(1),width=6,format="d",flag="0"), help="Unique job id. [default random]"),
+        make_option( c("-z","--seed"), type="integer", help="Seed for pseudorandom number generator; an integer. [default: does not meddle]")
+
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 if (is.null(opt$infile)) { stop("No input file.  Run\n  bcells-inference.R -h\n for help.\n") }
@@ -38,6 +40,7 @@ if (!file.exists(opt$infile)) { stop("Cannot read input file.") }
 if ((!is.null(opt$configfile)) && (!file.exists(opt$configfile)) ) { stop("Could not find config file `", opt$configfile, "`.") }
 if (is.null(opt$basedir)) { opt$basedir <- dirname(opt$infile) }
 if (is.null(opt$outfile)) { opt$outfile <- paste( opt$basedir, "/", gsub("\\.[^.]*","",basename(opt$infile) ), "-", gsub("\\.[^.]*","",basename(opt$gmfile) ), "-", opt$jobid, ".RData", sep='' ) }
+if ( !is.null(opt$seed) ) { set.seed(opt$seed) }
 print(opt) # this will go in the pbs log
 
 source("../context-inference-fns.R")
@@ -74,7 +77,7 @@ if (is.null(init.config$fixfn.params)) {
 }
 # scale tuning parameters
 if (is.null(init.config$mutrates.scale)) {
-    init.config$mutrates.scale <- 1e-3 * rep( mean(init.config$mutrates),nmuts(genmatrix) ) 
+    init.config$mutrates.scale <- 1e-3 * rep( mean(init.config$mutrates),nmuts(genmatrix) )
 }
 if (is.null(init.config$selcoef.scale)) {
     init.config$selcoef.scale <- rep(.001,nsel(genmatrix))
