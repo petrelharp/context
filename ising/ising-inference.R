@@ -118,8 +118,8 @@ names(all.expected) <- rownames(estimates)
 # look at observed/expected counts in smaller windows
 cwin <- 3; lrcwin <- 1
 if ( shortwin >= cwin && longwin >= cwin + 2*lrcwin ) {
-    subcounts <- projectcounts( leftwin=leftwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=counts[[1]] )
-    all.subexpected <- lapply( all.expected, function (x) { list( projectcounts( leftwin=leftwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=x[[1]] ) ) } )
+    subcounts <- projectcounts( counts[[1]], new.shortwin=cwin, new.leftwin=lrcwin, new.longwin=2*lrcwin+cwin )
+    all.subexpected <- lapply( all.expected, function (x) { list( projectcounts( x[[1]], new.shortwin=cwin, new.leftwin=lrcwin, new.longwin=2*lrcwin+cwin ) ) } )
 } else {
     subcounts <- all.subexpected <- NULL
 }

@@ -37,7 +37,7 @@ TEST2=$( diff <(Rscript -e "source('../context-inference-fns.R'); load(\"$TEMPFI
 END
 ) | sed -e 's/^ *//' -e 's/ *$//' -e 's/  */ /g') )
 
-if [ $TEST2 ]; then
+if [ "$TEST2" ]; then
     echo "Failed test 2."
 else
     echo "Passed."

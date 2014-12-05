@@ -116,8 +116,8 @@ names(all.expected) <- rownames(estimates)
 
 # look at observed/expected counts in smaller windows
 cwin <- min(2,shortwin); lrcwin <- min(1,leftwin,rightwin)
-subcounts <- projectcounts( leftwin=leftwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=counts[[1]] )
-all.subexpected <- lapply( all.expected, function (x) { list( projectcounts( leftwin=leftwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=x[[1]] ) ) } )
+subcounts <- projectcounts( counts[[1]], new.leftwin=lrcwin, new.shortwin=cwin, new.longwin=2*lrcwin+cwin, counts=counts[[1]] )
+all.subexpected <- lapply( all.expected, function (x) { list( projectcounts( x[[1]], new.shortwin=cwin, new.longwin=2*lrcwin+cwin, counts=counts[[1]] ) ) } )
 
 save( opt, counts, genmatrix, projmatrix, subtransmatrix, lud, likfun, truth, cheating.ans, random.ans, estimates, initpar, nonoverlapping, nov.counts, mmeans, all.expected, cwin, subcounts, all.subexpected, mrun, shortwin, leftwin, rightwin, nmuts, file=datafile )
 

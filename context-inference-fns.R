@@ -760,25 +760,35 @@ predictcounts <- function (longwin, shortwin, leftwin, initcounts, mutrates, sel
     return( new("tuplecounts", leftwin=leftwin, counts=Matrix(fullcounts), bases=genmatrix@bases ) )
 }
 
-projectcounts <- function( counts, lcountwin, countwin, rcountwin ) {
-    # using counts for c(leftwin,shortwin,rightwin) compute counts for c(lcountwin,countwin,rcountwin).
+projectcounts <- function( counts, new.leftwin, new.shortwin, new.longwin, spacing=1 ) {
+    # compute counts for shorter Tmers.
     #   valid ranges for parameters are
     #    (l-lc)^+ <= k < (l+w)-(lc+wc)+(r-rc)^-
+    #   where 
+    #       l = leftwin, lc = new.leftwin
+    #       w = shortwin, wc = new.shortwin
+    #       r = rightwin, rc = new.rightwin
+    # if the original counts were from overlapping windows, then this will overcount the resulting patterns:
+    #    if you slide a window of length L in steps of size S then a subwindow of size W
+    #      will be seen in floor( (L-W)/S ) big windows;
+    #    so we need to divide the counts by min( floor( (longwin-new.longwin)/spacing ), floor( (shortwin-new.shortwin)/spacing ) )
+    #      ... but patterns at the boundary of the sequence will not be overcounted; take the ceiling of the resulting counts to fix these.
     leftwin <- leftwin(counts)
     longwin <- longwin(counts)
     shortwin <- shortwin(counts)
     rightwin <- longwin-shortwin-leftwin
-    if ( max(0L,leftwin-lcountwin) > (leftwin+shortwin)-(lcountwin+countwin)+min(0L,rightwin-rcountwin) ) {
+    new.rightwin <- new.longwin-new.shortwin-new.rightwin
+    if ( max(0L,leftwin-new.leftwin) > (leftwin+shortwin)-(new.leftwin+new.shortwin)+min(0L,rightwin-new.rightwin) ) {
         stop("unreconcilable windows specified.")
     }
-    pcounts <- matrix(0,nrow=npatterns(lcountwin+countwin+rcountwin,counts@bases),ncol=npatterns(countwin,counts@bases))
-    for (k in max(0L,leftwin-lcountwin):((leftwin+shortwin)-(lcountwin+countwin)+min(0L,rightwin-rcountwin))) {
-        lpmat <- collapsepatmatrix( ipatterns=rownames(counts), leftwin=k, rightwin=longwin-(k+lcountwin+countwin+rcountwin), bases=counts@bases )
-        rpmat <- collapsepatmatrix( ipatterns=colnames(counts), leftwin=k+lcountwin-leftwin, rightwin=shortwin-(k+lcountwin-leftwin+countwin), bases=counts@bases )
+    pcounts <- matrix(0,nrow=npatterns(new.longwin,counts@bases),ncol=npatterns(new.shortwin,counts@bases))
+    for (k in max(0L,leftwin-new.leftwin):((leftwin+shortwin)-(new.leftwin+new.shortwin)+min(0L,rightwin-new.rightwin))) {
+        lpmat <- collapsepatmatrix( ipatterns=rownames(counts), leftwin=k, rightwin=longwin-(k+new.longwin), bases=counts@bases )
+        rpmat <- collapsepatmatrix( ipatterns=colnames(counts), leftwin=k+new.leftwin-leftwin, rightwin=shortwin-(k+new.leftwin-leftwin+new.shortwin), bases=counts@bases )
         pcounts <- pcounts + t(lpmat) %*% counts %*% (rpmat)
     }
     dimnames(pcounts) <- list( colnames(lpmat), colnames(rpmat) )
-    return( new("tuplecounts", leftwin=lcountwin, counts=Matrix(pcounts), bases=counts@bases) )
+    return( new("tuplecounts", leftwin=new.leftwin, counts=Matrix(pcounts), bases=counts@bases) )
 }
 
 predicttreecounts <- function (shortwin, leftwin=0, rightwin=0, initcounts, mutrates, selcoef, mutpats, selpats, tlens, genmatrix, projmatrix, initfreqs, patcomp, ... ) {
@@ -827,8 +837,8 @@ computeresids <- function (model, pretty=TRUE, in_longwin=longwin(model), in_sho
     expected <- fitted( model, longwin=longwin(model), shortwin=shortwin(model), leftwin=leftwin(model), initcounts=rowSums(counts), genmatrix=genmatrix )
 
     if ( (in_longwin < longwin(counts)) || (in_shortwin < shortwin(counts)) ) {
-        counts <- projectcounts( counts, in_leftwin, in_shortwin, in_longwin-in_leftwin-in_shortwin )
-        expected <- projectcounts( expected, in_leftwin, in_shortwin, in_longwin-in_leftwin-in_shortwin )
+        counts <- projectcounts( counts, in_leftwin, in_shortwin, in_longwin )
+        expected <- projectcounts( expected, in_leftwin, in_shortwin, in_longwin )
     }
 
     if (pretty) {
