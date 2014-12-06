@@ -40,21 +40,16 @@ counts_plot <- function (resids) {
         abline(0,1)
     }
 }
+counttab <- counts(model)
 cat(model@invocation,"\n")
 ```
 
 
-## Details
-```{r, include=FALSE}
-# For some reason the code doesn't work if we don't print out some of the
-# counts, but we can do it in a hidden block.
-counttab <- counts(model)
-```
-
-
 ```{r, echo=FALSE}
-cat("left window size:", model@counts@leftwin,
-    "\ncomplete window size:", nchar(rownames(counttab)[[1]]),
+cat(
+    "long window size:", longwin(model@counts),
+    "short window size:", shortwin(model@counts),
+    "left window size:", leftwin(model@counts),
     "\ntotal counts:", sum(counttab),
     "\ntime:", simseq.opt$tlen,
     "\nseed:", formatC(simseq.opt$seed,format="d"),
@@ -97,14 +92,15 @@ simvalues <- data.frame(
             simseq.config$tip$fixfn.params ) )
 )
 mr_compare$simulated <- simvalues$simulated[match(rownames(mr_compare),simvalues$names)]
+mr_compare$names <- factor(rownames(mr_compare), levels=rownames(mr_compare))
 pandoc.table(mr_compare, style="rmarkdown")
 ```
 
 
 The corresponding plot, where bars are the fit values, and points are the simulated values:
 ```{r, echo=FALSE, results="asis", fig.align='center'}
-mr_compare$names <- factor(rownames(mr_compare), levels=rownames(mr_compare))
-param_sizes <- floor(log10(abs(mr_compare$simulated)+1e-4)/2)
+param_log <- log(abs(mr_compare$simulated)+1e-4)
+param_sizes <- cut( param_log, breaks=seq(min(param_log), by=2, length.out=1+ceiling(diff(range(param_log))/2)), include.lowest=TRUE )
 for (k in unique(param_sizes)) {
     print( ggplot(mr_compare[param_sizes==k,], aes(x=names)) + xlab("") +
         geom_bar(aes(y=fit), stat = "identity", fill="white", color="gray") +
@@ -115,6 +111,21 @@ for (k in unique(param_sizes)) {
 }
 ```
 
+The likelihood surface about the fitted and simulated values:
+```{r, echo=FALSE, results="asis", fig.align='center'}
+timevec <- c( rep(as.numeric(simseq.opt$tlen),nmuts(model)), rep(1,nrow(mr_compare)-nmuts(model)) )
+f <- function (x) { model@likfun(x*timevec) }
+for (k in 1:nrow(mr_compare)) {
+    pvals <- seq( .9*min(mr_compare[k,c("fit","simulated")]), 1.1*max(mr_compare[k,c("fit","simulated")]), length.out=20 )
+    inds <- 1:nrow(mr_compare)
+    inds[k] <- 1+nrow(mr_compare)
+    lvals <- sapply( pvals, function (x) { f( c(mr_compare$fit,x)[inds] ) } )
+    l2vals <- sapply( pvals, function (x) { f( c(mr_compare$simulated,x)[inds] ) } )
+    plot( pvals, lvals, type='b', main=paste("likelihood surface for", mr_compare$name[k]), ylab="log-likelihood", xlab='value', ylim=range(lvals,l2vals) )
+    lines( pvals, l2vals, col='red', type='b' )
+    abline(v=mr_compare[k,c("fit","simulated")], col=c("black","red"))
+}
+```
 
 ## residuals for 2-2 Tmers
 ```{r, echo=FALSE, results="asis", fig.align='center'}
@@ -144,7 +155,7 @@ if (class(model)=="contextMCMC") {
     param_sizes <- param_sizes[model@results$use.par]
     for (k in unique(param_sizes)) {
         print( { 
-            matplot( model@results$blen*subseq, x[,param_sizes==k], type='l', col=1:5, lty=1:6, xlab='number of MCMC iterations' )
+            matplot( model@results$blen*subseq, x[,param_sizes==k], type='l', col=1:5, lty=1:6, xlab='number of MCMC iterations', ylab='parameter values' )
             abline(h=mr_compare$simulated[model@results$use.par], col=1:5, lty=1:6)
             legend("topright",legend=colnames(x)[param_sizes==k],col=1:5,lty=1:6)
         } )
@@ -161,7 +172,7 @@ if (class(model)=="contextMCMC") {
     x <- rbind( model@results$batch[subseq,], mr_compare$simulated[model@results$use.par] ) 
     colnames(x) <- rownames(mr_compare)[model@results$use.par]
     # color by time
-    cols <- c( adjustcolor(rainbow(64),.2)[1+floor(65*(1:(nrow(x)-1))/nrow(x))], adjustcolor("black",.5) )
+    cols <- c( adjustcolor(rainbow(64),.4)[1+floor(65*(1:(nrow(x)-1))/nrow(x))], adjustcolor("black",.8) )
     pairs( x, col=cols, pch=20, cex=c(rep(.5,nrow(x)-1),2), gap=0 )
 } else {
     cat("Not an MCMC run.")
