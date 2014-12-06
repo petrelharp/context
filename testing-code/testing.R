@@ -4,6 +4,8 @@ source("../context-inference-fns.R")
 source("../sim-context-fns.R")
 
 # Test suite?
+require(parallel)
+numcores <- getcores()
 
 
 ###
@@ -21,8 +23,8 @@ mutpats <- c(
 mutrates <- runif( length(mutpats) )*1e-8
 selpats <- c( "[GC]", "[AT]" )
 selcoef <- runif( length(selpats) )*1e-4
-inseqs <- rep( sample(getpatterns(seqlen),nuniqs,replace=TRUE), each=nsamples/nuniqs )
-many.seqs <- lapply(inseqs, function (initseq) { simseq( seqlen, tlen, patlen=patlen, mutpats=mutpats, selpats=selpats, mutrates=mutrates, selcoef=selcoef, bases, initseq=initseq ) }  )
+inseqs <- rep( sample(getpatterns(seqlen,bases),nuniqs,replace=TRUE), each=nsamples/nuniqs )
+many.seqs <- mclapply(inseqs, function (initseq) { simseq( seqlen, tlen, patlen=patlen, mutpats=mutpats, selpats=selpats, mutrates=mutrates, selcoef=selcoef, bases=bases, initseq=initseq, fixfn=null.fixfn ) }, mc.cores=numcores )
 
 # check transition matrix
 leftwin <- 0

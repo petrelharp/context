@@ -39,12 +39,12 @@ test_that("mutpatchanges returns stored", {
     )
 })
 
-getmutpats(2)
+getmutpats(bases=bases,patlen=2)
 
 test_that("getmutpats returns stored", {
     expect_equal(
         getmutpats.out,
-        getmutpats(2)
+        getmutpats(bases=bases,patlen=2)
     )
 })
 

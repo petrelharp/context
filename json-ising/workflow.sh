@@ -25,18 +25,19 @@ Rscript ../compute-resids.R -i simseqs/test-ising-123456-3-root-1-tip-l1-genmatr
 echo "look at results"
 ../templated-Rmd.sh ../simulation.Rmd simseqs/test-ising-123456-3-root-1-tip-l1-genmatrix-3-complete-54321.RData simseqs/test-ising-123456.RData
 
-# 
+ 
 # # mcmc also
-# Rscript ../mcmc-model.R -i test-ising-123456-genmatrix-3-complete-54321.RData -c ising-model.json -b 3 -j 1111
-# Rscript ../mcmc-model.R -i test-ising-123456-genmatrix-3-complete-54321-mcmc-1111.RData -b 100 -j 2222
-# Rscript ../mcmc-model.R -i test-ising-123456-genmatrix-3-complete-54321-mcmc-2222.RData -b 1000 -j 3333
-# 
-# 
-# # OK, now do this on more Tmer sizes:
-# Rscript ../count-seq.R -i test-ising-123456.RData -w 4 -s 2 -l 1
-# Rscript ../make-genmat.R -c genmatrices/complete.json -w 4
-# Rscript ../fit-model.R -i test-ising-123456.4.2.l1.counts -l 1 -m genmatrices/genmatrix-4-complete.RData -j 54321
-# 
+Rscript ../mcmc-model.R -i simseqs/test-ising-123456-3-root-1-tip-l1-genmatrix-3-complete-54321.RData -c ising-model.json -b 3 -j 1111
+Rscript ../mcmc-model.R -i simseqs/test-ising-123456-3-root-1-tip-l1-genmatrix-3-complete-54321.RData -c ising-model.json -b 100 -j 2222
+Rscript ../mcmc-model.R -i simseqs/test-ising-123456-3-root-1-tip-l1-genmatrix-3-complete-54321.RData -c ising-model.json -b 1000 -j 3333
+
+ 
+# OK, now do this on more Tmer sizes:
+Rscript ../count-seq.R -i simseqs/test-ising-123456.RData -w 4 -s 2 -l 1
+Rscript ../make-genmat.R -c genmatrices/complete.json -w 4
+Rscript ../fit-model.R -i simseqs/test-ising-123456-4-root-2-tip-l1.counts -l 1 -m genmatrices/genmatrix-4-complete.RData -j 54321
+../templated-Rmd.sh ../simulation.Rmd simseqs/test-ising-123456-4-root-2-tip-l1-genmatrix-4-complete-54321.RData simseqs/test-ising-123456.RData
+
 # Rscript ../count-seq.R -i test-ising-123456.RData -w 5 -s 3 -l 1
 # Rscript ../make-genmat.R -c genmatrices/complete.json -w 5
 # Rscript ../fit-model.R -i test-ising-123456.5.3.l1.counts -l 1 -m genmatrices/genmatrix-5-complete.RData -j 54321
