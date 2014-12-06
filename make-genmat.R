@@ -80,11 +80,19 @@ if (!is.null(config$tree)) {
 
 for (mm in modelnames) {
     if (opt$meanboundary==0) {
-        genmatrix <- do.call( makegenmatrix, c( list( patlen=opt$longwin, mutpats=config[[mm]]$mutpats, selpats=config[[mm]]$selpats, boundary=opt$boundary, bases=config[[mm]]$bases, fixfn=config[[mm]]$fixfn ), config[[mm]]$fixfn.params ) )
+        genmatrix <- do.call( makegenmatrix, c( list( 
+                                patlen=opt$longwin, 
+                                mutpats=config[[mm]]$mutpats, selpats=config[[mm]]$selpats, 
+                                boundary=opt$boundary, bases=config[[mm]]$bases, fixfn=config[[mm]]$fixfn ), 
+                        config[[mm]]$fixfn.params ) )
     } else {
-        genmatrix <- do.call( meangenmatrix, c( list( leftwin=opt$meanboundary, rightwin=opt$meanboundary, patlen=opt$longwin, mutpats=config[[mm]]$mutpats, selpats=config[[mm]]$selpats, boundary=opt$boundary, bases=config[[mm]]$bases, fixfn=config[[mm]]$fixfn ), config[[mm]]$fixfn.params ) )
+        genmatrix <- do.call( meangenmatrix, c( list( 
+                                leftwin=opt$meanboundary, rightwin=opt$meanboundary, patlen=opt$longwin, 
+                                mutpats=config[[mm]]$mutpats, selpats=config[[mm]]$selpats, 
+                                boundary=opt$boundary, bases=config[[mm]]$bases, fixfn=config[[mm]]$fixfn ), 
+                        config[[mm]]$fixfn.params ) )
     }
-    if (!is.null(config$mutrates)) {
+    if (!is.null(config[[mm]]$mutrates)) {
         genmatrix@x <- do.call( update, c( list(G=genmatrix, mutrates=config[[mm]]$mutrates, selcoef=config[[mm]]$selcoef), config[[mm]]$fixfn.params ) )
     }
     save( genmatrix, file=gsub("%",opt$longwin,config[[mm]]$genmatrix,fixed=TRUE) )

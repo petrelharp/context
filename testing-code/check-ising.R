@@ -96,7 +96,7 @@ genmatrix <- makegenmatrix( patlen=long.win, mutpats=mutpats, selpats=selpats, m
 projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=left.win, rightwin=right.win, bases=genmatrix@bases )
 counts <- counttrans( rownames(projmatrix), colnames(projmatrix), simseqs=simseqs, leftwin=left.win, bases=genmatrix@bases )
 cwin <- 2
-subcounts <- projectcounts( counts, countwin=cwin, lcountwin=0, rcountwin=0 )
+subcounts <- projectcounts( counts, new.shortwin=cwin, new.leftwin=0, new.longwin=cwin )
 
 all.genmats <- list (
             "simple"=makegenmatrix( patlen=long.win, mutpats=mutpats, selpats=selpats, mutrates=mutrates*tlen, selcoef=selcoef, boundary="none", bases=bases, fixfn=fixfn ),
@@ -106,7 +106,7 @@ all.genmats <- list (
 
 all.expected <- lapply( all.genmats, function (genmatrix) {
         expected <- predictcounts( longwin=long.win, shortwin=short.win, leftwin=left.win, initcounts=rowSums(counts), mutrates=tlen*mutrates, selcoef=selcoef, genmatrix=genmatrix, projmatrix=projmatrix )
-        subexpected <- projectcounts( counts=expected, lcountwin=0, countwin=cwin, rcountwin=0 )
+        subexpected <- projectcounts( counts=expected, new.leftwin=0, new.shortwin=cwin, new.longwin=cwin )
         return(list( expected=expected, subexpected=subexpected ) )
     } )
 
@@ -170,8 +170,8 @@ names(all.expected) <- rownames(estimates)
 
 # look at observed/expected counts in smaller windows
 cwin <- 2
-subcounts <- projectcounts( countwin=cwin, lcountwin=0, rcountwin=0, counts=counts )
-all.subexpected <- lapply( all.expected, function (x) { projectcounts( countwin=cwin, lcountwin=0, rcountwin=0, counts=x ) } )
+subcounts <- projectcounts( new.shortwin=cwin, new.leftwin=0, new.longwin=cwin, counts=counts )
+all.subexpected <- lapply( all.expected, function (x) { projectcounts( new.shortwin=cwin, new.leftwin=0, new.longwin=cwin, counts=x ) } )
 
 
 if (interactive()) {

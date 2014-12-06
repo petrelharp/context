@@ -166,8 +166,8 @@ expected <- pcounts(point.estimate)
 
 # look at observed/expected counts in smaller windows
 cwin <- min(2,shortwin); lrcwin <- min(1,leftwin,rightwin)
-subcounts <- projectcounts( leftwin=leftwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=counts )
-subexpected <- projectcounts( leftwin=leftwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=expected )
+subcounts <- projectcounts( counts, new.leftwin=lrcwin, new.shortwin=cwin, new.longwin=lrcwin+cwin+lrcwin )
+subexpected <- projectcounts( expected, new.leftwin=lrcwin, new.shortwin=cwin, new.longwin=lrcwin+cwin+lrcwin )
 
 date()
 cat("done with computation.\n")

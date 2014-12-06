@@ -171,9 +171,9 @@ lapply( lapply(all.resids[2:4],"[[",2), matplot, type='l', col=adjustcolor(1:6,.
 
 cwin <- min(2,shortwin); lrcwin <- min(1,leftwin,rightwin)
 subcounts <- lapply( counts, function (x) 
-        projectcounts( leftwin=leftwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=x ) )
+        projectcounts( x, new.shortwin=cwin, new.leftwin=lrcwin, new.longwin=2*lrcwin+cwin, counts=x ) )
 all.subexpected <- lapply( all.expected, lapply, function (x)
-        projectcounts( leftwin=leftwin, countwin=cwin, lcountwin=lrcwin, rcountwin=lrcwin, counts=x ) )
+        projectcounts( x, new.shortwin=cwin, new.leftwin=lrcwin, new.longwin=2*lrcwin+cwin, counts=x ) )
 all.subresids <- lapply( all.subexpected, function (x) mapply(function(u,v) (u-v)/sqrt(v),x,subcounts) )
 
 layout(matrix(seq_along(subcounts)))

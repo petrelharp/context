@@ -19,15 +19,17 @@ top_n_bottom <- function(df, k) { # Take the top and bottom k rows
 counts_table <- function(in_longwin, in_shortwin, half_n_show) {
     if ( in_longwin > longwin(genmatrix) || in_shortwin > longwin(genmatrix) ) {
         cat("Window size of counts too small.")
+        return(NULL)
     }
     else {
-        observed <- projectcounts( counttab, lcountwin=floor((in_longwin-in_shortwin)/2), countwin=in_shortwin, rcountwin=ceiling((in_longwin-in_shortwin)/2) )
-        expected <- projectcounts( expected, lcountwin=floor((in_longwin-in_shortwin)/2), countwin=in_shortwin, rcountwin=ceiling((in_longwin-in_shortwin)/2) )
+        observed <- projectcounts( counttab, new.leftwin=floor((in_longwin-in_shortwin)/2), new.shortwin=in_shortwin, new.longwin=in_longwin, overlapping=TRUE )
+        expected <- projectcounts( expected, new.leftwin=floor((in_longwin-in_shortwin)/2), new.shortwin=in_shortwin, new.longwin=in_longwin, overlapping=TRUE )
         obsexp <- cbind( as.matrix(observed@counts), as.matrix(expected@counts) )
         colnames(obsexp) <- c( paste("obs:",colnames(observed),sep=''), paste("exp:",colnames(observed),sep='') )
         obsexp <- obsexp[, rbind(1:ncol(observed),ncol(observed)+(1:ncol(observed)))]
         pandoc.table(top_n_bottom(obsexp, half_n_show), style="rmarkdown")
     }
+    return(invisible(obsexp))
 }
 longpats <- getpatterns(longwin(genmatrix),simseq.config$bases)
 counttab <- counttrans.list( list(longpats,longpats), simseqs=simseqs[c("root","tip")], leftwin=0, bases=simseq.config$bases )
@@ -68,16 +70,16 @@ cat("window size:", longwin(genmatrix),
 
 ## residuals for 2-2 Tmers
 ```{r, echo=FALSE, results="asis"}
-counts_table(in_longwin=2, in_shortwin=2, half_n_show=5)
+counts_table(in_longwin=2, in_shortwin=2, half_n_show=20)
 ```
 
 ## residuals for 3-1 Tmers
 ```{r, results="asis"}
-counts_table(in_longwin=3, in_shortwin=1, half_n_show=5)
+counts_table(in_longwin=3, in_shortwin=1, half_n_show=20)
 ```
 
 ## residuals for 9-5 Tmers
 ```{r, results="asis"}
-counts_table(in_longwin=9, in_shortwin=5, half_n_show=5)
+counts_table(in_longwin=9, in_shortwin=5, half_n_show=20)
 ```
 

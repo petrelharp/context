@@ -1,7 +1,7 @@
 #!/usr/bin/Rscript --vanilla
 require(optparse)
 
-usage <- "Gather and summarize results of analysis into a single Rmd file."
+usage <- "Gather and summarize results of analysis into a single .RData file."
 
 option_list <- list(
         make_option( c("-s","--sim"), type="character", help=".RData file containing simulation." ),
