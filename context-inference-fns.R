@@ -271,6 +271,7 @@ setGeneric("counts", function(x) { standardGeneric("counts") })
 setMethod("counts", signature=c(x="tuplecounts"), definition=function (x) { x@counts } )
 # this method repackages the counts in a more friendly-looking data frame
 setGeneric("countframe", function(x) { standardGeneric("countframe") })
+setMethod("countframe", signature=c(x="context"), definition=function (x) countframe(x@counts))
 setMethod("countframe", signature=c(x="tuplecounts"), definition=function (x) {
         cf <- cbind(
                 data.frame( rep.int(rownames(x@counts),ncol(x@counts)) ),
@@ -821,7 +822,7 @@ predicttreecounts <- function (shortwin, leftwin=0, rightwin=0, initcounts, mutr
 # stuff for looking at residuals and finding motifs there
 
 # compute and spit out residuals
-computeresids <- function (model, pretty=TRUE, in_longwin=longwin(model), in_shortwin=shortwin(model), in_leftwin=leftwin(model), counts=NULL, genmatrixfile=NULL) {
+computeresids <- function (model, pretty=TRUE, in_longwin=longwin(model), in_shortwin=shortwin(model), in_leftwin=leftwin(model), counts=NULL, genmatrixfile=NULL, overlapping=FALSE) {
     # pull in defaults for things if they are not specified
     # load generator matrix, if needed
     if (!is.null(genmatrixfile)) {
@@ -845,8 +846,8 @@ computeresids <- function (model, pretty=TRUE, in_longwin=longwin(model), in_sho
     expected <- fitted( model, longwin=longwin(model), shortwin=shortwin(model), leftwin=leftwin(model), initcounts=rowSums(counts), genmatrix=genmatrix )
 
     if ( (in_longwin < longwin(counts)) || (in_shortwin < shortwin(counts)) ) {
-        counts <- projectcounts( counts, in_leftwin, in_shortwin, in_longwin )
-        expected <- projectcounts( expected, in_leftwin, in_shortwin, in_longwin )
+        counts <- projectcounts( counts, in_leftwin, in_shortwin, in_longwin, overlapping=overlapping )
+        expected <- projectcounts( expected, in_leftwin, in_shortwin, in_longwin, overlapping=overlapping )
     }
 
     if (pretty) {
