@@ -2,11 +2,11 @@
 
 require(expm)
 require(parallel)
-numcores<-as.numeric(scan(pipe("cat /proc/cpuinfo | grep processor | tail -n 1 | awk '{print $3}'")))+1
 
 # Run some tests!!
 source("../sim-context-fns.R")
 source("../context-inference-fns.R")
+numcores<-getcores()
 
 bases <- c("X","O")
 
@@ -31,9 +31,10 @@ selcoef <- c(-.5,.5)
 
 initseq <- rinitseq(seqlen,bases)
 simseqs <- mclapply( 1:1000, function (k) 
-        simseq( seqlen, tlen, intiseq=initseq, mutpats=mutpats, selpats=selpats, mutrates=mutrates, selcoef=selcoef, bases=bases, fixfn=fixfn ) 
+        simseq( seqlen, tlen, initseq=initseq, mutpats=mutpats, selpats=selpats, mutrates=mutrates, selcoef=selcoef, bases=bases, fixfn=fixfn, count.trans=TRUE ) 
     , mc.cores=numcores)
-full.genmatrix <- makegenmatrix( mutpats, selpats, patlen=seqlen, boundary="none", bases=bases, fixfn=fixfn )
+# note that simseq simulates WRAPPED sequences
+full.genmatrix <- makegenmatrix( mutpats, selpats, murates=mutrates, selcoef=selcoef, patlen=seqlen, boundary="wrap", bases=bases, fixfn=fixfn )
 require(expm)
 full.transmatrix <- expm( tlen*(as.matrix(full.genmatrix)-diag(rowSums(full.genmatrix))) )
 stopifnot( all( abs( rowSums(full.transmatrix) - rep(1.0,nrow(full.transmatrix)) ) < 1e-8 ) )
@@ -47,7 +48,7 @@ resids$p <- pbinom( resids$observed, size=length(simseqs), prob=expected.freqs )
 cat("Beginning from ", as.character(initseq), ":\n")
 print(resids)
 
-if( !( all( abs(abs(resids$p-1/2)-1/2)>1/2^(seqlen+1) ) ) ) {
-    stop("Some high residuals there.")
+if ( min( pbeta( min(resids$p), 1,nrow(resids) ) , pbeta( min(1-resids$p), 1,nrow(resids) ) ) < .01 ) {
+    stop("Error: some high residuals there.")
 }
 

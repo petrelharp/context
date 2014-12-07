@@ -10,16 +10,24 @@ source(paste(.PATH,"/helper-fns.R",sep=''))
 
 require(jsonlite)
 
-read.counts <- function (infile,leftwin,bases,longpats,shortpats) {
+read.counts <- function (infile,leftwin,bases,longpats,shortpats,skip=0) {
     # read in a file of counts of the following form:
+    #     # leftwin=1
     #        taxon1  taxon2 ... count
-    #   1      AAAA      AA ...    19
-    #   2      CAAA      AA ...     2
-    #   3      GAAA      AA ...     6
-    #   4      TAAA      AA ...     3
+    #         AAAA      AA ...    19
+    #         CAAA      AA ...     2
+    #         GAAA      AA ...     6
+    #         TAAA      AA ...     3
     # ... and convert it to a 'tuplecounts' object
     # optionally passing in the orderings of the rows and columns
-    count.table <- read.table(infile,header=TRUE,stringsAsFactors=FALSE)
+    count.paramstring <- scan(infile,what='char',nlines=1,sep="\n")
+    count.params <- if (substr(count.paramstring,1,1)=="#") {
+            skip <- 1
+            fromJSON(gsub("^#*","",count.paramstring),simplifyMatrix=FALSE)
+        } else { NULL }
+    if (missing(leftwin)) { leftwin <- count.params$leftwin }
+    if (is.null(leftwin)) { stop("leftwin not specified.") }
+    count.table <- read.table(infile,header=TRUE,stringsAsFactors=FALSE,skip=skip)
     longwin <- nchar( count.table[1,1] )
     shortwin <- nchar( count.table[1,2] )
     taxa <- colnames(count.table)[-ncol(count.table)]

@@ -52,7 +52,7 @@ stopifnot(file.exists(opt$gmfile))
 load(opt$gmfile)  # provides 'genmatrix'
 
 # read in counts
-counts <- read.counts(opt$infile, leftwin=opt$leftwin, bases=genmatrix@bases, longpats=rownames(genmatrix) )
+counts <- read.counts(opt$infile, bases=genmatrix@bases, longpats=rownames(genmatrix) )
 stopifnot( all( rownames(counts) == rownames(genmatrix) ) )
 
 projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin(counts), fpatterns=colnames(counts) )

@@ -41,7 +41,7 @@ if (is.null(opt$outfile)) {
 if (is.null(opt$countfile)) {
     counts = NULL
 } else {
-    counts = read.counts(opt$countfile, opt$leftwin)
+    counts = read.counts(opt$countfile)
 }
 
 residframe = computeresids (model,

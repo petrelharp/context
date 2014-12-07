@@ -14,8 +14,12 @@ If --revcounts, count in the other direction, i.e. \
 \
 If counts are on a tree (a named list of sequences),\
 need to also specify the name of the clade that gets the 'long' pattern, by e.g.\
-  --longclade=sp1
-.
+  --longclade=sp1 \
+. \
+ \
+If --RData is not given, outputs a tab-separated file with column headers \
+in which the first line, begun with a '#', gives what the shift ('leftwin') is. \
+\
 "
 
 option_list <- list(
@@ -71,5 +75,6 @@ if (opt$RData) {
     save( counts, file=gsub("\\.counts$",".RData",opt$outfile) )
 } else {
     countframe <- countframe( counts )
-    write.table(countframe, file=opt$outfile, row.names=FALSE, sep='\t', quote=FALSE)
+    cat( paste('# { "leftwin" : ', opt$leftwin, '}\n', sep=''), file=opt$outfile )
+    write.table(countframe, file=opt$outfile, row.names=FALSE, sep='\t', quote=FALSE, append=TRUE)
 }

@@ -22,19 +22,18 @@ simseq <- function (seqlen, tlen, mutpats, mutrates, selpats=list(), selcoef=num
     #   Note that for a mutation pattern of length less than patlen, we will overcount.
     #    e.g. if the rate of CG -> TG is 1.5, and pattern length is 4,
     #    then we'll match on CG.., .CG., and ..CG, so the transition rates of e.g. CGTT -> TGTT should be 1.5/(4-2+1) = 0.5
-    #   So, rescale mutrates:
+    #    To fix this, we rescale mutrates below.
     stringsetfun <- if ( all(bases %in% c("A","C","G","T","-") ) ) { DNAStringSet } else { BStringSet }
     # determine size of padding window
     sellen <- if (length(selpats)>0) { max( sapply( unlist( selpats ), nchar ) ) } else { 0 }
-    mutlen <- max( sapply( unlist( mutpats ), nchar ) )
     mutpatlens <- unlist( lapply( mutpats, function (x) unique(nchar(unlist(x))) ) )
+    if (! all( sapply(mutpatlens,length)==1 ) ) { stop("need each list in mutpats to have patterns of the same length") }
     mutlen <- max(mutpatlens)
     if (missing(patlen)) { patlen <- mutlen }
     if (patlen<mutlen) { stop("patlen too short") }
     pad.patlen <- patlen+2*max(0,(sellen-1))
     # construct generator matrix for (sellen-1,patlen,sellen-1) but with outer padding not changing
     full.genmatrix <- makegenmatrix( mutpats, selpats, patlen=pad.patlen, boundary="none", bases=bases, ... )
-    if (! all( sapply(mutpatlens,length)==1 ) ) { stop("need each list in mutpats to have patterns of the same length") }
     mutrates <- mutrates / (patlen-mutpatlens+1)  # avoid overcounting (see above)
     full.genmatrix@x <- update(full.genmatrix,mutrates,selcoef,...)
     patterns <- rownames(full.genmatrix)
@@ -252,5 +251,5 @@ show.simseq <- function (x,printit=FALSE,maxchar=min(nchar(x$initseq),200),latex
 }
 
 print.simseq <- function (x,...) {
-    invisible( show.simseq(x,printit=TRUE,maxchar=min(nchar(x$initseq),200)) )
+    invisible( show.simseq(x,printit=TRUE,maxchar=min(nchar(x$initseq),150)) )
 }

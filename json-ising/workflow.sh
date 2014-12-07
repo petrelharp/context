@@ -58,16 +58,19 @@ exit 0;
 # # and for the constrained model
 Rscript ../sim-seq.R -c ising-model-constrained.json -t .1 -s 100000 -o simseqs/constrained-ising-123.RData
 
-# with shortish windows
-Rscript ../count-seq.R -i constrained-ising-123.RData -w 4 -s 2 -l 1 -o simseqs/constrained-ising-123.4.2.l1.counts
+# generator matrices
 Rscript ../make-genmat.R -c ising-model-constrained.json -w 4 -o genmatrices/genmatrix-4-ising-model-constrained.RData
+Rscript ../make-genmat.R -c ising-model-constrained.json -w 7 -o genmatrices/genmatrix-7-ising-model-constrained.RData
+../templated-Rmd.sh ../testing-code/check-sim.Rmd simseqs/constrained-ising-123.RData genmatrices/genmatrix-7-ising-model-constrained.RData
+
+# with shortish windows
+Rscript ../count-seq.R -i simseqs/constrained-ising-123.RData -w 4 -s 2 -l 1 -o simseqs/constrained-ising-123.4.2.l1.counts
 Rscript ../fit-model.R -i simseqs/constrained-ising-123.4.2.l1.counts -l 1 -m genmatrices/genmatrix-4-ising-model-constrained.RData -o simseqs/constrained-ising-123-genmatrix-4-ising-model-constrained.RData
 ../templated-Rmd.sh ../simulation.Rmd simseqs/constrained-ising-123-genmatrix-4-ising-model-constrained.RData simseqs/constrained-ising-123.RData
 
 # with longer windows
-Rscript ../count-seq.R -i constrained-ising-123.RData -w 7 -s 3 -l 2 -o simseqs/constrained-ising-123.7.3.l2.counts
-Rscript ../make-genmat.R -c ising-model-constrained.json -w 7 -o genmatrices/genmatrix-7-ising-model-constrained.RData
-Rscript ../fit-model.R -i simseqs/constrained-ising-123.7.3.l2.counts -l 3 -m genmatrices/genmatrix-7-ising-model-constrained.RData -o simseqs/constrained-ising-123-genmatrix-7-ising-model-constrained.RData
+Rscript ../count-seq.R -i simseqs/constrained-ising-123.RData -w 7 -s 3 -l 2 -o simseqs/constrained-ising-123.7.3.l2.counts
+Rscript ../fit-model.R -i simseqs/constrained-ising-123.7.3.l2.counts -l 2 -m genmatrices/genmatrix-7-ising-model-constrained.RData -o simseqs/constrained-ising-123-genmatrix-7-ising-model-constrained.RData
 ../templated-Rmd.sh ../simulation.Rmd simseqs/constrained-ising-123-genmatrix-7-ising-model-constrained.RData simseqs/constrained-ising-123.RData
 
 # Rscript ../mcmc-model.R -i constrained-ising-123-genmatrix-9-ising-model-constrained.RData -c ising-model-constrained.json -b 3 -o constrained-ising-123-genmatrix-9-mcmc-1.RData

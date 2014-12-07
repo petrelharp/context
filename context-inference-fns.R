@@ -271,7 +271,6 @@ setGeneric("counts", function(x) { standardGeneric("counts") })
 setMethod("counts", signature=c(x="tuplecounts"), definition=function (x) { x@counts } )
 # this method repackages the counts in a more friendly-looking data frame
 setGeneric("countframe", function(x) { standardGeneric("countframe") })
-setMethod("countframe", signature=c(x="context"), definition=function (x) countframe(x@counts))
 setMethod("countframe", signature=c(x="tuplecounts"), definition=function (x) {
         cf <- cbind(
                 data.frame( rep.int(rownames(x@counts),ncol(x@counts)) ),
@@ -324,6 +323,7 @@ setClass("contextMCMC", representation(
 
 setMethod("dimnames", signature=c(x="context"), definition=function (x) { dimnames(x@counts) } )
 setMethod("counts", signature=c(x="context"), definition=function (x) { counts(x@counts) } )
+setMethod("countframe", signature=c(x="context"), definition=function (x) countframe(x@counts))
 
 # We would like the likfun function to automatically have access to the stuff in the context object
 #  ... where is 'self'?!?

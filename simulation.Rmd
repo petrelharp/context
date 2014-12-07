@@ -21,17 +21,18 @@ counts_table <- function(in_longwin, in_shortwin, half_n_show) {
         return(NULL)
     }
     else {
-        resids = computeresids(model,
+        in_leftwin <- floor((in_longwin-in_shortwin)/2)
+        resids <- computeresids(model,
                 in_longwin=in_longwin,
                 in_shortwin=in_shortwin,
-                in_leftwin=floor((in_longwin-in_shortwin)/2),
-                counts=model@counts)
-        true.resids = computeresids(true.model,
-                in_longwin=in_longwin,
-                in_shortwin=in_shortwin,
-                in_leftwin=floor((in_longwin-in_shortwin)/2),
-                counts=model@counts)
-        resids$sim.expected <- true.resids$expected
+                in_leftwin=in_leftwin,
+                counts=model@counts, 
+                overlapping=TRUE)
+        true.expected <- projectcounts(
+                fitted( true.model, longwin=longwin(model), shortwin=shortwin(model), leftwin=leftwin(model) ),
+                in_leftwin, in_shortwin, in_longwin, 
+                overlapping=TRUE )
+        resids$sim.expected <- true.expected@counts[ cbind(resids$inpat,resids$outpat) ]
         pandoc.table(top_n_bottom(resids, half_n_show), style="rmarkdown")
         return(invisible(resids))
     }
@@ -54,9 +55,15 @@ counts_plot <- function (resids) {
     }
 }
 counttab <- counts(model)
+time <- as.numeric(simseq.opt$tlen)
+timevec <- c( rep(as.numeric(simseq.opt$tlen),nmuts(model)), rep(1,length(coef(model))-nmuts(model)) )
 true.model <- model
-true.model@mutrates <- simseq.config$tip$mutrates
+true.model@mutrates <- simseq.config$tip$mutrates*time
 true.model@selcoef <- simseq.config$tip$selcoef
+mr_compare <- data.frame( 
+    fit=coef(model)/timevec,
+    simulated=coef(true.model)/timevec,
+    stringsAsFactors=FALSE )
 if (length(true.model@params)>0) { true.model@params <- simseq.config$tip$fixfn.params }
 cat(model@invocation,"\n")
 ```
@@ -95,12 +102,6 @@ if (class(model)=="context") {
 
 ## Fitted parameter values
 ```{r, echo=FALSE, results="asis"}
-time <- as.numeric(simseq.opt$tlen)
-timevec <- c( rep(as.numeric(simseq.opt$tlen),nmuts(model)), rep(1,length(coef(model))-nmuts(model)) )
-mr_compare <- data.frame( 
-    fit=coef(model)/timevec,
-    simulated=coef(true.model)/timevec,
-    stringsAsFactors=FALSE )
 pandoc.table(mr_compare, style="rmarkdown")
 mr_compare$names <- names(coef(model))
 ```

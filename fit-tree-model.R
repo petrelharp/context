@@ -52,7 +52,7 @@ longpats <- rownames(genmatrices[[1]])
 stopifnot( all( sapply( genmatrices, function(gm) { all(rownames(gm)==longpats) } ) ) )
 
 # read in counts
-counts <- read.counts(opt$infile, leftwin=opt$leftwin, bases=genmatrices[[1]]@bases, longpats=rownames(genmatrices[[1]]) )
+counts <- read.counts(opt$infile, bases=genmatrices[[1]]@bases, longpats=rownames(genmatrices[[1]]) )
 stopifnot( all( rownames(counts) == longpats ) )
 
 projmatrix <- collapsepatmatrix( ipatterns=longpats, leftwin=leftwin(counts), fpatterns=colnames(counts) )
