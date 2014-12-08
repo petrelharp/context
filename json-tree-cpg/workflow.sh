@@ -21,8 +21,8 @@ GENMAT=genmatrices/genmatrix-${LONGWIN}-cpg.RData
 Rscript ../make-genmat.R -c tree-cpg-model.json -w ${LONGWIN} -o ${GENMAT} -n sp1
 
 # fit a model
-Rscript ../fit-model.R -i $BASEDIR/sim-tree-cpg-3-sp1-1-sp2-l1.counts -c tree-cpg-model.json -w ${LONGWIN} -l ${LEFTWIN} -j 001
-Rscript ../fit-model.R -i $BASEDIR/sim-tree-cpg-3-sp2-1-sp1-l1.counts -c tree-cpg-model.json -w ${LONGWIN} -l ${LEFTWIN} -j 001
+Rscript ../fit-model.R -i $BASEDIR/sim-tree-cpg-3-sp1-1-sp2-l1.counts -c tree-cpg-model.json -w ${LONGWIN} -j 001
+Rscript ../fit-model.R -i $BASEDIR/sim-tree-cpg-3-sp2-1-sp1-l1.counts -c tree-cpg-model.json -w ${LONGWIN} -j 001
 
 # compute residuals
-Rscript ../compute-resids.R -i $BASE-123456-genmatrix-${LONGWIN}-cpg-54321.RData -w 3 -s 1 -l 1 -m ${GENMAT}
+Rscript ../compute-resids.R -i $BASE-123456-genmatrix-${LONGWIN}-cpg-54321.RData -w 3 -s 1 -m ${GENMAT}

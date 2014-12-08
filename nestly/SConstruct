@@ -145,7 +145,6 @@ def fit(outdir, c):
                    --seed {0[seed]} \
                    --jobid {0[seed]} \
                    -i ${{SOURCES[1]}} \
-                   -l {0[leftwin]} \
                    -m ${{SOURCES[2]}} \
                    -o $TARGET'.format(c))
     return fit

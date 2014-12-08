@@ -28,6 +28,7 @@ option_list <- list(
         make_option( c("-w","--longwin"), type="integer", help="Size of long window." ),
         make_option( c("-s","--shortwin"), type="integer", help="Size of short window." ),
         make_option( c("-l","--leftwin"), type="integer", help="Size of offset of short window from the left."),
+        make_option( c("-p","--shift"), type="integer", default=0, help="Shift windows by this many sites, zero means completely overlapping (same as 1, but writes out a single file). [default=%default]"),
         make_option( c("-c","--longclade"), type="character", help="Which clade, gets the 'long' patterns. [default: root for a stick tree]"),
         make_option( c("-t","--shortclades"), type="character", help="Which clades, gets the 'short' patterns. [default: all tips except longclade]"),
         make_option( c("-R","--RData"), type="logical", action="store_true", default=FALSE, help="Output as tuplecounts object in RData? [default: as csv]")
@@ -64,17 +65,31 @@ if (is.null(opt$outfile)) { # default outfile
                      "-", opt$shortwin, 
                      "-", paste(opt$shortclades,collapse="-"),
                      "-l", opt$leftwin,
+                     "-shift", opt$shift,
                      ".counts",
                  sep="")
 }
 
-
-counts <- counttrans.list( list(longpats,shortpats)[c(1,rep.int(2,length(opt$shortclades)))], simseqs=simseqs[c(opt$longclade,opt$shortclades)], leftwin=opt$leftwin, bases=simseq.config$bases )
-
+counts <- counttrans.list( list(longpats,shortpats)[c(1,rep.int(2,length(opt$shortclades)))], 
+    simseqs=simseqs[c(opt$longclade,opt$shortclades)], 
+    leftwin=opt$leftwin, bases=simseq.config$bases,
+   shift=opt$shift )
 if (opt$RData) {
-    save( counts, file=gsub("\\.counts$",".RData",opt$outfile) )
-} else {
-    countframe <- countframe( counts )
+    outfile <- gsub("\\.counts$",".RData",opt$outfile)
+    cat("Writing to:" outfile, "\n")
+    save( counts, file=outfile )
+} else if (opt$shift==0) {
+    cat("Writing to:" opt$outfile, "\n")
+    cframe <- countframe( counts )
     cat( paste('# { "leftwin" : ', opt$leftwin, '}\n', sep=''), file=opt$outfile )
-    write.table(countframe, file=opt$outfile, row.names=FALSE, sep='\t', quote=FALSE, append=TRUE)
+    write.table(cframe, file=opt$outfile, row.names=FALSE, sep='\t', quote=FALSE, append=TRUE)
+} else {
+    for (k in 1:opt$shift) {
+        cframe <- countframe( counts[[k]] )
+        outfile <- paste(opt$outfile,k,sep='.')
+        cat("Writing to:" outfile, "\n")
+        cat( paste('#', toJSON( list( leftwin=opt$leftwin, shift=opt$shift, offset=k ), auto_unbox=TRUE ), "\n" ), file=outfile )
+        # cat( paste('# { "leftwin" : ', opt$leftwin, '}\n', sep=''), file=outfile )
+        write.table(cframe, file=outfile, row.names=FALSE, sep='\t', quote=FALSE, append=TRUE)
+    }
 }

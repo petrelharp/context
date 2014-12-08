@@ -19,9 +19,9 @@ Rscript ../make-genmat.R -c genmatrices/singlebase.json -w 2 &
 Rscript ../make-genmat.R -c genmatrices/dualbases.json -w 4
 
 # fit a simple model: width 4 with all one-base transitions on 1+2+1 Tmers
-Rscript ../fit-model.R -i sim-cpg-123456.4.2.l1.counts -l 1 -m genmatrices/genmatrix-4-singlebase.RData -o simple-fit.RData
+Rscript ../fit-model.R -i sim-cpg-123456.4.2.l1.counts -m genmatrices/genmatrix-4-singlebase.RData -o simple-fit.RData
 # and a more complex one: width 4 with all two-base transitions
-Rscript ../fit-model.R -i sim-cpg-123456.4.2.l1.counts -l 1 -m genmatrices/genmatrix-4-dualbases.RData -o complex-fit.RData
+Rscript ../fit-model.R -i sim-cpg-123456.4.2.l1.counts -m genmatrices/genmatrix-4-dualbases.RData -o complex-fit.RData
 
 # first look at simple model residuals on 1+2+1 Tmers (what it was fit with)
 Rscript ../compute-resids.R -i simple-fit.RData

@@ -20,7 +20,7 @@ echo "check simulated model matches expected"
 ../templated-Rmd.sh ../testing-code/check-sim.Rmd simseqs/sim-tasep-123456.RData genmatrices/genmatrix-4-complete.RData
 
 echo "fitting, width 4"
-Rscript ../fit-model.R -i simseqs/sim-tasep-123456-4-root-2-tip-l1.counts -l 1 -m genmatrices/genmatrix-4-complete.RData -j 54321
+Rscript ../fit-model.R -i simseqs/sim-tasep-123456-4-root-2-tip-l1.counts -m genmatrices/genmatrix-4-complete.RData -j 54321
 
 echo "computing residuals"
 Rscript ../compute-resids.R -i simseqs/sim-tasep-123456-4-root-2-tip-l1-genmatrix-4-complete-54321.RData

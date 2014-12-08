@@ -16,7 +16,7 @@ echo "check simulated model matches expected"
 ../templated-Rmd.sh ../testing-code/check-sim.Rmd testsim/test-cpg-01.RData genmatrices/genmatrix-4-cpg.RData
 
 echo "fit a model"
-Rscript ../fit-model.R -i testsim/test-cpg-01-counts-3.RData -l 1 -m genmatrices/genmatrix-4-cpg.RData -o testsim/test-cpg-01-fit.RData -c cpg-model-constrained.json
+Rscript ../fit-model.R -i testsim/test-cpg-01-counts-3.RData -m genmatrices/genmatrix-4-cpg.RData -o testsim/test-cpg-01-fit.RData -c cpg-model-constrained.json
 
 echo "do mcmc"
 Rscript ../mcmc-model.R -i testsim/test-cpg-01-fit.RData -o testsim/test-cpg-01-mcmc-1.RData -c cpg-model-constrained.json --blen 3
@@ -34,5 +34,5 @@ echo "look at results: MCMC"
 exit 0
 
 echo "fit a model started from the truth"
-Rscript ../fit-model.R -i ${BASEDIR}$BASE-123456-${LONGWIN}-root-${SHORTWIN}-tip-l${LEFTWIN}.counts -l ${LEFTWIN} -m $GENMAT -j 54321 -c ${MODEL} -o ${BASEDIR}test-cpg-123456-test-start.RData
+Rscript ../fit-model.R -i ${BASEDIR}$BASE-123456-${LONGWIN}-root-${SHORTWIN}-tip-l${LEFTWIN}.counts -m $GENMAT -j 54321 -c ${MODEL} -o ${BASEDIR}test-cpg-123456-test-start.RData
 

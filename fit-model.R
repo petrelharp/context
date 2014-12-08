@@ -27,7 +27,6 @@ option_list <- list(
         make_option( c("-c","--configfile"), type="character", help="Config file with initial guesses at parameter values and parameters to constrain. [default: makes cheap guesses]"),
         make_option( c("-o","--outfile"), type="character", help="File to save results to.  [default: base of infile + base of genmatrix + jobid + .RData]"),
         make_option( c("-u","--basedir"), type="character", default=NULL, help="Directory to put output in. [default: same as infile]"),
-        make_option( c("-l","--leftwin"), type="integer", help="Size of left-hand context." ),
         make_option( c("-m","--gmfile"), type="character", default="TRUE", help="File with precomputed generator matrix."),
         make_option( c("-x","--maxit"), type="integer", default=100, help="Number of iterations of optimization to run for. [default=%default]"),
         make_option( c("-j","--jobid"), type="character", default=formatC(1e6*runif(1),width=6,format="d",flag="0"), help="Unique job id. [default random]"),
