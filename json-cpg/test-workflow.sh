@@ -7,7 +7,7 @@ echo "simulate up some sequence for testing"
 Rscript ../sim-seq.R -c cpg-model-constrained.json -t .1 -s 1000000 -d testsim -o test-cpg-01.RData
 
 echo "and count the Tmers"
-Rscript ../count-seq.R -i testsim/test-cpg-01.RData -w 4 -s 2 -l 1 -o testsim/test-cpg-01-counts-3.RData
+Rscript ../count-seq.R -i testsim/test-cpg-01.RData -w 4 -s 2 -l 1 -o testsim/test-cpg-01-counts-4.RData
 
 echo "precompute generator matrices:"
 Rscript ../make-genmat.R -c cpg-model-constrained.json -w 4 -o genmatrices/genmatrix-4-cpg.RData
@@ -16,7 +16,7 @@ echo "check simulated model matches expected"
 ../templated-Rmd.sh ../testing-code/check-sim.Rmd testsim/test-cpg-01.RData genmatrices/genmatrix-4-cpg.RData
 
 echo "fit a model"
-Rscript ../fit-model.R -i testsim/test-cpg-01-counts-3.RData -m genmatrices/genmatrix-4-cpg.RData -o testsim/test-cpg-01-fit.RData -c cpg-model-constrained.json
+Rscript ../fit-model.R -i testsim/test-cpg-01-counts-4.RData -m genmatrices/genmatrix-4-cpg.RData -o testsim/test-cpg-01-fit.RData -c cpg-model-constrained.json
 
 echo "do mcmc"
 Rscript ../mcmc-model.R -i testsim/test-cpg-01-fit.RData -o testsim/test-cpg-01-mcmc-1.RData -c cpg-model-constrained.json --blen 3
