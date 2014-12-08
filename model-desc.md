@@ -66,4 +66,6 @@ A 'model stanza' has:
 - 'fixfn' : name of a function, or R code (e.g. "function (x) { ... }"
 - 'fixfn.params' : named list of additional parameters to fixfn
 - 'genmatrix' : pattern for where to save genmatrix files, with `%` to be substituted for the pattern length
-- 'mutprior', 'selprior', 'fixfn.prior' : coefficients for priors on respective parameters
+- 'mutrates.prior', 'selcoef.prior', 'fixfn.params.prior' : coefficients for priors on respective parameters
+- 'mutrates.scale', 'selcoef.scale', 'fixfn.params.scale' : scale over which to move in optimization, MCMC, etcetera. Parameters whose scale is set to zero *will be held as fixed* in the analysis.
+

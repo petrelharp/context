@@ -5,24 +5,29 @@ set -o pipefail
 
 # simulate
 BASEDIR=sim-01
+mkdir -p $BASEDIR
 Rscript ../sim-seq.R -c tree-cpg-model.json -s 10000 -d $BASEDIR -o sim-tree-cpg.RData
 
 # and count the Tmers
-LONGWIN=3
-SHORTWIN=1
+LONGWIN=4
+SHORTWIN=2
 LEFTWIN=1
 
-Rscript ../count-seq.R -i $BASEDIR/sim-tree-cpg.RData -c sp1 -w $LONGWIN -s $SHORTWIN -l $LEFTWIN
-Rscript ../count-seq.R -i $BASEDIR/sim-tree-cpg.RData -c sp2 -w $LONGWIN -s $SHORTWIN -l $LEFTWIN
+Rscript ../count-seq.R -i $BASEDIR/sim-tree-cpg.RData -c sp1 -w $LONGWIN -s $SHORTWIN -l $LEFTWIN --shift $LONGWIN &
+Rscript ../count-seq.R -i $BASEDIR/sim-tree-cpg.RData -c sp2 -w $LONGWIN -s $SHORTWIN -l $LEFTWIN --shift $LONGWIN &
+
+wait;
 
 # precompute generator matrices:
 #   width-3
-GENMAT=genmatrices/genmatrix-${LONGWIN}-cpg.RData
-Rscript ../make-genmat.R -c tree-cpg-model.json -w ${LONGWIN} -o ${GENMAT} -n sp1
+mkdir -p genmatrices
+Rscript ../make-genmat.R -c tree-cpg-model.json -w ${LONGWIN}
 
 # fit a model
-Rscript ../fit-model.R -i $BASEDIR/sim-tree-cpg-3-sp1-1-sp2-l1.counts -c tree-cpg-model.json -w ${LONGWIN} -j 001
-Rscript ../fit-model.R -i $BASEDIR/sim-tree-cpg-3-sp2-1-sp1-l1.counts -c tree-cpg-model.json -w ${LONGWIN} -j 001
+for SHIFT in $(seq $LONGWIN)
+do
+    Rscript ../fit-tree-model.R -i $BASEDIR/sim-tree-cpg-${LONGWIN}-sp1-${SHORTWIN}-sp2-l${LEFTWIN}-shift${LONGWIN}.counts.$SHIFT -c tree-cpg-model.json -j 001 &
+    Rscript ../fit-tree-model.R -i $BASEDIR/sim-tree-cpg-${LONGWIN}-sp2-${SHORTWIN}-sp1-l${LEFTWIN}-shift${LONGWIN}.counts.$SHIFT -c tree-cpg-model.json -j 001 &
+done
 
-# compute residuals
-Rscript ../compute-resids.R -i $BASE-123456-genmatrix-${LONGWIN}-cpg-54321.RData -w 3 -s 1 -m ${GENMAT}
+wait

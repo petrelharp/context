@@ -10,7 +10,7 @@ Sample from the posterior on the parameters given data,\
 beginning from a model fit already via likelihood or previous MCMC run. \
 \
 Config file gives prior means on model parameters, for instance:\
-{ mutpriors: [ .01 ] } \
+{ mutrates.prior: [ .01 ] } \
 "
 
 option_list <- list(
@@ -42,19 +42,19 @@ counts <- model@counts
 
 # read in config file
 prior.config <- read.config(opt$configfile)  # returns NULL if not present
-if (is.null(prior.config$mutprior)) { prior.config$mutprior <- model@mutprior }
-if (is.null(prior.config$selprior)) { 
+if (is.null(prior.config$mutrates.prior)) { prior.config$mutrates.prior <- model@mutrates.prior }
+if (is.null(prior.config$selcoef.prior)) { 
     if (nsel(model)==0) { 
-        prior.config$selprior <- numeric(0) 
+        prior.config$selcoef.prior <- numeric(0) 
     } else  { 
-        prior.config$selprior <- model@selprior 
+        prior.config$selcoef.prior <- model@selcoef.prior 
     }
 }
-if (is.null(prior.config$paramsprior)) { 
+if (is.null(prior.config$fixfn.params.prior)) { 
     if (length(fixparams(model))==0) { 
-        prior.config$paramsprior <- numeric(0) 
+        prior.config$fixfn.params.prior <- numeric(0) 
     } else  { 
-        prior.config$paramsprior <- model@paramsprior 
+        prior.config$fixfn.params.prior <- model@fixfn.params.prior 
     }
 }
 
@@ -91,7 +91,7 @@ likfun <- function (sub.params){
     # return POSITIVE log-likelihood
     ans <- sum( counts@counts * log(subtransmatrix) )
     if (!is.finite(ans)) { return( -Inf ) }
-    else { return( ans - sum(mutrates/prior.config$mutprior) - sum((selcoef/prior.config$selprior)^2) - sum((fparams/prior.config$paramsprior)^2) ) }
+    else { return( ans - sum(mutrates/prior.config$mutrates.prior) - sum((selcoef/prior.config$selcoef.prior)^2) - sum((fparams/prior.config$fixfn.params.prior)^2) ) }
 }
 
 baseval <- likfun(initpar)
@@ -114,9 +114,9 @@ model <- new( "contextMCMC",
              params=mrun.final.par[seq(1+nmuts(genmatrix)+nsel(genmatrix),length.out=length(fixparams(model)))],
              results=unclass(mrun),
              likfun=likfun,
-             mutprior=prior.config$mutprior,
-             selprior=prior.config$selprior,
-             paramsprior=prior.config$paramsprior,
+             mutrates.prior=prior.config$mutrates.prior,
+             selcoef.prior=prior.config$selcoef.prior,
+             fixfn.params.prior=prior.config$fixfn.params.prior,
              invocation=invocation
          )
 

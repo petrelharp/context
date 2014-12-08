@@ -95,5 +95,7 @@ for (mm in modelnames) {
     if (!is.null(config[[mm]]$mutrates)) {
         genmatrix@x <- do.call( update, c( list(G=genmatrix, mutrates=config[[mm]]$mutrates, selcoef=config[[mm]]$selcoef), config[[mm]]$fixfn.params ) )
     }
-    save( genmatrix, file=gsub("%",opt$longwin,config[[mm]]$genmatrix,fixed=TRUE) )
+    outfile <- gsub("%",opt$longwin,config[[mm]]$genmatrix,fixed=TRUE)
+    cat("Writing out to ", outfile, "\n")
+    save( genmatrix, file=outfile )
 }

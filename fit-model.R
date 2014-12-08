@@ -46,6 +46,10 @@ source("../context-inference-fns.R")
 
 options(error = print.and.dump)
 
+# read configuration
+init.config <- read.config(opt$configfile)  # returns NULL if it is NULL
+if (!is.null(init.config$tree)) { warning("Appears to be a tree-config file; should be using fit-tree-model.R?") }
+
 # load generator matrix
 stopifnot(file.exists(opt$gmfile))
 load(opt$gmfile)  # provides 'genmatrix'
@@ -56,7 +60,6 @@ stopifnot( all( rownames(counts) == rownames(genmatrix) ) )
 
 projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin(counts), fpatterns=colnames(counts) )
 
-init.config <- read.config(opt$configfile)  # returns NULL if it is NULL
 if (is.null(init.config$mutrates)) {
     # get ad hoc initial guesses at parameters
     adhoc <- countmuts(counts=counts,mutpats=genmatrix@mutpats,leftwin=leftwin(counts))

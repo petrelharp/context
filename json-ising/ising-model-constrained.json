@@ -13,7 +13,7 @@
     ],
     "selcoef" : [ 1.0, 0.5 ],
     "fixfn" : "ising.fixfn",
-    "mutprior" : [ 0.1 ],
-    "selprior" : [ 0.1, 0.1 ]
+    "mutrates.prior" : [ 0.1 ],
+    "selcoef.prior" : [ 0.1, 0.1 ]
 }
 

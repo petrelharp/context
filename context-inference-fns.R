@@ -315,9 +315,9 @@ setClass("context",
          )
 
 setClass("contextMCMC", representation(
-                                       mutprior="numeric",
-                                       selprior="numeric",
-                                       paramsprior="numeric"
+                                       mutrates.prior="numeric",
+                                       selcoef.prior="numeric",
+                                       fixfn.params.prior="numeric"
                                        ),
          contains="context")
 
