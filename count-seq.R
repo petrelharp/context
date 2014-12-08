@@ -76,10 +76,10 @@ counts <- counttrans.list( list(longpats,shortpats)[c(1,rep.int(2,length(opt$sho
    shift=opt$shift )
 if (opt$RData) {
     outfile <- gsub("\\.counts$",".RData",opt$outfile)
-    cat("Writing to:" outfile, "\n")
+    cat("Writing to:", outfile, "\n")
     save( counts, file=outfile )
 } else if (opt$shift==0) {
-    cat("Writing to:" opt$outfile, "\n")
+    cat("Writing to:", opt$outfile, "\n")
     cframe <- countframe( counts )
     cat( paste('# { "leftwin" : ', opt$leftwin, '}\n', sep=''), file=opt$outfile )
     write.table(cframe, file=opt$outfile, row.names=FALSE, sep='\t', quote=FALSE, append=TRUE)
@@ -87,7 +87,7 @@ if (opt$RData) {
     for (k in 1:opt$shift) {
         cframe <- countframe( counts[[k]] )
         outfile <- paste(opt$outfile,k,sep='.')
-        cat("Writing to:" outfile, "\n")
+        cat("Writing to:", outfile, "\n")
         cat( paste('#', toJSON( list( leftwin=opt$leftwin, shift=opt$shift, offset=k ), auto_unbox=TRUE ), "\n" ), file=outfile )
         # cat( paste('# { "leftwin" : ', opt$leftwin, '}\n', sep=''), file=outfile )
         write.table(cframe, file=outfile, row.names=FALSE, sep='\t', quote=FALSE, append=TRUE)

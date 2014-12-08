@@ -42,6 +42,7 @@ echo "mcmc on offset counts"
 Rscript ../count-seq.R -i simseqs/test-ising-123456.RData -w 4 -s 2 -l 1 --shift 4
 Rscript ../fit-model.R -i simseqs/test-ising-123456-4-root-2-tip-l1-shift4.counts.1 -m genmatrices/genmatrix-4-complete.RData -j 10101
 Rscript ../mcmc-model.R -i simseqs/test-ising-123456-4-root-2-tip-l1-shift4-genmatrix-4-complete-10101.RData -c ising-model.json -b 1000 -j 20202
+../templated-Rmd.sh ../simulation.Rmd simseqs/test-ising-123456-4-root-2-tip-l1-shift4-genmatrix-4-complete-10101-mcmc-20202.RData simseqs/test-ising-123456.RData
 
 echo "now on a larger T-mer (4/2)"
 Rscript ../count-seq.R -i simseqs/test-ising-123456.RData -w 4 -s 2 -l 1
@@ -56,8 +57,6 @@ Rscript ../fit-model.R -i simseqs/test-ising-123456-4-root-2-tip-l1.counts -m ge
 # Rscript ../count-seq.R -i test-ising-123456.RData -w 6 -s 2 -l 2
 # Rscript ../make-genmat.R -c genmatrices/complete.json -w 6
 # Rscript ../fit-model.R -i test-ising-123456.6.2.l2.counts -m genmatrices/genmatrix-6-complete.RData -j 54321
- 
-exit 0;
  
 # ###
 # # and for the constrained model

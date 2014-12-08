@@ -39,7 +39,7 @@ counts_table <- function(in_longwin, in_shortwin, half_n_show) {
 }
 counts_plot <- function (resids) {
     if (NROW(resids)>0) { 
-        hist(resids$z, xlab="z-score", ylab='') 
+        hist(resids$z, xlab="z-score", ylab='', main="z score") 
         outfac <- factor(resids$outpat)
         with(resids, {
                 plot(observed, expected, xlab='observed', ylab='expected', col=rainbow(nlevels(outfac))[as.numeric(outfac)], pch=20, ylim=range(expected,sim.expected) ) 
@@ -72,8 +72,8 @@ cat(model@invocation,"\n")
 ```{r, echo=FALSE}
 cat(
     "long window size:", longwin(model@counts),
-    "short window size:", shortwin(model@counts),
-    "left window size:", leftwin(model@counts),
+    "\nshort window size:", shortwin(model@counts),
+    "\nleft window size:", leftwin(model@counts),
     "\ntotal counts:", sum(counttab),
     "\ntime:", simseq.opt$tlen,
     "\nseed:", formatC(simseq.opt$seed,format="d"),
@@ -121,7 +121,7 @@ for (k in unique(param_sizes)) {
 }
 ```
 
-The likelihood surface about the fitted and simulated values:
+The likelihood surface about the fitted and simulated values (red are the values simulated under, black is the fitted values):
 ```{r, echo=FALSE, results="asis", fig.align='center'}
 f <- function (x) { model@likfun(x*timevec) }
 for (k in 1:nrow(mr_compare)) {
