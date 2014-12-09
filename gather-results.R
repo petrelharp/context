@@ -18,7 +18,7 @@ load(opt$fit)  # provides "model"
 
 time <- as.numeric(simseq.opt$tlen);
 timevec <- c( rep(as.numeric(simseq.opt$tlen),nmuts(model)), rep(1,length(coef(model))-nmuts(model)) )
-sim.params <- c( simseq.config$tip$mutrates*time, simseq.config$tip$selcoef, simseq.config$tip$fixfn.params )
+sim.params <- c( simseq.config$tip$mutrates*time, simseq.config$tip$selcoef, unlist(simseq.config$tip$fixfn.params) )
 names(sim.params) <- names(coef(model))
 mr_compare <- data.frame( 
     fit=coef(model)/timevec,
