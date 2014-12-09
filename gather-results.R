@@ -6,8 +6,8 @@ usage <- "Gather and summarize results of analysis into a single .RData file."
 option_list <- list(
         make_option( c("-s","--sim"), type="character", help=".RData file containing simulation." ),
         make_option( c("-f","--fit"), type="character", help=".RData file containing fit." ),
-        make_option( c("-o","--outfile"), type="character", help="File to save things in."),
-        make_option( c("-R","--RData"), type="logical", default=TRUE, help="Save output in binary? (else, json) [default=%default]")
+        make_option( c("-o","--outfile"), type="character", default='-', help="File to save things in. [default=stdout]"),
+        make_option( c("-j","--json"), type="logical", action="store_true", help="Save output in json? (else, RData) [default=%default]")
         )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 
@@ -25,8 +25,9 @@ mr_compare <- data.frame(
     simulated=sim.params/timevec,
     stringsAsFactors=FALSE )
 
-if ( opt$RData ) {
-    save(simseq.config, simseq.opt, model, mr_compare, file=opt$outfile);
+outfile <- openwrite(opt$outfile)
+if ( ! opt$json ) {
+    save(simseq.config, simseq.opt, model, mr_compare, file=outfile)
 } else {
     require(jsonlite)
     json <- toJSON( list(
@@ -39,7 +40,9 @@ if ( opt$RData ) {
                             loglik=model@results$value,
                             convergence=model@results$convergence
                             )
-                    ), auto_unbox=TRUE )
-    cat( paste(json,"\n"), file=opt$outfile )
+                    ), auto_unbox=TRUE, pretty=TRUE )
+    cat( paste(json,"\n"), file=outfile )
 }
+
+flush(outfile)
 

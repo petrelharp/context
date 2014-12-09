@@ -20,7 +20,7 @@ load.to.list <- function (file) { e <- environment(); n <- load(file,envir=e); n
 #   from  http://stackoverflow.com/questions/15784373/process-substitution
 openread <- function(arg) {
     if (arg %in% c("-", "/dev/stdin","stdin")) {
-       file("stdin", open = "r")
+       stdin()
     } else if (grepl("^/dev/fd/", arg)) {
        fifo(arg, open = "r")
     } else {
@@ -29,7 +29,7 @@ openread <- function(arg) {
 }
 openwrite <- function(arg) {
     if (arg %in% c("-", "/dev/stdout","stdout")) {
-       file("stdout", open = "w")
+       stdout()
     } else if (grepl("^/dev/fd/", arg)) {
        fifo(arg, open = "w")
     } else {
