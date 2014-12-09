@@ -104,7 +104,7 @@ if (class(model)=="context") {
 ## Fitted parameter values
 ```{r, echo=FALSE, results="asis"}
 pandoc.table(mr_compare, style="rmarkdown")
-mr_compare$names <- names(coef(model))
+mr_compare$names <- factor(names(coef(model)),levels=names(coef(model)))  # factor explicitly to get ggplot to put bars in order
 ```
 
 
