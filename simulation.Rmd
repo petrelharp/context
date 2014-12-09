@@ -60,11 +60,12 @@ timevec <- c( rep(as.numeric(simseq.opt$tlen),nmuts(model)), rep(1,length(coef(m
 true.model <- model
 true.model@mutrates <- simseq.config$tip$mutrates*time
 true.model@selcoef <- simseq.config$tip$selcoef
+if (length(true.model@params)>0) { true.model@params <- unlist(simseq.config$tip$fixfn.params) }
 mr_compare <- data.frame( 
     fit=coef(model)/timevec,
     simulated=coef(true.model)/timevec,
+    fixed=!model@results$use.par,
     stringsAsFactors=FALSE )
-if (length(true.model@params)>0) { true.model@params <- simseq.config$tip$fixfn.params }
 cat(model@invocation,"\n")
 ```
 
@@ -123,9 +124,9 @@ for (k in unique(param_sizes)) {
 
 The likelihood surface about the fitted and simulated values (red are the values simulated under, black is the fitted values):
 ```{r, echo=FALSE, results="asis", fig.align='center'}
-f <- function (x) { model@likfun(x*timevec) }
-for (k in 1:nrow(mr_compare)) {
-    pvals <- seq( .9*min(mr_compare[k,c("fit","simulated")]), 1.1*max(mr_compare[k,c("fit","simulated")]), length.out=20 )
+f <- function (x) { model@likfun((x*timevec)[model@results$use.par]) }
+for (k in (1:nrow(mr_compare))[model@results$use.par]) {
+    pvals <- seq( .9*min(mr_compare[k,c("fit","simulated")]), 1.1*max(mr_compare[k,c("fit","simulated")]), length.out=10 )
     inds <- 1:nrow(mr_compare)
     inds[k] <- 1+nrow(mr_compare)
     lvals <- sapply( pvals, function (x) { f( c(mr_compare$fit,x)[inds] ) } )
