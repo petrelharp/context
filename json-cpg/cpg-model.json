@@ -26,7 +26,7 @@
     "fixfn" : "popgen.fixfn",
     "fixfn.params" : { "Ne" : 1000 },
     "fixfn.params.scale" : { "Ne" : 100 },
-    "mutprior" : [ 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1 ],
-    "selprior" : [ 0.001 ],
-    "paramsprior" : [ 1000 ]
+    "mutrates.prior" : [ 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1 ],
+    "selcoef.prior" : [ 0.001 ],
+    "fixfn.params.prior" : [ 1000 ]
 }

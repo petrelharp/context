@@ -5,6 +5,10 @@ invocation <- commandArgs()
 
 usage <- "\
 Infer parameters from paired counts file, which records instances of Tmer transitions.
+\
+See model-desc.md for a description of the config file.
+\
+Parameters whose scale is set to zero *will be regarded as fixed.* \
 "
 
 option_list <- list(
@@ -20,8 +24,8 @@ option_list <- list(
         make_option( c("-j","--jobid"), type="character", default=formatC(1e6*runif(1),width=6,format="d",flag="0"), help="Unique job id. [default random]")
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
-if (is.null(opt$infile)) { stop("No input file.  Run\n  bcells-inference.R -h\n for help.\n") }
-if (is.null(opt$configfile)) { stop("No config file.  Run\n  bcells-inference.R -h\n for help.\n") }
+if (is.null(opt$infile)) { stop("No input file.  Run\n  fit-tree-model.R -h\n for help.\n") }
+if (is.null(opt$configfile)) { stop("No config file.  Run\n  fit-tree-model.R -h\n for help.\n") }
 if (!file.exists(opt$infile)) { stop("Cannot read input file.") }
 if (is.null(opt$basedir)) { opt$basedir <- dirname(opt$infile) }
 if (is.null(opt$outfile)) { 

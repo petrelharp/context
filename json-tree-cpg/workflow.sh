@@ -3,16 +3,17 @@
 set -eu 
 set -o pipefail
 
-# simulate
-BASEDIR=sim-01
-mkdir -p $BASEDIR
-Rscript ../sim-seq.R -c tree-cpg-model.json -s 10000 -d $BASEDIR -o sim-tree-cpg.RData
 
-# and count the Tmers
+BASEDIR=sim-01
 LONGWIN=4
 SHORTWIN=2
 LEFTWIN=1
 
+# simulate
+mkdir -p $BASEDIR
+Rscript ../sim-seq.R -c tree-cpg-model.json -s 10000 -d $BASEDIR -o sim-tree-cpg.RData
+
+# and count the Tmers
 Rscript ../count-seq.R -i $BASEDIR/sim-tree-cpg.RData -c sp1 -w $LONGWIN -s $SHORTWIN -l $LEFTWIN --shift $LONGWIN &
 Rscript ../count-seq.R -i $BASEDIR/sim-tree-cpg.RData -c sp2 -w $LONGWIN -s $SHORTWIN -l $LEFTWIN --shift $LONGWIN &
 
