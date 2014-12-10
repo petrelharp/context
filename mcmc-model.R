@@ -11,6 +11,8 @@ beginning from a model fit already via likelihood or previous MCMC run. \
 \
 Config file gives prior means on model parameters, for instance:\
 { mutrates.prior: [ .01 ] } \
+\
+Also, the scale on which the MCMC tries to move around.  These are by default divided by 20, so the same scaling parameters can be used for the MCMC as for the optimization.
 "
 
 option_list <- list(
@@ -19,6 +21,7 @@ option_list <- list(
         make_option( c("-o","--outfile"), type="character", help="File to save results to.  [default: base of infile + 'mcmc' + jobid + .RData]"),
         make_option( c("-u","--basedir"), type="character", default=NULL, help="Directory to put output in. [default: same as infile]"),
         make_option( c("-c","--configfile"), type="character", help="JSON config file giving prior parameters."),
+        make_option( c("-s","--scalefac"), type="numeric", default=.05, help="Multiply the scale factors in the config file by this much for the MCMC steps. [default=%default]"),
         make_option( c("-b","--nbatches"), type="integer", default=100, help="Number of MCMC batches to run. [default=%default]"),
         make_option( c("-l","--blen"), type="integer", default=100, help="Length of each MCMC batch. [default=%default]"),
         make_option( c("-j","--jobid"), type="character", default=formatC(1e6*runif(1),width=6,format="d",flag="0"), help="Unique job id. [default random]")
@@ -70,6 +73,7 @@ if (is.null(prior.config$fixfn.params.scale)) {
 }
 parscale <- with(prior.config, unlist( c(mutrates.scale, selcoef.scale, fixfn.params.scale) ) )
 names(parscale) <- c( mutnames(genmatrix@mutpats), selnames(genmatrix@selpats), fixparams(genmatrix) )
+parscale <- parscale * opt$scalefac
 
 # skip these parameters
 use.par <- ( parscale!=0 )
