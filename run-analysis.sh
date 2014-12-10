@@ -41,7 +41,7 @@ Rscript ../count-seq.R -i $SIMFILE -w $LONGWIN -s $SHORTWIN -l $LEFTWIN -o $COUN
 
 FITFILE="$BASEDIR/$BASE-fit-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}-shift0.RData"
 echo "Fitting a model, to $FITFILE ."
-Rscript ../fit-model.R -i $COUNTFILE -m $GENMAT -c $MODEL -o $FITFILE
+Rscript ../fit-model.R -i $COUNTFILE -m $GENMAT -c $MODEL -t $TLEN -o $FITFILE
 
 echo "Look at results."
 ../templated-Rmd.sh ../simulation.Rmd $FITFILE $SIMFILE
@@ -50,4 +50,4 @@ echo "Look at results."
 exit 0
 
 echo "mcmc also"
-Rscript ../mcmc-model.R -i $FITFILE -c $MODEL -b 1000 -j 3333
+Rscript ../mcmc-model.R -i $FITFILE -c $MODEL -t $TLEN -b 1000 -j 3333

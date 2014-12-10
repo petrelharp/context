@@ -24,17 +24,17 @@ If any of these are missing, possibly inappropriate values will be guessed. \
 option_list <- list(
     # input/output
         make_option( c("-i","--infile"), type="character", help="Input file with tuple counts, tab-separated, with header 'reference', 'derived', 'count'. [default, looks in basedir]" ),
-        make_option( c("-c","--configfile"), type="character", help="Config file with initial guesses at parameter values and parameters to constrain. [default: makes cheap guesses]"),
+        make_option( c("-c","--configfile"), type="character", help="Config file with initial guesses at parameter values and relevant scales for each."),
+        make_option( c("-t","--tlen"), type="numeric", default=1, help="Guess at time quantity to scale initial values of mutation parameters by. [default=%default]"),
         make_option( c("-o","--outfile"), type="character", help="File to save results to.  [default: base of infile + base of genmatrix + jobid + .RData]"),
         make_option( c("-u","--basedir"), type="character", default=NULL, help="Directory to put output in. [default: same as infile]"),
         make_option( c("-m","--gmfile"), type="character", default="TRUE", help="File with precomputed generator matrix."),
         make_option( c("-x","--maxit"), type="integer", default=100, help="Number of iterations of optimization to run for. [default=%default]"),
         make_option( c("-j","--jobid"), type="character", default=formatC(1e6*runif(1),width=6,format="d",flag="0"), help="Unique job id. [default random]"),
         make_option( c("-z","--seed"), type="integer", help="Seed for pseudorandom number generator; an integer. [default: does not meddle]")
-
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
-if (is.null(opt$infile)) { stop("No input file.  Run\n  bcells-inference.R -h\n for help.\n") }
+if (is.null(opt$infile)) { stop("No input file.  Run\n  fit-model.R -h\n for help.\n") }
 if (!file.exists(opt$infile)) { stop("Cannot read input file.") }
 if ((!is.null(opt$configfile)) && (!file.exists(opt$configfile)) ) { stop("Could not find config file `", opt$configfile, "`.") }
 if (is.null(opt$basedir)) { opt$basedir <- dirname(opt$infile) }
@@ -60,36 +60,38 @@ stopifnot( all( rownames(counts) == rownames(genmatrix) ) )
 
 projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin(counts), fpatterns=colnames(counts) )
 
-if (is.null(init.config$mutrates)) {
-    # get ad hoc initial guesses at parameters
-    adhoc <- countmuts(counts=counts,mutpats=genmatrix@mutpats,leftwin=leftwin(counts))
-    init.config$mutrates <- adhoc[1,]/adhoc[2,]
-    init.config$mutrates <- ifelse( is.finite(init.config$mutrates) & init.config$mutrates > 0, init.config$mutrates, 1e-4 )
-}
-if (is.null(init.config$selcoef)) {
-    # start selection parameters at zero, why not?
-    init.config$selcoef <- rep(1e-6,nsel(genmatrix))
-    names(init.config$selcoef) <- selnames(genmatrix@selpats)
-}
-if (is.null(init.config$fixfn.params)) {
-    # how to choose additional parameters?? Need guidance here.
-    init.config$fixfn.params <- rep(1,length(fixparams(genmatrix)))
-    names(init.config$fixfn.params) <- fixparams(genmatrix)
-    init.config$fixfn.params[names(init.config$fixfn.params)=="Ne"] <- 200 + 2000*runif(1)
-}
-# scale tuning parameters
-if (is.null(init.config$mutrates.scale)) {
-    init.config$mutrates.scale <- 1e-3 * rep( mean(init.config$mutrates),nmuts(genmatrix) )
-}
-if (is.null(init.config$selcoef.scale)) {
-    init.config$selcoef.scale <- rep(.001,nsel(genmatrix))
-}
-if (is.null(init.config$fixfn.params.scale)) {
-    init.config$fixfn.params.scale <- 0.1*init.config$fixfn.params
+if (FALSE) {  ## DO NOT DO THIS; move elsewhere
+    if (is.null(init.config$mutrates)) {
+        # get ad hoc initial guesses at parameters
+        adhoc <- countmuts(counts=counts,mutpats=genmatrix@mutpats,leftwin=leftwin(counts))
+        init.config$mutrates <- adhoc[1,]/adhoc[2,]
+        init.config$mutrates <- ifelse( is.finite(init.config$mutrates) & init.config$mutrates > 0, init.config$mutrates, 1e-4 )
+    }
+    if (is.null(init.config$selcoef)) {
+        # start selection parameters at zero, why not?
+        init.config$selcoef <- rep(1e-6,nsel(genmatrix))
+        names(init.config$selcoef) <- selnames(genmatrix@selpats)
+    }
+    if (is.null(init.config$fixfn.params)) {
+        # how to choose additional parameters?? Need guidance here.
+        init.config$fixfn.params <- rep(1,length(fixparams(genmatrix)))
+        names(init.config$fixfn.params) <- fixparams(genmatrix)
+        init.config$fixfn.params[names(init.config$fixfn.params)=="Ne"] <- 200 + 2000*runif(1)
+    }
+    # scale tuning parameters
+    if (is.null(init.config$mutrates.scale)) {
+        init.config$mutrates.scale <- 1e-3 * rep( mean(init.config$mutrates),nmuts(genmatrix) )
+    }
+    if (is.null(init.config$selcoef.scale)) {
+        init.config$selcoef.scale <- rep(.001,nsel(genmatrix))
+    }
+    if (is.null(init.config$fixfn.params.scale)) {
+        init.config$fixfn.params.scale <- 0.1*init.config$fixfn.params
+    }
 }
 
-initpar <- with(init.config, unlist(c(mutrates,selcoef,fixfn.params)) )
-parscale <- with(init.config, unlist( c(mutrates.scale, selcoef.scale, fixfn.params.scale) ) )
+initpar <- with(init.config, unlist(c(mutrates*opt$tlen,selcoef,fixfn.params)) )
+parscale <- with(init.config, unlist( c(mutrates.scale*opt$tlen, selcoef.scale, fixfn.params.scale) ) )
 names(initpar) <- names(parscale) <- c( mutnames(genmatrix@mutpats), selnames(genmatrix@selpats), fixparams(genmatrix) )
 
 # skip these parameters
@@ -127,7 +129,11 @@ stopifnot( is.finite(baseval) )
 
 optim.results <- optim( par=initpar[use.par], fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(fnscale=(-1)*abs(baseval), parscale=parscale[use.par], maxit=opt$maxit) )
 
+# save some more things in optim.results
 optim.results$use.par <- use.par
+optim.results$parscale <- parscale
+optim.results$initpar <- initpar
+
 optim.par <- initpar
 optim.par[use.par] <- optim.results$par
 optim.results$par <- optim.par

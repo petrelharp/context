@@ -1,8 +1,10 @@
 {
     "comment" : "Basic CpG model with GC-biased gene conversion, on a tree, with shared parameters on both branches.",
     "tree" : [ "(sp1 : 0.8, sp2 : 1.2) root;" ],
+    "tlen.scale" : [ 0.01, 0.01 ],
     "bases" : [ "A", "C", "G", "T" ],
     "initfreqs" : [ 0.25, 0.25, 0.25, 0.25 ],
+    "initfreqs.scale" : [ 0.01, 0.01, 0.01, 0.01 ],
     "sp1" : {
         "comment" : "Model on branch leading to species 1",
         "genmatrix" : "genmatrices/cpg-%.RData",

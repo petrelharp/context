@@ -79,16 +79,17 @@ if (opt$RData) {
     cat("Writing to:", outfile, "\n")
     save( counts, file=outfile )
 } else if (opt$shift==0) {
-    cat("Writing to:", opt$outfile, "\n")
+    outfile <- opt$outfile
+    cat("Writing to:", outfile, "\n")
     cframe <- countframe( counts )
-    cat( paste('# { "leftwin" : ', opt$leftwin, '}\n', sep=''), file=opt$outfile )
+    cat( paste('#', toJSON( list( leftwin=opt$leftwin, longwin=opt$longwin, shortwin=opt$shortwin, shift=opt$shift, offset=k ), auto_unbox=TRUE ), "\n" ), file=outfile )
     write.table(cframe, file=opt$outfile, row.names=FALSE, sep='\t', quote=FALSE, append=TRUE)
 } else {
     for (k in 1:opt$shift) {
         cframe <- countframe( counts[[k]] )
         outfile <- paste(opt$outfile,k,sep='.')
         cat("Writing to:", outfile, "\n")
-        cat( paste('#', toJSON( list( leftwin=opt$leftwin, shift=opt$shift, offset=k ), auto_unbox=TRUE ), "\n" ), file=outfile )
+        cat( paste('#', toJSON( list( leftwin=opt$leftwin, longwin=opt$longwin, shortwin=opt$shortwin, shift=opt$shift, offset=k ), auto_unbox=TRUE ), "\n" ), file=outfile )
         # cat( paste('# { "leftwin" : ', opt$leftwin, '}\n', sep=''), file=outfile )
         write.table(cframe, file=outfile, row.names=FALSE, sep='\t', quote=FALSE, append=TRUE)
     }

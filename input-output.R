@@ -10,6 +10,13 @@ source(paste(.PATH,"/helper-fns.R",sep=''))
 
 require(jsonlite)
 
+read.config.counts <- function (infile) {
+    count.paramstring <- scan(infile,what='char',nlines=1,sep="\n")
+    return( if (substr(count.paramstring,1,1)=="#") {
+            fromJSON(gsub("^#*","",count.paramstring),simplifyMatrix=FALSE)
+        } else { NULL } )
+}
+
 read.counts <- function (infile,leftwin,bases,longpats,shortpats,skip=0) {
     # read in a file of counts of the following form:
     #     # leftwin=1
@@ -20,11 +27,8 @@ read.counts <- function (infile,leftwin,bases,longpats,shortpats,skip=0) {
     #         TAAA      AA ...     3
     # ... and convert it to a 'tuplecounts' object
     # optionally passing in the orderings of the rows and columns
-    count.paramstring <- scan(infile,what='char',nlines=1,sep="\n")
-    count.params <- if (substr(count.paramstring,1,1)=="#") {
-            skip <- 1
-            fromJSON(gsub("^#*","",count.paramstring),simplifyMatrix=FALSE)
-        } else { NULL }
+    count.params <- read.config.counts(infile)
+    if (!is.null(count.params) && skip==0) { skip <- 1 }
     if (missing(leftwin)) { leftwin <- count.params$leftwin }
     if (is.null(leftwin)) { stop("leftwin not specified.") }
     count.table <- read.table(infile,header=TRUE,stringsAsFactors=FALSE,skip=skip)

@@ -37,18 +37,19 @@ counts_table <- function(in_longwin, in_shortwin, half_n_show) {
         return(invisible(resids))
     }
 }
+finite_range <- function (...) { x <- unlist( list(...) ); range(x[is.finite(x)&!is.na(x)]) }
 counts_plot <- function (resids) {
     if (NROW(resids)>0) { 
         hist(resids$z, xlab="z-score", ylab='', main="z score") 
         outfac <- factor(resids$outpat)
         with(resids, {
-                plot(observed, expected, xlab='observed', ylab='expected', col=rainbow(nlevels(outfac))[as.numeric(outfac)], pch=20, ylim=range(expected,sim.expected) ) 
+                plot(observed, expected, xlab='observed', ylab='expected', col=rainbow(nlevels(outfac))[as.numeric(outfac)], pch=20, ylim=finite_range(expected,sim.expected) ) 
                 # points(observed, sim.expected, xlab='observed', ylab='expected', col=adjustcolor(rainbow(nlevels(outfac))[as.numeric(outfac)],.5), pch=1, cex=.75 ) 
                 segments(x0=observed, y0=expected, y1=sim.expected, col=adjustcolor(rainbow(nlevels(outfac))[as.numeric(outfac)],.5) )
             } )
         abline(0,1)
         with(resids, {
-                plot(observed, expected, xlab='observed', ylab='expected', log='xy', col=rainbow(nlevels(outfac))[as.numeric(outfac)], pch=20, ylim=pmax(1e-4,range(expected,sim.expected)) ) 
+                plot(observed, expected, xlab='observed', ylab='expected', log='xy', col=rainbow(nlevels(outfac))[as.numeric(outfac)], pch=20, ylim=pmax(1e-4,finite_range(expected,sim.expected)) ) 
                 segments(x0=observed, y0=expected, y1=sim.expected, col=adjustcolor(rainbow(nlevels(outfac))[as.numeric(outfac)],.5) )
             } )
         abline(0,1)
@@ -131,7 +132,7 @@ for (k in (1:nrow(mr_compare))[model@results$use.par]) {
     inds[k] <- 1+nrow(mr_compare)
     lvals <- sapply( pvals, function (x) { f( c(mr_compare$fit,x)[inds] ) } )
     l2vals <- sapply( pvals, function (x) { f( c(mr_compare$simulated,x)[inds] ) } )
-    plot( pvals, lvals, type='b', main=paste("likelihood surface for", mr_compare$name[k]), ylab="log-likelihood", xlab='value', ylim=range(lvals,l2vals) )
+    plot( pvals, lvals, type='b', main=paste("likelihood surface for", mr_compare$name[k]), ylab="log-likelihood", xlab='value', ylim=finite_range(lvals,l2vals) )
     lines( pvals, l2vals, col='red', type='b' )
     abline(v=mr_compare[k,c("fit","simulated")], col=c("black","red"))
 }

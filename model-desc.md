@@ -55,8 +55,10 @@ A full config file can have:
 - 'named model stanzas' : including one for each node label, specifying the model that occurs on the branch above the named node.  This can also be a character string referring to a different named model stanza, indicating that the two edges should have the same model, and 'share parameters'.
 Other stuff (e.g. "comment") will be ignored.
 
-If the config file is to be used to simulate from, it should also have
+Tree-based config files should also have:
 - 'initfreqs' : base frequencies at the root.
+- 'initfreqs.scale' : scaling factor for initfreqs.
+- 'tlen.scale' : scaling factor for branch lengths in the tree.
 
 A 'model stanza' has:
 - 'mutpats' : list of lists of character pairs (one list per mutation motif)
@@ -67,5 +69,6 @@ A 'model stanza' has:
 - 'fixfn.params' : named list of additional parameters to fixfn
 - 'genmatrix' : pattern for where to save genmatrix files, with `%` to be substituted for the pattern length
 - 'mutrates.prior', 'selcoef.prior', 'fixfn.params.prior' : coefficients for priors on respective parameters
-- 'mutrates.scale', 'selcoef.scale', 'fixfn.params.scale' : scale over which to move in optimization, MCMC, etcetera. Parameters whose scale is set to zero *will be held as fixed* in the analysis.
+- 'mutrates.scale', 'selcoef.scale', 'fixfn.params.scale' : scale over which to move in optimization, MCMC, etcetera. 
 
+Parameters whose scale is set to zero *will be held as fixed* in the analysis.

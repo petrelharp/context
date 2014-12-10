@@ -21,6 +21,7 @@ option_list <- list(
         make_option( c("-o","--outfile"), type="character", help="File to save results to.  [default: base of infile + 'mcmc' + jobid + .RData]"),
         make_option( c("-u","--basedir"), type="character", default=NULL, help="Directory to put output in. [default: same as infile]"),
         make_option( c("-c","--configfile"), type="character", help="JSON config file giving prior parameters."),
+        make_option( c("-t","--tlen"), type="numeric", default=1, help="Guess at time quantity to scale initial values of mutation parameters by. [default=%default]"),
         make_option( c("-s","--scalefac"), type="numeric", default=.05, help="Multiply the scale factors in the config file by this much for the MCMC steps. [default=%default]"),
         make_option( c("-b","--nbatches"), type="integer", default=100, help="Number of MCMC batches to run. [default=%default]"),
         make_option( c("-l","--blen"), type="integer", default=100, help="Length of each MCMC batch. [default=%default]"),
@@ -62,16 +63,18 @@ if (is.null(prior.config$fixfn.params.prior)) {
 }
 
 # scale tuning parameters
-if (is.null(prior.config$mutrates.scale)) {
-    prior.config$mutrates.scale <- 1e-3 * rep( mean(prior.config$mutrates),nmuts(genmatrix) ) 
+if (FALSE) {  # this leads to trouble
+    if (is.null(prior.config$mutrates.scale)) {
+        prior.config$mutrates.scale <- 1e-3 * rep( mean(prior.config$mutrates),nmuts(genmatrix) ) 
+    }
+    if (is.null(prior.config$selcoef.scale)) {
+        prior.config$selcoef.scale <- rep(.001,nsel(genmatrix))
+    }
+    if (is.null(prior.config$fixfn.params.scale)) {
+        prior.config$fixfn.params.scale <- 0.1*prior.config$fixfn.params
+    }
 }
-if (is.null(prior.config$selcoef.scale)) {
-    prior.config$selcoef.scale <- rep(.001,nsel(genmatrix))
-}
-if (is.null(prior.config$fixfn.params.scale)) {
-    prior.config$fixfn.params.scale <- 0.1*prior.config$fixfn.params
-}
-parscale <- with(prior.config, unlist( c(mutrates.scale, selcoef.scale, fixfn.params.scale) ) )
+parscale <- with(prior.config, unlist( c(mutrates.scale*opt$tlen, selcoef.scale, fixfn.params.scale) ) )
 names(parscale) <- c( mutnames(genmatrix@mutpats), selnames(genmatrix@selpats), fixparams(genmatrix) )
 parscale <- parscale * opt$scalefac
 
@@ -105,6 +108,8 @@ stopifnot( is.finite(baseval) )
 mrun <- metrop( likfun, initial=initpar, nbatch=opt$nbatches, blen=opt$blen, scale=parscale[use.par] )
 
 mrun$use.par <- use.par
+mrun$parscale <- parscale
+mrun$initpar <- initpar
 mrun.final.par <- params
 mrun.final.par[use.par] <- mrun$final
 
