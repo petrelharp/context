@@ -82,7 +82,7 @@ if (opt$RData) {
     outfile <- opt$outfile
     cat("Writing to:", outfile, "\n")
     cframe <- countframe( counts )
-    cat( paste('#', toJSON( list( leftwin=opt$leftwin, longwin=opt$longwin, shortwin=opt$shortwin, shift=opt$shift, offset=k ), auto_unbox=TRUE ), "\n" ), file=outfile )
+    cat( paste('#', toJSON( list( leftwin=opt$leftwin, longwin=opt$longwin, shortwin=opt$shortwin, shift=opt$shift, offset=0 ), auto_unbox=TRUE ), "\n" ), file=outfile )
     write.table(cframe, file=opt$outfile, row.names=FALSE, sep='\t', quote=FALSE, append=TRUE)
 } else {
     for (k in 1:opt$shift) {
