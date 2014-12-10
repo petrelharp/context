@@ -460,6 +460,10 @@ makegenmatrix <- function (mutpats, selpats=list(), patlen=nchar(patterns[1]), p
     dups <- c( FALSE, (diff(allmutmats[dgCord,,drop=FALSE][,1])==0) & (diff(allmutmats[dgCord,,drop=FALSE][,2])==0) )
     dupproj <- new("dgTMatrix",i=cumsum(!dups)-1L,j=seq_along(dups)-1L,x=rep(1,length(dups)),Dim=c(nrow(allmutmats)-sum(dups),nrow(allmutmats)))
     muttrans <- dupproj %*% muttrans
+    #  and we want to sum mutation rates but not selection probabilities
+    #     ... and note that identical rows in allmutmats have identical seltrans entries
+    # re-use dupproj: now takes the mean of duplicated entries
+    dupproj@x <- as.vector(1/table(dupproj@i))[dupproj@i+1]
     seltrans <- dupproj %*% seltrans
     # Construct the full instantaneous mutation and transition matrix.
     # The `with` function here opens the allmutmats namespace, defining vectors
