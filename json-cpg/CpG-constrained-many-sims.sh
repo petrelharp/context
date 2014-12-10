@@ -3,8 +3,11 @@
 set -eu
 set -o pipefail
 
-cd /home/rcf-40/pralph/panfs/context/json-cpg
-source /home/rcf-40/pralph/cmb/bin/R-setup-usc.sh
+if [[ -e '/home/rcf-40/pralph/panfs/context/json-cpg' ]]
+then
+    cd /home/rcf-40/pralph/panfs/context/json-cpg
+    source /home/rcf-40/pralph/cmb/bin/R-setup-usc.sh
+fi
 
 MODEL="cpg-model-CpG-constrained.json"
 SUBDIR="sim_no_CpG"
