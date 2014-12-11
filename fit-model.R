@@ -114,7 +114,7 @@ likfun <- function (sub.params){
 }
 
 stopifnot( length(initpar) == nmuts(genmatrix)+nsel(genmatrix)+length(fixparams(genmatrix)) )
-lbs <- c( rep(1e-6,nmuts(genmatrix)), rep(-5,nsel(genmatrix)), rep(-Inf,length(fixparams(genmatrix))) )
+lbs <- c( rep(1e-8,nmuts(genmatrix)), rep(-5,nsel(genmatrix)), rep(-Inf,length(fixparams(genmatrix))) )
 ubs <- c( rep(2,nmuts(genmatrix)), rep(5,nsel(genmatrix)), rep(Inf,length(fixparams(genmatrix))) )
 
 baseval <- likfun(initpar[use.par])
@@ -127,7 +127,7 @@ stopifnot( is.finite(baseval) )
 #     }
 # }
 
-optim.results <- optim( par=initpar[use.par], fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(fnscale=(-1)*abs(baseval), parscale=parscale[use.par], maxit=opt$maxit) )
+optim.results <- optim( par=initpar[use.par], fn=likfun, method="L-BFGS-B", lower=lbs[use.par], upper=ubs[use.par], control=list(fnscale=(-1)*abs(baseval), parscale=parscale[use.par], maxit=opt$maxit) )
 
 # save some more things in optim.results
 optim.results$use.par <- use.par
