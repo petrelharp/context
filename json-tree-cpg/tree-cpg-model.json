@@ -34,7 +34,7 @@
         "selcoef.prior" : [ 0.001 ],
         "fixfn.params.prior" : [ 1000 ],
         "mutrates.scale" : [ 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01 ],
-        "selcoef.scale" : [ 0.0001 ],
+        "selcoef.scale" : [ 0.00005 ],
         "fixfn.params.scale" : [ 100 ]
     },
     "sp2" : "sp1"

@@ -6,8 +6,32 @@ source("../context-inference-fns.R")
 ###
 # Little tree
 
-
-config <- treeify.config( read.config("little-tree-model.json") )
+# config <- treeify.config( read.config("little-tree-model.json") )
+json.config <- '
+{
+    "comment" : "Simple tree, for testing.",
+    "tree" : [ "(sp1 : 0.1, sp2 : 0.2) root;" ],
+    "bases" : [ "X", "O" ],
+    "initfreqs" : [ 0.5, 0.5 ],
+    "forward" : {
+        "mutpats" : [
+            [ [ "X", "O" ] ],
+            [ [ "O", "X" ] ]
+        ],
+        "mutrates" : [ 1, 0.5 ]
+    },
+    "reverse" : {
+        "mutpats" : [
+            [ [ "X", "O" ] ],
+            [ [ "O", "X" ] ]
+        ],
+        "mutrates" : [ 0.5, 1 ]
+    },
+    "sp1" : "forward",
+    "sp2" : "forward"
+}
+'
+config <- fromJSON(json.config,simplifyMatrix=FALSE)
 
 genmatrices <- lapply( selfname(c("forward","reverse")), function (x) {
         makegenmatrix( mutpats=config[[x]]$mutpats, bases=config$bases, mutrates=config[[x]]$mutrates, patlen=2, fixfn=null.fixfn )

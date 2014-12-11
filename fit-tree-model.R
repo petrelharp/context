@@ -122,7 +122,7 @@ likfun <- function (sub.params){
     # First, update genmatrices:
     mutrates.list <- lapply( seq_along(genmatrices), .param.map, type="mutrates", params=params )
     selcoef.list <- lapply( seq_along(genmatrices), .param.map, type="selcoef", params=params )
-    fixparam.list <- lapply( seq_along(genmatrices), .param.map, type="fixparams", params=params )
+    fixparam.list <- lapply( seq_along(genmatrices), function (k) { x <- .param.map(k, type="fixparams", params=params); names(x) <- fixparams(genmatrices[[k]]); x } )
     for (k in seq_along(genmatrices)) {
         genmatrices[[k]]@x <- do.call( update, c( list( G=genmatrices[[k]],mutrates=mutrates.list[[k]],selcoef=selcoef.list[[k]] ), as.list(fixparam.list[[k]]) ) )
     }
@@ -144,11 +144,10 @@ likfun <- function (sub.params){
 
 lbs <- unlist( c( rep(1e-6,length(config$bases)), lapply( genmatrices, function (gm) { c( rep(1e-6,nmuts(gm)), rep(-5,nsel(gm)), rep(-Inf,length(fixparams(gm))) ) } ) ) )
 ubs <- unlist( c( rep(1,length(config$bases)), lapply( genmatrices, function (gm) { c( rep(2,nmuts(gm)), rep(5,nsel(gm)), rep(Inf,length(fixparams(gm))) ) } ) ) )
-parscale <- 1e-2 * unlist( c( rep(1,length(config$bases)), lapply( genmatrices, function (gm) { c( rep(.1,nmuts(gm)), rep(.1,nsel(gm)), rep(1,length(fixparams(gm))) ) } ) ) )
 
 baseval <- likfun(initparams)
 stopifnot( is.finite(baseval) )
-optim.results <- optim( par=initparams, fn=likfun, method="L-BFGS-B", lower=lbs, upper=ubs, control=list(fnscale=(-1)*abs(baseval), parscale=parscale, maxit=opt$maxit) )
+optim.results <- optim( par=initparams[use.par], fn=likfun, method="L-BFGS-B", lower=lbs[use.par], upper=ubs[use.par], control=list(fnscale=(-1)*abs(baseval), parscale=parscale[use.par], maxit=opt$maxit) )
 
 
 model <- new( "context",
