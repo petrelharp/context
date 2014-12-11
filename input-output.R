@@ -181,7 +181,8 @@ parse.models <- function (config,do.fixfns=TRUE) {
     #  ... so these are the names of the actual models
     edgemodels <- unique( config.dereference(config,edgenodes ) )
     if (any(is.na(edgemodels))) { stop("Must specify named models for each edge in the tree.") }
-    config$.models <- names(config$.models) <- edgemodels
+    config$.models <- edgemodels
+    if (!is.null(config$.models)) { names(config$.models) <- edgemodels }
     # get the fixfns in there
     if (do.fixfns) for (modname in edgemodels) {
         # turn fixfn into a function and check we have the right parameters
