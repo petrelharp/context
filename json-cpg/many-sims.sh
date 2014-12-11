@@ -48,4 +48,8 @@ wait;
 
 # after, run:
 #   Rscript ../collect-many-sims.R $(find simseqs -name "*json") > many-sims-results.tsv
+# and then
+#   x <- read.table("many-sims-results.tsv",header=TRUE,check.names=FALSE)
+#   layout(matrix(1:16,nrow=4))
+#   for (k in 1:15) { hist(x[,15+k], xlim=range(x[,15+k],x[,k]), main=names(x)[15+k]); abline(v=unique(x[,k]),col='red'); hist(x[x$longwin==6,15+k],col=adjustcolor("blue",.5),add=TRUE) }
 
