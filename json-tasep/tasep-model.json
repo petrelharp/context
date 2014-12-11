@@ -4,6 +4,7 @@
     "mutpats" : [
         [ [ "XO", "OX" ] ]
     ],
-    "mutrates" : [ 1 ]
+    "mutrates" : [ 1 ],
+    "mutrates.scale" : [ 0.1 ]
 }
 

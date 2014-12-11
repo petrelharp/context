@@ -112,7 +112,7 @@ mr_compare$names <- factor(names(coef(model)),levels=names(coef(model)))  # fact
 The corresponding plot, where bars are the fit values, and points are the simulated values:
 ```{r, echo=FALSE, results="asis", fig.align='center'}
 param_log <- log(abs(mr_compare$simulated)+1e-4)
-param_sizes <- cut( param_log, breaks=seq(min(param_log), by=2, length.out=1+ceiling(diff(range(param_log))/2)), include.lowest=TRUE )
+param_sizes <- cut( param_log, breaks=seq(min(param_log), by=2, length.out=max(2,1+ceiling(diff(range(param_log))/2))), include.lowest=TRUE )
 for (k in unique(param_sizes)) {
     print( ggplot(mr_compare[param_sizes==k,], aes(x=names)) + xlab("") +
         geom_bar(aes(y=fit), stat = "identity", fill="white", color="gray") +

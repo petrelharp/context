@@ -300,26 +300,45 @@ setMethod("%*%", signature=c(x="tuplecounts",y="dgTMatrix"), definition=function
 setMethod("%*%", signature=c(x="TsparseMatrix",y="tuplecounts"), definition=function (x,y) { x %*% y@counts } )
 setMethod("%*%", signature=c(x="tuplecounts",y="TsparseMatrix"), definition=function (x,y) { x@counts %*% y } )
 
+setClass("contextModel",
+        # A model of mutation; one for each branch.
+         representation(
+                       genmatrix="genmatrix",
+                       projmatrix="Matrix",
+                       mutrates="numeric",
+                       selcoef="numeric",
+                       params="numeric"
+                    )
+            )
 
 setClass("context",
-         representation(counts="tuplecounts",
-                        genmatrix="genmatrix",
-                        mutrates="numeric",
-                        selcoef="numeric",
-                        params="numeric",
-                        projmatrix="Matrix",
-                        likfun="function",
-                        results="list",
-                        invocation="character"
-                    )
+         representation(
+                       counts="tuplecounts",
+                       likfun="function",
+                       results="list",
+                       invocation="character"
+                    ),
+            contains="contextModel"
          )
 
 setClass("contextMCMC", representation(
-                                       mutrates.prior="numeric",
-                                       selcoef.prior="numeric",
-                                       fixfn.params.prior="numeric"
-                                       ),
+                       mutrates.prior="numeric",
+                       selcoef.prior="numeric",
+                       fixfn.params.prior="numeric"
+                   ),
          contains="context")
+
+setClass("contextTree", representation(
+                       counts="tuplecounts",
+                       tree="list",  # as in 'ape'
+                       initfreqs="numeric",
+                       models="list",  # list of 'contextModel's
+                       likfun="function",
+                       results="list",
+                       invocation="character"
+                   )
+         )
+
 
 setMethod("dimnames", signature=c(x="context"), definition=function (x) { dimnames(x@counts) } )
 setMethod("counts", signature=c(x="context"), definition=function (x) { counts(x@counts) } )

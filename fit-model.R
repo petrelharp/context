@@ -49,6 +49,14 @@ options(error = print.and.dump)
 # read configuration
 init.config <- read.config(opt$configfile)  # returns NULL if it is NULL
 if (!is.null(init.config$tree)) { warning("Appears to be a tree-config file; should be using fit-tree-model.R?") }
+if ( is.null(init.config$mutrates) || 
+        is.null(init.config$mutrates.scale) || 
+        is.null(init.config$selcoef) || 
+        is.null(init.config$selcoef.scale) || 
+        is.null(init.config$fixfn.params) || 
+        is.null(init.config$fixfn.params.scale) ) {
+    stop("Need to specify starting parameter values and scalings in config file.")
+}
 
 # load generator matrix
 stopifnot(file.exists(opt$gmfile))

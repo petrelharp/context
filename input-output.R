@@ -70,6 +70,17 @@ read.config <- function (configfile,quiet=FALSE) {
     close(con)
     config <- fromJSON(json,simplifyMatrix=FALSE)
     if (!quiet) { cat("Config: ", toJSON(config), "\n\n") }
+    # fill in zero-length parameters
+    if (is.null(config$selpats)) { config$selpats <- list() }
+    if (length(config$selpats)==0 && is.null(config$selcoef)) { 
+        config$selcoef <- numeric(0) 
+        config$selcoef.scale <- numeric(0) 
+    }
+    if (length(config$selpats)==0 && is.null(config$fixfn)) { 
+        config$fixfn <- null.fixfn 
+        config$fixfn.params <- list()
+        config$fixfn.params.scale <- list()
+    }
     return(config)
 }
 
@@ -170,7 +181,7 @@ parse.models <- function (config,do.fixfns=TRUE) {
     #  ... so these are the names of the actual models
     edgemodels <- unique( config.dereference(config,edgenodes ) )
     if (any(is.na(edgemodels))) { stop("Must specify named models for each edge in the tree.") }
-    config$.models <- edgemodels
+    config$.models <- names(config$.models) <- edgemodels
     # get the fixfns in there
     if (do.fixfns) for (modname in edgemodels) {
         # turn fixfn into a function and check we have the right parameters
