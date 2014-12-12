@@ -25,10 +25,10 @@ ls $SIMFILE && \
 echo "precompute generator matrices:"
 Rscript ../make-genmat.R -c $MODEL -w ${LONGWIN} -o ${GENMAT}
 
-#echo "check simulated model matches expected"
-#../templated-Rmd.sh ../testing-code/check-sim.Rmd ${BASEDIR}$BASE-123456.RData  ${GENMAT}
+echo "check simulated model matches expected"
+../templated-Rmd.sh ../testing-code/check-sim.Rmd ${BASEDIR}/sim.RData ${GENMAT}
 
 echo "fit a model"
 FITFILE=$BASEDIR/fit-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.RData
-ls ../fit-model.R $COUNTFILE $MODEL $GENMAT && \
+ls ../fit-model.R $COUNTFILE $MODEL $GENMAT $FITFILE && \
     Rscript ../fit-model.R -i $COUNTFILE -t .01 --maxit 5 -c $MODEL -m $GENMAT -o $FITFILE
