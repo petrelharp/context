@@ -3,20 +3,24 @@
 set -eu
 set -o pipefail
 
-BASE=test-cpg
-BASEDIR=simseqs/
-MODEL=cpg-model.json
+BASEDIR="minimal"
+MODEL="cpg-model.json"
+
+mkdir -p $BASEDIR
 
 echo "simulate up some sequence for testing"
-Rscript ../sim-seq.R -c $MODEL -t .1 -s 1000 -d $BASEDIR -o $BASE-123456.RData
+SIMFILE="$BASEDIR/sim.RData"
+Rscript ../sim-seq.R -c $MODEL -t .01 -s 1000 -o $SIMFILE
 
 echo "and count the Tmers"
-LONGWIN=3
+LONGWIN=2
 SHORTWIN=1
 LEFTWIN=1
-GENMAT=genmatrices/genmatrix-${LONGWIN}-cpg.RData
+GENMAT="$BASEDIR/genmatrix-${LONGWIN}.RData"
 
-Rscript ../count-seq.R -i ${BASEDIR}$BASE-123456.RData -w $LONGWIN -s $SHORTWIN -l $LEFTWIN
+COUNTFILE=$BASEDIR/sim-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.counts
+ls $SIMFILE &&
+Rscript ../count-seq.R -i $SIMFILE -w $LONGWIN -s $SHORTWIN -l $LEFTWIN -o $COUNTFILE
 
 echo "precompute generator matrices:"
 Rscript ../make-genmat.R -c $MODEL -w ${LONGWIN} -o ${GENMAT}
@@ -25,5 +29,6 @@ Rscript ../make-genmat.R -c $MODEL -w ${LONGWIN} -o ${GENMAT}
 #../templated-Rmd.sh ../testing-code/check-sim.Rmd ${BASEDIR}$BASE-123456.RData  ${GENMAT}
 
 echo "fit a model"
-ls ../fit-model.R ${BASEDIR}$BASE-123456-${LONGWIN}-root-${SHORTWIN}-tip-l${LEFTWIN}.counts $MODEL $GENMAT && \
-Rscript ../fit-model.R -i ${BASEDIR}$BASE-123456-${LONGWIN}-root-${SHORTWIN}-tip-l${LEFTWIN}.counts -t .1 -c $MODEL -m $GENMAT -j 54321
+FITFILE=$BASEDIR/fit-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.RData
+ls ../fit-model.R $COUNTFILE $MODEL $GENMAT && \
+Rscript ../fit-model.R -i $COUNTFILE -t .01 --maxit 5 -c $MODEL -m $GENMAT -o $FITFILE
