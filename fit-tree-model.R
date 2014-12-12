@@ -149,14 +149,15 @@ baseval <- likfun(initparams)
 stopifnot( is.finite(baseval) )
 optim.results <- optim( par=initparams[use.par], fn=likfun, method="L-BFGS-B", lower=lbs[use.par], upper=ubs[use.par], control=list(fnscale=(-1)*abs(baseval), parscale=parscale[use.par], maxit=opt$maxit) )
 
-
-model <- new( "context",
+model <- new( "contextTree",
              counts=counts,
-             genmatrix=genmatrix,
-             projmatrix=projmatrix,
-             mutrates=optim.results$par[1:nmuts(genmatrix)],
-             selcoef=optim.results$par[seq(nmuts(genmatrix)+1,length.out=nsel(genmatrix))],
-             params=optim.results$par[seq(1+nmuts(genmatrix)+nsel(genmatrix),length.out=length(adhoc.fixparams))],
+             tree=config$tree,
+             initfreqs=.param.map(type="initfreqs",params=optim.results$par),
+             models=lapply( config$.models, function (mname) {
+                         new( "contextModel",
+                                 # XXX
+                                 )
+                     } ),
              results=optim.results,
              likfun=likfun,
              invocation=invocation
