@@ -36,4 +36,6 @@ RUN chmod 600 /root/.ssh/id_rsa \
 # run!
 CMD git clone git@github.com:petrelharp/context.git \
     && cd /context/nestly \
-    && scons simple
+    && scons simple \
+    && scons -j 6 seed \
+    && cd ../json-cpg && ./minimal-workflow.sh
