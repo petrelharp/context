@@ -30,5 +30,5 @@ echo "check simulated model matches expected"
 
 echo "fit a model"
 FITFILE=$BASEDIR/fit-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.RData
-ls ../fit-model.R $COUNTFILE $MODEL $GENMAT $FITFILE && \
+ls ../fit-model.R $COUNTFILE $MODEL $GENMAT && \
     Rscript ../fit-model.R -i $COUNTFILE -t .01 --maxit 5 -c $MODEL -m $GENMAT -o $FITFILE
