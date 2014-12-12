@@ -140,12 +140,14 @@ def genmat(outdir, c):
 @nest.add_target()
 def fit(outdir, c):
     fit, = Command(join(outdir, 'fit.RData'),
-                   ['../fit-model.R', c['counts'], c['genmat']],
+                   ['../fit-model.R', c['counts'], c['model'], c['genmat']],
                    'Rscript ${{SOURCES[0]}} \
                    --seed {0[seed]} \
                    --jobid {0[seed]} \
                    -i ${{SOURCES[1]}} \
-                   -m ${{SOURCES[2]}} \
+                   -c ${{SOURCES[2]}} \
+                   -t {0[time]} \
+                   -m ${{SOURCES[3]}} \
                    -o $TARGET'.format(c))
     return fit
 
