@@ -4,7 +4,7 @@ set -eu
 set -o pipefail
 
 BASEDIR="minimal"
-MODEL="cpg-model.json"
+MODEL="../json-ising/ising-model.json"
 
 mkdir -p $BASEDIR
 
@@ -32,3 +32,21 @@ echo "fit a model"
 FITFILE=$BASEDIR/fit-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.RData
 ls ../fit-model.R $COUNTFILE $MODEL $GENMAT && \
     Rscript ../fit-model.R -i $COUNTFILE -t .01 --maxit 5 -c $MODEL -m $GENMAT -o $FITFILE
+
+echo "and look at output"
+../templated-Rmd.sh ../simulation.Rmd $FITFILE $SIMFILE
+
+
+exit 0;
+
+# THIS IS SLIGHTLY LESS MINIMAL:
+
+echo "now do it with shifts: counting again"
+Rscript ../count-seq.R -i $SIMFILE -w $LONGWIN -s $SHORTWIN -l $LEFTWIN --shift 2 -o $COUNTFILE
+
+echo "and fitting"
+FITFILE=$BASEDIR/fit-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}-s1.RData
+ls ${COUNTFILE}.1 &&
+    Rscript ../fit-model.R -i ${COUNTFILE}.1 -t .01 --maxit 5 -c $MODEL -m $GENMAT -o $FITFILE
+
+

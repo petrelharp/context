@@ -79,6 +79,8 @@ read.config <- function (configfile,quiet=FALSE) {
     if (length(config$selpats)==0 && is.null(config$fixfn)) { 
         config$fixfn <- null.fixfn 
         config$fixfn.params <- list()
+    }
+    if (length(config$fixfn.params)==0) {
         config$fixfn.params.scale <- list()
     }
     return(config)
