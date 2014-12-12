@@ -2,7 +2,7 @@
 
 YESGOOD=0
 
-for SCRIPT in sim-short-ising.R check-projection.R tree-tests.R check-ising.R
+for SCRIPT in sim-short-ising.R check-projection.R tree-tests.R check-ising.R tree-tests.R
 do
     results=$(Rscript $SCRIPT | grep "Error:")
     if [ "$results" ]

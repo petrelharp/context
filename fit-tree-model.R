@@ -104,13 +104,10 @@ use.par <- ( parscale!=0 )
 params <- initparams
 
 # compute root distribution
-patcomp <- apply( do.call(rbind, strsplit(longpats,'') ), 2, match, config$bases )  # which base is at each position in each pattern
+initfreq.index  <- product.index( longpats=longpats, bases=config$bases ) # which base is at each position in each pattern
 initfreqs <- .param.map( type="initfreqs", params=initparams )
 initfreqs <- initfreqs/sum(initfreqs)
-patfreqs <- initfreqs[patcomp]
-dim(patfreqs) <- dim(patcomp)
-root.distrn <- apply( patfreqs, 1, prod )
-stopifnot(sum(root.distrn)==1)
+root.distrn <- get.root.distrn( initfreqs, initfreq.index )
 
 # test this works
 transmat <- peel.transmat( tree=config$tree, rowtaxon=rowtaxon(counts), coltaxa=coltaxa(counts), models=models, genmatrices=genmatrices, projmatrix=projmatrix, root.distrn=root.distrn, tlens=config$tree$edge.length )
@@ -131,9 +128,7 @@ likfun <- function (sub.params){
     # compute root distribution
     initfreqs <- .param.map( type="initfreqs", params=params )
     initfreqs <- initfreqs/sum(initfreqs)
-    patfreqs <- initfreqs[patcomp]
-    dim(patfreqs) <- dim(patcomp)
-    root.distrn <- apply( patfreqs, 1, prod )
+    root.distrn <- get.root.distrn( initfreqs, initfreq.index )
     # Now, peel 
     transmat <- peel.transmat( tree=config$tree, rowtaxon=rowtaxon(counts), coltaxa=coltaxa(counts), models=models, genmatrices=genmatrices, projmatrix=projmatrix, root.distrn=root.distrn, tlens=tlens )
     # return POSITIVE log-likelihood
@@ -145,22 +140,35 @@ likfun <- function (sub.params){
 lbs <- unlist( c( rep(1e-6,length(config$bases)), lapply( genmatrices, function (gm) { c( rep(1e-6,nmuts(gm)), rep(-5,nsel(gm)), rep(-Inf,length(fixparams(gm))) ) } ) ) )
 ubs <- unlist( c( rep(1,length(config$bases)), lapply( genmatrices, function (gm) { c( rep(2,nmuts(gm)), rep(5,nsel(gm)), rep(Inf,length(fixparams(gm))) ) } ) ) )
 
-baseval <- likfun(initparams)
+stopifnot( all( initparams >= lbs ) && all( initparams <= ubs ) )
+
+likfun.time <- system.time( { baseval <- likfun(initparams) } )
+cat("Time to evaluate likelihood:\n")
+print(likfun.time)
 stopifnot( is.finite(baseval) )
+
 optim.results <- optim( par=initparams[use.par], fn=likfun, method="L-BFGS-B", lower=lbs[use.par], upper=ubs[use.par], control=list(fnscale=(-1)*abs(baseval), parscale=parscale[use.par], maxit=opt$maxit) )
+
+fit.tree <- config$tree
+config$tree$edge.length <- .param.map(type="tlen",params=optim.results$par)
 
 model <- new( "contextTree",
              counts=counts,
-             tree=config$tree,
+             tree=fit.tree,
              initfreqs=.param.map(type="initfreqs",params=optim.results$par),
              models=lapply( config$.models, function (mname) {
                          new( "contextModel",
-                                 # XXX
-                                 )
+                             genmatrix=genmatrices[[mname]],
+                             projmatrix=projmatrix,
+                             mutrates=.param.map(mname,"mutrates",optim.results$par),
+                             selcoef=.param.map(mname,"selcoef",optim.results$par),
+                             params=.param.map(mname,"fixparams",optim.results$par)
+                         )
                      } ),
              results=optim.results,
              likfun=likfun,
              invocation=invocation
          )
 
+cat("Saving output to ", opt$outfile, " .\n")
 save(model,file=opt$outfile)

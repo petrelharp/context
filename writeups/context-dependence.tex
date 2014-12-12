@@ -779,6 +779,9 @@ while each entire matrix $M(v_i)$ sums to 1;
 the difference being that $M(v_i)$ sums over the prior at the root,
 and $M(u_j)$ takes the value at $u_j$ as given.
 
+Let $t(w)$ be the length of the branch above node $w$, for $w \neq \rho$,
+and denote by $G^T$ the transpose of $G$.
+
 \begin{enumerate}
 
   \item Set $M(b_i) = P$ for each $b_i$.
@@ -787,27 +790,26 @@ and $M(u_j)$ takes the value at $u_j$ as given.
     \begin{enumerate}
       \item let
         \begin{align}
-          M(u_j)_{x,(y,z)} = \left( e^{t(w_1) G} M(w_1) \right)_{x,y} \left( e^{t(w_2) G} M(w_2)_{x,z} \right)_{x,z} ,
+          M(u_j)_{x,(y,z)} = \left( e^{t(w_1) G} M(w_1) \right)_{x,y} \left( e^{t(w_2) G} M(w_2)_{x,z} \right)_{x,z} .
         \end{align}
-        where $t(w_1)$ and $t(w_2)$ are the lengths of the respective branches.
     \end{enumerate}
 
   \item Let 
     \begin{align}
-      M(\rho)_{x,y} = \pi(x) \left( e^{t(w(\rho)) G} M(w(\rho)) \right)_{x,y}
+      M(\rho)_{x,y} = \pi(x) \left( e^{t(u(\rho)) G} M(w(\rho)) \right)_{x,y}
     \end{align}
 
   \item For each $1 \le k < \ell$,
     \begin{enumerate}
       \item let
         \begin{align}
-          M(v_k)_{x,(y,z)} = \left( e^{t(v_k) G} M(v_{k-1}) \right)_{y,x} \left( e^{t(u(v_k)) G} M(u(v_{k-1})) \right)_{x,z}  .
+          M(v_k)_{x,(y,z)} = \left( e^{t(v_k) G^T} M(v_{k-1}) \right)_{y,x} \left( e^{t(u(v_k)) G} M(u(v_{k-1})) \right)_{x,z}  .
         \end{align}
     \end{enumerate}
 
   \item Finally, let
     \begin{align}
-      M(a)_{x,y} = \left( e^{t(a) G} M(v_{\ell-1}) \right)_{x,y}  .
+      M(a)_{x,y} = \left( e^{t(a) G^T} M(v_{\ell-1}) \right)_{x,y}  .
     \end{align}
 
 \end{enumerate}

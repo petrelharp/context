@@ -328,9 +328,10 @@ setClass("contextMCMC", representation(
                    ),
          contains="context")
 
+setOldClass("phylo")  # phylo in ape is an S3 class
 setClass("contextTree", representation(
                        counts="tuplecounts",
-                       tree="list",  # as in 'ape'
+                       tree="phylo",  # as in 'ape'
                        initfreqs="numeric",
                        models="list",  # list of 'contextModel's
                        likfun="function",
@@ -601,6 +602,20 @@ computetransmatrix <- function( genmatrix, projmatrix, tlen=1, shape=1, names=FA
     return( subtransmatrix )
 }
 
+product.index <- function ( longpats, bases ) {
+    # which base is at each position in each pattern
+    apply( do.call(rbind, strsplit(longpats,'') ), 2, match, bases )  
+}
+
+get.root.distrn <- function ( initfreqs, initfreq.index ) {
+    # given initial frequencies find the distribution over longpats
+    #  (the product measure)
+    # with helper matrix computed in product.index()
+    patfreqs <- initfreqs[initfreq.index]
+    dim(patfreqs) <- dim(initfreq.index)
+    return( apply( patfreqs, 1, prod ) )
+}
+
 getupdowntrans <- function ( genmatrix, projmatrix, mutrates, selcoef, initfreqs, tlens=c(1,1), ... ) {
     # arguments are lists of two: first the "up" branch (leading from simpler summaries), second the "down"
     # returns matrix with entry [x,y] the probability of seeing y on the "down branch" given x was seen on the "up" branch.
@@ -637,8 +652,13 @@ downbranch <- function ( genmatrix, rootmatrix, mutrates, selcoef, tlen, ... ) {
 ##
 # pruning-ish algorithm
 
-cherry.transmats <- function (m1,m2) {
+cherry.transmats <- function (m1,m2,do.names=FALSE) {
     mm <- m1[,rep(1:ncol(m1),ncol(m2))] * m2[,rep(1:ncol(m2),each=ncol(m1))]
+    if (do.names) {
+        stopifnot( all( rownames(m1) == rownames(m2) ) )
+        rownames(mm) <- rownames(m1)
+        colnames(mm) <- paste( colnames(m1)[rep(1:ncol(m1),ncol(m2))], colnames(m2)[rep(1:ncol(m2),each=ncol(m1))], sep=',' )
+    }
     return(mm)
 }
 
@@ -661,6 +681,9 @@ peel.transmat <- function (tree, rowtaxon, coltaxa, models, genmatrices, projmat
     # long x short transition matrices
     transmats <- lapply( nodenames(tree), function (x) NULL )
     for (x in col.nodes) { transmats[[x]] <- projmatrix }
+    # list of ordering of taxa for columns of each matrix
+    col.order <- lapply( nodenames(tree), function (x) c() )
+    for (x in col.nodes) { col.order[[x]] <- c(x) }
     # find path from root to rowtaxon:
     downpath <- c(row.node)
     while( ! root.node %in% downpath ) { downpath <- c( get.parent(downpath[1],tree), downpath ) }
@@ -671,16 +694,16 @@ peel.transmat <- function (tree, rowtaxon, coltaxa, models, genmatrices, projmat
     while (length(up.active)>0) {
         up.cherries <- get.cherries(up.active,tree)
         uppair <- up.cherries[1,]
-        upmodels <- models[ nodenames(tree)[uppair] ]
         # compute and combine transition matrices across each branch
         if (debug) cat( "up: ", uppair, "\n" )
-        transmat1 <- computetransmatrix( genmatrices[[ upmodels[1] ]], transmats[[uppair[1]]], tlen=tlens[uppair[1]], time="fixed")
-        transmat2 <- computetransmatrix( genmatrices[[ upmodels[2] ]], transmats[[uppair[2]]], tlen=tlens[uppair[2]], time="fixed")
-        newmat <- cherry.transmats( transmat1, transmat2 )
+        transmat1 <- computetransmatrix( genmatrices[[ models[ nodenames(tree)[uppair[1]] ] ]], transmats[[uppair[1]]], tlen=tlens[uppair[1]], time="fixed", names=debug)
+        transmat2 <- computetransmatrix( genmatrices[[ models[ nodenames(tree)[uppair[2]] ] ]], transmats[[uppair[2]]], tlen=tlens[uppair[2]], time="fixed", names=debug)
+        newmat <- cherry.transmats( transmat1, transmat2, do.names=debug )
         # remove cherry
         up.active <- setdiff( up.active, uppair )
         newly.active <- get.parent( uppair[1], tree )
         transmats[[newly.active]] <- newmat
+        col.order[[newly.active]] <- c( col.order[[ uppair[1] ]], col.order[[ uppair[2] ]] )
         if (get.parent(newly.active,tree) %in% downpath) {
             up.twigs <- c( up.twigs, newly.active )
         } else {
@@ -690,20 +713,25 @@ peel.transmat <- function (tree, rowtaxon, coltaxa, models, genmatrices, projmat
     # reorder up.twigs to match downpath
     up.twigs <- up.twigs[ match( get.parent(up.twigs,tree), downpath ) ]
     # now move back down from the root (=downpath[1]) to rowtaxon
-    transmats[[downpath[1]]] <- sweep( computetransmatrix( genmatrices[[ models[nodenames(tree)[up.twigs[1]]] ]], transmats[[up.twigs[1]]], tlen=tlens[up.twigs[1]], time="fixed" ), 1, root.distrn, "*" )
+    transmats[[ downpath[1] ]] <- sweep( 
+            computetransmatrix( genmatrices[[ models[nodenames(tree)[ up.twigs[1] ]] ]], transmats[[ up.twigs[1] ]], tlen=tlens[ up.twigs[1] ], time="fixed", names=debug ), 
+        1, root.distrn, "*" )
+    col.order[[ downpath[1] ]] <- col.order[[ up.twigs[1] ]]
     if (length(downpath)>1) {
         # now move back down
         for (k in seq_along(up.twigs)[-1]) {
             if (debug) cat("down: ", downpath[k], up.twigs[k], "\n" )
-            downmodels <- models[ nodenames(tree)[c( downpath[k], up.twigs[k] )] ]
-            transmat1 <- computetransmatrix( genmatrices[[ downmodels[1] ]], transmats[[downpath[k-1]]], tlen=tlens[downpath[k]], transpose=TRUE, time="fixed")
-            transmat2 <- computetransmatrix( genmatrices[[ downmodels[2] ]], transmats[[up.twigs[k]]], tlen=tlens[up.twigs[k]], time="fixed")
-            transmats[[downpath[k]]] <- cherry.transmats( transmat1, transmat2 )
+            transmat1 <- computetransmatrix( genmatrices[[ models[ nodenames(tree)[downpath[k]] ] ]], transmats[[downpath[k-1]]], tlen=tlens[downpath[k]], transpose=TRUE, time="fixed", names=debug )
+            transmat2 <- computetransmatrix( genmatrices[[ models[ nodenames(tree)[up.twigs[k]] ] ]], transmats[[up.twigs[k]]], tlen=tlens[up.twigs[k]], time="fixed", names=debug )
+            transmats[[ downpath[k] ]] <- cherry.transmats( transmat1, transmat2, do.names=debug )
+            col.order[[ downpath[k] ]] <- c( col.order[[ downpath[k-1] ]], col.order[[ up.twigs[k] ]] )
         }
         # and finish off
         if (debug) cat("final: ", row.node, "\n")
         transmats[[row.node]] <- computetransmatrix( genmatrices[[ models[nodenames(tree)[row.node]] ]],
-                transmats[[downpath[length(downpath)-1]]], tlen=tlens[row.node], transpose=TRUE, time="fixed")
+                transmats[[downpath[length(downpath)-1]]], tlen=tlens[row.node], transpose=TRUE, time="fixed", names=debug )
+        col.order[[ row.node ]] <- col.order[[ downpath[length(downpath)-1] ]]
+        if (debug) cat("order: ", paste( col.order[[ row.node ]], sep=',' ), "\n" )
     }
     if (return.list) {
         # mostly for debugging purposes:
