@@ -59,9 +59,6 @@ def _simple_sim():
              label_func=lambda t: "_".join(str(n) for n in t))
     return nest
 
-cl_targets = {'simple': _simple_sim
-              }
-
 
 # A simulation comparing between different seeds.
 def _seed_sim():
@@ -78,10 +75,44 @@ def _seed_sim():
     nest.add('seed', range(3), label_func="seed_{}".format)
     return nest
 
-cl_targets = {'simple': _simple_sim,
-              'seed': _seed_sim
-              }
 
+# A simulation comparing between different tmer setups.
+def _tmer_sim(mock=True):
+    if mock:
+        # Mock settings
+        name = 'mock'
+        params = {
+            'n_sites': 10000,
+            'n_seeds': 2,
+            'wintriples': [(3, 1, 1), (4, 2, 1)],
+        }
+    else:
+        # Real settings
+        name = 'tmer'
+        params = {
+            'n_sites': 10000,
+            'n_seeds': 16,
+            'wintriples': [(3, 1, 1), (4, 2, 1), (5, 3, 1), (6, 2, 2)],
+        }
+    base = {'n_sites': params['n_sites'],
+            'time': 0.1
+            }
+    nest = SConsWrap(Nest(base_dict=base), '_'+name, alias_environment=env)
+    nest.add_aggregate('complete_agg', list)
+    nest.add('model', [join('models', f) for f in os.listdir('models')],
+             label_func=os.path.basename)
+    nest.add('seed', range(params['n_seeds']), label_func="seed_{}".format)
+    nest.add('wintriple', params['wintriples'],
+             label_func=lambda t: "_".join(str(n) for n in t))
+    return nest
+
+
+# The ".PHONY" names for our targets.
+cl_targets = {'simple': _simple_sim,
+              'seed': _seed_sim,
+              'tmer': lambda: _tmer_sim(False),
+              'mock': lambda: _tmer_sim(True)
+              }
 
 # *** Processing command line input:
 if not len(COMMAND_LINE_TARGETS) == 1:

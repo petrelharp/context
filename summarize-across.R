@@ -1,7 +1,7 @@
 #!/usr/bin/Rscript --vanilla
 require(optparse)
 
-usage <- "Process lots of summary .Rmd files."
+usage <- "Summarize lots of .RData files."
 
 option_list <- list(
         make_option( c("-o","--outfile"), type="character", help="File to save things in.")
