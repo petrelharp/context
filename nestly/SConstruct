@@ -48,6 +48,7 @@ def _simple_sim():
     # used for accessing the collection. The `list` argument specifies that the
     # collection will be a list.
     nest.add_aggregate('complete_agg', list)
+    nest.add_aggregate('complete_json_agg', list)
 
     # Add a nest level with the name 'input_file' that takes the files in the
     # inputs directory as its nestable list. Make its label function just the
@@ -99,6 +100,7 @@ def _tmer_sim(mock=True):
             }
     nest = SConsWrap(Nest(base_dict=base), '_'+name, alias_environment=env)
     nest.add_aggregate('complete_agg', list)
+    nest.add_aggregate('complete_json_agg', list)
     nest.add('model', [join('models', f) for f in os.listdir('models')],
              label_func=os.path.basename)
     nest.add('seed', range(params['n_seeds']), label_func="seed_{}".format)
@@ -185,14 +187,17 @@ def fit(outdir, c):
 
 @nest.add_target()
 def complete(outdir, c):
-    complete, = Command(join(outdir, 'complete.RData'),
-                        ['../gather-results.R', c['sim'], c['fit']],
-                        'Rscript ${{SOURCES[0]}} \
-                        --sim ${{SOURCES[1]}} \
-                        --fit ${{SOURCES[2]}} \
-                        --outfile $TARGET'.format(c))
+    cmdstr = 'Rscript ${{SOURCES[0]}} \
+            --sim ${{SOURCES[1]}} \
+            --fit ${{SOURCES[2]}} \
+            --outfile ${{TARGETS[{}]}}'
+    complete, complete_json = Command(
+        [join(outdir, 'complete.RData'), join(outdir, 'complete.json')],
+        ['../gather-results.R', c['sim'], c['fit']],
+        str(cmdstr.format('0') + ' && ' + cmdstr.format('1') + ' --json'))
     c['complete_agg'].append(complete)
-    return complete
+    c['complete_json_agg'].append(complete_json)
+    return complete, complete_json
 
 
 # Here I use `add_target_with_env` so that it knows about my path (leading to a
@@ -213,11 +218,22 @@ def report(env, outdir, c):
 nest.pop('model')
 
 
+# A placeholder summary.
 @nest.add_target()
 def summarize_across(outdir, c):
     summary_across, = Command(join(outdir, 'summary-across.tsv'),
                               ['../summarize-across.R'] + c['complete_agg'],
-                              'Rscript ${{SOURCES[0]}} \
+                              'Rscript ${SOURCES[0]} \
                               --outfile $TARGET \
-                              ${{SOURCES[1:]}}'.format(c))
+                              ${SOURCES[1:]}')
     return summary_across
+
+
+# Generate many-sims-results.tsv.
+@nest.add_target()
+def many_sims_results(outdir, c):
+    results, = Command(join(outdir, 'many-sims-results.tsv'),
+                       ['../collect-many-sims.R'] + c['complete_json_agg'],
+                       'Rscript ${SOURCES[0]} ${SOURCES[1:]} > $TARGET')
+    return results
+
