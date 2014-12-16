@@ -3,7 +3,7 @@
 source("../context-inference-fns.R")
 
 
-###
+####################################
 # Little tree
 cat("testing basic operations on a little tree:\n")
 
@@ -18,13 +18,14 @@ projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrices[[1]]), leftwin=0
 root.distrn <- runif( nrow(projmatrix) )
 root.distrn <- root.distrn / sum(root.distrn)
 
-transmat <- peel.transmat( config$tree, rowtaxon="sp1", coltaxa=c("sp2"), models=models, genmatrices=genmatrices, projmatrix=projmatrix, root.distrn=root.distrn, return.list=TRUE )
+peel.config <- peel.transmat( config$tree, rowtaxon="sp1", coltaxa=c("sp2"), models=models, genmatrices=genmatrices, projmatrix=projmatrix, root.distrn=root.distrn, return.list=TRUE )
+transmat <- peel.config$transmat
 
 # check if probabilities sum to 1:
 stopifnot( all( ( abs( sapply( transmat, sum ) - 1 ) < sqrt(.Machine$double.eps) ) | ( sapply( transmat, function (x) all( abs(rowSums(x)-1) < sqrt(.Machine$double.eps) ) ) ) ) )
 
 
-###
+####################################
 # Bigger tree
 cat("testing basic operations on a bigger tree:\n")
 
@@ -39,13 +40,14 @@ projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrices[[1]]), leftwin=0
 root.distrn <- runif( nrow(projmatrix) )
 root.distrn <- root.distrn / sum(root.distrn)
 
-transmat <- peel.transmat( config$tree, rowtaxon="sp1", coltaxa=c("sp2","sp3","sp4","sp5","sp6"), models=models, genmatrices=genmatrices, projmatrix=projmatrix, root.distrn=root.distrn, return.list=TRUE )
+peel.config <- peel.transmat( config$tree, rowtaxon="sp1", coltaxa=c("sp2","sp3","sp4","sp5","sp6"), models=models, genmatrices=genmatrices, projmatrix=projmatrix, root.distrn=root.distrn, return.list=TRUE )
+transmat <- peel.config$transmat
 
 # check if probabilities sum to 1:
 stopifnot( all( ( abs( sapply( transmat, sum ) - 1 ) < sqrt(.Machine$double.eps) ) | ( sapply( transmat, function (x) all( abs(rowSums(x)-1) < sqrt(.Machine$double.eps) ) ) ) ) )
 
 
-###
+####################################
 # check out transition probabilities
 cat("Testing pattern probabilities on a little tree.\n")
 
@@ -95,7 +97,7 @@ initfreqs <- config$initfreqs
 root.distrn <- get.root.distrn( initfreqs, initfreq.index )
 stopifnot( all.equal(sum(root.distrn),1) )
 
-transmat <- peel.transmat( tree=config$tree, rowtaxon="sp1", coltaxa="sp2", models=models, genmatrices=genmatrices, projmatrix=projmatrix, root.distrn=root.distrn, tlens=config$tree$edge.length, debug=TRUE )
+transmat <- peel.transmat( tree=config$tree, rowtaxon="sp1", coltaxa="sp2", models=models, genmatrices=genmatrices, projmatrix=projmatrix, root.distrn=root.distrn, tlens=config$tree$edge.length, debug=TRUE, return.list=FALSE )
 
 stopifnot( all.equal(sum(transmat), 1) )
 
@@ -127,9 +129,9 @@ stopifnot( all.equal(sum(joint.transmat), 1) )
 true.transmat <- joint.transmat %*% projmatrix
 
 stopifnot( all.equal( as.vector(true.transmat), as.vector(transmat) ) )
-cat("Transition matrix on two-taxon tree all good.")
+cat("Transition matrix on two-taxon tree all good.\n")
 
-###
+####################################
 # bigger tree
 cat("Testing pattern probabilities on a bigger tree.\n")
 
@@ -185,9 +187,9 @@ root.distrn <- get.root.distrn( initfreqs, initfreq.index )
 names(root.distrn) <- longpats
 stopifnot( all.equal(sum(root.distrn),1) )
 
-big.transmat <- peel.transmat( tree=config$tree, rowtaxon="sp1", coltaxa=c("sp2","sp3"), models=models, genmatrices=genmatrices, projmatrix=big.projmatrix, root.distrn=root.distrn, tlens=config$tree$edge.length, debug=TRUE )
+big.transmat <- peel.transmat( tree=config$tree, rowtaxon="sp1", coltaxa=c("sp2","sp3"), models=models, genmatrices=genmatrices, projmatrix=big.projmatrix, root.distrn=root.distrn, tlens=config$tree$edge.length, debug=TRUE, return.list=FALSE )
 
-transmat <- peel.transmat( tree=config$tree, rowtaxon="sp1", coltaxa=c("sp2","sp3"), models=models, genmatrices=genmatrices, projmatrix=projmatrix, root.distrn=root.distrn, tlens=config$tree$edge.length, debug=TRUE )
+transmat <- peel.transmat( tree=config$tree, rowtaxon="sp1", coltaxa=c("sp2","sp3"), models=models, genmatrices=genmatrices, projmatrix=projmatrix, root.distrn=root.distrn, tlens=config$tree$edge.length, debug=TRUE, return.list=FALSE )
 
 stopifnot( all.equal(sum(transmat), 1) )
 
@@ -237,3 +239,26 @@ true.transmat <- joint.transmat %*% pp
 stopifnot( all.equal( as.vector(joint.transmat), as.vector(big.transmat) ) )
 stopifnot( all.equal( as.vector(true.transmat), as.vector(transmat) ) )
 cat("Transition matrix on three-taxon tree good.\n")
+
+
+###################################
+## more peeling: check can create setup then update it
+cat("Checking if can update peeling setup.\n")
+
+big.transmat.setup <- peel.transmat( tree=config$tree, rowtaxon="sp1", coltaxa=c("sp2","sp3"), models=models, genmatrices=genmatrices, projmatrix=big.projmatrix, root.distrn=root.distrn, tlens=config$tree$edge.length, debug=TRUE, return.list=TRUE )
+
+big.transmat.setup <- peel.transmat.compute( setup=big.transmat.setup, models=models, genmatrices=genmatrices, root.distrn=root.distrn, tlens=config$tree$edge.length )
+
+big.transmat <- big.transmat.setup$transmats[[ big.transmat.setup$row.node ]]
+
+transmat.setup <- peel.transmat( tree=config$tree, rowtaxon="sp1", coltaxa=c("sp2","sp3"), models=models, genmatrices=genmatrices, projmatrix=projmatrix, root.distrn=root.distrn, tlens=config$tree$edge.length, debug=TRUE, return.list=TRUE )
+
+transmat.setup <- peel.transmat.compute( setup=transmat.setup, models=models, genmatrices=genmatrices, root.distrn=root.distrn, tlens=config$tree$edge.length )
+
+transmat <- transmat.setup$transmats[[ transmat.setup$row.node ]]
+
+
+stopifnot( all.equal( as.vector(joint.transmat), as.vector(big.transmat) ) )
+stopifnot( all.equal( as.vector(true.transmat), as.vector(transmat) ) )
+cat("Can update peeling setup.\n")
+

@@ -109,8 +109,12 @@ initfreqs <- .param.map( type="initfreqs", params=initparams )
 initfreqs <- initfreqs/sum(initfreqs)
 root.distrn <- get.root.distrn( initfreqs, initfreq.index )
 
-# test this works
-transmat <- peel.transmat( tree=config$tree, rowtaxon=rowtaxon(counts), coltaxa=coltaxa(counts), models=models, genmatrices=genmatrices, projmatrix=projmatrix, root.distrn=root.distrn, tlens=config$tree$edge.length )
+# create setup to efficiently re-compute below
+peel.setup <- peel.transmat( tree=config$tree, rowtaxon=rowtaxon(counts), coltaxa=coltaxa(counts), models=models, genmatrices=genmatrices, 
+                            projmatrix=projmatrix, root.distrn=root.distrn, tlens=config$tree$edge.length, return.list=TRUE )
+
+# reorder columns of counts to match the order we compute transmat in
+counts <- reorder.counts( counts, nodenames(config$tree)[peel.setup$col.order[[peel.setup$row.node]]] )
 
 # Compute (quasi)-likelihood function using all counts -- multinomial as described in eqn:comp_like.
 likfun <- function (sub.params){
@@ -130,15 +134,15 @@ likfun <- function (sub.params){
     initfreqs <- initfreqs/sum(initfreqs)
     root.distrn <- get.root.distrn( initfreqs, initfreq.index )
     # Now, peel 
-    transmat <- peel.transmat( tree=config$tree, rowtaxon=rowtaxon(counts), coltaxa=coltaxa(counts), models=models, genmatrices=genmatrices, projmatrix=projmatrix, root.distrn=root.distrn, tlens=tlens )
+    transmat <- peel.transmat.compute( setup=peel.setup, models=models, genmatrices=genmatrices, root.distrn=root.distrn, tlens=tlens, return.list=FALSE )
     # return POSITIVE log-likelihood
     ans <- sum( counts@counts * log(transmat) )
     if (!is.finite(ans)) { print(paste("Warning: non-finite likelihood with params:",params)) }
     return(ans)
 }
 
-lbs <- unlist( c( rep(1e-6,length(config$bases)), lapply( genmatrices, function (gm) { c( rep(1e-6,nmuts(gm)), rep(-5,nsel(gm)), rep(-Inf,length(fixparams(gm))) ) } ) ) )
-ubs <- unlist( c( rep(1,length(config$bases)), lapply( genmatrices, function (gm) { c( rep(2,nmuts(gm)), rep(5,nsel(gm)), rep(Inf,length(fixparams(gm))) ) } ) ) )
+lbs <- unlist( c( rep(1e-6,length(config$bases)), rep(1e-6,length(config$tree$edge.length)), lapply( genmatrices, function (gm) { c( rep(1e-6,nmuts(gm)), rep(-5,nsel(gm)), rep(-Inf,length(fixparams(gm))) ) } ) ) )
+ubs <- unlist( c( rep(1,length(config$bases)), rep(Inf,length(config$tree$edge.length)), lapply( genmatrices, function (gm) { c( rep(2,nmuts(gm)), rep(5,nsel(gm)), rep(Inf,length(fixparams(gm))) ) } ) ) )
 
 stopifnot( all( initparams >= lbs ) && all( initparams <= ubs ) )
 
@@ -169,6 +173,20 @@ model <- new( "contextTree",
              likfun=likfun,
              invocation=invocation
          )
+
+# set this up so that we can call likfun again in the future, directly
+likfun.env <- new.env()
+assign("use.par",use.par,envir=likfun.env)
+assign("params",params,envir=likfun.env)
+assign(".param.map",.param.map,envir=likfun.env)
+assign(".param.info",.param.info,envir=likfun.env)
+assign("peel.setup",peel.setup,envir=likfun.env)
+assign("models",models,envir=likfun.env)
+assign("genmatrices",lapply(model@models,slot,"genmatrix"),envir=likfun.env)
+assign("initfreq.index",initfreq.index,envir=likfun.env)
+assign("counts",model@counts,envir=likfun.env)
+environment(model@likfun) <- likfun.env
+
 
 cat("Saving output to ", opt$outfile, " .\n")
 save(model,file=opt$outfile)
