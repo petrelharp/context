@@ -229,11 +229,19 @@ def summarize_across(outdir, c):
     return summary_across
 
 
-# Generate many-sims-results.tsv.
+# Collects each simulation in a line of a tsv.
 @nest.add_target()
-def many_sims_results(outdir, c):
-    results, = Command(join(outdir, 'many-sims-results.tsv'),
-                       ['../collect-many-sims.R'] + c['complete_json_agg'],
+def params_results(outdir, c):
+    results, = Command(join(outdir, 'params-results.tsv'),
+                       ['../collect-params-results.R'] + c['complete_json_agg'],
                        'Rscript ${SOURCES[0]} ${SOURCES[1:]} > $TARGET')
     return results
 
+
+# Generate many-sims-results.tsv.pdf.
+@nest.add_target()
+def many_sims_plots(outdir, c):
+    results, = Command(join(outdir, 'params-results.tsv.pdf'),
+                       ['../plot-params-sims.R', c['params_results']],
+                       'Rscript ${SOURCES[0]} ${SOURCES[1]}')
+    return results
