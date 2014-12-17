@@ -7,6 +7,9 @@ cd /home/rcf-40/pralph/panfs/context/json-tree-cpg
 source /home/rcf-40/pralph/cmb/bin/R-setup-usc.sh
 
 MODEL=tree-cpg-model.json
+SEQLEN=100
+MAXIT=3
+NJOBS=2
 
 # precompute generator matrices:
 mkdir -p genmatrices
@@ -17,7 +20,7 @@ do
     Rscript ../make-genmat.R -c ${MODEL} -w ${LONGWIN} 
 done
 
-for N in $(seq 16)
+for N in $(seq $NJOBS)
 do
     (
         DIR=$(printf "%05g" $RANDOM);
@@ -25,7 +28,7 @@ do
         mkdir -p simseqs/sim-$DIR
         # simulate up some sequence for testing;
         SIMFILE="simseqs/sim-$DIR/tree-cpg.RData"
-        Rscript ../sim-seq.R -c tree-cpg-model.json -s 100000 -o $SIMFILE
+        Rscript ../sim-seq.R -c tree-cpg-model.json -s $SEQLEN -o $SIMFILE
         # and count the Tmers;
         for LONGWIN in 3 4 5 6
         do
@@ -35,9 +38,8 @@ do
             COUNTSFILE="simseqs/sim-$DIR/tree-cpg-${LONGWIN}-${SHORTWIN}.counts"
             Rscript ../count-seq.R -i $SIMFILE -w $LONGWIN -s $SHORTWIN -l $LEFTWIN -o $COUNTSFILE;
             # fit the model;
-            SHIFT=1;
             FITFILE="simseqs/sim-$DIR/fit-${LONGWIN}-${SHORTWIN}.RData"
-            Rscript ../fit-tree-model.R -i ${COUNTSFILE}.${SHIFT} -c tree-cpg-model.json -o $FITFILE --maxit 100
+            Rscript ../fit-tree-model.R -i ${COUNTSFILE} -c tree-cpg-model.json -o $FITFILE --maxit $MAXIT
             RESFILE="simseqs/sim-$DIR/fit-${LONGWIN}-${SHORTWIN}.json"
             Rscript ../gather-results.R --fit $FITFILE --sim $SIMFILE --outfile $RESFILE --json 2>/dev/null 
         done
