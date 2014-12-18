@@ -134,7 +134,6 @@ counttrans.list <- function (lpatterns, seqlist=lapply(simseqs,"[[","finalseq"),
     # count number of times each of seqlist matches corresponding lpatterns
     #   optionally, cyclical
     # if shift is nonzero, return a list  with the counts in each of (shift) frames
-    if (!is.null(names(seqlist)) & all( names(seqlist) == c("tip","root") ) ) { warning("Rows in counts correspond to tip, not root node.") }
     patlen <- max( sapply( lapply( lpatterns, "[", 1 ), nchar ) )
     seqlen <- unique( sapply(seqlist, nchar) )
     stopifnot(length(seqlen)==1)
