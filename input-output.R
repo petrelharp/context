@@ -124,6 +124,11 @@ nodenames <- function (tr) { selfname( c( tr$tip.label, tr$node.label ) ) }
 rootname <- function (tr) { nodenames(tr)[ get.root(tr) ] }
 "rootname<-" <- function (tr,value) { tr$node.label[get.root(tr)-length(tr$tip.label)] <- value; return(tr) }
 
+edge.labels <- function (tr) {
+    # return the name of the downstream node of each edge
+    c(tr$tip.label,tr$node.label)[tr$edge[,2]]
+}
+
 get.root <- function (tr) {
     # return the index of the root in (tips,nodes) order
     setdiff( tr$edge[,1], tr$edge[,2] )

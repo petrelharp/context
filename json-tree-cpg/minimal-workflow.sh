@@ -33,3 +33,6 @@ FITFILE="$BASEDIR/fit.RData"
 echo "Fitting to $FITFILE ."
 Rscript ../fit-tree-model.R -i ${COUNTSFILE}.${SHIFT} -c tree-cpg-model.json -o $FITFILE --maxit 3
 
+# save results as json
+RESFILE="$BASEDIR/fit.json"
+Rscript ../gather-results.R --fit $FITFILE --sim $SIMFILE --outfile $RESFILE --json
