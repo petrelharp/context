@@ -7,9 +7,9 @@ cd /home/rcf-40/pralph/panfs/context/json-tree-cpg
 source /home/rcf-40/pralph/cmb/bin/R-setup-usc.sh
 
 MODEL=tree-cpg-model.json
-SEQLEN=100
-MAXIT=3
-NJOBS=2
+SEQLEN=100000
+MAXIT=100
+NJOBS=16
 
 # precompute generator matrices:
 mkdir -p genmatrices
@@ -49,7 +49,7 @@ done
 wait;
 
 # after, run:
-#   Rscript ../collect-many-sims.R $(find simseqs -name "*json") > many-sims-results.tsv
+#   Rscript ../collect-params-results.R $(find simseqs -name "*json") > many-sims-results.tsv
 # and then
 #   x <- read.table("many-sims-results.tsv",header=TRUE,check.names=FALSE)
 #   layout(matrix(1:16,nrow=4))

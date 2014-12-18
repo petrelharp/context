@@ -16,14 +16,18 @@ source("../context-inference-fns.R")
 load(opt$sim)  # provides "simseq.opt"    "simseq.config" "simseqs"
 load(opt$fit)  # provides "model"
 
-time <- as.numeric(simseq.opt$tlen);
-timevec <- c( rep(as.numeric(simseq.opt$tlen),nmuts(model)), rep(1,length(coef(model))-nmuts(model)) )
-sim.params <- c( simseq.config$tip$mutrates*time, simseq.config$tip$selcoef, unlist(simseq.config$tip$fixfn.params) )
-names(sim.params) <- names(coef(model))
-mr_compare <- data.frame(
-    fit=coef(model)/timevec,
-    simulated=sim.params/timevec,
-    stringsAsFactors=FALSE )
+if (class(model)=="context") {
+    time <- as.numeric(simseq.opt$tlen);
+    timevec <- c( rep(as.numeric(simseq.opt$tlen),nmuts(model)), rep(1,length(coef(model))-nmuts(model)) )
+    sim.params <- c( simseq.config$tip$mutrates*time, simseq.config$tip$selcoef, unlist(simseq.config$tip$fixfn.params) )
+    names(sim.params) <- names(coef(model))
+    mr_compare <- data.frame(
+        fit=coef(model)/timevec,
+        simulated=sim.params/timevec,
+        stringsAsFactors=FALSE )
+} else if (class(model)=="contextTree") {
+
+} else { stop("unrecognized object:", class(model)) }
 
 if ( ! opt$json ) {
     save(simseq.config, simseq.opt, model, mr_compare, file=opt$outfile)
