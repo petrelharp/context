@@ -17,17 +17,28 @@ load(opt$sim)  # provides "simseq.opt"    "simseq.config" "simseqs"
 load(opt$fit)  # provides "model"
 
 if (class(model)=="context") {
-    time <- as.numeric(simseq.opt$tlen);
+    time <- as.numeric(simseq.opt$tlen)
     timevec <- c( rep(as.numeric(simseq.opt$tlen),nmuts(model)), rep(1,length(coef(model))-nmuts(model)) )
     sim.params <- c( simseq.config$tip$mutrates*time, simseq.config$tip$selcoef, unlist(simseq.config$tip$fixfn.params) )
     names(sim.params) <- names(coef(model))
     mr_compare <- data.frame(
         fit=coef(model)/timevec,
-        simulated=sim.params/timevec,
-        stringsAsFactors=FALSE )
+        simulated=sim.params/timevec
+    )
 } else if (class(model)=="contextTree") {
-
-} else { stop("unrecognized object:", class(model)) }
+    sim.tlens <- simseq.config$tree$edge.length
+    names(sim.tlens) <- edge.labels(simseq.config$tree)
+    sim.params <- c( sim.tlens, do.call( c, lapply( names(model@models), function (mname) {
+                    c( simseq.config[[mname]]$mutrates, simseq.config[[mname]]$selcoef, unlist(simseq.config[[mname]]$fixfn.params) )
+            } ) ) )
+    names(sim.params) <- names(coef(model))
+    mr_compare <- data.frame(
+            fit=coef(model),
+            simulated=sim.params
+        )
+} else { 
+    stop(paste("unrecognized object:", class(model))) 
+}
 
 if ( ! opt$json ) {
     save(simseq.config, simseq.opt, model, mr_compare, file=opt$outfile)

@@ -342,17 +342,21 @@ setClass("contextTree", representation(
 
 
 setMethod("dimnames", signature=c(x="context"), definition=function (x) { dimnames(x@counts) } )
+setMethod("dimnames", signature=c(x="contextTree"), definition=function (x) { dimnames(x@counts) } )
 setMethod("counts", signature=c(x="context"), definition=function (x) { counts(x@counts) } )
+setMethod("counts", signature=c(x="contextTree"), definition=function (x) { counts(x@counts) } )
 setMethod("countframe", signature=c(x="context"), definition=function (x) countframe(x@counts))
+setMethod("countframe", signature=c(x="contextTree"), definition=function (x) countframe(x@counts))
 
-# We would like the likfun function to automatically have access to the stuff in the context object
-#  ... where is 'self'?!?
-# SUB-OPTIMAL:
-setGeneric("likfun", function (x) { standardGeneric("likfun") } )
-setMethod("likfun", signature=c(x="context"), definition=function(x) {
-          f <- x@likfun
-          environment(f) <- list2env( lapply( selfname(slotNames(model)), function (n) { slot(model,n)} ), parent=globalenv() )
-          return(f) } )
+# Currently doing this a different way, assigning to environment(x@likfun) to allow calling it directly.
+# # We would like the likfun function to automatically have access to the stuff in the context object
+# #  ... where is 'self'?!?
+# # SUB-OPTIMAL:
+# setGeneric("likfun", function (x) { standardGeneric("likfun") } )
+# setMethod("likfun", signature=c(x="context"), definition=function(x) {
+#           f <- x@likfun
+#           environment(f) <- list2env( lapply( selfname(slotNames(model)), function (n) { slot(model,n)} ), parent=globalenv() )
+#           return(f) } )
 
 # extract window lengths from these objects:
 setGeneric("longwin", function(x) { standardGeneric("longwin") })
@@ -361,10 +365,13 @@ setGeneric("leftwin", function(x) { standardGeneric("leftwin") })
 setMethod("longwin", signature=c(x="genmatrix"), definition=function(x) { nchar(rownames(x)[1]) } )
 setMethod("longwin", signature=c(x="tuplecounts"), definition=function(x) { nchar(rownames(x@counts)[1]) } )
 setMethod("longwin", signature=c(x="context"), definition=function(x) { longwin(x@counts) } )
+setMethod("longwin", signature=c(x="contextTree"), definition=function(x) { longwin(x@counts) } )
 setMethod("shortwin", signature=c(x="tuplecounts"), definition=function(x) { unique(sapply(lapply(lapply(x@colpatterns,levels),"[",1),nchar)) } )
 setMethod("shortwin", signature=c(x="context"), definition=function(x) { shortwin(x@counts) } )
+setMethod("shortwin", signature=c(x="contextTree"), definition=function(x) { shortwin(x@counts) } )
 setMethod("leftwin", signature=c(x="tuplecounts"), definition=function(x) { x@leftwin } )
 setMethod("leftwin", signature=c(x="context"), definition=function(x) { leftwin(x@counts) } )
+setMethod("leftwin", signature=c(x="contextTree"), definition=function(x) { leftwin(x@counts) } )
 # convenience functions
 setGeneric("nmuts", function (x) { standardGeneric("nmuts") } )
 setGeneric("nsel", function (x) { standardGeneric("nsel") } )
@@ -372,20 +379,27 @@ setGeneric("fixparams", function (x) { standardGeneric("fixparams") } )
 setMethod("nmuts", signature=c(x="genmatrix"), definition=function (x) { length(x@mutpats) } )
 setMethod("nsel", signature=c(x="genmatrix"), definition=function (x) { length(x@selpats) } )
 setMethod("fixparams", signature=c(x="genmatrix"), definition=function (x) { (setdiff(names(as.list(formals(x@fixfn))),"..."))[-1] } )
-setMethod("nmuts", signature=c(x="context"), definition=function (x) { nmuts(x@genmatrix) } )
-setMethod("nsel", signature=c(x="context"), definition=function (x) { nsel(x@genmatrix) } )
-setMethod("fixparams", signature=c(x="context"), definition=function (x) { fixparams(x@genmatrix) } )
+setMethod("nmuts", signature=c(x="contextModel"), definition=function (x) { nmuts(x@genmatrix) } )
+setMethod("nsel", signature=c(x="contextModel"), definition=function (x) { nsel(x@genmatrix) } )
+setMethod("fixparams", signature=c(x="contextModel"), definition=function (x) { fixparams(x@genmatrix) } )
+setMethod("nmuts", signature=c(x="contextModel"), definition=function (x) { sapply( x@models, nmuts ) } )
+setMethod("nsel", signature=c(x="contextModel"), definition=function (x) { sapply( x@models, nsel ) } )
+setMethod("fixparams", signature=c(x="contextModel"), definition=function (x) { lapply( x@models, fixparams ) } )
 
 # and methods related to model fitting
-setGeneric("tuplecounts", function (x) { standardGeneric("tuplecounts") } )
-setMethod("tuplecounts", signature=c(x="context"), definition=function (x) {x@counts} )
-setMethod("coef", signature=c(object="context"), definition=function (object) {
+setMethod("coef", signature=c(object="contextModel"), definition=function (object) {
           coef <- c( object@mutrates, object@selcoef, object@params )
           names(coef) <- c( mutnames( object@genmatrix@mutpats ), selnames( object@genmatrix@selpats ), names(object@params) )
           return(coef) } )
+setMethod("coef", signature=c(object="contextTree"), definition=function (object) { 
+            tlens <- object@tree$edge.length
+            names(tlens) <- paste("tlen",edge.labels(object@tree),sep='.')
+            c( tlens, do.call( c, lapply( object@models, coef ) ) ) 
+        } )
 setMethod("rowSums", signature=c(x="tuplecounts"), definition=function (x) { rowSums(x@counts) } )
 setMethod("image", signature=c(x="tuplecounts"), definition=function (x) { image(x@counts) } )
 setMethod("rowSums", signature=c(x="context"), definition=function (x) { rowSums(x@counts@counts) } )
+setMethod("rowSums", signature=c(x="contextTree"), definition=function (x) { rowSums(x@counts@counts) } )
 setMethod("fitted", signature=c(object="context"), definition=function (object,...) { predictcounts.context(object,...) } )
 setMethod("residuals", signature=c(object="context"), definition=function (object,...) { resid.context(object,...) } )
 
