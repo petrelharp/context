@@ -36,10 +36,10 @@ do
             LEFTWIN=$(( (LONGWIN-SHORTWIN)/2 ))
             echo "Doing $LONGWIN, $SHORTWIN, $LEFTWIN now."
             COUNTSFILE="simseqs/sim-$DIR/tree-cpg-${LONGWIN}-${SHORTWIN}.counts"
-            Rscript ../count-seq.R -i $SIMFILE -w $LONGWIN -s $SHORTWIN -l $LEFTWIN -o $COUNTSFILE;
+            Rscript ../count-seq.R -i $SIMFILE -c sp1 -w $LONGWIN -s $SHORTWIN -l $LEFTWIN --shift $LONGWIN -o $COUNTSFILE;
             # fit the model;
             FITFILE="simseqs/sim-$DIR/fit-${LONGWIN}-${SHORTWIN}.RData"
-            Rscript ../fit-tree-model.R -i ${COUNTSFILE} -c tree-cpg-model.json -o $FITFILE --maxit $MAXIT
+            Rscript ../fit-tree-model.R -i ${COUNTSFILE}.1 -c tree-cpg-model.json -o $FITFILE --maxit $MAXIT
             RESFILE="simseqs/sim-$DIR/fit-${LONGWIN}-${SHORTWIN}.json"
             Rscript ../gather-results.R --fit $FITFILE --sim $SIMFILE --outfile $RESFILE --json 2>/dev/null 
         done
