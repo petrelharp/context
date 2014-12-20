@@ -155,6 +155,15 @@ for target_name in cl_targets.keys():
 
 # *** Our lovely targets:
 @nest.add_target()
+def model_type(outdir, c):
+    if 'tree' in c['model']:
+        return 'tree'
+    else:
+        print "we have a pair model"
+        return 'pair'
+
+
+@nest.add_target()
 def sim(outdir, c):
     assert("{0[seed]}".format(c) != "")  # Setting the seed makes sense.
     sim, = Command(join(outdir, 'sim.RData'),  # TARGET
@@ -183,7 +192,6 @@ def counts(outdir, c):
     return counts
 
 
-# NOTE: Eventually re-evaluate use of meanboundary.
 @nest.add_target()
 def genmat(outdir, c):
     genmat, = Command(join(outdir, 'genmat.RData'),
@@ -258,7 +266,8 @@ def summarize_across(outdir, c):
 @nest.add_target()
 def params_results(outdir, c):
     results, = Command(join(outdir, 'params-results.tsv'),
-                       ['../collect-params-results.R'] + c['complete_json_agg'],
+                       ['../collect-params-results.R'] +
+                       c['complete_json_agg'],
                        'Rscript ${SOURCES[0]} ${SOURCES[1:]} > $TARGET')
     return results
 
