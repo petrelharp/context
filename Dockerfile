@@ -25,19 +25,6 @@ RUN install2.r -r http://bioconductor.org/packages/3.0/bioc --deps TRUE \
     && rm -rf /tmp/downloaded_packages/
 RUN pip install nestly
 
-
-# set up auth
-RUN mkdir -p /root/.ssh \
-    && chmod 700 /root/.ssh
-ADD bunnyhutch_id_rsa /root/.ssh/id_rsa
-RUN chmod 600 /root/.ssh/id_rsa \
-    && ssh-keyscan github.com >> /root/.ssh/known_hosts
-
-# run!
-CMD git clone git@github.com:petrelharp/context.git \
-    && cd /context/nestly \
-    && scons simple \
-    && scons -j 6 seed \
-    && cd ../json-cpg && ./minimal-workflow.sh \
-    && cd ../json-tasep && ./workflow.sh \
-    && cd ../json-ising && ./minimal-workflow.sh
+COPY . /context
+WORKDIR /context
+CMD ./build-and-test.sh
