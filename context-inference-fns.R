@@ -382,9 +382,9 @@ setMethod("fixparams", signature=c(x="genmatrix"), definition=function (x) { (se
 setMethod("nmuts", signature=c(x="contextModel"), definition=function (x) { nmuts(x@genmatrix) } )
 setMethod("nsel", signature=c(x="contextModel"), definition=function (x) { nsel(x@genmatrix) } )
 setMethod("fixparams", signature=c(x="contextModel"), definition=function (x) { fixparams(x@genmatrix) } )
-setMethod("nmuts", signature=c(x="contextModel"), definition=function (x) { sapply( x@models, nmuts ) } )
-setMethod("nsel", signature=c(x="contextModel"), definition=function (x) { sapply( x@models, nsel ) } )
-setMethod("fixparams", signature=c(x="contextModel"), definition=function (x) { lapply( x@models, fixparams ) } )
+setMethod("nmuts", signature=c(x="contextTree"), definition=function (x) { sapply( x@models, nmuts ) } )
+setMethod("nsel", signature=c(x="contextTree"), definition=function (x) { sapply( x@models, nsel ) } )
+setMethod("fixparams", signature=c(x="contextTree"), definition=function (x) { lapply( x@models, fixparams ) } )
 
 # and methods related to model fitting
 setMethod("coef", signature=c(object="contextModel"), definition=function (object) {
