@@ -2,7 +2,10 @@
 
 YESGOOD=0
 
-for SCRIPT in sim-short-ising.R check-projection.R tree-tests.R check-ising.R tree-tests.R tree-counts-test.R
+QUICKSCRIPTS="tree-tests.R tree-counts-test.R check-projection.R sim-short-ising.R check-ising-genmats.R"
+LONGERSCRIPTs="check-ising-short-sim.R check-ising-long-sim.R check-ising-inference.R"  # like a minute each
+
+for SCRIPT in $QUICKSCRIPTS $LONGERSCRIPTS
 do
     results=$(Rscript $SCRIPT | grep "Error:")
     if [ "$results" ]
