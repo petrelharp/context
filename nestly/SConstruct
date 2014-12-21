@@ -108,12 +108,36 @@ def _tmer_sim(mock=True):
              label_func=lambda t: "_".join(str(n) for n in t))
     return nest
 
+# A simulation comparing between different tmer setups.
+def _tree_cpg_sim():
+    # Real settings
+    name = 'tree_cpg'
+    params = {
+        'n_sites': 10000,
+        'n_seeds': 3,
+        'wintriples': [(4, 2, 1)]
+    }
+    base = {'n_sites': params['n_sites'],
+            'time': 0.1
+            }
+    nest = SConsWrap(Nest(base_dict=base), '_'+name, alias_environment=env)
+    nest.add_aggregate('complete_agg', list)
+    nest.add_aggregate('complete_json_agg', list)
+    nest.add('model', [join('tree_models', f) for f in os.listdir('tree_models')],
+             label_func=os.path.basename)
+    nest.add('seed', range(params['n_seeds']), label_func="seed_{}".format)
+    nest.add('wintriple', params['wintriples'],
+             label_func=lambda t: "_".join(str(n) for n in t))
+    return nest
+
+
 
 # The ".PHONY" names for our targets.
 cl_targets = {'simple': _simple_sim,
               'seed': _seed_sim,
               'tmer': lambda: _tmer_sim(False),
-              'mock': lambda: _tmer_sim(True)
+              'mock': lambda: _tmer_sim(True),
+              'tree_cpg': _tree_cpg_sim,
               }
 
 # *** Processing command line input:

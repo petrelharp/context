@@ -241,32 +241,32 @@ check.context <- function (cont) {
 
 # genmatrix extends the sparse matrix class, carrying along more information.
 setClass("genmatrix", representation(
-                                     muttrans="Matrix",
-                                     seltrans="Matrix",
-                                     bases="character",
-                                     mutpats="list",
-                                     selpats="list",
-                                     boundary="character",
-                                     fixfn="function"),
-         contains = "dgCMatrix")
+                 muttrans="Matrix",
+                 seltrans="Matrix",
+                 bases="character",
+                 mutpats="list",
+                 selpats="list",
+                 boundary="character",
+                 fixfn="function"),
+     contains = "dgCMatrix")
 
 # tuplecounts is a (2D, flattened) contingency table
 setClass("tuplecounts",representation(
-        leftwin="numeric",
-        counts="Matrix",
-        bases="character",
-        rowtaxon="character",
-        colpatterns="data.frame"),
-    prototype=list(rowtaxon="long",colpatterns=data.frame())
+            leftwin="numeric",
+            counts="Matrix",
+            bases="character",
+            rowtaxon="character",
+            colpatterns="data.frame"),
+        prototype=list(rowtaxon="long")
     )
 
 # extractor functions
 setGeneric("rowtaxon", function(x) { standardGeneric("rowtaxon") })
 setMethod("rowtaxon", signature=c(x="tuplecounts"), definition=function (x) { x@rowtaxon } )
 setGeneric("coltaxa", function(x) { standardGeneric("coltaxa") })
-setMethod("coltaxa", signature=c(x="tuplecounts"), definition=function (x) { if (length(x@colpatterns)>0) { colnames(x@colpatterns) } else { "short" } } )
+setMethod("coltaxa", signature=c(x="tuplecounts"), definition=function (x) { colnames(x@colpatterns) } )
 setGeneric("colpatterns", function(x) { standardGeneric("colpatterns") })
-setMethod("colpatterns", signature=c(x="tuplecounts"), definition=function (x) { if (length(x@colpatterns)>0) { x@colpatterns } else { data.frame(short=colnames(x@counts)) } } )
+setMethod("colpatterns", signature=c(x="tuplecounts"), definition=function (x) { x@colpatterns } )
 setGeneric("counts", function(x) { standardGeneric("counts") })
 setMethod("counts", signature=c(x="tuplecounts"), definition=function (x) { x@counts } )
 # this method repackages the counts in a more friendly-looking data frame
@@ -274,7 +274,7 @@ setGeneric("countframe", function(x) { standardGeneric("countframe") })
 setMethod("countframe", signature=c(x="tuplecounts"), definition=function (x) {
         cf <- cbind(
                 data.frame( rep.int(rownames(x@counts),ncol(x@counts)) ),
-                x@colpatterns[ rep(1:nrow(x@colpatterns),each=nrow(x@counts)), ],
+                colpatterns(x)[ rep(1:nrow(colpatterns(x)),each=nrow(x@counts)), ],
                 as.numeric(x@counts)
             )
         colnames(cf) <- c( rowtaxon(x), coltaxa(x), "count" )
@@ -366,7 +366,7 @@ setMethod("longwin", signature=c(x="genmatrix"), definition=function(x) { nchar(
 setMethod("longwin", signature=c(x="tuplecounts"), definition=function(x) { nchar(rownames(x@counts)[1]) } )
 setMethod("longwin", signature=c(x="context"), definition=function(x) { longwin(x@counts) } )
 setMethod("longwin", signature=c(x="contextTree"), definition=function(x) { longwin(x@counts) } )
-setMethod("shortwin", signature=c(x="tuplecounts"), definition=function(x) { unique(sapply(lapply(lapply(x@colpatterns,levels),"[",1),nchar)) } )
+setMethod("shortwin", signature=c(x="tuplecounts"), definition=function(x) { unique(sapply(lapply(lapply(colpatterns(x),levels),"[",1),nchar)) } )
 setMethod("shortwin", signature=c(x="context"), definition=function(x) { shortwin(x@counts) } )
 setMethod("shortwin", signature=c(x="contextTree"), definition=function(x) { shortwin(x@counts) } )
 setMethod("leftwin", signature=c(x="tuplecounts"), definition=function(x) { x@leftwin } )
@@ -913,7 +913,12 @@ predictcounts <- function (longwin, shortwin, leftwin, initcounts, mutrates, sel
     if (missing(projmatrix)) { projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, rightwin=rightwin, bases=genmatrix@bases ) }
     subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE)
     fullcounts <- initcounts * subtransmatrix
-    return( new("tuplecounts", leftwin=leftwin, counts=Matrix(fullcounts), bases=genmatrix@bases ) )
+    return( new("tuplecounts", 
+            leftwin=leftwin, 
+            counts=Matrix(fullcounts), 
+            bases=genmatrix@bases,
+            colpatterns=data.frame(short=colnames(fullcounts))
+        ) )
 }
 
 projectcounts <- function( counts, new.leftwin, new.shortwin, new.longwin, overlapping=FALSE ) {
@@ -952,7 +957,12 @@ projectcounts <- function( counts, new.leftwin, new.shortwin, new.longwin, overl
                 ( (0:(longwin-1))+new.leftwin+new.shortwin <= leftwin+shortwin ) )
         pcounts <- ( pcounts/overcount )
     }
-    return( new("tuplecounts", leftwin=new.leftwin, counts=Matrix(pcounts), bases=counts@bases) )
+    return( new("tuplecounts", 
+            leftwin=new.leftwin, 
+            counts=Matrix(pcounts), 
+            bases=counts@bases, 
+            colpatterns=data.frame(short=colnames(pcounts))
+        ) )
 }
 
 predicttreecounts <- function (shortwin, leftwin=0, rightwin=0, initcounts, mutrates, selcoef, mutpats, selpats, tlens, genmatrix, projmatrix, initfreqs, patcomp, ... ) {
