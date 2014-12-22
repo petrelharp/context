@@ -71,6 +71,7 @@ def _seed_sim():
             }
     nest = SConsWrap(Nest(base_dict=base), '_'+name, alias_environment=env)
     nest.add_aggregate('complete_agg', list)
+    nest.add_aggregate('complete_json_agg', list)
     nest.add('model', [join('models', f) for f in os.listdir('models')],
              label_func=os.path.basename)
     nest.add('seed', range(3), label_func="seed_{}".format)
