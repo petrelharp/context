@@ -163,7 +163,7 @@ parse.fixfn <- function (fixfn,fixfn.params) {
         #   first argument is selective differences
         fixfn.argnames <- setdiff(names(as.list(formals(fixfn))),"...")[-1]
         if (!all( fixfn.argnames == names(fixfn.params) )) { 
-            stop("fixfn.params (", paste( paste( names(fixfn.params), fixfn.params, sep='=' ), collapse=',' ), ") don't match arguments to fixfn (", fixfn.argnames, ").")
+            stop("fixfn.params (", paste( paste( names(fixfn.params), fixfn.params, sep='=' ), collapse=',' ), ") don't match arguments to fixfn (", paste(fixfn.argnames,collapse=", "), ").")
         }
     }
     return( fixfn )

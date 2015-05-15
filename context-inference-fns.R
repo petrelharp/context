@@ -190,16 +190,23 @@ getselmatches <- function (selpats, patterns, boundary=c("none","wrap"), names=F
     substrfun <- switch( boundary, wrap=wrapsubstr, none=substr )
     patlen <- nchar(patterns[1])
     if (!is.list(selpats)) { selpats <- as.list(selpats) }
-    selmatches <- do.call( rbind, lapply(selpats, function (y) {
-            rowSums( sapply(y, function (x) {
+    selmatches <- t( do.call( cbind.dsparseVector, lapply(selpats, function (y) {
+            Matrix::rowSums( do.call( cbind.dsparseVector, lapply(y, function (x) {
                     maxshift <- patlen - switch( boundary, wrap=1, none=nchar(x) )
-                    rowSums( sapply( 0:maxshift, function (k) {
-                                x == substrfun( patterns, 1+k, k+nchar(x) )
-                                # xx <- paste( c(rep(".",k), x, rep(".", patlen-regexplen(x)-k)), collapse='' )
-                                # grepl( xx, patterns )
-                        } ) )
-                } ) )
-        } ) )
+                    nonz.list <- lapply( 0:maxshift, function (k) { which(x == substrfun( patterns, 1+k, k+nchar(x) ) ) } ) 
+                    Matrix::rowSums( sparseMatrix( i=unlist(nonz.list), p=c(0,cumsum(sapply(nonz.list,length))), dims=c(length(patterns),1+maxshift) ) , sparseResult=TRUE )
+                } ) ), sparseResult=TRUE )
+        } ) ) )
+    # selmatches <- do.call( rbind, lapply(selpats, function (y) {
+    #         rowSums( sapply(y, function (x) {
+    #                 maxshift <- patlen - switch( boundary, wrap=1, none=nchar(x) )
+    #                 rowSums( sapply( 0:maxshift, function (k) {
+    #                             x == substrfun( patterns, 1+k, k+nchar(x) )
+    #                             # xx <- paste( c(rep(".",k), x, rep(".", patlen-regexplen(x)-k)), collapse='' )
+    #                             # grepl( xx, patterns )
+    #                     } ) )
+    #             } ) )
+    #     } ) )
     if (names) {
         rownames(selmatches) <- names(selpats)
         colnames(selmatches) <- patterns
@@ -207,6 +214,11 @@ getselmatches <- function (selpats, patterns, boundary=c("none","wrap"), names=F
     return(selmatches)
 }
 
+
+shape.fixfn <- function (ds,Ne,a,...) {
+    # total influx of fixation given selection coefficient difference ds = a * |s[to] - s[from]|
+    if (length(ds)==0) { 1 } else { ifelse( ds==0, 1, Ne*expm1(-2*a*abs(ds))/expm1(-2*Ne*a*abs(ds)) ) }
+}
 
 popgen.fixfn <- function (ds,Ne,...) {
     # total influx of fixation given selection coefficient (s[to] - s[from]) difference ds
@@ -479,11 +491,19 @@ makegenmatrix <- function (mutpats, selpats=list(), patlen=nchar(patterns[1]), p
     if (length(selpats)>0) {
         selmatches <- getselmatches( selpats, patterns, boundary=boundary )
         # transfer selection coefficients to selective differences involved in each mutation
-        #    these are ( transitions ) x ( mutpats ) matrix
+        #    these are ( transitions ) x ( selpats ) matrix
         ##  the following has (fromsel-tosel); combined to reduce memory usage
-        ##  fromsel <- selmatches[,  allmutmats$i, drop=FALSE ]
-        ##  tosel <- selmatches[,  allmutmats$j, drop=FALSE ]
-        seltrans <- Matrix(t( ( selmatches[,  allmutmats$j, drop=FALSE ] - selmatches[,  allmutmats$i, drop=FALSE ] )[,dgCord,drop=FALSE] ))
+        # Made this sparse in case selpats is large
+        ## alternative 1:
+        selmatches <- t(selmatches)
+        fromsel <- selmatches[ allmutmats$i, , drop=FALSE ]
+        tosel <- selmatches[  allmutmats$j, , drop=FALSE ]
+        seltrans <- ( tosel - fromsel )
+        seltrans <- seltrans[dgCord,,drop=FALSE]
+        ## alternative 2:
+        # seltrans <- ( selmatches[,  allmutmats$j, drop=FALSE ] - selmatches[,  allmutmats$i, drop=FALSE ] )
+        # seltrans <- seltrans[,dgCord,drop=FALSE]
+        # seltrans <- Matrix(t( seltrans ))
     } else {
         seltrans <- Matrix(numeric(0),nrow=nrow(muttrans),ncol=0)
     }
@@ -1171,6 +1191,20 @@ dgTtodgC <- function (M) {
     ijx <- ijx[ order( ijx$j, ijx$i ), ]
     with(ijx, new( "dgCMatrix", i=i, p=sapply(0:ncol(M), function(k) sum(j<k)), x=x, Dim=dim(M) ) )
 }
+
+cbind.dsparseVector <- function (...) {
+    # cbind sparseVectors
+    input <- lapply( list(...), as, "dsparseVector" )
+    thelength <- unique(sapply(input,length))
+    stopifnot( length(thelength)==1 )
+    sparseMatrix( 
+            x=unlist(lapply(input,slot,"x")), 
+            i=unlist(lapply(input,slot,"i")), 
+            p=c(0,cumsum(sapply(input,function(x){length(x@x)}))),
+            dims=c(thelength,length(input))
+        )
+}
+
 
 
 # number of cores for parallel
