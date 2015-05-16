@@ -1,0 +1,23 @@
+{
+    "comment" : "Test assignment of weights to selection coefficients.",
+    "tree" : [ "(sp1 : 1.0, sp2 : 20.0) root;" ],
+    "bases" : [ "X", "O" ],
+    "initfreqs" : [ 0.5, 0.5 ],
+    "model" : {
+        "mutpats" : [
+            [ [ "O", "X" ] ],
+            [ [ "X", "O" ] ]
+        ],
+        "mutrates" : [ 0.5, 0.5 ],
+        "comment": "note unequal weights in first line",
+        "selpats" : [
+            { "O" : 20.0, "X" : -20.0 }
+        ],
+        "selcoef" : [ 1.0 ],
+        "fixfn" : "ising.fixfn",
+        "fixfn.params" : []
+    },
+    "sp1" : "model",
+    "sp2" : "model"
+}
+

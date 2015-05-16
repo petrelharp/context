@@ -15,7 +15,7 @@ rinitseq <- function (seqlen,bases,basefreqs=rep(1/length(bases),length(bases)))
     return( stringfun(substr( paste( rpats, collapse="" ), 1, seqlen )) )
 }
 
-simseq <- function (seqlen, tlen, mutpats, mutrates, selpats=list(), selcoef=numeric(0), patlen, bases=c("A","C","G","T"), count.trans=FALSE, initseq, basefreqs=rep(1/length(bases),length(bases)), ... ) {
+simseq <- function (seqlen, tlen, mutpats, mutrates, selpats=list(), selfactors=lapply(selpats,sapply,function(x)1), selcoef=numeric(0), patlen, bases=c("A","C","G","T"), count.trans=FALSE, initseq, basefreqs=rep(1/length(bases),length(bases)), ... ) {
     # Simulate a random sequence and evolve it with genmatrix, wrapping mutations around as needed.
     #  record transition counts if count.trans it TRUE (e.g. for debugging)
     # First make transition matrix
@@ -33,7 +33,7 @@ simseq <- function (seqlen, tlen, mutpats, mutrates, selpats=list(), selcoef=num
     if (patlen<mutlen) { stop("patlen too short") }
     pad.patlen <- patlen+2*max(0,(sellen-1))
     # construct generator matrix for (sellen-1,patlen,sellen-1) but with outer padding not changing
-    full.genmatrix <- makegenmatrix( mutpats, selpats, patlen=pad.patlen, boundary="none", bases=bases, ... )
+    full.genmatrix <- makegenmatrix( mutpats, selpats, patlen=pad.patlen, boundary="none", bases=bases, selfactors=selfactors, ... )
     mutrates <- mutrates / (patlen-mutpatlens+1)  # avoid overcounting (see above)
     full.genmatrix@x <- update(full.genmatrix,mutrates,selcoef,...)
     patterns <- rownames(full.genmatrix)
@@ -114,7 +114,8 @@ simseq.tree <- function (seqlen,config,...) {
                 list( initseq=simseqs[[ edge.pair[1] ]]$finalseq, 
                     tlen=config$tree$edge.length[k],
                     seqlen=seqlen, 
-                    mutpats=modconfig$mutpats, mutrates=modconfig$mutrates, selpats=modconfig$selpats, 
+                    mutpats=modconfig$mutpats, mutrates=modconfig$mutrates, 
+                    selpats=modconfig$selpats, selfactors=modconfig$selfactors, 
                     selcoef=modconfig$selcoef, bases=config$bases, fixfn=modconfig$fixfn ), 
                 more.args,
                 modconfig$fixfn.params ) )

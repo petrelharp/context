@@ -66,12 +66,9 @@ config <- read.config(opt$configfile)
 if (!is.null(config$tree)) {
     config <- parse.models( treeify.config( config ) )
     modelnames <- config$.models
-    for (mm in modelnames) {
-        config[[mm]] <- fill.default.config( config[[mm]], defaults=config )
-    }
 } else {
-    config$fixfn <- parse.fixfn( config$fixfn, config$fixfn.params )
     config <- fill.default.config( config )
+    config$fixfn <- parse.fixfn( config$fixfn, config$fixfn.params )
     config$genmatrix <- opt$outfile
     config <- list( default=config )
     modelnames <- c("default")
@@ -82,14 +79,22 @@ for (mm in modelnames) {
     if (opt$meanboundary==0) {
         genmatrix <- do.call( makegenmatrix, c( list( 
                                 patlen=opt$longwin, 
-                                mutpats=config[[mm]]$mutpats, selpats=config[[mm]]$selpats, 
-                                boundary=opt$boundary, bases=config[[mm]]$bases, fixfn=config[[mm]]$fixfn ), 
+                                mutpats=config[[mm]]$mutpats, 
+                                selpats=config[[mm]]$selpats, 
+                                selfactors=config[[mm]]$selfactors, 
+                                boundary=opt$boundary, 
+                                bases=config[[mm]]$bases, 
+                                fixfn=config[[mm]]$fixfn ), 
                         config[[mm]]$fixfn.params ) )
     } else {
         genmatrix <- do.call( meangenmatrix, c( list( 
                                 leftwin=opt$meanboundary, rightwin=opt$meanboundary, patlen=opt$longwin, 
-                                mutpats=config[[mm]]$mutpats, selpats=config[[mm]]$selpats, 
-                                boundary=opt$boundary, bases=config[[mm]]$bases, fixfn=config[[mm]]$fixfn ), 
+                                mutpats=config[[mm]]$mutpats, 
+                                selpats=config[[mm]]$selpats, 
+                                selfactors=config[[mm]]$selfactors, 
+                                boundary=opt$boundary, 
+                                bases=config[[mm]]$bases, 
+                                fixfn=config[[mm]]$fixfn ), 
                         config[[mm]]$fixfn.params ) )
     }
     if (!is.null(config[[mm]]$mutrates)) {

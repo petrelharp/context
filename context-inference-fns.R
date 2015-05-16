@@ -182,19 +182,23 @@ getmutmats <- function(mutpats,patterns,boundary=c("none","wrap")) {
     } )
 }
 
-getselmatches <- function (selpats, patterns, boundary=c("none","wrap"), names=FALSE) {
+getselmatches <- function (selpats, patterns, selfactors, boundary=c("none","wrap"), names=FALSE) {
     # selpats can be a vector or a list of vectors,
     #   each element gets one parameter
-    # selmatches[i,j] is number of times anything in selpat[[i]] matches pattern[j]
+    # selmatches[i,j] is the sum of selfactors[[i]] multiplied by the number of times the corresponding thing in selpat[[i]] matches pattern[j]
+    #  ... so if selfactors is all 1's, then :
+    #     selmatches[i,j] is number of times anything in selpat[[i]] matches pattern[j]  
     boundary <- match.arg(boundary)
     substrfun <- switch( boundary, wrap=wrapsubstr, none=substr )
     patlen <- nchar(patterns[1])
     if (!is.list(selpats)) { selpats <- as.list(selpats) }
-    selmatches <- t( do.call( cbind.dsparseVector, lapply(selpats, function (y) {
-            Matrix::rowSums( do.call( cbind.dsparseVector, lapply(y, function (x) {
+    selmatches <- t( do.call( cbind.dsparseVector, lapply(seq_along(selpats), function (i) {   # loop over selpats
+            y <- selpats[[i]]
+            Matrix::rowSums( do.call( cbind.dsparseVector, lapply(seq_along(y), function (j) {  # loop over elements of selpats[[y]]
+                    x <- y[j]
                     maxshift <- patlen - switch( boundary, wrap=1, none=nchar(x) )
                     nonz.list <- lapply( 0:maxshift, function (k) { which(x == substrfun( patterns, 1+k, k+nchar(x) ) ) } ) 
-                    Matrix::rowSums( sparseMatrix( i=unlist(nonz.list), p=c(0,cumsum(sapply(nonz.list,length))), dims=c(length(patterns),1+maxshift) ) , sparseResult=TRUE )
+                    return( selfactors[[i]][j] * Matrix::rowSums( sparseMatrix( i=unlist(nonz.list), p=c(0,cumsum(sapply(nonz.list,length))), dims=c(length(patterns),1+maxshift) ) , sparseResult=TRUE ) )
                 } ) ), sparseResult=TRUE )
         } ) ) )
     # selmatches <- do.call( rbind, lapply(selpats, function (y) {
@@ -446,7 +450,7 @@ setMethod("residuals", signature=c(object="context"), definition=function (objec
 #  then
 #    P = Q %*% J .
 
-makegenmatrix <- function (mutpats, selpats=list(), patlen=nchar(patterns[1]), patterns=getpatterns(patlen,bases), bases, fixfn, mutrates=rep(1,length(mutpats)),selcoef=rep(1,length(selpats)), boundary="none", ...) {
+makegenmatrix <- function (mutpats, selpats=list(), patlen=nchar(patterns[1]), patterns=getpatterns(patlen,bases), bases, fixfn, mutrates=rep(1,length(mutpats)), selcoef=rep(1,length(selpats)), selfactors=lapply(selpats,sapply,function(x)1), boundary="none", ...) {
     # Make the generator matrix G on the specified set of patterns,
     # carrying with it the means to quickly update itself.
     #  DON'T do the diagonal (i.e. it must be left empty), so that the updating is easier.
@@ -487,9 +491,10 @@ makegenmatrix <- function (mutpats, selpats=list(), patlen=nchar(patterns[1]), p
     # ( Construct via TMatrix, which stores row-and-column indices via @i and @j, then convert to CMatrix. )
     muttrans <- dgTtodgC( new( "dgTMatrix", i=1:sum(nmutswitches)-1L, j=rep(seq_along(mutrates),times=nmutswitches)-1L, x=rep(1,sum(nmutswitches)), Dim=c(sum(nmutswitches),length(mutrates)) ) )
     muttrans <- muttrans[ dgCord , , drop=FALSE ]
-    # selection is similar to mutation.
+    # selection is similar to mutation;
+    #   we have to compute differences in numbers of matches of the selection patterns, weighted by selfactors
     if (length(selpats)>0) {
-        selmatches <- getselmatches( selpats, patterns, boundary=boundary )
+        selmatches <- getselmatches( selpats, patterns, selfactors, boundary=boundary )
         # transfer selection coefficients to selective differences involved in each mutation
         #    these are ( transitions ) x ( selpats ) matrix
         ##  the following has (fromsel-tosel); combined to reduce memory usage
@@ -985,10 +990,10 @@ projectcounts <- function( counts, new.leftwin, new.shortwin, new.longwin, overl
         ) )
 }
 
-predicttreecounts <- function (shortwin, leftwin=0, rightwin=0, initcounts, mutrates, selcoef, mutpats, selpats, tlens, genmatrix, projmatrix, initfreqs, patcomp, ... ) {
+predicttreecounts <- function (shortwin, leftwin=0, rightwin=0, initcounts, mutrates, selcoef, tlens, genmatrix, projmatrix, initfreqs, patcomp, ... ) {
     # Compute expected counts of paired patterns:
     longwin <- leftwin+shortwin+rightwin
-    if (missing(genmatrix)) { genmatrix <- makegenmatrix(patlen=leftwin+shortwin+rightwin,mutpats=mutpats,selpats=selpats, ...) }
+    if (missing(genmatrix)) { genmatrix <- makegenmatrix(patlen=leftwin+shortwin+rightwin,...) }
     if (missing(projmatrix)) { projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, rightwin=rightwin ) }
     if (missing(patcomp) & !is.null(names(initfreqs))) {
         patcomp <- apply( do.call(rbind, strsplit(rownames(genmatrix),'') ), 2, match, names(initfreqs) )  # which base is at each position in each pattern

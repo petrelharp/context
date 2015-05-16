@@ -63,7 +63,10 @@ Tree-based config files should also have:
 A 'model stanza' has:
 - 'mutpats' : list of lists of character pairs (one list per mutation motif)
 - 'mutrates' : numeric, nonnegative, same length as mutpats
-- 'selpats' : list of lists of characters (one list per selection motif)
+- 'selpats' : either:
+  - list of lists of character strings (one list per selection motif)
+    - *and* [optionally] : `selfactors' : list of numeric vectors
+  - **or** : list of lists of named numeric vectors, one list per selection motif, and the numbers multiplying the selection coefficient (names will be used as selpats; numbers as selfactors)
 - 'selcoef' : numeric, same length as selpats
 - 'fixfn' : name of a function, or R code (e.g. "function (x) { ... }"
 - 'fixfn.params' : named list of additional parameters to fixfn

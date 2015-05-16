@@ -68,10 +68,12 @@ read.config <- function (configfile,quiet=FALSE) {
     con <- openread(configfile)
     json <- paste(readLines(con, warn = FALSE), collapse = "\n")
     close(con)
-    config <- fromJSON(json,simplifyMatrix=FALSE)
+    config <- fromJSON(json,simplifyMatrix=FALSE,simplifyDataFrame=FALSE)
     if (!quiet) { cat("Config: ", toJSON(config), "\n\n") }
     # fill in zero-length parameters
-    if (is.null(config$selpats)) { config$selpats <- list() }
+    # fill in selfactors if it isn't there,
+    #  or move values from selpats
+    config <- .parse.selpats(config)
     if (length(config$selpats)==0 && is.null(config$selcoef)) { 
         config$selcoef <- numeric(0) 
         config$selcoef.scale <- numeric(0) 
@@ -106,11 +108,20 @@ treeify.config <- function (config,tlen=NULL) {
 
 fill.default.config <- function (config, defaults=NULL) {
     # fill in default values in a config list
-    # for selpats, bases, fixfn, fixfn.params
-    for (x in c("selpats","bases","fixfn.params")) {
+    # for mutpats, mutrates, selpats, selfactors, selcoef, bases, fixfn, fixfn.params
+    for (x in c("mutpats","selpats","bases","fixfn.params")) {
         if (is.null(config[[x]])) {
             config[[x]] <- if (is.null(defaults[[x]])) { list() } else { defaults[[x]] }
         }
+    }
+    if (is.null(config[["mutrates"]])) { 
+        config[["mutrates"]] <- if (is.null(defaults[["mutrates"]])) { stop("Don't have mutrates?") } else { defaults[["mutrates"]] }
+    }
+    if (is.null(config[["selcoef"]])) { 
+        config[["selcoef"]] <- if (is.null(defaults[["selcoef"]])) { if (length(config[["selpats"]])==0) { numeric(0) } else { stop("Don't have selcoef?") } } else { defaults[["selcoef"]] }
+    }
+    if (is.null(config[["selfactors"]])) { 
+        config[["selfactors"]] <- if (is.null(defaults[["selfactors"]])) { lapply( config$selpats, sapply, function(x)1 ) } else { defaults[["selfactors"]] }
     }
     if (is.null(config[["fixfn"]])) { 
         config[["fixfn"]] <- if(is.null(defaults[["fixfn"]])) { null.fixfn } else { defaults[["fixfn"]] }
@@ -150,7 +161,6 @@ parse.fixfn <- function (fixfn,fixfn.params) {
     #   either by looking it up as a name
     #   or parsing it directly
     # also, check the arguments match fixfn.params
-    if (is.null(fixfn)) { fixfn <- null.fixfn }
     if (is.character(fixfn)) {
         if (exists(fixfn,mode="function")) {
             fixfn <- get(fixfn,mode="function")
@@ -174,6 +184,29 @@ config.dereference <- function (config, x) {
     sapply(x, function (xx) { n <- 1; while (n < 20 && is.character(config[[xx]]) & (length(config[[xx]])==1) ) { xx <- config[[xx]]; n<-n+1 }; xx } )
 }
 
+.parse.selpats <- function (config) {
+    # check if (selpats,selfactors) info is combined into selpats
+    #  and separate out if so
+    if (!is.null(config$selpats) && (length(config$selpats)>0)) { 
+        config$selpats <- lapply(config$selpats,unlist)
+        if (! "selfactors" %in% names(config)) {
+            # this takes selpats like c( "XO" = 2.0, "OX" = 1.0 )
+            #   and puts the names in selpats and the numbers in selfactors
+            #   and makes selfactors a vector of 1.0's otherwise.
+            # selfactors retains the names, and so is redundant, but this is not to be relied on.
+            config$selfactors <- config$selpats
+            no.numbers <- sapply(config$selfactors,is.character)  # these are ones that just get 1.0's
+            config$selfactors[no.numbers] <- lapply( config$selfactors[no.numbers], function (x) { y <- rep(1,length(x)); names(y) <- x; return(y) } )
+            config$selpats[!no.numbers] <- lapply(config$selpats[!no.numbers], names)
+        } else {
+            if (any(sapply(config$selpats,is.numeric))) {
+                stop("selfactors specified in multiple place.")
+            }
+        }
+    }
+    return(config)
+}
+
 parse.models <- function (config,do.fixfns=TRUE) {
     # Check that all models are specified, and turn each fixfn into a function.
     #
@@ -190,13 +223,19 @@ parse.models <- function (config,do.fixfns=TRUE) {
     if (any(is.na(edgemodels))) { stop("Must specify named models for each edge in the tree.") }
     config$.models <- edgemodels
     if (!is.null(config$.models)) { names(config$.models) <- edgemodels }
+    # parse selpats into selpats,selfactors, if these are there
+    config <- .parse.selpats(config)
     # get the fixfns in there
-    if (do.fixfns) for (modname in edgemodels) {
-        # turn fixfn into a function and check we have the right parameters
-        config[[modname]]$fixfn <- parse.fixfn(config[[modname]]$fixfn,config[[modname]]$fixfn.params)
-        # put in defaults if no selection
-        if (is.null(config[[modname]]$selpats)) { config[[modname]]$selpats <- list(); config[[modname]]$selcoef <- numeric(0); config[[modname]]$fixfn <- null.fixfn; config[[modname]]$fixfn.params=list() }
-        stopifnot( with( config[[modname]], ( length(mutpats) == length(mutrates) ) && ( length(selpats) == length(selcoef) )))
+    for (modname in edgemodels) {
+        # parse selpats into selpats,selfactors
+        config[[modname]] <- .parse.selpats(config[[modname]])
+        # put in defaults e.g. for no selection
+        config[[modname]] <- fill.default.config(config[[modname]],defaults=config)
+        if (do.fixfns) {  # should come last
+            # turn fixfn into a function and check we have the right parameters
+            config[[modname]]$fixfn <- parse.fixfn(config[[modname]]$fixfn,config[[modname]]$fixfn.params)
+        }
+        stopifnot( with( config[[modname]], ( length(mutpats) == length(mutrates) ) && ( length(selpats) == length(selcoef) && ( length(selcoef) == length(selfactors) ) )))
     }
     return(config)
 }
