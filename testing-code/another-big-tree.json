@@ -1,6 +1,6 @@
 {
     "comment" : "Complicated tree, for testing.",
-    "tree" : [ "( (sp1 : 0.1, sp2 : 1.0) an1 : 1.0, (sp3 : 1.0, sp4 : 1.0) an2 : 3.0 ) root;" ],
+    "tree" : [ "( (sp1 : 0.1, sp2 : 0.1) an1 : 1.0, (sp3 : 1.0, sp4 : 0.2) an2 : 3.0 ) root;" ],
     "bases" : [ "X", "O" ],
     "initfreqs" : [ 1.0, 0.0 ],
     "mutpats" : [
@@ -25,8 +25,13 @@
         },
     "sp2" : { 
             "comment" : "X -> O",
+            "mutpats" : [
+                [ [ "X", "O" ] ],
+                [ [ "O", "X" ] ]
+            ],
+            "mutrates" : [ 1, 1 ],
             "selpats" : [ [ "O" ] ],
-            "selcoef" : [ 10 ]
+            "selcoef" : [ 1.0 ]
         },
     "sp3" : { 
             "comment" : "do nothing",

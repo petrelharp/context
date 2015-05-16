@@ -26,36 +26,41 @@ genmat.list <- lapply( clades, function (clade) {
     } )
 
 
+pf <- function (ds) { do.call(config$fixfn,c(list(ds),config$fixfn.params)) }
+
 expected.genmats <- cbind( # X->X O->X X->O O->O
                     an1 = c(  0,  0,   0,   0),
-                    an2 = c(  0,  0,   1,   0),
-                    sp1 = c(  0,  0,   1,   0),
-                    sp2 = c(  0,  0,   1,   0),
+                    an2 = c(  0,  0, 10*pf(-.01), 0),
+                    sp1 = c(  0,  0, 10*pf(.05),   0),
+                    sp2 = c(  0,  0,    pf(1),   0),
                     sp3 = c(  0,  0,   0,   0),
-                    sp4 = c(  0,  1,   0,   0)
+                    sp4 = c(  0, 10*pf(.01),   0,   0)
         )
 
 stopifnot( all(which(expected.genmats>0)==which(sapply(genmat.list,as.vector)>1e-8)) )
+stopifnot( all.equal(
+        as.vector(expected.genmats),
+        as.vector(sapply(genmat.list,as.vector))
+    ) )
 
-# TAKES TOO LONG: mutation rates too high
-# simseqs <- simseq.tree(100,config)
-# 
-# shortpats <- getpatterns(1,bases=config$bases)
-# 
-# shorts <- lapply( clades, function (clade) {
-#             counttrans(shortpats, shortpats, simseqs=simseqs[[clade]] )
-#         } )
-# 
-# expecteds <- list( # X->X O->X X->O O->O
-#               an1 = c(100,  0,   0,   0),
-#               an2 = c(  0,  0, 100,   0),
-#               sp1 = c(  0,  0, 100,   0),
-#               sp2 = c(  0,  0, 100,   0),
-#               sp3 = c(  0,  0,   0, 100),
-#               sp4 = c(  0,100,   0,   0)
-#         )
-# 
-# stopifnot( all.equal( 
-#         sapply( lapply( shorts, counts ), as.vector ) ,
-#         do.call(cbind,expecteds)
-#     ) )
+simseqs <- simseq.tree(100,config)
+
+shortpats <- getpatterns(1,bases=config$bases)
+
+shorts <- lapply( clades, function (clade) {
+            counttrans(shortpats, shortpats, simseqs=simseqs[[clade]] )
+        } )
+
+expecteds <- list( # X->X O->X X->O O->O
+              an1 = c(100,  0,   0,   0),
+              an2 = c(  0,  0, 100,   0),
+              sp1 = c(  0,  0, 100,   0),
+              sp2 = c(  0,  0, 100,   0),
+              sp3 = c(  0,  0,   0, 100),
+              sp4 = c(  0,100,   0,   0)
+        )
+
+stopifnot( all.equal( 
+        sapply( lapply( shorts, counts ), as.vector ) ,
+        do.call(cbind,expecteds)
+    ) )
