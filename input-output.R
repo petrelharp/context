@@ -74,6 +74,40 @@ read.config <- function (configfile,quiet=FALSE) {
     # fill in selfactors if it isn't there,
     #  or move values from selpats
     config <- .parse.selpats(config)
+    return(config)
+}
+
+fill.default.config <- function (config, defaults=NULL) {
+    # fill in default values in a config list based on 'defaults', or length zeros if it makes sense
+    #   for mutpats, mutrates, selpats, selfactors, selcoef, bases, fixfn, fixfn.params
+    #
+    # Note that will not fill in default mutrates or selcoef if none are available in defaults
+    #   and the corresponding patterns are not length zero
+    #   (for instance, models for makegenmat don't need mutrates)
+    for (x in c("mutpats","selpats","bases","fixfn.params")) {
+        if (is.null(config[[x]])) {
+            config[[x]] <- if (is.null(defaults[[x]])) { list() } else { defaults[[x]] }
+        }
+    }
+    if (is.null(config[["mutrates"]])) { 
+        if (!is.null(defaults[["mutrates"]])) { 
+            config[["mutrates"]] <- defaults[["mutrates"]] 
+        }
+    }
+    if (is.null(config[["selcoef"]])) { 
+        if (length(config[["selpats"]])==0) { 
+            config[["selcoef"]] <- numeric(0) 
+        }
+        if (is.null(defaults[["selcoef"]])) { 
+            config[["selcoef"]] <- defaults[["selcoef"]]
+        }
+    }
+    if (is.null(config[["selfactors"]])) { 
+        config[["selfactors"]] <- if (is.null(defaults[["selfactors"]])) { lapply( config$selpats, sapply, function(x)1 ) } else { defaults[["selfactors"]] }
+    }
+    if (is.null(config[["fixfn"]])) { 
+        config[["fixfn"]] <- if(is.null(defaults[["fixfn"]])) { null.fixfn } else { defaults[["fixfn"]] }
+    }
     if (length(config$selpats)==0 && is.null(config$selcoef)) { 
         config$selcoef <- numeric(0) 
         config$selcoef.scale <- numeric(0) 
@@ -85,7 +119,7 @@ read.config <- function (configfile,quiet=FALSE) {
     if (length(config$fixfn.params)==0) {
         config$fixfn.params.scale <- list()
     }
-    return(config)
+    return( config )
 }
 
 treeify.config <- function (config,tlen=NULL) {
@@ -104,29 +138,6 @@ treeify.config <- function (config,tlen=NULL) {
     }
     if (is.null(config$tree$tip.label) | is.null(config$tree$node.label)) { stop("Please label tips and nodes on the tree.") }
     return(config)
-}
-
-fill.default.config <- function (config, defaults=NULL) {
-    # fill in default values in a config list
-    # for mutpats, mutrates, selpats, selfactors, selcoef, bases, fixfn, fixfn.params
-    for (x in c("mutpats","selpats","bases","fixfn.params")) {
-        if (is.null(config[[x]])) {
-            config[[x]] <- if (is.null(defaults[[x]])) { list() } else { defaults[[x]] }
-        }
-    }
-    if (is.null(config[["mutrates"]])) { 
-        config[["mutrates"]] <- if (is.null(defaults[["mutrates"]])) { stop("Don't have mutrates?") } else { defaults[["mutrates"]] }
-    }
-    if (is.null(config[["selcoef"]])) { 
-        config[["selcoef"]] <- if (is.null(defaults[["selcoef"]])) { if (length(config[["selpats"]])==0) { numeric(0) } else { stop("Don't have selcoef?") } } else { defaults[["selcoef"]] }
-    }
-    if (is.null(config[["selfactors"]])) { 
-        config[["selfactors"]] <- if (is.null(defaults[["selfactors"]])) { lapply( config$selpats, sapply, function(x)1 ) } else { defaults[["selfactors"]] }
-    }
-    if (is.null(config[["fixfn"]])) { 
-        config[["fixfn"]] <- if(is.null(defaults[["fixfn"]])) { null.fixfn } else { defaults[["fixfn"]] }
-    }
-    return( config )
 }
 
 # tree helper functions
@@ -208,7 +219,9 @@ config.dereference <- function (config, x) {
 }
 
 parse.models <- function (config,do.fixfns=TRUE) {
-    # Check that all models are specified, and turn each fixfn into a function.
+    # Check that all models are specified,
+    #  fill in defaults,
+    #  turn fixfn into functions, etc.
     #
     # Edges are labeled by the node/tip below them:
     nodenames <- nodenames(config$tree)

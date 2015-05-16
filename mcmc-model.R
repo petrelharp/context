@@ -61,6 +61,7 @@ if (is.null(prior.config$fixfn.params.prior)) {
         prior.config$fixfn.params.prior <- model@fixfn.params.prior 
     }
 }
+prior.config <- fill.defaults.config( prior.config )
 
 # scale tuning parameters
 if (FALSE) {  # this leads to trouble

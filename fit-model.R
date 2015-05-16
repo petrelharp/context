@@ -47,7 +47,7 @@ source("../context-inference-fns.R")
 options(error = print.and.dump)
 
 # read configuration
-init.config <- read.config(opt$configfile)  # returns NULL if it is NULL
+init.config <- fill.default.config( read.config(opt$configfile) )  # returns NULL if it is NULL
 if (!is.null(init.config$tree)) { warning("Appears to be a tree-config file; should be using fit-tree-model.R?") }
 if ( is.null(init.config$mutrates) || 
         is.null(init.config$mutrates.scale) || 
