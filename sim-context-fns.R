@@ -15,9 +15,13 @@ rinitseq <- function (seqlen,bases,basefreqs=rep(1/length(bases),length(bases)))
     return( stringfun(substr( paste( rpats, collapse="" ), 1, seqlen )) )
 }
 
-simseq <- function (seqlen, tlen, mutpats, mutrates, selpats=list(), selfactors=lapply(selpats,sapply,function(x)1), selcoef=numeric(0), patlen, bases=c("A","C","G","T"), count.trans=FALSE, initseq, basefreqs=rep(1/length(bases),length(bases)), ... ) {
+simseq <- function (seqlen, tlen, mutpats, mutrates, selpats=list(), selfactors=lapply(selpats,sapply,function(x)1), selcoef=numeric(0), patlen, bases=c("A","C","G","T"), count.trans=FALSE, initseq, basefreqs=rep(1/length(bases),length(bases)), only.num.events=FALSE, ... ) {
     # Simulate a random sequence and evolve it with genmatrix, wrapping mutations around as needed.
     #  record transition counts if count.trans it TRUE (e.g. for debugging)
+    #
+    # IF only.num.events is TRUE, then JUST set things up, and estimate how many mutation events will be needed,
+    #   and return this (to check before embarking on something ridiculous).
+    #
     # First make transition matrix
     #   Note that for a mutation pattern of length less than patlen, we will overcount.
     #    e.g. if the rate of CG -> TG is 1.5, and pattern length is 4,
@@ -56,6 +60,11 @@ simseq <- function (seqlen, tlen, mutpats, mutrates, selpats=list(), selfactors=
     diags <- maxrate - rowSums(genmatrix)
     ####
     # number and locations of possible changes, ordered by time they occur at
+    mean.n.events <- maxrate * tlen * seqlen
+    cat("simseq: Total number of potential substitutions around ", mean.n.nevents, "\n")
+    if (only.num.events) {  # don't actually simulate them, just say how many
+        return(mean.n.events)
+    }
     n.events <- rpois(1,lambda=maxrate*tlen*seqlen)
     loc.events <- sample(seqlen,n.events,replace=TRUE)
     wrap.events <- (loc.events+pad.patlen>seqlen+1) #events wrapping around the end

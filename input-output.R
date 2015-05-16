@@ -198,6 +198,12 @@ config.dereference <- function (config, x) {
 .parse.selpats <- function (config) {
     # check if (selpats,selfactors) info is combined into selpats
     #  and separate out if so
+    # So: selpats should be EITHER:
+    #   - a list of character vectors, OR
+    #   - a list of named lists of numeric values
+    if ( !is.null(names(config$selpats)) && is.list(config$selpats) && (!is.list(config$selpats[[1]]) && !is.vector(config$selpats[[1]])) ) { 
+        warn("selpats is a named list; did you forget enclosing parentheses?") 
+    }
     if (!is.null(config$selpats) && (length(config$selpats)>0)) { 
         config$selpats <- lapply(config$selpats,unlist)
         if (! "selfactors" %in% names(config)) {
