@@ -61,7 +61,7 @@ simseq <- function (seqlen, tlen, mutpats, mutrates, selpats=list(), selfactors=
     ####
     # number and locations of possible changes, ordered by time they occur at
     mean.n.events <- maxrate * tlen * seqlen
-    cat("simseq: Total number of potential substitutions around ", mean.n.nevents, "\n")
+    cat("simseq: Total number of potential substitutions around ", mean.n.events, "\n")
     if (only.num.events) {  # don't actually simulate them, just say how many
         return(mean.n.events)
     }
