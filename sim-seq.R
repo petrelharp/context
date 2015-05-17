@@ -65,6 +65,8 @@ simseq.config <- parse.models(simseq.config)
 # error checks
 stopifnot( ( length(simseq.config$bases) == length(simseq.config$initfreqs) ) )
 
+if (!is.null(opt$gmfile)) { dir.create(dirname(opt$gmfile),recursive=TRUE) }
+
 # return a list of the simulated sequences in the same order as the tips,nodes of the tree
 simseqs <- simseq.tree(opt$seqlen,simseq.config,gmfile=opt$gmfile)
 
