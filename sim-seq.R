@@ -26,6 +26,7 @@ option_list <- list(
         make_option( c("-t","--tlen"), type="character", help="Time to simulate for." ),
         make_option( c("-s","--seqlen"), type="numeric", help="Number of bases to simulate." ),
         make_option( c("-o","--outfile"), type="character", help="Direct output to this file."),
+        make_option( c("-m","--gmfile"), type="character", help="Load, or store, generator matrix for simulation in this file."),
         make_option( c("-d","--outdir"), type="character", default=".", help="Direct output to this directory with default name if outfile is not specified."),
         make_option( c("-j","--jobid"), type="numeric", default=formatC( floor(runif(1)*1e6) , digits=6,flag='0'), help="Unique identifier to append to output name if not specified."),
         make_option( c("-l","--logfile"), type="character", help="Direct logging output to this file. [default appends -simrun.Rout]" ),
@@ -65,7 +66,7 @@ simseq.config <- parse.models(simseq.config)
 stopifnot( ( length(simseq.config$bases) == length(simseq.config$initfreqs) ) )
 
 # return a list of the simulated sequences in the same order as the tips,nodes of the tree
-simseqs <- simseq.tree(opt$seqlen,simseq.config)
+simseqs <- simseq.tree(opt$seqlen,simseq.config,gmfile=opt$gmfile)
 
 simseq.opt <- opt
 

@@ -4,13 +4,15 @@ set -eu
 set -o pipefail
 
 BASEDIR="minimal"
+GMDIR="genmatrices"
 MODEL="shape-model-random-values.json"
 
 mkdir -p $BASEDIR
 
 echo "simulate up some sequence for testing"
 SIMFILE="$BASEDIR/sim.RData"
-Rscript ../sim-seq.R -c $MODEL -t .01 -s 1000 -o $SIMFILE
+SIMGENMAT="$GMDIR/sim-genmatrix.RData"  # this takes a WHILE, so let's save it for future use
+Rscript ../sim-seq.R -c $MODEL -t .01 -s 1000 -o $SIMFILE -m $SIMGENMATRIX
 
 echo "and count the Tmers"
 LONGWIN=5

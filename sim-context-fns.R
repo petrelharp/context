@@ -15,9 +15,18 @@ rinitseq <- function (seqlen,bases,basefreqs=rep(1/length(bases),length(bases)))
     return( stringfun(substr( paste( rpats, collapse="" ), 1, seqlen )) )
 }
 
-simseq <- function (seqlen, tlen, mutpats, mutrates, selpats=list(), selfactors=lapply(selpats,sapply,function(x)1), selcoef=numeric(0), patlen, bases=c("A","C","G","T"), count.trans=FALSE, initseq, basefreqs=rep(1/length(bases),length(bases)), only.num.events=FALSE, ... ) {
+simseq <- function (seqlen, tlen, mutpats, mutrates, 
+        selpats=list(), selfactors=lapply(selpats,sapply,function(x)1), selcoef=numeric(0), 
+        patlen, bases=c("A","C","G","T"), 
+        initseq, basefreqs=rep(1/length(bases),length(bases)), 
+        count.trans=FALSE, only.num.events=FALSE, 
+        gmfile=NULL, ... ) {
     # Simulate a random sequence and evolve it with genmatrix, wrapping mutations around as needed.
     #  record transition counts if count.trans it TRUE (e.g. for debugging)
+    #
+    # Computation of the generator matrix may be costly; so it can be stored for later use,
+    #  and reloaded, by passing a file name in gmfile.  Note that this differs from other genmatrix'es stored,
+    #  because we store a few more things, remove changes in the wings, and divide through rates to avoid overcounting.
     #
     # IF only.num.events is TRUE, then JUST set things up, and estimate how many mutation events will be needed,
     #   and return this (to check before embarking on something ridiculous).
@@ -36,26 +45,37 @@ simseq <- function (seqlen, tlen, mutpats, mutrates, selpats=list(), selfactors=
     if (missing(patlen)) { patlen <- mutlen }
     if (patlen<mutlen) { stop("patlen too short") }
     pad.patlen <- patlen+2*max(0,(sellen-1))
-    # construct generator matrix for (sellen-1,patlen,sellen-1) but with outer padding not changing
-    full.genmatrix <- makegenmatrix( mutpats, selpats, patlen=pad.patlen, boundary="none", bases=bases, selfactors=selfactors, ... )
-    mutrates <- mutrates / (patlen-mutpatlens+1)  # avoid overcounting (see above)
-    full.genmatrix@x <- update(full.genmatrix,mutrates,selcoef,...)
-    patterns <- rownames(full.genmatrix)
-    patstrings <- stringsetfun( patterns )
-    # max mutation rate
-    stopifnot( inherits(full.genmatrix,"dgCMatrix") )  # we access @i, @p, and @x directly...
-    full.genmatrix.j <- rep( 0:(ncol(full.genmatrix)-1), times=diff(full.genmatrix@p) )  # column indices corresp to @i
-    # remove entries that change in outer wings
-    unch <- ( ( substr( patterns[full.genmatrix@i+1L], 1, sellen-1 ) ==  substr( patterns[full.genmatrix.j+1L], 1, sellen-1 ) )
-        & ( substr( patterns[full.genmatrix@i+1L], sellen+patlen, patlen+2*(sellen-1) ) ==  substr( patterns[full.genmatrix.j+1L], sellen+patlen, patlen+2*(sellen-1) ) ) )
-    genmatrix <- new( "dgCMatrix",
-            i=full.genmatrix@i[unch],
-            x=full.genmatrix@x[unch],
-            p=sapply(0:ncol(full.genmatrix), function(k) sum(full.genmatrix.j[unch]<k)),
-            Dim=dim(full.genmatrix), Dimnames=dimnames(full.genmatrix)
-        )
-    genmatrix.j <- full.genmatrix.j[unch]
+    if (!is.null(gmfile) && file.exists(gmfile)) {  # load generator matrix
+        gm.obj <- load(gmfile)
+        if (!all(c("genmatrix","genmatrix.j","mutrates","patterns")) %in% gm.obj) {
+            stop(paste("Didn't find expected objects in presaved generator matrix file",gmfile))
+        }
+    } else {
+        # construct generator matrix for (sellen-1,patlen,sellen-1) but with outer padding not changing
+        full.genmatrix <- makegenmatrix( mutpats, selpats, patlen=pad.patlen, boundary="none", bases=bases, selfactors=selfactors, ... )
+        mutrates <- mutrates / (patlen-mutpatlens+1)  # avoid overcounting (see above)
+        full.genmatrix@x <- update(full.genmatrix,mutrates,selcoef,...)
+        patterns <- rownames(full.genmatrix)
+        # max mutation rate
+        stopifnot( inherits(full.genmatrix,"dgCMatrix") )  # we access @i, @p, and @x directly...
+        full.genmatrix.j <- rep( 0:(ncol(full.genmatrix)-1), times=diff(full.genmatrix@p) )  # column indices corresp to @i
+        # remove entries that change in outer wings
+        unch <- ( ( substr( patterns[full.genmatrix@i+1L], 1, sellen-1 ) ==  substr( patterns[full.genmatrix.j+1L], 1, sellen-1 ) )
+            & ( substr( patterns[full.genmatrix@i+1L], sellen+patlen, patlen+2*(sellen-1) ) ==  substr( patterns[full.genmatrix.j+1L], sellen+patlen, patlen+2*(sellen-1) ) ) )
+        genmatrix <- new( "dgCMatrix",
+                i=full.genmatrix@i[unch],
+                x=full.genmatrix@x[unch],
+                p=sapply(0:ncol(full.genmatrix), function(k) sum(full.genmatrix.j[unch]<k)),
+                Dim=dim(full.genmatrix), Dimnames=dimnames(full.genmatrix)
+            )
+        genmatrix.j <- full.genmatrix.j[unch]
+        if (!is.null(gmfile)) {
+            cat("Saving to ", gmfile, " -- remember this differs from the model's generator matrix.\n")
+            save( genmatrix, genmatrix.j, mutrates, patterns, file=gmfile )
+        }
+    }
     stopifnot( all(genmatrix>=0) )  # assume this comes WITHOUT the diagonal
+    patstrings <- stringsetfun( patterns )
     maxrate <- max( rowSums(genmatrix) )
     diags <- maxrate - rowSums(genmatrix)
     ####
