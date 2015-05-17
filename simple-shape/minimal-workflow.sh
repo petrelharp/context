@@ -23,6 +23,7 @@ mkdir -p $BASEDIR
 
 echo "simulate up some sequence for testing"
 SIMFILE="$BASEDIR/sim.RData"
+SIMGENMAT="$GMDIR/sim-genmatrix.RData"  # this takes a WHILE, so let's save it for future use
 Rscript ../sim-seq.R -c $MODEL -t .01 -s 1000 -o $SIMFILE -m $SIMGENMAT
 
 echo "and count the Tmers"
