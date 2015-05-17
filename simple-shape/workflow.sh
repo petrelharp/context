@@ -3,33 +3,21 @@
 set -eu
 set -o pipefail
 
-BASEDIR="minimal"
+BASEDIR="testing"
 GMDIR="genmatrices"
 MODEL="shape-model-random-values.json"
-
-echo "simulating random shape values for selection"
-SIMSCRIPT="
-source('../context-inference-fns.R')
-x=getpatterns(3,c('A','C','G','T'))
-y=rnorm(length(x))
-names(y)=x
-config=fromJSON(\"${MODEL}\")
-config[['selpats']]=list(as.list(y))
-cat(toJSON(config,pretty=TRUE),file=\"${MODEL}\")
-"
-Rscript <(echo "$SIMSCRIPT")
 
 mkdir -p $BASEDIR
 
 echo "simulate up some sequence for testing"
 SIMFILE="$BASEDIR/sim.RData"
 SIMGENMAT="$GMDIR/sim-genmatrix-$(echo $MODEL | sed -e 's/.json//').RData"  # this takes a WHILE, so let's save it for future use
-Rscript ../sim-seq.R -c $MODEL -t .01 -s 1000 -o $SIMFILE -m $SIMGENMAT
+Rscript ../sim-seq.R -c $MODEL -t .3 -s 1000000 -o $SIMFILE -m $SIMGENMAT
 
 echo "and count the Tmers"
 LONGWIN=5
-SHORTWIN=1
-LEFTWIN=2
+SHORTWIN=2
+LEFTWIN=1
 GENMAT="$BASEDIR/genmatrix-${LONGWIN}.RData"
 
 COUNTFILE=$BASEDIR/sim-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.counts
