@@ -23,7 +23,7 @@ mkdir -p $BASEDIR
 
 echo "simulate up some sequence for testing"
 SIMFILE="$BASEDIR/sim.RData"
-Rscript ../sim-seq.R -c $MODEL -t .01 -s 1000 -o $SIMFILE -m $SIMGENMATRIX
+Rscript ../sim-seq.R -c $MODEL -t .01 -s 1000 -o $SIMFILE -m $SIMGENMAT
 
 echo "and count the Tmers"
 LONGWIN=5
