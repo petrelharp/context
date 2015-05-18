@@ -47,7 +47,7 @@ if (is.null(opt$outfile)) {
 }
 
 if (!is.null(opt$outdir)) {
-    if (!file.exists(opt$outdir)) { dir.create(opt$outdir) }
+    if (!file.exists(opt$outdir)) { dir.create(opt$outdir,showWarnings=FALSE) }
     if (dirname(opt$outfile) != opt$outdir) { opt$outfile <- paste(opt$outdir,opt$outfile,sep='/') }
 }
 basename <- gsub(".RData","",opt$outfile)
@@ -65,7 +65,7 @@ simseq.config <- parse.models(simseq.config)
 # error checks
 stopifnot( ( length(simseq.config$bases) == length(simseq.config$initfreqs) ) )
 
-if (!is.null(opt$gmfile)) { dir.create(dirname(opt$gmfile),recursive=TRUE) }
+if (!is.null(opt$gmfile)) { dir.create(dirname(opt$gmfile),recursive=TRUE,showWarnings=FALSE) }
 
 # return a list of the simulated sequences in the same order as the tips,nodes of the tree
 simseqs <- simseq.tree(opt$seqlen,simseq.config,gmfile=opt$gmfile)

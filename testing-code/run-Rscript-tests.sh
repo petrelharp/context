@@ -2,7 +2,7 @@
 
 YESGOOD=0
 
-QUICKSCRIPTS="tree-tests.R tree-counts-test.R check-projection.R sim-short-ising.R check-ising-genmats.R varying-selcoef-test.R"
+QUICKSCRIPTS="tree-tests.R tree-counts-test.R check-projection.R sim-short-ising.R check-ising-genmats.R varying-selcoef-test.R parse-tree-config-test.R"
 LONGERSCRIPTs="check-ising-short-sim.R check-ising-long-sim.R check-ising-inference.R"  # like a minute each
 
 for SCRIPT in $QUICKSCRIPTS $LONGERSCRIPTS

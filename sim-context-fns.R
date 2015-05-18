@@ -47,7 +47,7 @@ simseq <- function (seqlen, tlen, mutpats, mutrates,
     pad.patlen <- patlen+2*max(0,(sellen-1))
     if (!is.null(gmfile) && file.exists(gmfile)) {  # load generator matrix
         gm.obj <- load(gmfile)
-        if (!all(c("genmatrix","genmatrix.j","mutrates","patterns")) %in% gm.obj) {
+        if (!all(c("genmatrix","genmatrix.j","mutrates","patterns") %in% gm.obj)) {
             stop(paste("Didn't find expected objects in presaved generator matrix file",gmfile))
         }
     } else {
