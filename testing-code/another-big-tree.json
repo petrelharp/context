@@ -43,6 +43,6 @@
     "sp4" : {
             "comment" : "O -> X",
             "mutpats" : [ [ "O", "X" ] ],
-            "mutrates" : [ 10 ]
+            "mutrates" : [ 30 ]
         }
 }

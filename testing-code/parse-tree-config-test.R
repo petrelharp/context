@@ -9,10 +9,10 @@ source("../input-output.R")
 # root: X
 #  root -> an1: X -> X
 #  root -> an2: X -> O
-#  an1 -> sp1: X -> O
-#  an1 -> sp2: X -> O
-#  an2 -> sp3: O -> O
-#  an2 -> sp4: O -> X
+#   an1 -> sp1: X -> O
+#   an1 -> sp2: X -> O
+#   an2 -> sp3: O -> O
+#   an2 -> sp4: O -> X
 
 config <- parse.models( treeify.config( read.config("another-big-tree.json") ) )
 
@@ -34,7 +34,7 @@ expected.genmats <- cbind( # X->X O->X X->O O->O
                     sp1 = c(  0,  0, 10*pf(.05),   0),
                     sp2 = c(  0,  0,    pf(1),   0),
                     sp3 = c(  0,  0,   0,   0),
-                    sp4 = c(  0, 10*pf(.01),   0,   0)
+                    sp4 = c(  0, 30*pf(.01),   0,   0)
         )
 
 stopifnot( all(which(expected.genmats>0)==which(sapply(genmat.list,as.vector)>1e-8)) )

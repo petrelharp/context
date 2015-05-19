@@ -81,25 +81,12 @@ fill.default.config <- function (config, defaults=NULL) {
     # fill in default values in a config list based on 'defaults', or length zeros if it makes sense
     #   for mutpats, mutrates, selpats, selfactors, selcoef, bases, fixfn, fixfn.params
     #
-    # Note that will not fill in default mutrates or selcoef if none are available in defaults
+    # Note that will NOT fill in default mutrates or selcoef if none are available in defaults
     #   and the corresponding patterns are not length zero
     #   (for instance, models for makegenmat don't need mutrates)
-    for (x in c("mutpats","selpats","bases","fixfn.params")) {
+    for (x in c("mutpats","selpats","bases","fixfn.params","fixfn.params.scale")) {
         if (is.null(config[[x]])) {
             config[[x]] <- if (is.null(defaults[[x]])) { list() } else { defaults[[x]] }
-        }
-    }
-    if (is.null(config[["mutrates"]])) { 
-        if (!is.null(defaults[["mutrates"]])) { 
-            config[["mutrates"]] <- defaults[["mutrates"]] 
-        }
-    }
-    if (is.null(config[["selcoef"]])) { 
-        if (length(config[["selpats"]])==0) { 
-            config[["selcoef"]] <- numeric(0) 
-        }
-        if (is.null(defaults[["selcoef"]])) { 
-            config[["selcoef"]] <- defaults[["selcoef"]]
         }
     }
     if (is.null(config[["selfactors"]])) { 
@@ -108,9 +95,19 @@ fill.default.config <- function (config, defaults=NULL) {
     if (is.null(config[["fixfn"]])) { 
         config[["fixfn"]] <- if(is.null(defaults[["fixfn"]])) { null.fixfn } else { defaults[["fixfn"]] }
     }
-    if (length(config$selpats)==0 && is.null(config$selcoef)) { 
-        config$selcoef <- numeric(0) 
-        config$selcoef.scale <- numeric(0) 
+    if (length(config$selpats)==0) {
+        if (is.null(config$selcoef)) { 
+            config$selcoef <- numeric(0) 
+        }
+        if (is.null(config$selcoef.scale)) {
+            config$selcoef.scale <- numeric(0) 
+        }
+    }
+    if (is.null(config$selcoef) && !is.null(defaults$selcoef)) {
+        config$selcoef <- defaults$selcoef
+    }
+    if (is.null(config$mutrates) && !is.null(defaults$mutrates)) {
+        config$mutrates <- defaults$mutrates
     }
     if (length(config$selpats)==0 && is.null(config$fixfn)) { 
         config$fixfn <- null.fixfn 
@@ -254,7 +251,7 @@ parse.models <- function (config,do.fixfns=TRUE) {
             # turn fixfn into a function and check we have the right parameters
             config[[modname]]$fixfn <- parse.fixfn(config[[modname]]$fixfn,config[[modname]]$fixfn.params)
         }
-        stopifnot( with( config[[modname]], ( length(mutpats) == length(mutrates) ) && ( length(selpats) == length(selcoef) && ( length(selcoef) == length(selfactors) ) )))
+        stopifnot( with( config[[modname]], ( length(mutpats) == length(mutrates) ) && ( is.null(config[[modname]]$selcoef) || ( ( length(selpats) == length(selcoef) ) && ( length(selcoef) == length(selfactors) ) ) ) ) )
     }
     return(config)
 }
