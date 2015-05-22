@@ -1,0 +1,21 @@
+{
+    "bases" : [ "X", "O" ],
+    "initfreqs" : [ 0.5, 0.5 ],
+    "mutpats" : [
+        [ [ "O", "X" ] , [ "X", "O" ] ]
+    ],
+    "mutrates" : [ 1.0 ],
+    "mutrates.scale" : [ 0.02, 0.02 ],
+    "comment": "first line is inverse temperature beta, second is magnetic field gamma",
+    "selpats" : [
+        [ "OX","XO" ],
+        [ "X" ]
+    ],
+    "selcoef" : [ 1.0, 0.5 ],
+    "selcoef.scale" : [ 0.1, 0.02 ],
+    "fixfn" : "ising.fixfn",
+    "fixfn.params" : [],
+    "mutrates.prior" : [ 1.0 ],
+    "selcoef.prior" : [ 3.0, 3.0 ]
+}
+

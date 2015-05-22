@@ -50,8 +50,8 @@ def _simple_sim():
     nest.add_aggregate('complete_agg', list)
     nest.add_aggregate('complete_json_agg', list)
 
-    # Add a nest level with the name 'input_file' that takes the files in the
-    # inputs directory as its nestable list. Make its label function just the
+    # Add a nest level with the name 'model' that takes the files in the
+    # 'models' directory as its nestable list. Make its label function just the
     # basename.
     nest.add('model', [join('models', f) for f in os.listdir('models')],
              label_func=os.path.basename)
@@ -60,11 +60,9 @@ def _simple_sim():
              label_func=lambda t: "_".join(str(n) for n in t))
     return nest
 
-
 # A simulation comparing between different seeds.
 def _seed_sim():
     name = 'seed'
-
     base = {'n_sites': 10000,
             'time': 0.1,
             'wintriple': (3, 1, 1),
@@ -77,6 +75,40 @@ def _seed_sim():
     nest.add('seed', range(3), label_func="seed_{}".format)
     return nest
 
+# Run a simple TASEP model many times, to check correctness of posterior distribution
+def _tasep_posterior_sim(mock=True):
+    if mock:
+        # Mock settings
+        name = 'mock_tasep'
+        params = {
+            'n_sites': 1000,
+            'n_seeds': 2,
+        }
+    else:
+        # Real settings
+        name = 'tasep'
+        params = {
+            'n_sites': 10000,
+            'n_seeds': 100,
+        }
+
+    base = {
+            'n_sites' : params['n_sites'],
+            }
+
+    nest = SConsWrap(Nest(base_dict=base), '_'+name, alias_environment=env)
+    nest.add_aggregate('complete_agg', list)
+    nest.add_aggregate('complete_json_agg', list)
+
+    nest.add('model', [join('models', 'tasep-model.json')],
+             label_func=os.path.basename)
+    nest.add('seed', range(params['n_seeds']),
+            label_func=lambda t: "seed_" + str(t) )
+    nest.add('time', [ 0.25, 1.5 ], 
+            label_func=lambda t: "time_" + str(t) )
+    nest.add('wintriple', [ (4,1,1), (4,2,2) ],
+             label_func=lambda t: "_".join(str(n) for n in t))
+    return nest
 
 # A simulation comparing between different tmer setups.
 def _tmer_sim(mock=True):
@@ -84,9 +116,10 @@ def _tmer_sim(mock=True):
         # Mock settings
         name = 'mock'
         params = {
-            'n_sites': 10000,
+            'n_sites': 1000,
             'n_seeds': 2,
             'wintriples': [(3, 1, 1), (4, 2, 1)],
+            'times' : [ 0.125, 0.25 ],
         }
     else:
         # Real settings
@@ -94,17 +127,26 @@ def _tmer_sim(mock=True):
         params = {
             'n_sites': 10000,
             'n_seeds': 16,
-            'wintriples': [(3, 1, 1), (4, 2, 1), (5, 3, 1), (6, 2, 2)],
+            'wintriples': [
+                ( 2, 0, 0 ),
+                ( 3, 0, 0 ),
+                ( 3, 1, 1 ),
+                ( 4, 1, 1 ),
+                ( 5, 1, 1 ),
+                ( 5, 2, 2 ),
+                ( 7, 2, 2 ),
+                ( 7, 3, 3 ),
+                ( 9, 3, 3 ) ],
+            'times' : [ 0.125, 0.25, 0.5, 1, 2, 4 ],
         }
-    base = {'n_sites': params['n_sites'],
-            'time': 0.1
-            }
+    base = {'n_sites': params['n_sites'] }
     nest = SConsWrap(Nest(base_dict=base), '_'+name, alias_environment=env)
     nest.add_aggregate('complete_agg', list)
     nest.add_aggregate('complete_json_agg', list)
     nest.add('model', [join('models', f) for f in os.listdir('models')],
              label_func=os.path.basename)
     nest.add('seed', range(params['n_seeds']), label_func="seed_{}".format)
+    nest.add('time', params['times'], label_func="time_{}".format)
     nest.add('wintriple', params['wintriples'],
              label_func=lambda t: "_".join(str(n) for n in t))
     return nest
@@ -139,6 +181,8 @@ cl_targets = {'simple': _simple_sim,
               'tmer': lambda: _tmer_sim(False),
               'mock': lambda: _tmer_sim(True),
               'tree_cpg': _tree_cpg_sim,
+              'tasep' : lambda: _tasep_posterior_sim(mock=False),
+              'mock_tasep' : lambda: _tasep_posterior_sim(mock=True),
               }
 
 # *** Processing command line input:
@@ -147,15 +191,26 @@ if not len(COMMAND_LINE_TARGETS) == 1:
     raise RuntimeError(error_str)
 
 target_str, = COMMAND_LINE_TARGETS
-nest = cl_targets[target_str]()
+nest = cl_targets[target_str]()      # Initialize the nest using one of the functions above
 
 for target_name in cl_targets.keys():
-    env.Alias(target_name, '_'+target_name)
+    env.Alias(target_name, '_'+target_name)   # For some reason, refer to targets with an "_" in front 
 
 
 # *** Our lovely targets:
+# 1. across various parameters:
+#   1.  simulate data : sim.RData
+#   2.  count tuples : counts.tsv
+#   3.  make genmatrix : genmat.RData
+#   4.  fit model : fit.RData
+#   5.  gather results : complete.json
+#   6.  make report : complete-simulation.html
+# 2.  summarize across : summary-across.tsv
+# 3.  collect params results : params-results.tsv
+# 4.  plot params results : params-results.tsv.pdf
+
 @nest.add_target()
-def sim(outdir, c):
+def sim(outdir, c):  # c is a dictionary that brings along the parameters
     assert("{0[seed]}".format(c) != "")  # Setting the seed makes sense.
     sim, = Command(join(outdir, 'sim.RData'),  # TARGET
                    ['../sim-seq.R', c['model']],  # SOURCES
@@ -165,15 +220,15 @@ def sim(outdir, c):
                    -c ${{SOURCES[1]}} \
                    -t {0[time]} \
                    -s {0[n_sites]} \
-                   -o $TARGET'.format(c))
+                   -o $TARGET'.format(c))  # its values get substituted into this string
     return sim
 
 
 @nest.add_target()
 def counts(outdir, c):
-    (c['longwin'], c['shortwin'], c['leftwin']) = c['wintriple']
-    counts, = Command(join(outdir, 'counts.tsv'),
-                      ['../count-seq.R', c['sim']],
+    (c['longwin'], c['shortwin'], c['leftwin']) = c['wintriple']  # unpack wintriple
+    counts, = Command(join(outdir, 'counts.tsv'),   # TARGET
+                      ['../count-seq.R', c['sim']], # SOURCES
                       'Rscript ${{SOURCES[0]}} \
                       -i ${{SOURCES[1]}} \
                       -w {0[longwin]} \
@@ -237,6 +292,7 @@ def report(env, outdir, c):
                           ${SOURCES[1]} \
                           ${SOURCES[2]}')
     return report
+
 
 
 # Move us back up to the directory that contains the models, which is our top.
