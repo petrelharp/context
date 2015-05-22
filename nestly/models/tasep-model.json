@@ -1,0 +1,10 @@
+{
+    "bases" : [ "X", "O" ],
+    "initfreqs" : [ 0.5, 0.5 ],
+    "mutpats" : [
+        [ [ "XO", "OX" ] ]
+    ],
+    "mutrates" : [ 1 ],
+    "mutrates.scale" : [ 0.1 ]
+}
+
