@@ -74,7 +74,7 @@ simseq <- function (seqlen, tlen, mutpats, mutrates,
             save( genmatrix, genmatrix.j, mutrates, patterns, file=gmfile )
         }
     }
-    stopifnot( all(genmatrix>=0) )  # assume this comes WITHOUT the diagonal
+    stopifnot( all( genmatrix@x >= 0 ) )  # assume this comes WITHOUT the diagonal
     patstrings <- stringsetfun( patterns )
     maxrate <- max( rowSums(genmatrix) )
     diags <- maxrate - rowSums(genmatrix)

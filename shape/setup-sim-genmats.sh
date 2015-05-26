@@ -3,9 +3,9 @@
 set -eu
 set -o pipefail
 
-if [ $# -lt 1]
+if [ $# -lt 1 ]
 then
-    echo "Usage: setup-sim-genmats.sh (prefix to .json config file"
+    echo "Usage: setup-sim-genmats.sh (prefix to .json config file)"
     exit 1
 fi
 
