@@ -28,7 +28,7 @@ env = Environment(ENV=environ)
 
 model_configs = [ 
         { 'model': join("models", "tasep-model.json"), 'meanboundary': 1 },
-        { 'model': join("models", "cpg-model.json", 'meanboundary': 0 },
+        { 'model': join("models", "cpg-model.json"), 'meanboundary': 0 },
         { 'model': join("models", "ising-model.json"), 'meanboundary': 0 },
 ]
 
