@@ -42,5 +42,5 @@ openwrite <- function(arg) {
 # options(error=print.and.dump)
 
 print.and.dump <- function () {
- cat(paste("Error in \"", paste(commandArgs(),collapse=' '), "\": dumping frames.\n")); dump.frames(to.file = TRUE); q(status=1)
+    cat(paste("Error in \"", paste(commandArgs(),collapse=' '), "\": dumping frames.\n")); dump.frames(to.file = TRUE); q(status=1)
 } 

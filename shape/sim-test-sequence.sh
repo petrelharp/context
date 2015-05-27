@@ -43,5 +43,6 @@ echo "check simulated model matches expected"
 
 echo "fit a model"
 FITFILE=$(echo $SIMFILE | sed -e "s/.RData/-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.fit.RData/")
-ls ../fit-model.R $COUNTFILE $MODELFILE $GENMAT && \
+ls $COUNTFILE $MODELFILE $GENMAT && \
     Rscript ../fit-model.R -i $COUNTFILE -t .01 --maxit 5 -c $MODELFILE -m $GENMAT -o $FITFILE
+
