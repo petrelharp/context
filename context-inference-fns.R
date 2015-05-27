@@ -144,7 +144,10 @@ gradest <- function (likfun, params, eps=mean(params)/1000) {
 # corresponds to the mutation rates, and the inner list corresponds to a set of mutpats that all have the
 # same rate.
 
-getmutmats <- function(mutpats,patterns,boundary=c("none","wrap")) {
+getmutmats <- function(mutpats, patterns, boundary=c("none","wrap"),
+        do.parallel=("parallel" %in% .packages(all.available=TRUE)),
+        numcores=if (do.parallel) { parallel::detectCores() } else { 1 }
+        ) {
     # The purpose of this function is to construct a translation table between
     # mutpats and the entries of the generator matrix that can happen as a
     # consequence of those mutpats.
@@ -157,8 +160,9 @@ getmutmats <- function(mutpats,patterns,boundary=c("none","wrap")) {
     boundary <- match.arg(boundary)
     longwin <- nchar(patterns[1])
     mutpats <- lapply( mutpats, function (x) { if (is.list(x)) { x } else { list(x) } } )
+    this.lapply <- if ( do.parallel && numcores>1 ) { function (...) { parallel::mclapply( ..., mc.cores=numcores ) } } else { lapply }
     lapply( mutpats, function (y) {  # y is mutpat list
-            do.call( rbind, lapply(y, function (x) {  # x is mutpat (from, to)
+            do.call( rbind, this.lapply(y, function (x) {  # x is mutpat (from, to)
                 patlen <- nchar(x[1])
                 switch( boundary,
                     wrap={ # patterns are circular
@@ -182,7 +186,11 @@ getmutmats <- function(mutpats,patterns,boundary=c("none","wrap")) {
     } )
 }
 
-getselmatches <- function (selpats, patterns, selfactors, boundary=c("none","wrap"), names=FALSE) {
+getselmatches <- function (selpats, patterns, selfactors, 
+        boundary=c("none","wrap"), names=FALSE,
+        do.parallel=("parallel" %in% .packages(all.available=TRUE)),
+        numcores=if (do.parallel) { parallel::detectCores() } else { 1 }
+    ) {
     # selpats can be a vector or a list of vectors,
     #   each element gets one parameter
     # selmatches[i,j] is the sum of selfactors[[i]] multiplied by the number of times the corresponding thing in selpat[[i]] matches pattern[j]
@@ -192,9 +200,10 @@ getselmatches <- function (selpats, patterns, selfactors, boundary=c("none","wra
     substrfun <- switch( boundary, wrap=wrapsubstr, none=substr )
     patlen <- nchar(patterns[1])
     if (!is.list(selpats)) { selpats <- as.list(selpats) }
+    this.lapply <- if ( do.parallel && numcores>1 ) { function (...) { parallel::mclapply( ..., mc.cores=numcores ) } } else { lapply }
     selmatches <- t( do.call( cbind.dsparseVector, lapply(seq_along(selpats), function (i) {   # loop over selpats
             y <- selpats[[i]]
-            Matrix::rowSums( do.call( cbind.dsparseVector, lapply(seq_along(y), function (j) {  # loop over elements of selpats[[y]]
+            Matrix::rowSums( do.call( cbind.dsparseVector, this.lapply(seq_along(y), function (j) {  # loop over elements of selpats[[y]]
                     x <- y[j]
                     maxshift <- patlen - switch( boundary, wrap=1, none=nchar(x) )
                     nonz.list <- lapply( 0:maxshift, function (k) { which(x == substrfun( patterns, 1+k, k+nchar(x) ) ) } ) 
