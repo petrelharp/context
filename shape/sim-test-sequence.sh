@@ -28,7 +28,7 @@ LONGWIN=5
 SHORTWIN=1
 LEFTWIN=2
 
-GENMAT="$GMDIR/genmatrix-${LONGWIN}.RData"
+GENMAT="$GMDIR/${MODEL}-genmatrix-${LONGWIN}.RData"
 COUNTFILE=$(echo $SIMFILE | sed -e "s/.RData/-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.counts/")
 
 echo "counting tuples:"
