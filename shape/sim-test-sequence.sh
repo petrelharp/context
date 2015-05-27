@@ -9,7 +9,7 @@ then
     exit 1
 fi
 
-MODEL=$1
+MODEL=$(echo $1 | sed -e 's/.json$//')
 MODELFILE=${MODEL}.json
 
 SEED=$(printf "%06.0f" $RANDOM)
