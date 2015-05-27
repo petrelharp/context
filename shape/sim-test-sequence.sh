@@ -15,6 +15,7 @@ MODELFILE=${MODEL}.json
 SEED=$(printf "%06.0f" $RANDOM)
 
 BASEDIR="testseq"
+mkdir -p $BASEDIR
 GMDIR="genmatrices"
 mkdir -p $GMDIR
 

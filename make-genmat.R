@@ -43,7 +43,7 @@ option_list <- list(
         make_option( c("-c","--configfile"), type="character", help="Input file of mutation and selection motifs." ),
         make_option( c("-o","--outfile"), type="character", help="Save resulting matrix in this file.  [default: genmatrix-(longwin)-(configfile)-(modelname).RData]" ),
         make_option( c("-w","--longwin"), type="integer", help="Size of matching window." ),
-        make_option( c("-b","--boundary"), type="character", default="none", help="Boundary conditions. [default \"%default\"]" ),
+        make_option( c("-b","--boundary"), type="character", default="none", help="Boundary conditions, either 'none' or 'wrap'. [default \"%default\"]" ),
         make_option( c("-m","--meanboundary"), type="integer", default=0, help="Average over this many neighboring bases. [default \"%default\"]" ),
         make_option( c("-l","--logfile"), type="character", help="Direct logging output to this file. [default appends .Rout]" )
     )

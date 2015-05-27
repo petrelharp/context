@@ -23,8 +23,19 @@ from SCons.Script import Environment, Command, COMMAND_LINE_TARGETS
 environ = os.environ.copy()
 env = Environment(ENV=environ)
 
-# *** The various types of simulations:
+# The list of models here along with their specific configuration parameters;
+# each should have a corresponding file in the 'models' directory.
 
+model_configs = [ 
+        { 'model': join("models", "tasep-model.json"), 'meanboundary': 1 },
+        { 'model': join("models", "cpg-model.json", 'meanboundary': 0 },
+        { 'model': join("models", "ising-model.json"), 'meanboundary': 0 },
+]
+
+if any( [ not os.path.isfile(x['model']) for x in model_configs ] ):
+    raise RuntimeError("Model(s) " + str( [ x['model'] for x in model_configs if not os.path.isfile(x['model']) ] ) + " doesn't exist." )
+
+# *** The various types of simulations:
 
 # A simple example simulation with lots of explanation.
 def _simple_sim():
@@ -34,7 +45,7 @@ def _simple_sim():
     # any levels in the directory hierarchy associated with them.
     base = {'n_sites': 10000,
             'time': 0.1,
-            'seed': 0  # Note: always set the seed, otherwise code will halt.
+            'seed': 0,  # Note: always set the seed, otherwise code will halt.
             }
 
     # Passing an argument to `alias_environment` allows building targets based
@@ -53,7 +64,7 @@ def _simple_sim():
     # Add a nest level with the name 'model' that takes the files in the
     # 'models' directory as its nestable list. Make its label function just the
     # basename.
-    nest.add('model', [join('models', f) for f in os.listdir('models')],
+    nest.add('model', model_configs,
              label_func=os.path.basename)
 
     nest.add('wintriple', [(3, 1, 1)],
@@ -70,7 +81,7 @@ def _seed_sim():
     nest = SConsWrap(Nest(base_dict=base), '_'+name, alias_environment=env)
     nest.add_aggregate('complete_agg', list)
     nest.add_aggregate('complete_json_agg', list)
-    nest.add('model', [join('models', f) for f in os.listdir('models')],
+    nest.add('model', model_configs,
              label_func=os.path.basename)
     nest.add('seed', range(3), label_func="seed_{}".format)
     return nest
@@ -228,17 +239,17 @@ def sim(outdir, c):  # c is a dictionary that brings along the parameters
 def counts(outdir, c):
     (c['longwin'], c['shortwin'], c['leftwin']) = c['wintriple']  # unpack wintriple
     counts, = Command(join(outdir, 'counts.tsv'),   # TARGET
-                      ['../count-seq.R', c['sim']], # SOURCES
+                      ['../count-seq.R', c['sim']], # SOURCES; note that 'sim' was added to the nest 'c' by sim() previously
                       'Rscript ${{SOURCES[0]}} \
                       -i ${{SOURCES[1]}} \
                       -w {0[longwin]} \
                       -s {0[shortwin]} \
                       -l {0[leftwin]} \
                       -o $TARGET'.format(c))
-    return counts
+    return counts   # and this will add 'counts' to the nest.
 
 
-# NOTE: Eventually re-evaluate use of meanboundary.
+# NOTE: TASEP needs meanboundary to avoid impossible situations.
 @nest.add_target()
 def genmat(outdir, c):
     genmat, = Command(join(outdir, 'genmat.RData'),
@@ -246,6 +257,7 @@ def genmat(outdir, c):
                       'Rscript ${{SOURCES[0]}} \
                       -c ${{SOURCES[1]}} \
                       -w {0[longwin]} \
+                      -m {0[meanboundary]} \
                       -o $TARGET'.format(c))
     return genmat
 
