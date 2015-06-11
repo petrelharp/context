@@ -25,8 +25,8 @@ SIMFILE="$BASEDIR/simseq-${MODEL}-seed-${SEED}.RData"
 Rscript ../sim-seq.R -c $MODELFILE -t .2 -s 10000 -m $SIMGENMAT -z $SEED -o $SIMFILE
 
 LONGWIN=5
-SHORTWIN=1
-LEFTWIN=2
+SHORTWIN=3
+LEFTWIN=1
 
 GENMAT="$GMDIR/${MODEL}-genmatrix-${LONGWIN}.RData"
 COUNTFILE=$(echo $SIMFILE | sed -e "s/.RData/-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.counts/")

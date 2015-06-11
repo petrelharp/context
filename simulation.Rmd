@@ -5,7 +5,7 @@
 library(pander)
 library(ggplot2)
 panderOptions("table.split.table", Inf)  # Let tables become arbitrarily wide rather than wrapping.
-source("context-inference-fns.R")
+source("context-inference-fns.R",chdir=TRUE)
 top_n_bottom <- function(df, k) { # Take the top and bottom k rows
     n = nrow(df)
     if(2*k < n) {
@@ -71,46 +71,46 @@ cat(model@invocation,"\n")
 ```
 
 
-```{r, echo=FALSE}
+```{r summary, echo=FALSE, results="asis"}
 cat(
-    "long window size:", longwin(model@counts),
-    "\nshort window size:", shortwin(model@counts),
-    "\nleft window size:", leftwin(model@counts),
-    "\ntotal counts:", sum(counttab),
-    "\ntime:", simseq.opt$tlen,
-    "\nseed:", formatC(simseq.opt$seed,format="d"),
+    "\n*  long window size:", longwin(model@counts),
+    "\n*  short window size:", shortwin(model@counts),
+    "\n*  left window size:", leftwin(model@counts),
+    "\n*  total counts:", sum(counttab),
+    "\n*  time:", simseq.opt$tlen,
+    "\n*  seed:", formatC(simseq.opt$seed,format="d"),
     "\n"
     )
 ```
 
 
 ## Result of fitting operation
-```{r, echo=FALSE}
+```{r convergence, echo=FALSE, results="asis"}
 if (class(model)=="context") {
-    cat("convergence: ", model@results$convergence,
-        "\nnumber of iterations: ", model@results$counts,
-        "\nmessage: ", model@results$message,
+    cat("\n* convergence: ", model@results$convergence,
+        "\n* number of iterations: ", model@results$counts,
+        "\n* message: ", model@results$message,
         "\n" )
 } else if (class(model)=="contextMCMC") {
     cat(
-        "number of batches: ", model@results$nbatch,
-        "\nbatch length: ", model@results$blen,
-        "\nacceptance rate: ", model@results$accept,
-        "\nrun time: ", model@results$time['elapsed'],
+        "\n* number of batches: ", model@results$nbatch,
+        "\n* batch length: ", model@results$blen,
+        "\n* acceptance rate: ", model@results$accept,
+        "\n* run time: ", model@results$time['elapsed'],
         "\n" )
 }
 ```
 
 
 ## Fitted parameter values
-```{r, echo=FALSE, results="asis"}
-pandoc.table(mr_compare, style="rmarkdown")
+```{r fitted, echo=FALSE}
+pander(mr_compare)
 mr_compare$names <- factor(names(coef(model)),levels=names(coef(model)))  # factor explicitly to get ggplot to put bars in order
 ```
 
 
 The corresponding plot, where bars are the fit values, and points are the simulated values:
-```{r, echo=FALSE, results="asis", fig.align='center'}
+```{r fit_plot, echo=FALSE, results="asis", fig.align='center'}
 param_log <- log(abs(mr_compare$simulated)+1e-4)
 param_sizes <- cut( param_log, breaks=seq(min(param_log), by=2, length.out=max(2,1+ceiling(diff(range(param_log))/2))), include.lowest=TRUE )
 for (k in unique(param_sizes)) {
@@ -124,7 +124,7 @@ for (k in unique(param_sizes)) {
 ```
 
 The likelihood surface about the fitted and simulated values (red are the values simulated under, black is the fitted values):
-```{r, echo=FALSE, results="asis", fig.align='center'}
+```{r likelihood_surface, echo=FALSE, results="asis", fig.align='center'}
 f <- function (x) { model@likfun((x*timevec)[model@results$use.par]) }
 for (k in (1:nrow(mr_compare))[model@results$use.par]) {
     pvals <- seq( .9*min(mr_compare[k,c("fit","simulated")]), 1.1*max(mr_compare[k,c("fit","simulated")]), length.out=10 )
@@ -139,25 +139,25 @@ for (k in (1:nrow(mr_compare))[model@results$use.par]) {
 ```
 
 ## residuals for 2-2 Tmers
-```{r, echo=FALSE, results="asis", fig.align='center'}
+```{r resids_2_2, echo=FALSE, results="asis", fig.align='center'}
 resids <- counts_table(in_longwin=2, in_shortwin=2, half_n_show=20)
 counts_plot(resids)
 ```
 
 ## residuals for 3-1 Tmers
-```{r, results="asis", fig.align='center'}
+```{r resids_3_1, results="asis", fig.align='center'}
 resids <- counts_table(in_longwin=3, in_shortwin=1, half_n_show=20)
 counts_plot(resids)
 ```
 
 ## residuals for 9-5 Tmers
-```{r, results="asis", fig.align='center'}
+```{r resids_9_5, results="asis", fig.align='center'}
 resids <- counts_table(in_longwin=9, in_shortwin=5, half_n_show=20)
 counts_plot(resids)
 ```
 
 # Trace plot of the MCMC run:
-```{r, results="asis", echo=FALSE, fig.width=12, fig.height=7, fig.align='center'}
+```{r mcmc_trace, results="asis", echo=FALSE, fig.width=12, fig.height=7, fig.align='center'}
 if (class(model)=="contextMCMC") {
     subseq <- seq(1,nrow(model@results$batch),length.out=min(1000,nrow(model@results$batch)))
     x <- sweep( model@results$batch[subseq,], 2, timevec[model@results$use.par], "/" )
@@ -176,7 +176,7 @@ if (class(model)=="contextMCMC") {
 ```
 
 # Pairwise marginal posteriors from MCMC, colored by time in MCMC run
-```{r, results="asis", echo=FALSE, fig.width=12, fig.height=12, fig.align='center'}
+```{r mcmc_posterior, results="asis", echo=FALSE, fig.width=12, fig.height=12, fig.align='center'}
 if (class(model)=="contextMCMC") {
     subseq <- seq(1,nrow(model@results$batch),length.out=min(1000,nrow(model@results$batch)))
     x <- rbind( x, mr_compare$simulated[model@results$use.par] ) 

@@ -50,7 +50,7 @@ npatterns <- function (patlen,bases) {
     return( length(bases)^patlen )
 }
 
-mutnames <- function (mutpats,pretty=FALSE) {
+mutnames <- function (mutpats,pretty=TRUE) {
     # Stringify a list of mutpat lists,
     #  if pretty=TRUE, then using the names if they are available
     stringified <- unlist( sapply( lapply( mutpats, lapply, paste, collapse="->" ), paste, collapse="|" ) ) 
@@ -60,7 +60,7 @@ mutnames <- function (mutpats,pretty=FALSE) {
     return( stringified )
 }
 
-selnames <- function (selpats,pretty=FALSE) {
+selnames <- function (selpats,pretty=TRUE) {
     # Stringify a list of selpats,
     #  but use the names if they are available
     stringified <- sapply(selpats,paste,collapse="|")
@@ -424,7 +424,7 @@ setMethod("fixparams", signature=c(x="contextTree"), definition=function (x) { l
 # and methods related to model fitting
 setMethod("coef", signature=c(object="contextModel"), definition=function (object) {
           coef <- c( object@mutrates, object@selcoef, object@params )
-          names(coef) <- c( mutnames( object@genmatrix@mutpats ), selnames( object@genmatrix@selpats ), names(object@params) )
+          names(coef) <- c( mutnames( object@genmatrix@mutpats, pretty=TRUE ), selnames( object@genmatrix@selpats, pretty=TRUE ), names(object@params) )
           return(coef) } )
 setMethod("coef", signature=c(object="contextTree"), definition=function (object) { 
             tlens <- object@tree$edge.length
