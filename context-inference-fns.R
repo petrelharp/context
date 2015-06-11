@@ -238,9 +238,9 @@ getselmatches <- function (selpats, patterns, selfactors,
 }
 
 
-shape.fixfn <- function (ds,Ne,a,...) {
-    # total influx of fixation given selection coefficient difference ds = a * |s[to] - s[from]|
-    if (length(ds)==0) { 1 } else { ifelse( ds==0, 1, Ne*expm1(-2*a*abs(ds))/expm1(-2*Ne*a*abs(ds)) ) }
+shape.fixfn <- function (ds,Ne,...) {
+    # total influx of fixation given selection coefficient difference ds = |s[to] - s[from]|
+    if (length(ds)==0) { 1 } else { ifelse( ds==0, 1, Ne*expm1(-2*abs(ds))/expm1(-2*Ne*abs(ds)) ) }
 }
 
 popgen.fixfn <- function (ds,Ne,...) {

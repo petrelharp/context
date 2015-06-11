@@ -22,7 +22,7 @@ mkdir -p $GMDIR
 echo "Simulating from ${MODEL} ."
 SIMGENMAT="$GMDIR/sim-${MODEL}-genmatrix.RData"  # this should be already done
 SIMFILE="$BASEDIR/simseq-${MODEL}-seed-${SEED}.RData"
-Rscript ../sim-seq.R -c $MODELFILE -t .2 -s 10000 -m $SIMGENMAT -z $SEED -o $SIMFILE
+Rscript ../sim-seq.R -c $MODELFILE -t 1.0 -s 1000000 -m $SIMGENMAT -z $SEED -o $SIMFILE
 
 LONGWIN=5
 SHORTWIN=3
@@ -44,7 +44,7 @@ echo "check simulated model matches expected"
 echo "fit a model"
 FITFILE=$(echo $SIMFILE | sed -e "s/.RData/-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.fit.RData/")
 ls $COUNTFILE $MODELFILE $GENMAT && \
-    Rscript ../fit-model.R -i $COUNTFILE -t .2 --maxit 500 -c $MODELFILE -m $GENMAT -o $FITFILE
+    Rscript ../fit-model.R -i $COUNTFILE -t 1.0 --maxit 500 -c $MODELFILE -m $GENMAT -o $FITFILE
 
 echo "computing residuals"
 RESIDFILE=$(echo $SIMFILE | sed -e "s/.RData/-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.resid.tsv/")
