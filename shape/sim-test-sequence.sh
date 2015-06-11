@@ -15,8 +15,8 @@ MODELFILE=${MODEL}.json
 SEED=$(printf "%06.0f" $RANDOM)
 
 BASEDIR="testseq"
-mkdir -p $BASEDIR
 GMDIR="genmatrices"
+mkdir -p $BASEDIR
 mkdir -p $GMDIR
 
 echo "Simulating from ${MODEL} ."
@@ -44,5 +44,12 @@ echo "check simulated model matches expected"
 echo "fit a model"
 FITFILE=$(echo $SIMFILE | sed -e "s/.RData/-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.fit.RData/")
 ls $COUNTFILE $MODELFILE $GENMAT && \
-    Rscript ../fit-model.R -i $COUNTFILE -t .01 --maxit 5 -c $MODELFILE -m $GENMAT -o $FITFILE
+    Rscript ../fit-model.R -i $COUNTFILE -t .2 --maxit 500 -c $MODELFILE -m $GENMAT -o $FITFILE
 
+echo "computing residuals"
+RESIDFILE=$(echo $SIMFILE | sed -e "s/.RData/-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.resid.tsv/")
+ls $FITFILE && \
+    Rscript ../compute-resids.R -i $FITFILE -o $RESIDFILE
+
+echo "look at results"
+../templated-Rmd.sh ../simulation.Rmd $FITFILE $SIMFILE

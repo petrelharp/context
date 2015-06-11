@@ -50,14 +50,24 @@ npatterns <- function (patlen,bases) {
     return( length(bases)^patlen )
 }
 
-mutnames <- function (mutpats) {
-    # Stringify a list of mutpat lists.
-    return( unlist( sapply( lapply( mutpats, lapply, paste, collapse="->" ), paste, collapse="|" ) ) )
+mutnames <- function (mutpats,pretty=FALSE) {
+    # Stringify a list of mutpat lists,
+    #  if pretty=TRUE, then using the names if they are available
+    stringified <- unlist( sapply( lapply( mutpats, lapply, paste, collapse="->" ), paste, collapse="|" ) ) 
+    if (pretty && !is.null(names(mutpats))) {
+        stringified[nchar(names(mutpats))>0] <- names(mutpats)[nchar(names(mutpats))>0]
+    }
+    return( stringified )
 }
 
-selnames <- function (selpats) {
-    # Stringify a list of selpats
-    return( sapply(selpats,paste,collapse="|") )
+selnames <- function (selpats,pretty=FALSE) {
+    # Stringify a list of selpats,
+    #  but use the names if they are available
+    stringified <- sapply(selpats,paste,collapse="|")
+    if (pretty && !is.null(names(selpats))) {
+        stringified[nchar(names(selpats))>0] <- names(selpats)[nchar(names(selpats))>0]
+    }
+    return( stringified )
 }
 
 

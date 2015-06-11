@@ -49,8 +49,8 @@ params <- as.data.frame( matrix( c(
     ), nrow=1 ) )
 colnames(params) <- gsub("|","\\|",c(
         "time",
-        mutnames(simseq.config$tip$mutpats),
-        selnames(simseq.config$tip$selpats),
+        mutnames(simseq.config$tip$mutpats,pretty=TRUE),
+        selnames(simseq.config$tip$selpats,pretty=TRUE),
         names(simseq.config$tip$fixfn.params)
     ), fixed=TRUE)
 pandoc.table(params, style="rmarkdown")
