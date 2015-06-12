@@ -40,8 +40,8 @@ if (logfile!="") {
 }
 
 scriptdir <- "../"
-source(paste(scriptdir,"context-inference-fns.R",sep=''))
-source(paste(scriptdir,"sim-context-fns.R",sep=''))
+source(paste(scriptdir,"context-inference-fns.R",sep=''),chdir=TRUE)
+source(paste(scriptdir,"sim-context-fns.R",sep=''),chdir=TRUE)
 
 require(mcmc)
 

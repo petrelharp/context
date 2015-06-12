@@ -4,8 +4,8 @@ require(expm)
 require(parallel)
 
 # Run some tests!!
-source("../sim-context-fns.R")
-source("../context-inference-fns.R")
+source("../sim-context-fns.R",chdir=TRUE)
+source("../context-inference-fns.R",chdir=TRUE)
 numcores<-getcores()
 
 bases <- c("X","O")

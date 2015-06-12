@@ -1,6 +1,6 @@
 #!/usr/bin/Rscript 
 
-source("../context-inference-fns.R")
+source("../context-inference-fns.R",chdir=TRUE)
 
 
 ####################################

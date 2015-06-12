@@ -21,7 +21,7 @@ if (is.null(opt$infile)) { stop("No input file.  Run\n  compute-resids.R -h\n fo
 if (is.null(opt$basedir)) { opt$basedir <- dirname(opt$infile) }
 print(opt) # this will go in the pbs log
 
-source("../context-inference-fns.R")
+source("../context-inference-fns.R",chdir=TRUE)
 options(error = print.and.dump)
 
 # and fitted model

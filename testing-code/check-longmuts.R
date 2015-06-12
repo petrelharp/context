@@ -2,8 +2,8 @@
 
 # a contrived example to test longer mutpats
 
-source("../sim-context-fns.R")
-source("../context-inference-fns.R")
+source("../sim-context-fns.R",chdir=TRUE)
+source("../context-inference-fns.R",chdir=TRUE)
 
 bases <- c("O","X")
 

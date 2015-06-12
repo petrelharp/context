@@ -80,7 +80,7 @@ if (FALSE) {
     stopifnot( abs(sum(exp(lcoefs)) - 1) < 1e-8 )
 
     # compare expAtv to expAtv.poisson
-    source("context-inference-fns.R")
+    source("context-inference-fns.R",chdir=TRUE)
     load("bcells/genmatrices/genmatrix-6-none-0-2.RData")
     projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=2, rightwin=2 )
     for (tlen in c(.1,1,10)) {

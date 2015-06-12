@@ -8,7 +8,7 @@ option_list <- list(
         )
 cmd <- parse_args(OptionParser(option_list=option_list,description=usage), positional_arguments = TRUE)
 
-source("../context-inference-fns.R")
+source("../context-inference-fns.R",chdir=TRUE)
 
 digest <- function(path_complete) {
     load(path_complete)

@@ -28,8 +28,8 @@ if (!'infile'%in%names(opt)) { stop("Run\n  cpg-mcmc.R -h\n for help.") }
 
 # options(error=traceback)
 scriptdir <- "../"
-source(paste(scriptdir,"context-inference-fns.R",sep=''))
-source(paste(scriptdir,"sim-context-fns.R",sep=''))
+source(paste(scriptdir,"context-inference-fns.R",sep=''),chdir=TRUE)
+source(paste(scriptdir,"sim-context-fns.R",sep=''),chdir=TRUE)
 require(mcmc)
 
 basedir <- gsub(".RData","",infile,fixed=TRUE)

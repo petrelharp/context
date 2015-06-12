@@ -11,7 +11,7 @@ option_list <- list(
         )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 
-source("../context-inference-fns.R")
+source("../context-inference-fns.R",chdir=TRUE)
 
 load(opt$sim)  # provides "simseq.opt"    "simseq.config" "simseqs"
 load(opt$fit)  # provides "model"

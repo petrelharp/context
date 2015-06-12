@@ -57,8 +57,8 @@ if (is.null(opt$outfile)) {
 basename <- gsub(".RData",'',opt$outfile)
 if (!file.exists(dirname(opt$outfile))) { dir.create(dirname(opt$outfile)) }
 
-# source("../sim-context-fns.R")
-source("../context-inference-fns.R")
+# source("../sim-context-fns.R",chdir=TRUE)
+source("../context-inference-fns.R",chdir=TRUE)
 
 options(error=print.and.dump)
 

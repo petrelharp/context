@@ -4,8 +4,8 @@ library("Biobase")
 library("Biostrings")
 library("IRanges")
 
-source("../context.R")
-source("../context-inference-fns.R")
+source("../context.R",chdir=TRUE)
+source("../context-inference-fns.R",chdir=TRUE)
 
 tests_data_fname <- "unit-tests.Rdata"
 load(tests_data_fname)

@@ -33,7 +33,7 @@ if (is.null(opt$outfile)) {
 }
 print(opt) # this will go in the pbs log
 
-source("../context-inference-fns.R")
+source("../context-inference-fns.R",chdir=TRUE)
 
 options(error = print.and.dump)
 

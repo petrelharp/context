@@ -33,8 +33,8 @@ if (interactive()) { shortwin <- 2; boundary <- "none"; meanboundary <- 0 }
 
 bases <- c("A","T","C","G")
 
-source("../sim-context-fns.R")
-source("../context-inference-fns.R")
+source("../sim-context-fns.R",chdir=TRUE)
+source("../context-inference-fns.R",chdir=TRUE)
 
 mutpats <- getmutpats(patlen)
 # # DO NOT allow GC-bias

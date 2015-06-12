@@ -1,6 +1,6 @@
 #!/usr/bin/R
 
-source("../context-inference-fns.R")
+source("../context-inference-fns.R",chdir=TRUE)
 
 # long.win <- list( leftwin=2, rightwin=2, shortwin=3, longwin=7 )
 long.win <- list( leftwin=1, rightwin=1, shortwin=5, longwin=7 )

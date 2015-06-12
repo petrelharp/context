@@ -1,7 +1,7 @@
 #!/usr/bin/Rscript
 
-source("../context-inference-fns.R")
-source("../sim-context-fns.R")
+source("../context-inference-fns.R",chdir=TRUE)
+source("../sim-context-fns.R",chdir=TRUE)
 
 bases <- c("X","O")
 

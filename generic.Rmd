@@ -5,7 +5,7 @@
 library(pander)
 library(ggplot2)
 panderOptions("table.split.table", Inf)  # Let tables become arbitrarily wide rather than wrapping.
-source("context-inference-fns.R")
+source("context-inference-fns.R",chdir=TRUE)
 top_n_bottom <- function(df, k) { # Take the top and bottom k rows
     n = nrow(df)
     if(2*k < n) {

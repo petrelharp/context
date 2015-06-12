@@ -5,16 +5,16 @@ set -o pipefail
 
 if [ $# -lt 1 ]
 then
-    echo "Usage: sim-test-sequence.sh (prefix to .json config file)"
+    echo "Usage: quicktest.sh (prefix to .json config file)"
     exit 1
 fi
 
 MODEL=$(echo $1 | sed -e 's/.json$//')
 MODELFILE=${MODEL}.json
 
-SEED=$(printf "%06.0f" $RANDOM)
+SEED=00000
 
-BASEDIR="testseq"
+BASEDIR="quicktest"
 GMDIR="genmatrices"
 mkdir -p $BASEDIR
 mkdir -p $GMDIR
@@ -22,7 +22,7 @@ mkdir -p $GMDIR
 echo "Simulating from ${MODEL} ."
 SIMGENMAT="$GMDIR/sim-${MODEL}-genmatrix.RData"  # this should be already done
 SIMFILE="$BASEDIR/simseq-${MODEL}-seed-${SEED}.RData"
-Rscript ../sim-seq.R -c $MODELFILE -t 1.0 -s 1000000 -m $SIMGENMAT -z $SEED -o $SIMFILE
+Rscript ../sim-seq.R -c $MODELFILE -t 1.0 -s 100 -m $SIMGENMAT -z $SEED -o $SIMFILE
 
 LONGWIN=5
 SHORTWIN=3
@@ -43,13 +43,14 @@ else
     echo " ... ${GENMAT} already exists, using that one."
 fi
 
+
 echo "check simulated model matches expected"
 ../templated-Rmd.sh ../testing-code/check-sim.Rmd $SIMFILE ${GENMAT}
 
-echo "fit a model, saving to ${FITFILE}"
+echo "fit a model"
 FITFILE=$(echo $SIMFILE | sed -e "s/.RData/-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.fit.RData/")
 ls $COUNTFILE $MODELFILE $GENMAT && \
-    Rscript ../fit-model.R -i $COUNTFILE -t 1.0 --maxit 500 -c $MODELFILE -m $GENMAT -o $FITFILE
+    Rscript ../fit-model.R -i $COUNTFILE -t 1.0 --maxit 5 -c $MODELFILE -m $GENMAT -o $FITFILE
 
 echo "computing residuals"
 RESIDFILE=$(echo $SIMFILE | sed -e "s/.RData/-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.resid.tsv/")

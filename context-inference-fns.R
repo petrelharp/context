@@ -2,17 +2,23 @@
 require(Matrix)
 require(expm)
 require(stringdist)
-# # find what directory this file is in
-frame_files <- lapply(sys.frames(), function(x) x$ofile)
-frame_files <- Filter(Negate(is.null), frame_files)
-.PATH <- dirname(frame_files[[length(frame_files)]])
-# source(paste(.PATH,"/expm-simple.R",sep=''))  # expAtv is faster
 
-source(paste(.PATH,"/expAtv.R",sep=''))  # fixed upstream
-source(paste(.PATH,"/gammaAtv.R",sep=''))
-source(paste(.PATH,"/input-output.R",sep=''))
-source(paste(.PATH,"/helper-fns.R",sep=''))
-source(paste(.PATH,"/plotting-fns.R",sep=''))
+# # # find what directory this file is in
+# frame_files <- lapply(sys.frames(), function(x) x$ofile)
+# frame_files <- Filter(Negate(is.null), frame_files)
+# .PATH <- dirname(frame_files[[length(frame_files)]])
+# # source(paste(.PATH,"/expm-simple.R",sep=''))  # expAtv is faster
+# source(paste(.PATH,"/expAtv.R",sep=''))  # fixed upstream
+# source(paste(.PATH,"/gammaAtv.R",sep=''))
+# source(paste(.PATH,"/input-output.R",sep=''))
+# source(paste(.PATH,"/helper-fns.R",sep=''))
+# source(paste(.PATH,"/plotting-fns.R",sep=''))
+
+source("expAtv.R")  # fixed upstream
+source("gammaAtv.R")
+source("input-output.R")
+source("helper-fns.R")
+source("plotting-fns.R")
 
 getpatterns <- function(patlen,bases) {
     # construct a list of all patterns of a given length
@@ -239,8 +245,9 @@ getselmatches <- function (selpats, patterns, selfactors,
 
 
 shape.fixfn <- function (ds,Ne,...) {
-    # total influx of fixation given selection coefficient difference ds = |s[to] - s[from]|
-    if (length(ds)==0) { 1 } else { ifelse( ds==0, 1, Ne*expm1(-2*abs(ds))/expm1(-2*Ne*abs(ds)) ) }
+    # total influx of fixation given shape difference ds = (s[to] - s[from]),
+    #   which assuming change is BAD, means a selection differential of (-1)*abs(ds)
+    if (length(ds)==0) { 1 } else { ifelse( ds==0, 1, Ne*expm1(2*abs(ds))/expm1(2*Ne*abs(ds)) ) }
 }
 
 popgen.fixfn <- function (ds,Ne,...) {

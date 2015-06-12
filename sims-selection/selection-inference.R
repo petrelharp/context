@@ -36,8 +36,8 @@ if (is.null(infile)) { cat("Run\n  cpg-tree-inference.R -h\n for help.") }
 
 setwd('/Users/Jessica/Documents/USC/context/sims-cpg-tree')
 scriptdir <- "../"
-source(paste(scriptdir,"context-inference-fns.R",sep=''))
-source(paste(scriptdir,"sim-context-fns.R",sep=''))
+source(paste(scriptdir,"context-inference-fns.R",sep=''),chdir=TRUE)
+source(paste(scriptdir,"sim-context-fns.R",sep=''),chdir=TRUE)
 
 require(mcmc)
 

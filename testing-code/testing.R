@@ -1,7 +1,7 @@
 #!/usr/bin/R
-source("../context.R")
-source("../context-inference-fns.R")
-source("../sim-context-fns.R")
+source("../context.R",chdir=TRUE)
+source("../context-inference-fns.R",chdir=TRUE)
+source("../sim-context-fns.R",chdir=TRUE)
 
 # Test suite?
 require(parallel)

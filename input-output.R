@@ -3,10 +3,12 @@
 #
 # TODO: move some functions over from the other files
 ###
-frame_files <- lapply(sys.frames(), function(x) x$ofile)
-frame_files <- Filter(Negate(is.null), frame_files)
-.PATH <- dirname(frame_files[[length(frame_files)]])
-source(paste(.PATH,"/helper-fns.R",sep=''))
+# frame_files <- lapply(sys.frames(), function(x) x$ofile)
+# frame_files <- Filter(Negate(is.null), frame_files)
+# .PATH <- dirname(frame_files[[length(frame_files)]])
+# source(paste(.PATH,"/helper-fns.R",sep=''))
+
+source("helper-fns.R")
 
 require(jsonlite)
 

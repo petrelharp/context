@@ -33,7 +33,7 @@ sink(file=logcon, type="message")
 sink(file=logcon, type="output", split=interactive())   # send both to log file
 
 scriptdir <- "../"
-source(paste(scriptdir,"context-inference-fns.R",sep=''))
+source(paste(scriptdir,"context-inference-fns.R",sep=''),chdir=TRUE)
 
 date()
 cat("basename: ", basename, "\n")

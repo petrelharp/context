@@ -42,7 +42,7 @@ if (is.null(opt$outfile)) { opt$outfile <- paste( opt$basedir, "/", gsub("\\.[^.
 if ( !is.null(opt$seed) ) { set.seed(opt$seed) }
 print(opt) # this will go in the pbs log
 
-source("../context-inference-fns.R")
+source("../context-inference-fns.R", chdir=TRUE)
 
 options(error = print.and.dump)
 

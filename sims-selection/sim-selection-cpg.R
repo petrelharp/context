@@ -46,8 +46,8 @@ if (!is.null(logfile)) {
 
 bases <- c("A","T","C","G")
 
-source("../sim-context-fns-dual.R")
-source("../context-inference-fns.R")
+source("../sim-context-fns-dual.R",chdir=TRUE)
+source("../context-inference-fns.R",chdir=TRUE)
 
 # maximum size of pattern (for simulation)
 mutpats <- c(

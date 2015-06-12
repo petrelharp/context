@@ -5,7 +5,7 @@ require(pander)
 require(ape)
 
 
-source("../sim-context-fns.R")
+source("../sim-context-fns.R",chdir=TRUE)
 
 usage <- '\
 Convert an RData file to a Markdown file. \

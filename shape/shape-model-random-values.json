@@ -17,7 +17,7 @@
         [ [ "CG", "TG" ], [ "CG", "CA" ] ]
     ],
     "mutrates" : [ 0.01, 0.01, 0.015, 0.015, 0.008, 0.008, 0.008, 0.008, 0.012, 0.012, 0.012, 0.012, 0.04 ],
-    "mutrates.0scale" : [ 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001 ],
+    "mutrates.scale" : [ 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001 ],
     "selpats" : [ {
          "AAAAA" : -1.30, "CAAAA" : 1.29, "GAAAA" : -0.99, "TAAAA" : -0.25, "ACAAA" : 0.86, "CCAAA" : -1.10, "GCAAA" : 0.52, "TCAAA" : 0.71,
          "AGAAA" : -0.83, "CGAAA" : -0.56, "GGAAA" : 1.28, "TGAAA" : 0.52, "ATAAA" : -2.29, "CTAAA" : -0.42, "GTAAA" : 0.09, "TTAAA" : 0.76,
@@ -148,11 +148,11 @@
          "AATTT" : -1.40, "CATTT" : 0.80, "GATTT" : -0.72, "TATTT" : -0.38, "ACTTT" : 0.47, "CCTTT" : -1.67, "GCTTT" : 0.68, "TCTTT" : 0.40,
          "AGTTT" : -0.08, "CGTTT" : -1.07, "GGTTT" : -1.01, "TGTTT" : 1.00, "ATTTT" : 0.31, "CTTTT" : 0.09, "GTTTT" : 0.00, "TTTTT" : -1.61
         } ],
-    "selcoef" : [ 0.001 ],
-    "selcoef.scale" : [ 0.001 ],
+    "selcoef" : [ 1.0 ],
+    "selcoef.scale" : [ 0.1 ],
     "fixfn" : "shape.fixfn",
-    "fixfn.params" : { "Ne" : 1000 }, 
-    "fixfn.params.scale" : { "Ne" : 50 }, 
+    "fixfn.params" : { "Ne" : 1.0 }, 
+    "fixfn.params.scale" : { "Ne" : 0.0 }, 
     "mutrates.prior" : [ 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1 ],
     "selcoef.prior" : [ 0.001 ],
     "fixfn.params.prior" : [ 1000 ]

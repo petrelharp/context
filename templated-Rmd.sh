@@ -19,7 +19,7 @@ outfile=$(pwd)/$(dirname $RData)/$(basename $RData .RData)-$(basename $template 
 R --vanilla --slave << EOF
 library("rmarkdown")
 
-source("$(dirname $0)/context-inference-fns.R")
+source("$(dirname $0)/context-inference-fns.R",chdir=TRUE)
 for (rdata in ${RDataList}) { cat("Loading ", rdata, "\n"); load(rdata) }
 render("$template", output_file="$outfile")
 EOF

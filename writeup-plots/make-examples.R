@@ -1,7 +1,7 @@
 #/usr/bin/R --vanilla
 
-source("../sim-context-fns.R")
-source("../context-inference-fns.R")
+source("../sim-context-fns.R",chdir=TRUE)
+source("../context-inference-fns.R",chdir=TRUE)
 
 
 # EXAMPLE 1 in the talk

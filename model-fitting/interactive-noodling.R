@@ -10,8 +10,8 @@ sink(file=logcon, type="message")
 sink(file=logcon, type="output")   # send both to log file
 
 scriptdir <- "../"
-source(paste(scriptdir,"context-inference-fns.R",sep=''))
-source(paste(scriptdir,"sim-context-fns.R",sep=''))
+source(paste(scriptdir,"context-inference-fns.R",sep=''),chdir=TRUE)
+source(paste(scriptdir,"sim-context-fns.R",sep=''),chdir=TRUE)
 
 lwin <- 1
 

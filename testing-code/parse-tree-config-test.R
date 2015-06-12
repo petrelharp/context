@@ -1,8 +1,8 @@
 #!/usr/bin/Rscript
 
-source("../context-inference-fns.R")
-source("../sim-context-fns.R")
-source("../input-output.R")
+source("../context-inference-fns.R",chdir=TRUE)
+source("../sim-context-fns.R",chdir=TRUE)
+source("../input-output.R",chdir=TRUE)
 
 
 ## Pattern should be:

@@ -1,6 +1,6 @@
 #!/usr/bin/Rscript
 
-source("../context-inference-fns.R")
+source("../context-inference-fns.R",chdir=TRUE)
 
 aligns <- c( "mm9ornAna1", "mm9hg19", "mm9galGal3", "mm9oryCun2", "mm9rn5" )
 
