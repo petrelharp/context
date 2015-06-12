@@ -10,7 +10,7 @@ TEMPFILE=$(mktemp tempXXXXX.RData)
 # TEST 1
 echo "Test 1:"
 Rscript ../make-genmat.R -c <(echo '{ "bases":["X","O"], "mutpats":[[["X","O"],["O","X"]]], "mutrates":[1] }') -w 2 -o $TEMPFILE 2>/dev/null
-TEST1=$( diff <(Rscript -e "source('../context-inference-fns.R'); load(\"$TEMPFILE\"); as.matrix(genmatrix)" 2>/dev/null | sed -e 's/^ *//' -e 's/ *$//' -e 's/  */ /g') <(( cat <<END
+TEST1=$( diff <(Rscript -e "source('../context-inference-fns.R',chdir=TRUE); load(\"$TEMPFILE\"); as.matrix(genmatrix)" 2>/dev/null | sed -e 's/^ *//' -e 's/ *$//' -e 's/  */ /g') <(( cat <<END
       XX OX XO OO
    XX  0  1  1  0
    OX  1  0  0  1
@@ -28,7 +28,7 @@ fi
 # Test 2
 echo "Test 2:"
 Rscript ../make-genmat.R -c <(echo '{ "bases":["X","O"], "mutpats":[[["X","O"]],[["O","X"]]], "mutrates":[1,2] }') -w 2 -o $TEMPFILE 2>/dev/null
-TEST2=$( diff <(Rscript -e "source('../context-inference-fns.R'); load(\"$TEMPFILE\"); as.matrix(genmatrix)" 2>/dev/null | sed -e 's/^ *//' -e 's/ *$//' -e 's/  */ /g') <(( cat <<END
+TEST2=$( diff <(Rscript -e "source('../context-inference-fns.R',chdir=TRUE); load(\"$TEMPFILE\"); as.matrix(genmatrix)" 2>/dev/null | sed -e 's/^ *//' -e 's/ *$//' -e 's/  */ /g') <(( cat <<END
       XX OX XO OO
    XX  0  1  1  0
    OX  2  0  0  1
@@ -45,7 +45,7 @@ fi
 
 # Test 3
 Rscript ../make-genmat.R -c <(echo '{ "bases":["X","O"], "mutpats":[[["X","O"]],[["O","X"]],[["OX","XX"]],[["XO","XX"]]], "mutrates":[1,2,3,5] }') -w 3 -o $TEMPFILE 2>/dev/null
-TEST2=$( diff <(Rscript -e "source('../context-inference-fns.R'); load(\"$TEMPFILE\"); as.matrix(genmatrix)" 2>/dev/null | sed -e 's/^ *//' -e 's/ *$//' -e 's/  */ /g') <(( cat <<END
+TEST2=$( diff <(Rscript -e "source('../context-inference-fns.R',chdir=TRUE); load(\"$TEMPFILE\"); as.matrix(genmatrix)" 2>/dev/null | sed -e 's/^ *//' -e 's/ *$//' -e 's/  */ /g') <(( cat <<END
     XXX OXX XOX OOX XXO OXO XOO OOO
 XXX   0   1   1   0   1   0   0   0
 OXX   5   0   0   1   0   1   0   0
@@ -65,4 +65,4 @@ else
 fi
 
 # Test 4
-Rscript -e "source('../context-inference-fns.R'); source('../input-output.R'); x <- read.counts('unit-test.counts',leftwin=0); stopifnot(all(as.numeric(x@counts)==c(5,5,5,2,6,6,3,4,3,6,6,4,6,6,5,6))); stopifnot(all(x@colpatterns\$sp2==c('A','T','A','T'))); stopifnot(all(x@colpatterns\$sp3==c('A','A','T','T'))); cat('read in count data: passed\n') "
+Rscript -e "source('../context-inference-fns.R',chdir=TRUE); source('../input-output.R',chdir=TRUE); x <- read.counts('unit-test.counts',leftwin=0); stopifnot(all(as.numeric(x@counts)==c(5,5,5,2,6,6,3,4,3,6,6,4,6,6,5,6))); stopifnot(all(x@colpatterns\$sp2==c('A','T','A','T'))); stopifnot(all(x@colpatterns\$sp3==c('A','A','T','T'))); cat('read in count data: passed\n') "
