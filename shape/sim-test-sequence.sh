@@ -10,19 +10,13 @@ then
 fi
 
 MODEL=$(echo $1 | sed -e 's/.json$//')
-MODELFILE=${MODEL}.json
-
 SEED=$(printf "%06.0f" $RANDOM)
 
+MODELFILE=${MODEL}.json
 BASEDIR="testseq"
 GMDIR="genmatrices"
-mkdir -p $BASEDIR
-mkdir -p $GMDIR
-
-echo "Simulating from ${MODEL} ."
 SIMGENMAT="$GMDIR/sim-${MODEL}-genmatrix.RData"  # this should be already done
 SIMFILE="$BASEDIR/simseq-${MODEL}-seed-${SEED}.RData"
-Rscript ../sim-seq.R -c $MODELFILE -t 1.0 -s 1000000 -m $SIMGENMAT -z $SEED -o $SIMFILE
 
 LONGWIN=5
 SHORTWIN=3
@@ -30,6 +24,14 @@ LEFTWIN=1
 
 GENMAT="$GMDIR/${MODEL}-genmatrix-${LONGWIN}.RData"
 COUNTFILE=$(echo $SIMFILE | sed -e "s/.RData/-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.counts/")
+FITFILE=$(echo $SIMFILE | sed -e "s/.RData/-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.fit.RData/")
+RESIDFILE=$(echo $SIMFILE | sed -e "s/.RData/-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.resid.tsv/")
+
+mkdir -p $BASEDIR
+mkdir -p $GMDIR
+
+echo "Simulating from ${MODEL} ."
+Rscript ../sim-seq.R -c $MODELFILE -t 1.0 -s 1000000 -m $SIMGENMAT -z $SEED -o $SIMFILE
 
 echo "counting tuples, recording to ${COUNTFILE}"
 ls $SIMFILE && \
@@ -47,12 +49,11 @@ echo "check simulated model matches expected"
 ../templated-Rmd.sh ../testing-code/check-sim.Rmd $SIMFILE ${GENMAT}
 
 echo "fit a model, saving to ${FITFILE}"
-FITFILE=$(echo $SIMFILE | sed -e "s/.RData/-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.fit.RData/")
 ls $COUNTFILE $MODELFILE $GENMAT && \
     Rscript ../fit-model.R -i $COUNTFILE -t 1.0 --maxit 500 -c $MODELFILE -m $GENMAT -o $FITFILE
 
 echo "computing residuals"
-RESIDFILE=$(echo $SIMFILE | sed -e "s/.RData/-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.resid.tsv/")
+echo "saving residuals to ${RESIDFILE}"
 ls $FITFILE && \
     Rscript ../compute-resids.R -i $FITFILE -o $RESIDFILE
 
