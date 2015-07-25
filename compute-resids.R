@@ -39,12 +39,12 @@ if (is.null(opt$outfile)) {
 }
 
 if (is.null(opt$countfile)) {
-    counts = NULL
+    counts <- NULL
 } else {
-    counts = read.counts(opt$countfile)
+    counts <- read.counts(opt$countfile)
 }
 
-residframe = computeresids (model,
+residframe <- computeresids (model,
     pretty            = opt$pretty,
     in_longwin        = opt$longwin,
     in_shortwin       = opt$shortwin,
