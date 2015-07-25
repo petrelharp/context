@@ -78,6 +78,16 @@ counts_table(in_longwin=2, in_shortwin=2, half_n_show=20)
 counts_table(in_longwin=3, in_shortwin=1, half_n_show=20)
 ```
 
+## residuals for 3-3 Tmers
+```{r, results="asis"}
+counts_table(in_longwin=3, in_shortwin=3, half_n_show=20)
+```
+
+## residuals for 5-5 Tmers
+```{r, results="asis"}
+counts_table(in_longwin=5, in_shortwin=5, half_n_show=20)
+```
+
 ## residuals for 9-5 Tmers
 ```{r, results="asis"}
 counts_table(in_longwin=9, in_shortwin=5, half_n_show=20)

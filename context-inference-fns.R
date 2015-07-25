@@ -476,7 +476,17 @@ setMethod("residuals", signature=c(object="context"), definition=function (objec
 #  then
 #    P = Q %*% J .
 
-makegenmatrix <- function (mutpats, selpats=list(), patlen=nchar(patterns[1]), patterns=getpatterns(patlen,bases), bases, fixfn, mutrates=rep(1,length(mutpats)), selcoef=rep(1,length(selpats)), selfactors=lapply(selpats,sapply,function(x)1), boundary="none", ...) {
+makegenmatrix <- function (
+        mutpats, 
+        selpats=list(), 
+        patlen=nchar(patterns[1]), 
+        patterns=getpatterns(patlen,bases), 
+        bases, 
+        fixfn, 
+        mutrates=rep(1,length(mutpats)), 
+        selcoef=rep(1,length(selpats)), 
+        selfactors=lapply(selpats,sapply,function(x)1), 
+        boundary="none", ...) {
     # Make the generator matrix G on the specified set of patterns,
     # carrying with it the means to quickly update itself.
     #  DON'T do the diagonal (i.e. it must be left empty), so that the updating is easier.

@@ -16,7 +16,9 @@ rinitseq <- function (seqlen,bases,basefreqs=rep(1/length(bases),length(bases)))
 }
 
 simseq <- function (seqlen, tlen, mutpats, mutrates, 
-        selpats=list(), selfactors=lapply(selpats,sapply,function(x)1), selcoef=numeric(0), 
+        selpats=list(), 
+        selfactors=lapply(selpats,sapply,function(x)1), 
+        selcoef=numeric(0), 
         patlen, bases=c("A","C","G","T"), 
         initseq, basefreqs=rep(1/length(bases),length(bases)), 
         count.trans=FALSE, only.num.events=FALSE, 
