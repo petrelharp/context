@@ -126,7 +126,7 @@ lbs <- c( rep(1e-8,nmuts(genmatrix)), rep(-5,nsel(genmatrix)), rep(-Inf,length(f
 ubs <- c( rep(2,nmuts(genmatrix)), rep(5,nsel(genmatrix)), rep(Inf,length(fixparams(genmatrix))) )
 
 baseval <- likfun(initpar[use.par])
-stopifnot( is.finite(baseval) )
+if ( ! is.finite(baseval) ) { stop("Likelihood is not finite at initial values.") }
 # # adjust parscale if necessary
 # for (k in seq_along(initpar)) {
 #     while ( parscale[k] > 1e-8 && (!is.finite(likfun(initpar+ifelse(seq_along(parscale)==k,parscale,0))) ) || (!is.finite(likfun(initpar+ifelse(seq_along(parscale)==k,parscale,0))) ) ) {

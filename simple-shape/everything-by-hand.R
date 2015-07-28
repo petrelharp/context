@@ -12,8 +12,9 @@
 source("../context-inference-fns.R",chdir=TRUE)
 source("../sim-context-fns.R",chdir=TRUE)
 
+modelfile <- "simple-shape-model.json"
 
-model.config <- read.config("simple-shape-model.json")
+model.config <- read.config(modelfile)
 
 config <- treeify.config(model.config,tlen=10)
 config <- parse.models(config)
