@@ -139,6 +139,15 @@ treeify.config <- function (config,tlen=NULL) {
     return(config)
 }
 
+check.genmatrix <- function (config,genmatrix) {
+    # check that genmatrix is compatible with config
+    for (xname in c("bases", "mutpats", "selpats", "selfactors")) {
+        if (!isTRUE(all.equal( slot(genmatrix,xname), config$xname ))) {
+            stop("Precomputed generator matrix does not agree with configuration values for:", xname)
+    }
+    return(TRUE)
+}
+
 # tree helper functions
 nodenames <- function (tr) { selfname( c( tr$tip.label, tr$node.label ) ) }
 "nodenames<-" <- function (tr,value) { tr$tip.label <- value[seq_along(tr$tip.label)]; tr$node.label <- value[length(tr$tip.label)+seq(1,length.out=tr$Nnode)]; return(tr) }

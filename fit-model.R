@@ -61,6 +61,7 @@ if ( is.null(init.config$mutrates) ||
 # load generator matrix
 stopifnot(file.exists(opt$gmfile))
 load(opt$gmfile)  # provides 'genmatrix'
+check.genmatrix(init.config,genmatrix)
 
 # read in counts
 counts <- read.counts(opt$infile, bases=genmatrix@bases, longpats=rownames(genmatrix) )
