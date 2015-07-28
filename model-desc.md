@@ -43,6 +43,8 @@ An object of class 'genmatrix' is a sparse matrix that additionally carries the 
 - 'rownames( )' and 'colnames( )' : character vectors; should match with e.g. 'headpats' above.
 - 'mutpats' : list of mutation motifs
 - 'selpats' : list of selection motifs
+- 'selfactors' : a list of numeric vectors of the same structure of 'selpats' that provide weights to these (defaults to '1's).
+    This is not used in computation, since these have been used in constructing the genmatrix, but can be used for checking how the genmatrix was constructed.
 - 'fixfn' : fixation function that translates differences in selection coefficient to mutation rate multipliers
 - 'nmuts( )': the number of mutation patterns present in that genmatrix
 

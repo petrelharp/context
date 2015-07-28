@@ -288,6 +288,7 @@ setClass("genmatrix", representation(
                  bases="character",
                  mutpats="list",
                  selpats="list",
+                 selfactors="list",
                  boundary="character",
                  fixfn="function"),
      contains = "dgCMatrix")
@@ -573,6 +574,7 @@ makegenmatrix <- function (
             seltrans=seltrans,
             mutpats=mutpats,
             selpats=selpats,
+            selfactors=selfactors,
             bases=bases,
             fixfn=fixfn,
             boundary=boundary

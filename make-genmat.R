@@ -60,8 +60,6 @@ if (!file.exists(dirname(opt$outfile))) { dir.create(dirname(opt$outfile)) }
 # source("../sim-context-fns.R",chdir=TRUE)
 source("../context-inference-fns.R",chdir=TRUE)
 
-options(error=print.and.dump)
-
 config <- read.config(opt$configfile)
 if (!is.null(config$tree)) {
     config <- parse.models( treeify.config( config ) )

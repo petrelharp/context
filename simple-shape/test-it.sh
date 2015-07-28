@@ -3,59 +3,65 @@
 set -eu
 set -o pipefail
 
-BASEDIR="minimal"
-GMDIR="genmatrices"
-MODEL="simple-shape-model"
-INITMODEL="simple-shape-model-init" # don't start at true values
-SEED=$(printf "%06.0f" $RANDOM)
-
-mkdir -p $BASEDIR
-
-MODELFILE=${MODEL}.json
-INITMODELFILE=${INITMODEL}.json
-SIMFILE="$BASEDIR/sim.RData"
-SIMGENMAT="$GMDIR/sim-genmatrix.RData"  # this takes a WHILE, so let's save it for future use
+if [ $# -lt 1 ]
+then
+    echo "Usage:
+    ./test-it.sh (name of .json model, without the .json) [more model names]
+    "
+else
+    MODELS=$(echo "$@" | sed -e 's/[.]json\>//g')
+fi
 
 LONGWIN=7
 SHORTWIN=3
 LEFTWIN=2
-GENMAT="$BASEDIR/genmatrix-${LONGWIN}.RData"
 
-GENMAT="$GMDIR/${MODEL}-genmatrix-${LONGWIN}.RData"
-COUNTFILE=$(echo $SIMFILE | sed -e "s/.RData/-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.counts/")
-FITFILE=$(echo $SIMFILE | sed -e "s/.RData/-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.fit.RData/")
-RESIDFILE=$(echo $SIMFILE | sed -e "s/.RData/-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.resid.tsv/")
+for MODEL in $MODELS
+do
 
-mkdir -p $BASEDIR
-mkdir -p $GMDIR
+    BASEDIR="test-it"
+    GMDIR="genmatrices"
+    INITMODEL=${MODEL} # change this to not start at true values
+    SEED=$(printf "%06.0f" $RANDOM)
 
-echo "Simulating from ${MODEL} ."
-Rscript ../sim-seq.R -c $MODELFILE -t 0.7 -s 1000000 -m $SIMGENMAT -z $SEED -o $SIMFILE
+    mkdir -p $BASEDIR
 
-echo "counting tuples, recording to ${COUNTFILE}"
-ls $SIMFILE && \
-    Rscript ../count-seq.R -i $SIMFILE -w $LONGWIN -s $SHORTWIN -l $LEFTWIN -o $COUNTFILE
+    MODELFILE=${MODEL}.json
+    INITMODELFILE=${INITMODEL}.json
+    SIMFILE="$BASEDIR/${MODEL}-sim.RData"
+    SIMGENMAT="$GMDIR/${MODEL}-sim-genmatrix.RData"  # this takes a WHILE, so let's save it for future use
 
-echo "precompute generator matrices, saving to ${GENMAT}"
-if [ ! -f $GENMAT ]
-then
+    GENMAT="$GMDIR/${MODEL}-genmatrix-${LONGWIN}.RData"
+    COUNTFILE=$(echo $SIMFILE | sed -e "s/.RData/-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.counts/")
+    FITFILE=$(echo $SIMFILE | sed -e "s/.RData/-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.fit.RData/")
+    RESIDFILE=$(echo $SIMFILE | sed -e "s/.RData/-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.resid.tsv/")
+
+    mkdir -p $BASEDIR
+    mkdir -p $GMDIR
+
+    echo "Simulating from ${MODEL} ."
+    Rscript ../sim-seq.R -c $MODELFILE -t 0.7 -s 1000000 -m $SIMGENMAT -z $SEED -o $SIMFILE
+
+    echo "counting tuples, recording to ${COUNTFILE}"
+    ls $SIMFILE && \
+        Rscript ../count-seq.R -i $SIMFILE -w $LONGWIN -s $SHORTWIN -l $LEFTWIN -o $COUNTFILE
+
+    echo "precompute generator matrices, saving to ${GENMAT}"
     Rscript ../make-genmat.R -c $MODELFILE -w ${LONGWIN} -o ${GENMAT}
-else
-    echo " ... ${GENMAT} already exists, using that one."
-fi
 
-echo "check simulated model matches expected"
-../templated-Rmd.sh ../testing-code/check-sim.Rmd $SIMFILE ${GENMAT}
+    echo "check simulated model matches expected"
+    ../templated-Rmd.sh ../testing-code/check-sim.Rmd $SIMFILE ${GENMAT}
 
-echo "fit a model, saving to ${FITFILE}"
-ls $COUNTFILE $INITMODELFILE $GENMAT && \
-    Rscript ../fit-model.R -i $COUNTFILE -t 1.0 --maxit 500 -c $INITMODELFILE -m $GENMAT -o $FITFILE
+    echo "fit a model, saving to ${FITFILE}"
+    ls $COUNTFILE $INITMODELFILE $GENMAT && \
+        Rscript ../fit-model.R -i $COUNTFILE -t 1.0 --maxit 500 -c $INITMODELFILE -m $GENMAT -o $FITFILE
 
-echo "computing residuals"
-echo "saving residuals to ${RESIDFILE}"
-ls $FITFILE && \
-    Rscript ../compute-resids.R -i $FITFILE -o $RESIDFILE
+    echo "computing residuals"
+    echo "saving residuals to ${RESIDFILE}"
+    ls $FITFILE && \
+        Rscript ../compute-resids.R -i $FITFILE -o $RESIDFILE
 
-echo "look at results"
-../templated-Rmd.sh ../simulation.Rmd $FITFILE $SIMFILE
+    echo "look at results"
+    ../templated-Rmd.sh ../simulation.Rmd $FITFILE $SIMFILE
 
+done

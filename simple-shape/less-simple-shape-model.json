@@ -1,10 +1,11 @@
 {
     "bases" : [ "O", "X" ], 
+    "initfreqs" : [ 0.5, 0.5 ],
     "mutpats" : [
         [ [ "O", "X" ] ],
         [ [ "X", "O" ] ]
     ],
-    "mutrates" : [ 0.015, 0.015 ],
+    "mutrates" : [ 0.01, 0.01 ],
     "mutrates.scale" : [ 0.001, 0.001 ],
     "selpats" : {
     "MGW": {
@@ -16,14 +17,23 @@
         "XOX" : [  0.0 ],
         "XXO" : [  0.0 ],
         "XXX" : [  1.0 ]
+        },
+    "OMG": {
+        "OOO" : [  0.0 ],
+        "OOX" : [  0.1 ],
+        "OXO" : [  1.0 ],
+        "XOO" : [  0.0 ],
+        "OXX" : [ -0.1 ],
+        "XOX" : [ -1.0 ],
+        "XXO" : [  0.0 ],
+        "XXX" : [  0.0 ]
         }
     },
-    "selcoef" : [ 0.0001 ],
-    "selcoef.scale" : [ 0.1 ],
+    "selcoef" : [ 0.0001, 0.0003 ],
+    "selcoef.scale" : [ 0.00001, 0.00001 ],
     "fixfn" : "shape.fixfn",
     "fixfn.params" : { "Ne" : 10000.0 },
     "fixfn.params.scale" : { "Ne" : 0.0 },
     "mutrates.prior" : [ 0.1, 0.1 ],
     "selcoef.prior" : [ 0.001 ]
 }
-
