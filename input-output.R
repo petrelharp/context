@@ -141,9 +141,11 @@ treeify.config <- function (config,tlen=NULL) {
 
 check.genmatrix <- function (config,genmatrix) {
     # check that genmatrix is compatible with config
+    # TODO: check that fixfn agrees too
     for (xname in c("bases", "mutpats", "selpats", "selfactors")) {
         if (!isTRUE(all.equal( slot(genmatrix,xname), config$xname ))) {
             stop("Precomputed generator matrix does not agree with configuration values for:", xname)
+        }
     }
     return(TRUE)
 }
