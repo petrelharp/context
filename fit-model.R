@@ -136,7 +136,7 @@ if ( ! is.finite(baseval) ) { stop("Likelihood is not finite at initial values."
 #     }
 # }
 
-optim.results <- optim( par=initpar[use.par], fn=likfun, method="L-BFGS-B", lower=lbs[use.par], upper=ubs[use.par], control=list(fnscale=(-1)*abs(baseval), parscale=parscale[use.par], maxit=opt$maxit) )
+optim.results <- optim( par=initpar[use.par], fn=likfun, method="L-BFGS-B", lower=lbs[use.par], upper=ubs[use.par], control=list(fnscale=(-1)*abs(baseval), parscale=parscale[use.par], maxit=opt$maxit), hessian=TRUE )
 
 # save some more things in optim.results
 optim.results$use.par <- use.par

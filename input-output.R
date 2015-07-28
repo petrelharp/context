@@ -268,3 +268,48 @@ parse.models <- function (config,do.fixfns=TRUE) {
     }
     return(config)
 }
+
+
+## plotting functions
+
+likelihood.surface <- function (model, tlen=1, plot.it=TRUE, ask=FALSE, mutrates=model@mutrates, selcoef=model@selcoef, ngrid=10) {
+    # Compute the likelihood on a grid of points about the parameters in 'model'
+    # and plot these (note: plots more than one figure)
+
+    timevec <- c( rep(as.numeric(tlen),nmuts(model)), rep(1,length(coef(model))-nmuts(model)) )
+    model@mutrates <- mutrates*tlen
+    model@selcoef <- selcoef
+    pvec <- coef(model)/timevec
+    f <- function (x) { model@likfun((x*timevec)[model@results$use.par]) }
+
+    # contours
+    jk <- combn(which(model@results$use.par),2)
+    grids <- lapply( 1:ncol(jk), function (ii) {
+            j <- jk[1,ii]
+            k <- jk[2,ii]
+            inds <- 1:length(pvec)
+            inds[j] <- 1+length(pvec)
+            inds[k] <- 2+length(pvec)
+            pvals <- seq( .9*min(pvec[j]), 1.1*max(pvec[j]), length.out=ngrid )
+            qvals <- seq( .9*min(pvec[k]), 1.1*max(pvec[k]), length.out=ngrid )
+            lvals <- matrix( NA, nrow=length(pvals), ncol=length(qvals) )
+            for (jj in seq_along(pvals)) {
+                for (kk in seq_along(qvals)) {
+                    lvals[jj,kk] <- f( c(pvec,pvals[jj],qvals[kk])[inds] )
+                }
+            }
+            if (plot.it) {
+                cols <- colorspace::diverge_hcl(64)
+                plot( pvals[row(lvals)], qvals[col(lvals)], cex=3, pch=20, 
+                        col=cols[cut(lvals,breaks=length(cols))], ask=ask,
+                        xlab=names(coef(model)[model@results$use.par])[j],
+                        ylab=names(coef(model)[model@results$use.par])[k]
+                    )
+            }
+            glist <- list( pvals, qvals, lvals )
+            names( glist ) <- c( names(coef(model)[model@results$use.par])[c(j,k)], "likfun" )
+            return(glist)
+        } )
+
+    return( grids )
+}
