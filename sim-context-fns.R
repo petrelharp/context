@@ -49,8 +49,12 @@ simseq <- function (seqlen, tlen, mutpats, mutrates,
     pad.patlen <- patlen+2*max(0,(sellen-1))
     if (!is.null(gmfile) && file.exists(gmfile)) {  # load "generator matrix" -- note this is NOT a "genmatrix" object.
         gm.obj <- load(gmfile)
-        if (!all(c("genmatrix","genmatrix.j","mutrates","patterns") %in% gm.obj)) {
+        if (!all(c("genmatrix","genmatrix.j","mutrates","patterns","gm.params") %in% gm.obj)) {
             stop(paste("Didn't find expected objects in presaved generator matrix file",gmfile))
+        }
+        # check to make sure this genmatrix was constructed with the right structures
+        if ( !isTRUE(all.equal( gm.params, list(bases=bases,mutpats=mutpats,selpats=selpats,selfactors=selfactors) ) ) ) {
+            stop(paste("Parameters in", gmfile, "don't match given ones."))
         }
     } else {
         # construct generator matrix for (sellen-1,patlen,sellen-1) but with outer padding not changing
@@ -73,7 +77,8 @@ simseq <- function (seqlen, tlen, mutpats, mutrates,
         genmatrix.j <- full.genmatrix.j[unch]
         if (!is.null(gmfile)) {
             cat("Saving to ", gmfile, " -- remember this differs from the model's generator matrix.\n")
-            save( genmatrix, genmatrix.j, mutrates, patterns, file=gmfile )
+            gm.params <- list(bases=bases,mutpats=mutpats,selpats=selpats,selfactors=selfactors) 
+            save( genmatrix, genmatrix.j, mutrates, patterns, gm.params, file=gmfile )
         }
     }
     stopifnot( all( genmatrix@x >= 0 ) )  # assume this comes WITHOUT the diagonal
