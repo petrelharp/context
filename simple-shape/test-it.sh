@@ -28,7 +28,7 @@ do
 
     MODELFILE=${MODEL}.json
     INITMODELFILE=${INITMODEL}.json
-    SIMFILE="$BASEDIR/${MODEL}-sim.RData"
+    SIMFILE="$BASEDIR/${MODEL}-${SEED}-sim.RData"
     SIMGENMAT="$GMDIR/${MODEL}-sim-genmatrix.RData"  # this takes a WHILE, so let's save it for future use
 
     GENMAT="$GMDIR/${MODEL}-genmatrix-${LONGWIN}.RData"

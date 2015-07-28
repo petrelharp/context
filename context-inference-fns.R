@@ -648,6 +648,7 @@ meangenmatrix <- function (leftwin,rightwin,patlen,...) {
             bases=genmat@bases,
             mutpats=genmat@mutpats,
             selpats=genmat@selpats,
+            selfactors=genmat@selfactors,
             boundary=genmat@boundary,
             fixfn=genmat@fixfn
         )
