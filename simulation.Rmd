@@ -152,7 +152,7 @@ est.covmat <- ginv(likfun.hess)
 pander(est.covmat)
 ```
 and the corresponding correlation matrix
-```{r likelihood_covariance, echo=FALSE}
+```{r likelihood_correlation, echo=FALSE}
 # asymptotic covariance matrix
 pander(cov2cor(est.covmat))
 ```
