@@ -92,7 +92,7 @@ fill.default.config <- function (config, defaults=NULL) {
         }
     }
     if (is.null(config[["selfactors"]])) { 
-        config[["selfactors"]] <- if (is.null(defaults[["selfactors"]])) { lapply( config$selpats, sapply, function(x)1 ) } else { defaults[["selfactors"]] }
+        config[["selfactors"]] <- if (is.null(defaults[["selfactors"]])) { lapply( config$selpats, sapply, function(x)1.0 ) } else { defaults[["selfactors"]] }
     }
     if (is.null(config[["fixfn"]])) { 
         config[["fixfn"]] <- if(is.null(defaults[["fixfn"]])) { null.fixfn } else { defaults[["fixfn"]] }
@@ -230,6 +230,9 @@ config.dereference <- function (config, x) {
                 stop("selfactors specified in multiple place.")
             }
         }
+    }
+    if (!is.null(config$selfactors)) {
+        config$selfactors <- lapply( config$selfactors, function (x) { x*1.0 } )  # ensure selfactors is numeric (not integer)
     }
     return(config)
 }

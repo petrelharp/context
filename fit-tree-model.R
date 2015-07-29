@@ -50,6 +50,7 @@ models <- config.dereference( config, nodenames(config$tree) )
 genmatrices <- lapply( selfname(config$.models), function (mm) {
         if (!file.exists(config[[mm]]$genmatrix)) { stop(paste("Can't find file", config[[mm]]$genmatrix), ".") }
         load( config[[mm]]$genmatrix )
+        check.genmatrix( config[[mm]], genmatrix )
         return(genmatrix)
     } )
 longpats <- rownames(genmatrices[[1]])
