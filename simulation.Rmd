@@ -123,7 +123,7 @@ for (k in unique(param_sizes)) {
 }
 ```
 
-The likelihood surface about the fitted and simulated values (red are the values simulated under, black is the fitted values):
+The profile likelihood surface about the fitted and simulated values (red are the values simulated under, black is the fitted values):
 ```{r likelihood_surface, echo=FALSE, results="asis", fig.align='center'}
 f <- function (x) { model@likfun((x*timevec)[model@results$use.par]) }
 for (k in (1:nrow(mr_compare))[model@results$use.par]) {
@@ -137,6 +137,26 @@ for (k in (1:nrow(mr_compare))[model@results$use.par]) {
     abline(v=mr_compare[k,c("fit","simulated")], col=c("black","red"))
 }
 ```
+
+Here is the Hessian of the likelihood (obtained by numerical differentiation)
+```{r likelihood_hessian, echo=FALSE}
+# Hessian of the likelihood surface
+likfun.hess <- hessian(function(x)fit.model@likfun(x*timevec[fit.model@results$use.par]),method.args=list(eps=min(coef(model)/10)),x=coef(model)[fit.model@results$use.par])
+colnames( likfun.hess ) <- rownames( likfun.hess ) <- names(coef(fit.model))[fit.model@results$use.par]
+pander(likfun.hess)
+```
+and its inverse (the asymptotic covariance matrix)
+```{r likelihood_covariance, echo=FALSE}
+# asymptotic covariance matrix
+est.covmat <- ginv(likfun.hess)
+pander(est.covmat)
+```
+and the corresponding correlation matrix
+```{r likelihood_covariance, echo=FALSE}
+# asymptotic covariance matrix
+pander(cov2cor(est.covmat))
+```
+
 
 ## residuals for 2-2 Tmers
 ```{r resids_2_2, echo=FALSE, results="asis", fig.align='center'}

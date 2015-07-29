@@ -11,6 +11,8 @@
 
 source("../context-inference-fns.R",chdir=TRUE)
 source("../sim-context-fns.R",chdir=TRUE)
+require(MASS)
+require(numDeriv)
 
 modelfile <- "less-simple-shape-model.json"
 
@@ -136,6 +138,12 @@ compare.params <- data.frame(
         fixed=!fit.model@results$use.par
     )
 
+# Hessian of the likelihood surface
+likfun.hess <- hessian(function(x)fit.model@likfun(x*timevec[fit.model@results$use.par]),method.args=list(eps=min(coef(model)/10)),x=coef(model)[fit.model@results$use.par])
+colnames( likfun.hess ) <- rownames( likfun.hess ) <- names(coef(fit.model))[fit.model@results$use.par]
+# asymptotic covariance matrix
+est.covmat <- ginv(likfun.hess)
+
 f <- function (x) { fit.model@likfun((x*timevec)[fit.model@results$use.par]) }
 
 # profiles
@@ -165,67 +173,3 @@ for (j in (1:nrow(compare.params))[fit.model@results$use.par]) {
     }
 }
 
-
-if (FALSE) {
-
-
-## check likelihood is at maximum at truth for predicted counts
-
-pred.counts <- fitted(fit.model)
-pred.env <- new.env()
-assign( "counts", pred.counts, envir=pred.env )
-pred.likfun <- likfun
-environment(pred.likfun) <- pred.env
-
-pred.optim.results <- optim( par=initpar[use.par], fn=pred.likfun, method="L-BFGS-B", lower=lbs[use.par], upper=ubs[use.par], control=list(fnscale=(-1)*abs(baseval), parscale=parscale[use.par] ) )
-
-pred.optim.results$use.par <- use.par
-pred.optim.results$parscale <- parscale
-pred.optim.results$initpar <- initpar
-
-pred.optim.par <- initpar
-pred.optim.par[use.par] <- pred.optim.results$par
-pred.optim.results$par <- pred.optim.par
-
-pred.fit.model <- new( "context",
-             counts=pred.counts,
-             genmatrix=genmatrix,
-             projmatrix=projmatrix,
-             mutrates=pred.optim.results$par[1:nmuts(genmatrix)],
-             selcoef=pred.optim.results$par[seq(nmuts(genmatrix)+1,length.out=nsel(genmatrix))],
-             params=pred.optim.results$par[seq(1+nmuts(genmatrix)+nsel(genmatrix),length.out=length(fixparams(genmatrix)))],
-             results=pred.optim.results,
-             likfun=likfun,
-             invocation="by hand"
-         )
-
-
-# compare likelihood profiles
-time <- as.numeric(opt$tlen)
-timevec <- c( rep(as.numeric(opt$tlen),nmuts(fit.model)), rep(1,length(coef(fit.model))-nmuts(fit.model)) )
-true.model <- fit.model
-true.model@mutrates <- config$tip$mutrates*time
-true.model@selcoef <- config$tip$selcoef
-
-compare.params <- data.frame( 
-        fit=coef(fit.model)/timevec,
-        pred.fit=coef(pred.fit.model)/timevec,
-        simulated=coef(true.model)/timevec,
-        fixed=!fit.model@results$use.par
-    )
-
-f <- function (x) { fit.model@likfun((x*timevec)[fit.model@results$use.par]) }
-g <- function (x) { pred.fit.model@likfun((x*timevec)[pred.fit.model@results$use.par]) }
-for (k in (1:nrow(compare.params))[fit.model@results$use.par]) {
-    pvals <- seq( .9*min(compare.params[k,c("fit","simulated")]), 1.1*max(compare.params[k,c("fit","simulated")]), length.out=10 )
-    inds <- 1:nrow(compare.params)
-    inds[k] <- 1+nrow(compare.params)
-    lvals <- sapply( pvals, function (x) { f( c(compare.params$fit,x)[inds] ) } )
-    l2vals <- sapply( pvals, function (x) { f( c(compare.params$simulated,x)[inds] ) } )
-    l3vals <- sapply( pvals, function (x) { g( c(compare.params$pred.fit,x)[inds] ) } )
-    plot( pvals, lvals, type='b', main=paste("likelihood surface for", compare.params$name[k]), ylab="log-likelihood", xlab='value', ylim=range(lvals,l2vals,finite=TRUE) )
-    lines( pvals, l2vals, col='red', type='b' )
-    abline(v=compare.params[k,c("fit","simulated")], col=c("black","red"))
-}
-
-}
