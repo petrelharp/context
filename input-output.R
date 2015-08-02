@@ -279,7 +279,7 @@ likelihood.surface <- function (model, tlen=1,
         plot.it=TRUE, ask=FALSE, progress=TRUE,
         mutrates=model@mutrates, selcoef=model@selcoef, 
         do.parallel=("parallel" %in% .packages(all.available=TRUE)),
-        numcores=if (do.parallel) { parallel::detectCores() } else { 1 }
+        numcores=if (do.parallel) { parallel::detectCores() } else { 1 },
         ngrid=10) {
     # Compute the likelihood on a grid of points about the parameters in 'model'
     # and plot these (note: plots more than one figure)
