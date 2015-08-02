@@ -10,6 +10,11 @@ test "$#" -ge 2 || {
   exit 2
 }
 
+pandoc -v >/dev/null || {
+    echo "No working pandoc found.  Exiting."
+    exit 3
+}
+
 template=$1
 RData=$2
 shift

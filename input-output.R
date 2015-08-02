@@ -10,7 +10,7 @@
 
 source("helper-fns.R")
 
-require(jsonlite)
+library(jsonlite)
 
 read.config.counts <- function (infile) {
     count.paramstring <- scan(infile,what='char',nlines=1,sep="\n")
@@ -275,19 +275,25 @@ parse.models <- function (config,do.fixfns=TRUE) {
 
 ## plotting functions
 
-likelihood.surface <- function (model, tlen=1, plot.it=TRUE, ask=FALSE, mutrates=model@mutrates, selcoef=model@selcoef, ngrid=10) {
+likelihood.surface <- function (model, tlen=1, 
+        plot.it=TRUE, ask=FALSE, progress=TRUE,
+        mutrates=model@mutrates, selcoef=model@selcoef, 
+        do.parallel=("parallel" %in% .packages(all.available=TRUE)),
+        numcores=if (do.parallel) { parallel::detectCores() } else { 1 }
+        ngrid=10) {
     # Compute the likelihood on a grid of points about the parameters in 'model'
     # and plot these (note: plots more than one figure)
+    this.lapply <- if ( do.parallel && numcores>1 ) { function (...) { parallel::mclapply( ..., mc.cores=numcores ) } } else { lapply }
 
     timevec <- c( rep(as.numeric(tlen),nmuts(model)), rep(1,length(coef(model))-nmuts(model)) )
-    model@mutrates <- mutrates*tlen
-    model@selcoef <- selcoef
+    if (!missing(mutrates)) { model@mutrates <- mutrates*tlen }
+    if (!missing(selcoef) { model@selcoef <- selcoef }
     pvec <- coef(model)/timevec
     f <- function (x) { model@likfun((x*timevec)[model@results$use.par]) }
 
     # contours
     jk <- combn(which(model@results$use.par),2)
-    grids <- lapply( 1:ncol(jk), function (ii) {
+    grids <- this.lapply( 1:ncol(jk), function (ii) {
             j <- jk[1,ii]
             k <- jk[2,ii]
             inds <- 1:length(pvec)
@@ -301,18 +307,22 @@ likelihood.surface <- function (model, tlen=1, plot.it=TRUE, ask=FALSE, mutrates
                     lvals[jj,kk] <- f( c(pvec,pvals[jj],qvals[kk])[inds] )
                 }
             }
-            if (plot.it) {
-                cols <- colorspace::diverge_hcl(64)
-                plot( pvals[row(lvals)], qvals[col(lvals)], cex=3, pch=20, 
-                        col=cols[cut(lvals,breaks=length(cols))], ask=ask,
-                        xlab=names(coef(model)[model@results$use.par])[j],
-                        ylab=names(coef(model)[model@results$use.par])[k]
-                    )
-            }
+            if (progress) { cat(".") }
             glist <- list( pvals, qvals, lvals )
             names( glist ) <- c( names(coef(model)[model@results$use.par])[c(j,k)], "likfun" )
             return(glist)
         } )
-
+    if (plot.it) {
+        for (jk in seq_along(grids)) {
+            j <- jk[1,ii]
+            k <- jk[2,ii]
+            cols <- colorspace::diverge_hcl(64)
+            plot( grids[[jk]]$pvals[row(grids[[jk]]$lvals)], grids[[jk]]$qvals[col(grids[[jk]]$lvals)], cex=3, pch=20, 
+                    col=cols[cut(grids[[jk]]$lvals,breaks=length(cols))], ask=ask,
+                    xlab=names(coef(model)[model@results$use.par])[j],
+                    ylab=names(coef(model)[model@results$use.par])[k]
+                )
+        }
+    }
     return( grids )
 }

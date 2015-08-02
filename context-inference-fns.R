@@ -1,7 +1,7 @@
 #!/usr/bin/R
-require(Matrix)
-require(expm)
-require(stringdist)
+library(Matrix)
+library(expm)
+library(stringdist)
 
 # # # find what directory this file is in
 # frame_files <- lapply(sys.frames(), function(x) x$ofile)
@@ -364,12 +364,14 @@ setClass("context",
             contains="contextModel"
          )
 
-setClass("contextMCMC", representation(
+setClass("contextMCMC", 
+        representation(
                        mutrates.prior="numeric",
                        selcoef.prior="numeric",
                        fixfn.params.prior="numeric"
                    ),
-         contains="context")
+             contains="context"
+         )
 
 setOldClass("phylo")  # phylo in ape is an S3 class
 setClass("contextTree", representation(
@@ -957,7 +959,7 @@ reverse.complement <- function (mutpats) {
 
 ###
 #
-predictcounts.context <- function (model, longwin=NULL, shortwin=NULL, leftwin=NULL, initcounts=rowSums(model), mutrates=model@mutrates, selcoef=model@selcoef, genmatrix=model@genmatrix, projmatrix=model@projmatrix, params=model@params ) {
+predictcounts.context <- function (model, longwin=NULL, shortwin=NULL, leftwin=NULL, initcounts=rowSums(model), mutrates=model@mutrates, selcoef=model@selcoef, genmatrix=model@genmatrix, projmatrix=model@projmatrix, params=model@params, tlen=1 ) {
     # default values not cooperating with S4 methods:
     if (is.null(longwin)) { longwin <- longwin(model) }
     if (is.null(shortwin)) { shortwin <- shortwin(model) }
@@ -965,17 +967,17 @@ predictcounts.context <- function (model, longwin=NULL, shortwin=NULL, leftwin=N
     if (!missing(genmatrix) && missing(projmatrix)) {
         projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, fpatterns=getpatterns(shortwin,genmatrix@bases) )
     }
-    predictcounts(longwin,shortwin,leftwin,initcounts,mutrates,selcoef,genmatrix,projmatrix,params)
+    predictcounts(longwin,shortwin,leftwin,initcounts,mutrates,selcoef,genmatrix,projmatrix,params,tlen)
 }
 
 
-predictcounts <- function (longwin, shortwin, leftwin, initcounts, mutrates, selcoef, genmatrix, projmatrix, params=NULL ) {
+predictcounts <- function (longwin, shortwin, leftwin, initcounts, mutrates, selcoef, genmatrix, projmatrix, params=NULL, tlen=1 ) {
     # Compute expected counts of paired patterns:
     #  where the actual computation happens
     rightwin <- longwin-shortwin-leftwin
     if (!missing(mutrates)||!missing(selcoef)||!is.null(params)) { genmatrix@x <- do.call( update, c( list(genmatrix,mutrates=mutrates,selcoef=selcoef), params ) ) }
     if (missing(projmatrix)) { projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, rightwin=rightwin, bases=genmatrix@bases ) }
-    subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE)
+    subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE, tlen=tlen)
     fullcounts <- initcounts * subtransmatrix
     return( new("tuplecounts", 
             leftwin=leftwin, 

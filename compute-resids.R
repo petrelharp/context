@@ -1,5 +1,5 @@
 #!/usr/bin/Rscript --vanilla
-require(optparse)
+library(optparse)
 
 usage <- "\
 Write out the table of residuals for a fitted model, in the same format as the count data.

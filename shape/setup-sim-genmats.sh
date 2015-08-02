@@ -15,7 +15,7 @@ BASEDIR="minimal"
 GMDIR="genmatrices"
 mkdir -p $GMDIR
 
-echo "Simulating from ${MODEL} ."
 SIMFILE="$BASEDIR/sim_${MODEL}.RData"
 SIMGENMAT="$GMDIR/sim-${MODEL}-genmatrix.RData"  # this takes a WHILE, so let's save it for future use
+echo "Simulating from ${MODEL} , saving to ${SIMFILE} , writing simulation genmatrix to ${SIMGENMAT} ."
 Rscript ../sim-seq.R -c $MODEL.json -t .0001 -s 20 -o $SIMFILE -m $SIMGENMAT

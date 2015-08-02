@@ -1,5 +1,5 @@
 #!/usr/bin/Rscript --vanilla
-require(optparse)
+library(optparse)
 
 usage <- "\
 Count Tmers from the Rdata file containing simulated (or other) sequence,\

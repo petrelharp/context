@@ -1,6 +1,6 @@
 #!/usr/bin/Rscript --vanilla
-require(optparse)
-require(jsonlite)
+library(optparse)
+library(jsonlite)
 
 usage <- '\
 Pre-compute a generator matrix and associated structures,  \
@@ -28,7 +28,7 @@ Entries in the same sub-list have the same associated parameter (reverse-complem
 \
 To make this for e.g. all patterns up to 3-way, with one change each: \
 \
-require(jsonlite) \
+library(jsonlite) \
 bases <- c( "A", "C", "G", "T") \
 pats <- getmutpats(3,bases) \
 # check this is idempotent \

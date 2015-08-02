@@ -11,8 +11,8 @@
 
 source("../context-inference-fns.R",chdir=TRUE)
 source("../sim-context-fns.R",chdir=TRUE)
-require(MASS)
-require(numDeriv)
+library(MASS)
+library(numDeriv)
 
 modelfile <- "less-simple-shape-model.json"
 
@@ -28,8 +28,10 @@ config <- parse.models(config)
 simseqs <- simseq.tree(1e3,config,count.trans=TRUE)
 
 
-## count-seq
+## options
 opt <- list( longwin=8, shortwin=3, leftwin=2)
+
+## count-seq
 longpats <- getpatterns(opt$longwin,config$bases)
 shortpats <- getpatterns(opt$shortwin,config$bases)
 counts <- counttrans.list( list(longpats,shortpats), 
@@ -37,6 +39,7 @@ counts <- counttrans.list( list(longpats,shortpats),
     leftwin=opt$leftwin, bases=config$bases,
    shift=0 )
 
+## make-genmatrix
 mm <- "tip"
 opt$boundary <- "none"
 genmatrix <- makegenmatrix(

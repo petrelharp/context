@@ -6,7 +6,7 @@ simdir <- args[1]
 scriptdir <- "../"
 source(paste(scriptdir,"context-inference-fns.R",sep=''),chdir=TRUE)
 source(paste(scriptdir,"sim-context-fns.R",sep=''),chdir=TRUE)
-require(mcmc)
+library(mcmc)
 
 if (interactive()) {
     simdir <- "cpg-tree-sims"

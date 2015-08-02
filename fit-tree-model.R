@@ -1,5 +1,5 @@
 #!/usr/bin/Rscript --vanilla
-require(optparse)
+library(optparse)
 
 invocation <- commandArgs()
 

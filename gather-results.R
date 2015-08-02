@@ -1,5 +1,5 @@
 #!/usr/bin/Rscript --vanilla
-require(optparse)
+library(optparse)
 
 usage <- "Gather and summarize results of analysis into a single .RData file."
 
@@ -43,7 +43,7 @@ if (class(model)=="context") {
 if ( ! opt$json ) {
     save(simseq.config, simseq.opt, model, mr_compare, file=opt$outfile)
 } else {
-    require(jsonlite)
+    library(jsonlite)
     outfile <- openwrite(opt$outfile)
     json <- toJSON( list(
                     fit.coef = as.list(coef(model)),

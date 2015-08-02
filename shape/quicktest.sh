@@ -12,7 +12,7 @@ fi
 MODEL=$(echo $1 | sed -e 's/.json$//')
 MODELFILE=${MODEL}.json
 
-SEED=00000
+SEED=00023
 
 BASEDIR="quicktest"
 GMDIR="genmatrices"

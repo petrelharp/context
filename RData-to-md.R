@@ -1,8 +1,8 @@
 #!/usr/bin/Rscript --vanilla
-require(methods)
-require(optparse)
-require(pander)
-require(ape)
+library(methods)
+library(optparse)
+library(pander)
+library(ape)
 
 
 source("../sim-context-fns.R",chdir=TRUE)

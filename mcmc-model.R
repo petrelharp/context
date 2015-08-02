@@ -1,7 +1,7 @@
 #!/usr/bin/Rscript --vanilla
-require(optparse)
-require(jsonlite)
-require(mcmc)
+library(optparse)
+library(jsonlite)
+library(mcmc)
 
 invocation <- commandArgs()
 

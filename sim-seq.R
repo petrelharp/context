@@ -1,5 +1,5 @@
 #!/usr/bin/Rscript --vanilla
-require(optparse)
+library(optparse)
 
 usage <- "\
 Simulate from the process whose parameters are given in the config file,\

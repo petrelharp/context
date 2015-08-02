@@ -9,7 +9,7 @@ if (length(json.files)==0) {
     q()
 }
 
-require(jsonlite)
+library(jsonlite)
 
 jsondata <- lapply( lapply( json.files, fromJSON ), function (x) {
             simc <- paste('sim',names(x[['sim.coef']]),sep=':')

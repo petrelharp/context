@@ -12,7 +12,7 @@
 #  and that
 #      P(N(T)=n) = (lambda * (n+alpha-1)) / ( n * (beta+lambda) ) * P(N(T)=n-1) .
 #
-require(Matrix)
+library(Matrix)
 
 gammaAtv <- function (A,scale,shape,v,tol=1e-6) {
     # evaluate transition matrix after gamma-distributed time multiplied by the matrix v
