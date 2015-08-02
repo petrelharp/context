@@ -148,10 +148,10 @@
          "AATTT" : -1.40, "CATTT" : 0.80, "GATTT" : -0.72, "TATTT" : -0.38, "ACTTT" : 0.47, "CCTTT" : -1.67, "GCTTT" : 0.68, "TCTTT" : 0.40,
          "AGTTT" : -0.08, "CGTTT" : -1.07, "GGTTT" : -1.01, "TGTTT" : 1.00, "ATTTT" : 0.31, "CTTTT" : 0.09, "GTTTT" : 0.00, "TTTTT" : -1.61
         } ],
-    "selcoef" : [ 1.0 ],
-    "selcoef.scale" : [ 0.1 ],
+    "selcoef" : [ 0.0001 ],
+    "selcoef.scale" : [ 0.00001 ],
     "fixfn" : "shape.fixfn",
-    "fixfn.params" : { "Ne" : 1.0 }, 
+    "fixfn.params" : { "Ne" : 10000.0 }, 
     "fixfn.params.scale" : { "Ne" : 0.0 }, 
     "mutrates.prior" : [ 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1 ],
     "selcoef.prior" : [ 0.001 ],

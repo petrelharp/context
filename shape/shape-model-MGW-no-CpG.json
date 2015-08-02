@@ -3094,10 +3094,10 @@
         ]
     }
 },
-    "selcoef" : [ 1.0 ],
-    "selcoef.scale" : [ 0.1 ],
+    "selcoef" : [ 0.0001 ],
+    "selcoef.scale" : [ 0.00001 ],
     "fixfn" : "shape.fixfn",
-    "fixfn.params" : { "Ne" : 1.0 }, 
+    "fixfn.params" : { "Ne" : 10000.0 }, 
     "fixfn.params.scale" : { "Ne" : 0.0 }, 
     "mutrates.prior" : [ 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1 ],
     "selcoef.prior" : [ 0.001 ],

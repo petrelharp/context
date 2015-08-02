@@ -143,8 +143,8 @@ for (k in (1:nrow(mr_compare))[model@results$use.par]) {
 Here is the Hessian of the likelihood (obtained by numerical differentiation)
 ```{r likelihood_hessian, echo=FALSE}
 # Hessian of the likelihood surface
-likfun.hess <- hessian(function(x)fit.model@likfun(x*timevec[fit.model@results$use.par]),method.args=list(eps=min(coef(model)/10)),x=coef(model)[fit.model@results$use.par])
-colnames( likfun.hess ) <- rownames( likfun.hess ) <- names(coef(fit.model))[fit.model@results$use.par]
+likfun.hess <- hessian(function(x)model@likfun(x*timevec[model@results$use.par]),method.args=list(eps=min(coef(model)/10)),x=coef(model)[model@results$use.par])
+colnames( likfun.hess ) <- rownames( likfun.hess ) <- names(coef(model))[model@results$use.par]
 pander(likfun.hess)
 ```
 and its inverse (the asymptotic covariance matrix)
