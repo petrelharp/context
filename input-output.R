@@ -287,7 +287,7 @@ likelihood.surface <- function (model, tlen=1,
 
     timevec <- c( rep(as.numeric(tlen),nmuts(model)), rep(1,length(coef(model))-nmuts(model)) )
     if (!missing(mutrates)) { model@mutrates <- mutrates*tlen }
-    if (!missing(selcoef) { model@selcoef <- selcoef }
+    if (!missing(selcoef)) { model@selcoef <- selcoef }
     pvec <- coef(model)/timevec
     f <- function (x) { model@likfun((x*timevec)[model@results$use.par]) }
 
