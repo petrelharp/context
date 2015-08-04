@@ -21,7 +21,7 @@ read.config.counts <- function (infile) {
 
 read.counts <- function (infile,leftwin,bases,longpats,shortpats,skip=0) {
     # read in a file of counts of the following form:
-    #     # leftwin=1
+    #        # { "leftwin" : 3 }
     #        taxon1  taxon2 ... count
     #         AAAA      AA ...    19
     #         CAAA      AA ...     2
@@ -29,6 +29,9 @@ read.counts <- function (infile,leftwin,bases,longpats,shortpats,skip=0) {
     #         TAAA      AA ...     3
     # ... and convert it to a 'tuplecounts' object
     # optionally passing in the orderings of the rows and columns
+    #
+    # If leftwin is not specified it will be looked for *in json format* on the first line of the file after '#'
+    #  ... mind the braces and quotes!
     count.params <- read.config.counts(infile)
     if (!is.null(count.params) && skip==0) { skip <- 1 }
     if (missing(leftwin)) { leftwin <- count.params$leftwin }
@@ -309,7 +312,7 @@ likelihood.surface <- function (model, tlen=1,
             }
             if (progress) { cat(".") }
             glist <- list( pvals, qvals, lvals )
-            names( glist ) <- c( names(coef(model)[model@results$use.par])[c(j,k)], "likfun" )
+            names( glist ) <- c( names(coef(model)[model@results$use.par])[c(j,k)], "lvals" )
             return(glist)
         } )
     if (plot.it) {
@@ -317,11 +320,12 @@ likelihood.surface <- function (model, tlen=1,
             j <- jk[1,ii]
             k <- jk[2,ii]
             cols <- colorspace::diverge_hcl(64)
-            plot( grids[[jk]]$pvals[row(grids[[jk]]$lvals)], grids[[jk]]$qvals[col(grids[[jk]]$lvals)], cex=3, pch=20, 
-                    col=cols[cut(grids[[jk]]$lvals,breaks=length(cols))], ask=ask,
+            plot( grids[[ii]][[1]][row(grids[[ii]]$lvals)], grids[[ii]][[2]][col(grids[[ii]]$lvals)], cex=3, pch=20, 
+                    col=cols[cut(grids[[ii]]$lvals,breaks=length(cols))], ask=ask,
                     xlab=names(coef(model)[model@results$use.par])[j],
                     ylab=names(coef(model)[model@results$use.par])[k]
                 )
+            contour( grids[[ii]][[1]], grids[[ii]][[2]], grids[[ii]]$lvals, add=TRUE )
         }
     }
     return( grids )
