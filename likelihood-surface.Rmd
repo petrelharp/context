@@ -5,13 +5,14 @@ date: "`r date()`"
 
 
 ```{r setup, include=FALSE}
-required.input <- c("modelfile","longwin","shortwin","leftwin","tlen")
+required.input <- c("modelfile","longwin","shortwin","leftwin","tlen","ncounts")
 if (!all(sapply(required.input,exists))) {
     stop("Not all required input (", paste(required.input[!sapply(required.input,exists)],collapse=", "), ") has been given.")
 }
 names(required.input) <- required.input
 opt <- lapply( required.input, get )
 opt$boundary <- "none"
+if (!exists("lik.grid")) { lik.grid <- 10 }
 source("context-inference-fns.R",chdir=TRUE)
 library(MASS)
 library(numDeriv)
@@ -43,9 +44,19 @@ genmatrix@x <- do.call( update, c( list(G=genmatrix, mutrates=model.config$mutra
 projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=opt$leftwin, rightwin=opt$longwin-opt$shortwin-opt$leftwin, bases=genmatrix@bases )
 ```
 
+Here is an estimate of the likelihood surface near the true values for the model in `r modelfile`,
+at tuple size:
+
+*  *longwin* : `r opt$longwin`
+*  *shortwin* : `r opt$shortwin`
+*  *leftwin* : `r opt$leftwin`
+and other parameters
+*  *total time* : `r opt$tlen`  (`tlen`)
+*  *number of counts* : `r opt$ncounts`  (`ncounts`)
+*  *number of grid points for likelihood* : `r lik.grid` (`lik.grid`)
+
 ```{r expected_counts, include=FALSE}
-total.counts <- 1e8
-expected.counts <- predictcounts(opt$longwin, opt$shortwin, opt$leftwin, initcounts=rep(total.counts/nrow(genmatrix),nrow(genmatrix)), genmatrix=genmatrix, projmatrix=projmatrix, tlen=opt$tlen) 
+expected.counts <- predictcounts(opt$longwin, opt$shortwin, opt$leftwin, initcounts=rep(ncounts/nrow(genmatrix),nrow(genmatrix)), genmatrix=genmatrix, projmatrix=projmatrix, tlen=opt$tlen) 
 
 initpar <- with(model.config, unlist(c(mutrates*opt$tlen,selcoef,fixfn.params)) )
 parscale <- with(model.config, unlist( c(mutrates.scale*opt$tlen, selcoef.scale, fixfn.params.scale) ) )
@@ -123,5 +134,5 @@ Profiles of the likelihood
 
 And, the pairwise profiles of the likelihood:
 ```{r pairwise_prof, echo=FALSE}
-likfun.grids <- likelihood.surface( model, tlen=opt$tlen )
+likfun.grids <- likelihood.surface( model, tlen=opt$tlen, ngrid=lik.grid )
 ```

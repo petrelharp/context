@@ -80,7 +80,7 @@ class PairedFastaFile:
         self.head2 = self.file.next().strip()
         self.seq2 = self.file.next().strip()
         if not self.head1 == self.head2[0:len(self.head1)] :
-            print "Uh-oh: " + self.head1 + " doesn't match " + self.head2 + "\n"
+            print "Problem with paired fasta file: " + self.head1 + " doesn't match " + self.head2 + "\n"
             raise ValueError
     def close(self):
         self.file.close()

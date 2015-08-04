@@ -5,6 +5,7 @@ from collections import Counter
 from plrutils import *
 import re
 from os import path
+import json
 
 usage = '''
 Count paired tuples from a paired fasta or an axt file.
@@ -97,6 +98,14 @@ while True:
         break
 
 # write out
+argdict = vars(args)
+argdict['longwin'] = int(argdict['winlen'][0])
+argdict['leftwin'] = int(argdict['lwin'][0])
+argdict['shortwin'] = int(argdict['winlen'][0]) - int(argdict['lwin'][0])
+argdict.pop('winlen',None)
+argdict.pop('lwin',None)
+argdict.pop('rwin',None)
+outfile.write( '# ' + json.dumps(argdict) + "\n" )
 outfile.write("\t".join(["reference","derived","count"])+"\n")
 for x in tuplecount:
     # omit counts with missing values
