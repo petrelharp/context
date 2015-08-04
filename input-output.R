@@ -313,7 +313,7 @@ likelihood.surface <- function (model, tlen=1,
             return(glist)
         } )
     if (plot.it) {
-        for (jk in seq_along(grids)) {
+        for (ii in seq_along(grids)) {
             j <- jk[1,ii]
             k <- jk[2,ii]
             cols <- colorspace::diverge_hcl(64)
