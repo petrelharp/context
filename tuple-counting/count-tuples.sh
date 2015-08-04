@@ -24,5 +24,5 @@ do
     echo "counting: " $x
     OUTNAME=$(echo $x | sed -e "s_${INDIR}/_${OUTDIR}/_" | sed -e "s/.axt.gz$//").${LONGWIN}.l${LEFTWIN}.r${RIGHTWIN}.counts.gz
     echo "   to: " $OUTNAME
-    python ../tuple-counting/count-paired-tuples.py -i $x -f axt -o $OUTNAME -w $LONGWIN -l $LEFTWIN -r $RIGHTWIN --strict
+    python $(dirname $0)/count-paired-tuples.py -i $x -f axt -o $OUTNAME -w $LONGWIN -l $LEFTWIN -r $RIGHTWIN --strict
 done

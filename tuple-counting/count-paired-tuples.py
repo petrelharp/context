@@ -49,6 +49,7 @@ parser.add_argument('--strict', '-s', action="store_true")
 args = parser.parse_args()
 if not args.winlen or not args.lwin or not args.rwin :
     print "Must specify -w, -l, and -r."
+    print usage
     raise SystemExit
 winlen = int(args.winlen[0])
 lwin = int(args.lwin[0])
