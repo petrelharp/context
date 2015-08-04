@@ -25,5 +25,6 @@
     "fixfn.params" : { "Ne" : 10000.0 },
     "fixfn.params.scale" : { "Ne" : 0.0 },
     "mutrates.prior" : [ 0.1, 0.1 ],
-    "selcoef.prior" : [ 0.001 ]
+    "selcoef.prior" : [ 0.001 ],
+    "genmatrix" : "genmatrices/simple-shape-model-genmatrix-%.RData"
 }

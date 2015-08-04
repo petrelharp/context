@@ -1,0 +1,127 @@
+---
+title: "The likelihood surface"
+date: "`r date()`"
+---
+
+
+```{r setup, include=FALSE}
+required.input <- c("modelfile","longwin","shortwin","leftwin","tlen")
+if (!all(sapply(required.input,exists))) {
+    stop("Not all required input (", paste(required.input[!sapply(required.input,exists)],collapse=", "), ") has been given.")
+}
+names(required.input) <- required.input
+opt <- lapply( required.input, get )
+opt$boundary <- "none"
+source("context-inference-fns.R",chdir=TRUE)
+library(MASS)
+library(numDeriv)
+library(pander)
+if (!file.exists(modelfile)) { stop("Can't find ", modelfile) }
+model.config <- fill.default.config( read.config(modelfile) )
+model.config$fixfn <- parse.fixfn( model.config$fixfn, model.config$fixfn.params )
+if (!exists("gmfile")) {
+    gmfile <- file.path(dirname(modelfile),gsub("%",opt$longwin,model.config$genmatrix,fixed=TRUE))
+}
+if (file.exists(gmfile)) {
+    load(gmfile)
+} else { 
+    cat("Can't find generator matrix ", gmfile, " -- making a new one.\n")
+    genmatrix <- do.call( makegenmatrix,
+                    c( list(
+                        patlen=opt$longwin, 
+                        mutpats=model.config$mutpats, 
+                        selpats=model.config$selpats, 
+                        selfactors=model.config$selfactors, 
+                        boundary=opt$boundary, 
+                        bases=model.config$bases, 
+                        fixfn=model.config$fixfn ),
+                        model.config$fixfn.params
+                    )
+                )
+}
+genmatrix@x <- do.call( update, c( list(G=genmatrix, mutrates=model.config$mutrates, selcoef=model.config$selcoef), model.config$fixfn.params ) )
+projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=opt$leftwin, rightwin=opt$longwin-opt$shortwin-opt$leftwin, bases=genmatrix@bases )
+```
+
+```{r expected_counts, include=FALSE}
+total.counts <- 1e8
+expected.counts <- predictcounts(opt$longwin, opt$shortwin, opt$leftwin, initcounts=rep(total.counts/nrow(genmatrix),nrow(genmatrix)), genmatrix=genmatrix, projmatrix=projmatrix, tlen=opt$tlen) 
+
+initpar <- with(model.config, unlist(c(mutrates*opt$tlen,selcoef,fixfn.params)) )
+parscale <- with(model.config, unlist( c(mutrates.scale*opt$tlen, selcoef.scale, fixfn.params.scale) ) )
+names(initpar) <- names(parscale) <- c( mutnames(genmatrix@mutpats), selnames(genmatrix@selpats), fixparams(genmatrix) )
+
+# skip these parameters
+use.par <- ( parscale!=0 )
+params <- initpar
+
+likfun <- function (sub.params){
+    # params are: mutrates, selcoef, fixparams
+    params[use.par] <- sub.params
+    fparams <- params[seq( 1+nmuts(genmatrix)+nsel(genmatrix), length.out=length(fixparams(genmatrix)) )]
+    names(fparams) <- fixparams(genmatrix)
+    genmatrix@x <- do.call( update, c( list( G=genmatrix,mutrates=params[1:nmuts(genmatrix)],selcoef=params[seq(1+nmuts(genmatrix),length.out=nsel(genmatrix))]), as.list(fparams) ) )
+    # this is collapsed transition matrix
+    subtransmatrix <- computetransmatrix( genmatrix, projmatrix, tlen=1, time="fixed") # shape=params[length(params)], time="gamma" )
+    # return POSITIVE log-likelihood
+    ans <- sum( counts@counts * log(subtransmatrix) )
+    if (!is.finite(ans)) { print(paste("Warning: non-finite likelihood with params:",paste(params,collapse=", "))) }
+    return(ans)
+}
+
+
+model <- new( "context",
+             counts=expected.counts,
+             genmatrix=genmatrix,
+             projmatrix=projmatrix,
+             mutrates=model.config$mutrates*opt$tlen,
+             selcoef=model.config$selcoef,
+             params=unlist(model.config$fixfn.params),
+             results=list(use.par=use.par),
+             likfun=likfun,
+             invocation="by hand"
+         )
+expected.env <- new.env()
+assign("counts",model@counts,envir=expected.env)
+environment(model@likfun) <- expected.env
+
+
+```
+
+Model configuration (`r modelfile`)
+===================================
+
+```{r show_config, echo=FALSE}
+pander(model.config)
+```
+
+
+Hessian of the likelihood
+=========================
+
+Here are the square roots of the diagonal of the inverse of the Hessian:
+
+```{r hessian, echo=FALSE}
+time <- as.numeric(opt$tlen)
+timevec <- c( rep(as.numeric(opt$tlen),nmuts(model)), rep(1,length(coef(model))-nmuts(model)) )
+h <- function(x)model@likfun(x*timevec[model@results$use.par])
+likfun.hess <- hessian(h,method.args=list(eps=min(abs(coef(model))[1:nmuts(model)]/10)),x=coef(model)[model@results$use.par])
+colnames( likfun.hess ) <- rownames( likfun.hess ) <- names(coef(model))[model@results$use.par]
+# asymptotic covariance matrix
+est.covmat <- (-1)*ginv(likfun.hess)
+dimnames(est.covmat) <- dimnames(likfun.hess)
+pander( sqrt(diag(est.covmat)) )
+```
+and the Hessian itself:
+```{r hessian_itself, echo=FALSE}
+pander(likfun.hess)
+```
+
+
+Profiles of the likelihood
+==========================
+
+And, the pairwise profiles of the likelihood:
+```{r pairwise_prof, echo=FALSE}
+likfun.grids <- likelihood.surface( model, tlen=opt$tlen )
+```
