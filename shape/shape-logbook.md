@@ -48,4 +48,19 @@ do
             (echo $SCRIPT_PREFIX; echo "Rscript ../fit-model.R -i $COUNTFILE -t 1.0 --maxit 500 -c $MODELFILE -m $GENMAT -o $FITFILE")  | $QSUB
     done
 done
+
+for COUNTDIR in $(find RegulatoryFeature-regions-from-axt -mindepth 2 -type 'd' -name "*7-5-1")
+do
+    for MODEL in shape-model-MGW-no-CpG shape-model-all-variables-no-CpG
+    do
+        MODELFILE="${MODEL}.json"
+        COUNTFILE="${COUNTDIR}/total.counts.gz"
+        FITFILE="${COUNTDIR}/model-fit.RData"
+        LONGWIN=$(echo $COUNTDIR | sed -e 's/.*\([0-9]\+\)-\([0-9]\+\)-\([0-9]\+\)/\1/')
+        GENMAT="genmatrices/${MODEL}-genmatrix-${LONGWIN}.RData"
+        ls $COUNTFILE $MODELFILE $GENMAT && \
+            (echo $SCRIPT_PREFIX; echo "Rscript ../fit-model.R -i $COUNTFILE -t 1.0 --maxit 500 -c $MODELFILE -m $GENMAT -o $FITFILE")  | $QSUB
+    done
+done
+
 ```

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-usage="Usage: $0 CONFIG OUTFILE longwin=INT shortwin=INT leftwin=INT tlen=NUMERIC [VAR=VALUE [VAR=VALUE]]"
+usage="Usage: $0 CONFIG OUTFILE longwin=INT shortwin=INT leftwin=INT tlen=NUMERIC ncounts=INT [VAR=VALUE [VAR=VALUE]]"
 
 test "$#" -ge 2 || {
   echo $usage >&2
