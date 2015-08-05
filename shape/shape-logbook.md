@@ -10,6 +10,23 @@ LONGWIN=9; MODEL="shape-model-MGW-no-CpG"; echo "cd $PWD; source ~/cmb/bin/R-set
 LONGWIN=9; MODEL="shape-model-all-variables-no-CpG"; echo "cd $PWD; source ~/cmb/bin/R-setup-usc.sh; Rscript ../make-genmat.R -c ${MODEL}.json -w ${LONGWIN} -o genmatrices/${MODEL}-genmatrix-${LONGWIN}.RData" | qsub -q cmb -l nodes=1:dl165:ppn=24 -l walltime=120:00:00 -l mem=48000mb -l vmem=48000mb -l pmem=2000mb
 ```
 
+Look at the likelihood surface(s)
+=================================
+
+```{.sh}
+for MODEL in shape-model-MGW-no-CpG shape-model-all-variables-no-CpG
+do
+    MODELFILE="${MODEL}.json"
+    for TRIPLET in "5 5 0" "7 5 1" "8 6 1" "9 5 2"
+    do
+        read -a trip <<< "$TRIPLET"
+        OUTFILE="${MODEL}-likelihood-${trip[0]}-${trip[1]}-${trip[2]}.html"
+        ../likelihood-surface.sh $MODELFILE $OUTFILE longwin=${trip[0]} shortwin=${trip[1]} leftwin=${trip[2]} tlen=0.02 ncounts=10000000
+    done
+done
+```
+
+
 Model fitting
 =============
 
