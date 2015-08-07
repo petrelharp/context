@@ -33,7 +33,9 @@ Model fitting
 I will start with the short ones:
 ```{.sh}
 SCRIPT_PREFIX="cd /home/rcf-40/pralph/panfs/context/shape; source ~/cmb/bin/R-setup-usc.sh;"
-QSUB="qsub -q cmb -l nodes=1:sl230s:ppn=4 -l walltime=24:00:00 -l mem=32000mb -l vmem=32000mb -l pmem=8000mb"
+# QSUB="qsub -q cmb -l nodes=1:sl230s:ppn=16 -l walltime=24:00:00 -l mem=64000mb -l vmem=64000mb -l pmem=4000mb"
+QSUB="qsub -q cmb -l nodes=1:dl165:ppn=12 -l walltime=72:00:00 -l mem=24000mb -l vmem=24000mb -l pmem=1000mb"  # half a dl165
+QSUB="qsub -q cmb -l nodes=1:dl165:ppn=24 -l walltime=72:00:00 -l mem=48000mb -l vmem=48000mb -l pmem=2000mb"  # a whole dl165
 
 for COUNTDIR in $(find RegulatoryFeature-regions-from-axt -mindepth 2 -type 'd' -name "*5-5-0")
 do
@@ -41,7 +43,7 @@ do
     do
         MODELFILE="${MODEL}.json"
         COUNTFILE="${COUNTDIR}/total.counts.gz"
-        FITFILE="${COUNTDIR}/model-fit.RData"
+        FITFILE="${COUNTDIR}/${MODEL}-fit.RData"
         LONGWIN=$(echo $COUNTDIR | sed -e 's/.*\([0-9]\+\)-\([0-9]\+\)-\([0-9]\+\)/\1/')
         GENMAT="genmatrices/${MODEL}-genmatrix-${LONGWIN}.RData"
         ls $COUNTFILE $MODELFILE $GENMAT && \
@@ -55,7 +57,7 @@ do
     do
         MODELFILE="${MODEL}.json"
         COUNTFILE="${COUNTDIR}/total.counts.gz"
-        FITFILE="${COUNTDIR}/model-fit.RData"
+        FITFILE="${COUNTDIR}/${MODEL}-fit.RData"
         LONGWIN=$(echo $COUNTDIR | sed -e 's/.*\([0-9]\+\)-\([0-9]\+\)-\([0-9]\+\)/\1/')
         GENMAT="genmatrices/${MODEL}-genmatrix-${LONGWIN}.RData"
         ls $COUNTFILE $MODELFILE $GENMAT && \
