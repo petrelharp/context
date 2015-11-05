@@ -66,12 +66,13 @@ class AxtFile:
         self.file.close()
 
 class PairedFastaFile: 
-    def __init__(self, filename):
+    def __init__(self, filename, checkfn=lambda s: s):
         self.file = fileopt(filename,"r")
         self.head1 = None
         self.seq1 = None
         self.head2 = None
         self.seq2 = None
+        self.checkfn = checkfn
     def __iter__(self):
         return self
     def next(self):
@@ -79,7 +80,7 @@ class PairedFastaFile:
         self.seq1 = self.file.next().strip()
         self.head2 = self.file.next().strip()
         self.seq2 = self.file.next().strip()
-        if not self.head1 == self.head2[0:len(self.head1)] :
+        if not self.checkfn(self.head1) == self.checkfn(self.head2)[0:len(self.head1)] :
             print "Problem with paired fasta file: " + self.head1 + " doesn't match " + self.head2 + "\n"
             raise ValueError
     def close(self):

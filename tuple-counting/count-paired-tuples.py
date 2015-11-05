@@ -10,7 +10,7 @@ import json
 usage = '''
 Count paired tuples from a paired fasta or an axt file.
 
-Assume infile is in a paired format as follows: 
+If format is "fasta", assume infile is in a paired format as follows: 
   >04-A-M_0029015
   TTCCGATCTACTAGGACACATGAGGGCTGGAAAGCCACGTTTGGTGAGGCTTCAGGACACGGCTGTGTATTACTGTGCGAGACTTCAAGGGAGGCAGCAGCTAATGCCATTTGACTACTGGGGCCAGGGA
   >04-A-M_0029015_ref IGHV3-64*04 IGHJ4*02_F IGHD6-13*01
@@ -28,6 +28,8 @@ If --reverse, also count in the other direction, i.e.
 The longer window (Ws) matches the second (reference) sequence, and the shorter window (M's) matches the first sequence.
 
 If 'strict' then ignores anything but ACGT (case-sensitive).
+
+Strings in 'suffix' will be removed from the fasta headers before checking for agreement between the paired headers.
 '''
 
 parser = argparse.ArgumentParser(description=usage)
@@ -39,6 +41,7 @@ parser.add_argument('--winlen', '-w', nargs=1)
 parser.add_argument('--lwin', '-l', nargs=1)
 parser.add_argument('--rwin', '-r', nargs=1)
 parser.add_argument('--strict', '-s', action="store_true")
+parser.add_argument('--suffix', '-x', nargs='*')
 
 # args.infile='../bcells/A-IGHV3-64_04-IGHJ4_02_F-42-aligned_pairs.fasta'
 # args.outfile='../bcells/A-IGHV3-64_04-IGHJ4_02_F-42-aligned_pairs.fasta.counts'
@@ -71,7 +74,11 @@ if args.reverse:
     revcount = Counter()
 
 if args.informat == "fasta":
-    infile = PairedFastaFile( args.infile )
+    def checkfn(s):
+        for x in args.suffix:
+            s = s.replace(x,"")
+        return s
+    infile = PairedFastaFile( args.infile, checkfn=checkfn )
 elif args.informat == "axt":
     infile = AxtFile( args.infile )
 else:
