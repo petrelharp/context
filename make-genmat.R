@@ -48,7 +48,7 @@ option_list <- list(
         make_option( c("-l","--logfile"), type="character", help="Direct logging output to this file. [default appends .Rout]" )
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
-if (is.null(opt$configfile) | !file.exists(opt$configfile)) { stop("Need a config file.") }
+if (is.null(opt$configfile) || !file.exists(opt$configfile)) { stop("Need a config file.") }
 if (is.null(opt$longwin)) { stop("Need a window length.") }
 
 if (is.null(opt$outfile)) { 
@@ -57,8 +57,8 @@ if (is.null(opt$outfile)) {
 basename <- gsub(".RData",'',opt$outfile)
 if (!file.exists(dirname(opt$outfile))) { dir.create(dirname(opt$outfile)) }
 
-# source("../sim-context-fns.R",chdir=TRUE)
-source("../context-inference-fns.R",chdir=TRUE)
+scriptdir <-  dirname(sub("--file=","",commandArgs()[grep("--file",commandArgs())]))
+source(file.path(scriptdir,"context-inference-fns.R"),chdir=TRUE)
 
 config <- read.config(opt$configfile)
 if (!is.null(config$tree)) {

@@ -1,6 +1,6 @@
-scriptdir <- "./"
-source(paste(scriptdir,"context-inference-fns.R",sep=''),chdir=TRUE)
-source(paste(scriptdir,"sim-context-fns.R",sep=''),chdir=TRUE)
+scriptdir <-  dirname(sub("--file=","",commandArgs()[grep("--file",commandArgs())]))
+source(file.path(scriptdir,"context-inference-fns.R"),chdir=TRUE)
+source(file.path(scriptdir,"sim-context-fns.R"),chdir=TRUE)
 library(mcmc)
 
 

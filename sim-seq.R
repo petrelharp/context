@@ -37,8 +37,9 @@ if ( is.null(opt$configfile) | is.null(opt$seqlen) )  { stop("Rscript sim-seq.R 
 if ( !file.exists(opt$configfile) ) { stop("Could not find config file `", opt$configfile, "`.") }
 if ( !is.null(opt$seed) ) { set.seed(opt$seed) }
 
-source("../context-inference-fns.R",chdir=TRUE)
-source("../sim-context-fns.R",chdir=TRUE)
+scriptdir <-  dirname(sub("--file=","",commandArgs()[grep("--file",commandArgs())]))
+source(file.path(scriptdir,"context-inference-fns.R"),chdir=TRUE)
+source(file.path(scriptdir,"sim-context-fns.R"),chdir=TRUE)
 
 # identifiers
 if (is.null(opt$outfile)) {

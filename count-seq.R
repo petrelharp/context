@@ -35,8 +35,9 @@ option_list <- list(
         )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 
-source("../sim-context-fns.R",chdir=TRUE)
-source("../context-inference-fns.R",chdir=TRUE)
+scriptdir <-  dirname(sub("--file=","",commandArgs()[grep("--file",commandArgs())]))
+source(file.path(scriptdir,"sim-context-fns.R"),chdir=TRUE)
+source(file.path(scriptdir,"context-inference-fns.R"),chdir=TRUE)
 
 load(opt$infile) # provides simseq.opt, simseq.config, and simseqs; config has bases, mutpats, mutrates, selpats, selcoef, fixfn, seqlen, tlen, initfreqs, 
 

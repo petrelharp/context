@@ -33,7 +33,8 @@ if (is.null(opt$outfile)) {
 }
 print(opt) # this will go in the pbs log
 
-source("../context-inference-fns.R",chdir=TRUE)
+scriptdir <-  dirname(sub("--file=","",commandArgs()[grep("--file",commandArgs())]))
+source(file.path(scriptdir,"context-inference-fns.R"),chdir=TRUE)
 
 options(error = print.and.dump)
 
