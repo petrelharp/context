@@ -70,7 +70,7 @@ read.counts <- function (infile,leftwin,bases,longpats,shortpats,skip=0) {
 read.config <- function (configfile,quiet=FALSE,text) {
     # read in JSON config file
     #   or directly from a text string
-    if (!is.missing(configfile)&&is.null(configfile)) { cat("Config: NULL.\n"); return(NULL) }
+    if (!missing(configfile)&&is.null(configfile)) { cat("Config: NULL.\n"); return(NULL) }
     if (missing(text)) { text <- openread(configfile) }
     json <- paste(readLines(text, warn = FALSE), collapse = "\n")
     if ("connection" %in% class(text)) { close(text) }
