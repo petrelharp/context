@@ -121,6 +121,7 @@ for x in tuplecount:
 outfile.close()
 
 if args.reverse:
+    revfile.write( '# ' + json.dumps(argdict) + "\n" )
     revfile.write("\t".join(["reference","derived","count"])+"\n")
     for x in revcount:
         # omit counts with missing values
