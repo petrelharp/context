@@ -667,7 +667,7 @@ computetransmatrix <- function( genmatrix, projmatrix, tlen=1, shape=1, names=FA
     #   or after a gamma-distributed time
     if (time=="gamma") {
         if (is.null(dim(projmatrix))) { dim(projmatrix) <- c(length(projmatrix),1) }
-        subtransmatrix <- gammaAtv( A=( if (transpose) { t(genmatrix) } else {genmatrix} ), scale=tlen, shape=shape, v=projmatrix )
+        subtransmatrix <- gammaAtv( A=( if (transpose) { t(genmatrix) } else {genmatrix} ), scale=tlen, shape=shape, v=projmatrix, ... )
     } else {
         totalrates <- rowSums(genmatrix)
         scale.t <- mean(totalrates)

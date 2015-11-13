@@ -1,12 +1,12 @@
 # Let X be a Markov chain with generator matrix A
-#  and T ~ Gamma(shape=alpha,scale=beta)
+#  and T ~ Gamma(shape=alpha,rate=beta)
 #  so that
 #    P(X_T=y|X_0=x) = \int_0^\infty ( \beta^\alpha / \Gamma(\alpha) ) t^{\alpha-1} \exp( - \beta t + A t ) dt
 #  which if (\lambda,v) is the eigendecomposition of A is
 #                   = sum_i v_i v_i^T \beta^\alpha / (\beta - \lambda_i)^\alpha
 # 
 # Note that if N(t) ~ Pois(lambda t)
-#  and T ~ Gamma(shape=alpha,scale=beta)
+#  and T ~ Gamma(shape=alpha,rate=beta)
 #  then N(T) ~ NegativeBinomial(alpha,lambda/(lambda+beta))
 #  i.e. P(N(T)=n) = Gamma(n+alpha)/(Gamma(alpha)*factorial(n)) * (beta/(beta+lambda))^alpha * (lambda/(beta+lambda))^n
 #  and that
@@ -14,27 +14,32 @@
 #
 library(Matrix)
 
-gammaAtv <- function (A,scale,shape,v,tol=1e-6) {
-    # evaluate transition matrix after gamma-distributed time multiplied by the matrix v
-    # here shape=alpha, scale=beta, scale.t=lambda
+gammaAtv <- function (A,scale,shape,v,tol=1e-6,verbose=FALSE) {
+    # evaluate transition matrix after gamma-distributed time,
+    #    multiplied by the matrix v
+    # here shape=alpha, scale=1/beta, scale.t=lambda
     totalrates <- rowSums(A)-diag(A)
     scale.t <- max(totalrates)
     stopifnot(scale.t>0)
     P <- (1/scale.t) * A
     diag(P) <- (1-totalrates/scale.t)
-    pp <- scale.t/(scale.t+scale)
-    ans <- kterm <- (1-pp)^shape * v
+    pp <- scale.t/(scale.t+1/scale)
+    nb.prob <- total.prob <- (1-pp)^shape
+    ans <- kterm <- nb.prob * v   # N(T)=0
     m <- qnbinom(p=1-tol,size=shape,prob=1-pp)
-    for (n in 1:m) {
+    if (verbose) { cat("gammaAtv: summing ", m, "terms\n") }
+    for (n in 1:m) {   # N(T)=n
+        nb.prob <- nb.prob * pp * (n+shape-1)/n  # neg binom prob
+        total.prob <- total.prob + nb.prob  # total prob so far
         kterm <- pp * (n+shape-1)/n * ( P %*% kterm )
         ans <- ans + kterm
     }
-    return(ans)
+    return(ans/total.prob)  # normalize by remaining probability so it sums to 1
 }
 
 gammam <- function (A,scale,shape,...) {
     # return whole transition matrix
-    gammaAtv(A=A,scale=scale,shape=shape,v=Diagonal(n=nrow(A)))
+    gammaAtv(A=A,scale=scale,shape=shape,v=Diagonal(n=nrow(A)),...)
 }
 
 expAtv.poisson <- function (A,t,v,tol=1e-6) {
@@ -70,10 +75,11 @@ if (FALSE) {
     gM <- gammam(M,scale=scale,shape=shape)
 
     true.gM <- matrix(0,nrow=nrow(M),ncol=ncol(M))
-    for (k in 1:nrow(M)) { true.gM <- true.gM + outer(eM$vectors[,k],eM$vectors[,k]) * scale^shape / (scale-eM$values[k])^shape }
-    stopifnot( all( abs(rowSums(true.gM)) < 1e-8 ) )
+    for (k in 1:nrow(M)) { true.gM <- true.gM + outer(eM$vectors[,k],eM$vectors[,k]) * (1/scale)^shape / ((1/scale)-eM$values[k])^shape }
+    stopifnot( all( abs(rowSums(true.gM)-1) < 1e-8 ) )
 
     stopifnot( all( abs(true.gM - gM) < 1e-6 ) )
+    stopifnot( all( abs(true.gM - gammam(M,scale=scale,shape=shape,tol=1e-12)) < 1e-12 ) )
 
     lcoefs <- shape*log(scale) + (0:1000)*log(scale.t) + lgamma((0:1000)+shape) - lfactorial(0:1000) - lgamma(shape) - ((0:1000)+shape)*log(scale+scale.t)
     stopifnot( any( (exp(lcoefs) - dnbinom(x=0:1000,size=shape,prob=1-scale.t/(scale.t+scale))) < 1e-8 ) )
