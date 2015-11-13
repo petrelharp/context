@@ -15,6 +15,12 @@ rinitseq <- function (seqlen,bases,basefreqs=rep(1/length(bases),length(bases)))
     return( stringfun(substr( paste( rpats, collapse="" ), 1, seqlen )) )
 }
 
+simseq.config <- function (seqlen,tlen,config,...) {
+    # run simseq but from a config object, basically a named list
+    #  note: probably want to run fill.default.config( ) on config first.
+    do.call( simseq, c( list( seqlen=seqlen, tlen=tlen), config, list(...) ) )
+}
+
 simseq <- function (seqlen, tlen, mutpats, mutrates, 
         selpats=list(), 
         selfactors=lapply(selpats,sapply,function(x)1), 
