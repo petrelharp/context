@@ -407,6 +407,7 @@ setMethod("countframe", signature=c(x="contextTree"), definition=function (x) co
 setGeneric("longwin", function(x) { standardGeneric("longwin") })
 setGeneric("shortwin", function(x) { standardGeneric("shortwin") })
 setGeneric("leftwin", function(x) { standardGeneric("leftwin") })
+setGeneric("rightwin", function(x) { longwin(x)-shortwin(x)-leftwin(x) }
 setMethod("longwin", signature=c(x="genmatrix"), definition=function(x) { nchar(rownames(x)[1]) } )
 setMethod("longwin", signature=c(x="tuplecounts"), definition=function(x) { nchar(rownames(x@counts)[1]) } )
 setMethod("longwin", signature=c(x="context"), definition=function(x) { longwin(x@counts) } )
