@@ -1,0 +1,138 @@
+---
+title: "Checking the extension of an exponential time."
+date: "`r date()`"
+---
+
+\newcommand{\deq}{\stackrel{\scriptscriptstyle{d}}{=}}
+\renewcommand{\P}{\mathbb{P}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\R}{\mathbb{R}}
+
+```{r doc_setup, include=FALSE}
+fig.dim <- 5
+knitr::opts_chunk$set(fig.width=2*fig.dim,fig.height=fig.dim,fig.align='center')
+```
+
+Let $N$ be a Poisson process on $\R$,
+let $L$ be a Poisson process on $\R^2$,
+and let $T_t = \inf\{s>0 : L([0,s]\times[0,1/t])>0\}$.
+The claim is that if we let
+$$ Z(t) = N(T_t) $$
+then this process has increments
+$$
+Z(t+u) - Z(t) \deq X_t + Y_t ,
+$$
+where $X_t$ is Bernoulli($t/(t+u)$)
+and $Y_t$ is Geometric($(u+t)/(u+t+ut)$).
+
+Here's the process:
+```{r sim_process}
+N <- cumsum(rexp(1e3))
+min.t <- 1
+max.x <- 1000
+nL <- rpois(1,1/min.t*max.x) 
+L <- cbind( runif(nL)*max.x, runif(nL)/min.t )
+L <- L[order(L[,1],decreasing=FALSE),]
+Tt <- function (t,L) {
+    useL <- outer(L[,2],1/t,"<")
+    L[ apply(useL,2,function(u)min(which(u))), 1 ]
+}
+Z <- function (t,L) {
+    colSums(outer(N,Tt(t,L),"<"))
+}
+tt <- seq(min.t,500,length.out=1000)
+layout(t(1:2))
+plot( tt, Tt(tt,L), type='l', main="T(t)" )
+plot( tt, Z(tt,L), type='l', main="Z(t)" )
+```
+
+Clearly, $Z(t+u)=Z(t)$ if the $y$-coordinate of the point of $L$
+whose $x$-coordinate is $T_t$ is less than $1/(t+u)$;
+this occurs with probability $t/(t+u)$.
+If this is not the case,
+then $T_t$ increments by an Exponential($1/(t+u)$) time,
+which increments $Z$ by a Geometric($1/(1+(t+u)^{-1})=(t+u)/(1+t+u)$) number,
+so we should have
+$$ Z(t+u)-Z(t) \deq \text{Geom}\left(\frac{t+u}{1+t+u}\right) . $$
+
+
+Increments of $T(t)$
+------------------
+
+We claim that
+$$
+T(t+u) \deq T(t) + \sum_{k=0}^M T_k,
+$$
+where the $T_k$ are independent copies of $T(t)$
+and $M$ is Geometric($t/(t+u)$).
+
+Here is the predicted distribution:
+```{r geoexponential}
+rgeoexp <- function (n,t,dt) {
+    M <- rgeom(n,t/(t+dt))
+    dT <- numeric(n)
+    while ( any(M>0) ) {
+        dT[M>0] <- dT[M>0] + rexp(n,1/t)[M>0]
+        M <- M-1
+    }
+    return(dT)
+}
+rgs <- rgeoexp(1e4,t=10,dt=5)
+mean(rgs==0)
+```
+
+
+And, the simulated distribution:
+```{r sim_dT}
+sim_dT <- function (t,dt) {
+    N <- cumsum( rexp(5*(t+dt)) )
+    max.x <- 100*t
+    nL <- rpois(1,max.x/t)
+    L <- cbind( runif(nL)*max.x, runif(nL)/t )
+    L <- L[order(L[,1],decreasing=FALSE),]
+    Tt(t+dt,L)-Tt(t,L)
+}
+sim.rgs <- replicate(1e4,sim_dT(t=10,dt=5))
+mean(sim.rgs==0)
+```
+
+And the comparison for nonzero probabilities:
+```{r compare_dT}
+breaks <- seq(0,max(rgs,sim.rgs),length.out=50)
+hist(rgs[rgs>0],breaks=breaks,freq=FALSE,col=adjustcolor("black",0.5))
+hist(sim.rgs[sim.rgs>0],breaks=breaks,freq=FALSE,col=adjustcolor("red",0.5),add=TRUE)
+```
+
+
+Increments of $Z(t)$
+------------------
+
+Here's the predicted distribution:
+```{r bernougeo}
+rbernougeo <- function (n,t,dt) {
+    ifelse( rbinom(n,1,t/(t+dt))>0, 0, rgeom(n,1/(1+t+dt)) )
+}
+bgs <- rbernougeo(1e6,t=10,dt=5)
+mean(bgs==0)
+```
+
+And, the simulated distribution:
+```{r sim_distrn}
+sim_ppp <- function (t,dt) {
+    N <- cumsum( rexp(5*(t+dt)) )
+    max.x <- 100*t
+    nL <- rpois(1,max.x/t)
+    L <- cbind( runif(nL)*max.x, runif(nL)/t )
+    L <- L[order(L[,1],decreasing=FALSE),]
+    Z(t+dt,L)-Z(t,L)
+}
+sim.bgs <- replicate(1e4,sim_ppp(t=10,dt=5))
+mean(sim.bgs==0)
+```
+
+
+```{r compare_Z}
+breaks <- seq(0,max(bgs,sim.bgs,length.out=30))
+hist(bgs[bgs>0],breaks=breaks,freq=FALSE,col=adjustcolor("black",0.5))
+hist(sim.bgs[sim.bgs>0],breaks=breaks,freq=FALSE,col=adjustcolor("red",0.5),add=TRUE)
+```

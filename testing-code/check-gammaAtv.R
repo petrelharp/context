@@ -45,3 +45,31 @@ extend.fac <- 0.5
 egM <- extend.gammam( gM, eps=1-extend.fac, tol=1e-8 )
 stopifnot( all( abs( egM - matrix( c(1/(1+scale/extend.fac*M[1,2]), 0, 1-1/(1+scale/extend.fac*M[1,2]), 1.0), nrow=2) ) < 1e-8 ) )
 stopifnot( all( abs( egM - gammam( M, scale=scale/extend.fac, shape=1, tol=1e-8 ) ) < 2e-8 ) )
+
+# bigger matrix
+M <- matrix( c(
+    0,1,1,1,1,0,0,0,1,0,0,0,1,0,0,0,#AA
+    1,0,1,1,0,1,0,0,0,1,0,0,0,1,0,0,#CA
+    1,1,0,1,0,0,1,0,0,0,1,0,0,0,1,0,#GA
+    1,1,1,0,0,0,0,1,0,0,0,1,0,0,0,1,#TA
+    1,0,0,0,0,1,1,1,1,0,0,0,1,0,0,0,#AC
+    0,1,0,0,1,0,1,1,0,1,0,0,0,1,0,0,#CC
+    0,0,1,0,1,1,0,1,0,0,1,0,0,0,1,0,#GC
+    0,0,0,1,1,1,1,0,0,0,0,1,0,0,0,1,#TC
+    1,0,0,0,1,0,0,0,0,1,1,1,1,0,0,0,#AG
+    0,1,0,0,0,1,0,0,1,0,1,1,0,1,0,0,#CG
+    0,0,1,0,0,0,1,0,1,1,0,1,0,0,1,0,#GG
+    0,0,0,1,0,0,0,1,1,1,1,0,0,0,0,1,#TG
+    1,0,0,0,1,0,0,0,1,0,0,0,0,1,1,1,#AT
+    0,1,0,0,0,1,0,0,0,1,0,0,1,0,1,1,#CT
+    0,0,1,0,0,0,1,0,0,0,1,0,1,1,0,1,#GT
+    0,0,0,1,0,0,0,1,0,0,0,1,1,1,1,0 #TT
+    ), nrow=16, byrow=TRUE )
+diag(M) <- (-1)*rowSums(M)
+
+scale <- 0.3
+gM <- gammam(M, scale=scale, shape=1, tol=1e-8)
+extend.fac <- 0.8
+egM <- extend.gammam( gM, eps=1-extend.fac, tol=1e-8 )
+stopifnot( all( abs( egM - gammam( M, scale=scale/extend.fac, shape=1, tol=1e-8 ) ) < 2e-8 ) )
+

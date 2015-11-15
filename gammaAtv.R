@@ -12,12 +12,28 @@
 #  and that
 #      P(N(T)=n) = (lambda * (n+alpha-1)) / ( n * (beta+lambda) ) * P(N(T)=n-1) .
 #
-library(Matrix)
+# Furthermore, 
+#  if  T ~ Exponential(rate=beta),
+#  we've already sampled N(T),
+#  and want to get a sample of N(S), 
+#  where S ~ Exponential(rate=beta+u)
+#  then we can let
+#    S = T + sum_{k=0}^M T_k
+#  where M is Geometric(beta/(beta+u)) and T_k are independent copies of T.
+# This implies that we can write
+#    N(S) = N(T) + N' 
+#  where N' ~ NegBinom(M,lambda/(lambda+beta))
+#  which is the same as
+#        N' ~ NegBinom(M,lambda/(lambda+beta+u))
+
+require(Matrix)
 
 gammaAtv <- function (A,scale,shape,v,tol=1e-6,verbose=FALSE) {
     # evaluate transition matrix after gamma-distributed time,
     #    multiplied by the matrix v
     # here shape=alpha, scale=1/beta, scale.t=lambda
+    #
+    # Note that diag(A) is not used.
     totalrates <- rowSums(A)-diag(A)
     scale.t <- max(totalrates)
     stopifnot(scale.t>0)
@@ -96,5 +112,36 @@ if (FALSE) {
         stopifnot(all(abs(a-b)<1e-7))
     }
     # slower!! and scales much worse.  better to figure out how to do gamma with krylov...
+
+    # Claim: if
+    #   N ~ NegBinom(M,q)  
+    #    (in R's notation, so P(N=x) = Gamma(x+M)/(Gamma(M) x!) q^n (1-q)^x )
+    #   M ~ Geo(p)
+    #    (also in R's notation, so P(M=x) = p (1-p)^x )
+    # then P(N=0) = 1-(1-p)(1-q)/(1-(1-p)q)
+    # and  P(N=n) = (1-p)pq((1-q)/(1-(1-p)q))^n
+    rneggeo <- function (n,p,q) {
+        M <- rgeom(n,p)
+        ans <- numeric(n)
+        ans[M>0] <- rnbinom(sum(M>0),size=M[M>0],prob=rep_len(q,n)[M>0])
+        ans
+    }
+    dneggeo <- function (x,p,q) {
+        u <- (1-p)*q
+        ans <- u*p*((1-q)/(1-u))^x
+        ans[x==0] <- ans[x==0]/(u*(1-u))
+        ans
+    }
+    f <- function (x,p,q) {
+        sapply( x, function (n) {
+               if (x==0) {
+
+               }
+            } )
+    }
+    p <- 0.2
+    q <- 0.3
+    xx <- rneggeo(1e4,p,q)
+    data.frame( n=seq(0,max(xx)), obs=tabulate(1+xx)/length(xx), exp=dneggeo(0:max(xx),p,q) )
 
 }

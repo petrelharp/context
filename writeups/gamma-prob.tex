@@ -2,8 +2,9 @@
 \usepackage{amsmath,amssymb,amsthm}
 \newcommand{\E}{\mathbb{E}}
 \renewcommand{\P}{\mathbb{P}}
-\newcommand{\given}{\;\vert\;}
+\newcommand{\given}{\mid}
 \newcommand{\Beta}{B}
+\newcommand{\deq}{\stackrel{\scriptscriptstyle{d}}{=}}
 
 \begin{document}
 
@@ -48,6 +49,57 @@ Note that
 which is helpful for computing this.
 The error in approximating this by a finite sum up to $n_0$ is bounded by $\P\{N(\lambda \tau)>n_0\}$.
 
+%%%%%%%%%%%
+\section{More calculations}
+
+Suppose that $T$ is Exponential($\beta$)
+and $S$ is Exponential($\beta+u$),
+and that $N(t)$ is Poisson($\lambda t$).
+By Poisson thinning,
+\begin{align}
+    S \deq T + \sum_{k=0}^M T_k,
+\end{align}
+where $T_k$ are independent copies of $T$
+and $M$ is Geometric($\beta/(\beta+u)$).
+Therefore, 
+\begin{align}
+    N(S) \deq N(T) + N',
+\end{align}
+where $N'$ is NegativeBinomial($M$,$\lambda/(\lambda+\beta)$).
+
+What is a Geometric mixture of Negative Binomials?
+Well, if 
+\begin{align}
+    \P\{ M = m \} &= p (1-p)^m \\
+    \text{and } \P\{ N' = n \given M=m \} &= \frac{ \Gamma(n+m) }{ \Gamma(m) n! } q^m (1-q)^n, 
+\end{align}
+then
+\begin{align}
+    \P\{ N' = 0 \}
+        &= \sum_{m \ge 0} p (1-p)^m q^m \\
+        &= \frac{p}{1-q(1-p)} , \text{ and } \\
+    \P\{ N' = n \} 
+        &= \sum_{m \ge 1} p (1-p)^m \frac{ \Gamma(n+m) }{ \Gamma(m) n!} q^m (1-q)^n \\
+        &= \frac{p(1-q)^n}{n!} \sum_{m \ge 1} q^m(1-p)^m \frac{ \Gamma(n+m) }{ \Gamma(m) } \\
+        &= \frac{p(1-q)^n}{n!} \frac{ n! q (1-p) }{ (1-q(1-p))^n } \\
+    &= (1-\frac{p}{1-q(1-p)}) \frac{ pq }{ 1-q } \left( \frac{1-q}{1-q(1-p)} \right)^n .
+\end{align}
+In other words,
+if we let $a = (1-p)(1-q)/(1-q(1-p))$ and $b=(1-q)/(1-q(1-p))$,
+then
+\begin{align}
+    \P\{ N' = 0 \} &= 1-a \\
+    \P\{ N' = n \} &= a (1-b) b^{n-1} ,
+\end{align}
+i.e., if $X$ be Bernoulli($a$) and $Y$ be Geometric($b$) then $N'\deq X+Y$.
+
+We want to apply this with $p=u/(\beta+u)$ and $q=\beta/(\lambda+\beta)$,
+which translates to
+\begin{align}
+    a &= \frac{ \lambda \beta }{ u \lambda + u \beta + \lambda \beta } \\
+      &= \frac{ \lambda/\beta }{ (1+\lambda/\beta)(1+u/\beta) - 1 } \\
+    b &= \frac{ \lambda ( \beta + u ) }{ \lambda ( \beta + u ) + \beta u } 
+\end{align}
 
 
 \end{document}
