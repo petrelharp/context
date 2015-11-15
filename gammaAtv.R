@@ -42,7 +42,21 @@ gammam <- function (A,scale,shape,...) {
     gammaAtv(A=A,scale=scale,shape=shape,v=Diagonal(n=nrow(A)),...)
 }
 
-expAtv.poisson <- function (A,t,v,tol=1e-6) {
+extend.gammam <- function (P,a,da,eps=da/(a+da),tol=1e-8) {
+    # if P is e^{TG} where T is Exp(a)
+    #   return e^{SG} where S is Exp(a+da), with da>0,
+    #   a+da = a/(1-eps), so eps=(da/a)/(1+da/a)
+    ans <- Pm <- (1-eps)*P
+    m <- ceiling(log(tol)/log(eps))
+    # cat("m=",m,"\n")
+    for (k in seq(2,length.out=(m-1))) {
+        Pm <- eps * P %*% Pm
+        ans <- ans + Pm
+    }
+    return(ans)
+}
+
+expAtv.poisson <- function (A,t,v,tol=1e-8) {
     # use a similar strategy to evaluate exp(Atv) for generator matrices
     #   for comparison:
     # number of jumps after time t is Pois( t * scale.t )
@@ -62,24 +76,6 @@ expAtv.poisson <- function (A,t,v,tol=1e-6) {
 
 ## test
 if (FALSE) {
-
-    M <- matrix(rexp(100),nrow=10,ncol=10)
-    M <- (M + t(M))/2
-    diag(M) <- (-1)*( rowSums(M) - diag(M) )
-    eM <- eigen(M)
-    stopifnot(all(eM$values <= 0))
-
-    scale <- 2
-    shape <- 3
-    scale.t <- max((-1)*diag(M))
-    gM <- gammam(M,scale=scale,shape=shape)
-
-    true.gM <- matrix(0,nrow=nrow(M),ncol=ncol(M))
-    for (k in 1:nrow(M)) { true.gM <- true.gM + outer(eM$vectors[,k],eM$vectors[,k]) * (1/scale)^shape / ((1/scale)-eM$values[k])^shape }
-    stopifnot( all( abs(rowSums(true.gM)-1) < 1e-8 ) )
-
-    stopifnot( all( abs(true.gM - gM) < 1e-6 ) )
-    stopifnot( all( abs(true.gM - gammam(M,scale=scale,shape=shape,tol=1e-12)) < 1e-12 ) )
 
     lcoefs <- shape*log(scale) + (0:1000)*log(scale.t) + lgamma((0:1000)+shape) - lfactorial(0:1000) - lgamma(shape) - ((0:1000)+shape)*log(scale+scale.t)
     stopifnot( any( (exp(lcoefs) - dnbinom(x=0:1000,size=shape,prob=1-scale.t/(scale.t+scale))) < 1e-8 ) )
