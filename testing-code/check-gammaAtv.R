@@ -38,8 +38,10 @@ stopifnot( abs( 1/(1+0.25/.8) - extend.gammam( 1/(1+0.25), eps=0.2, tol=1e-15 ) 
 extend.fac <- 0.8
 egM <- extend.gammam( gM, eps=1-extend.fac, tol=1e-8 )
 stopifnot( all( abs( egM - matrix( c(1/(1+scale/extend.fac*M[1,2]), 0, 1-1/(1+scale/extend.fac*M[1,2]), 1.0), nrow=2) ) < 1e-8 ) )
+stopifnot( all( abs( egM - gammam( M, scale=scale/extend.fac, shape=1, tol=1e-8 ) ) < 2e-8 ) )
 
 # try longer extensions
 extend.fac <- 0.5
 egM <- extend.gammam( gM, eps=1-extend.fac, tol=1e-8 )
 stopifnot( all( abs( egM - matrix( c(1/(1+scale/extend.fac*M[1,2]), 0, 1-1/(1+scale/extend.fac*M[1,2]), 1.0), nrow=2) ) < 1e-8 ) )
+stopifnot( all( abs( egM - gammam( M, scale=scale/extend.fac, shape=1, tol=1e-8 ) ) < 2e-8 ) )
