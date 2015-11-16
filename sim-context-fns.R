@@ -28,7 +28,7 @@ simseq <- function (seqlen, tlen, mutpats, mutrates,
         patlen, bases=c("A","C","G","T"), 
         initseq, basefreqs=rep(1/length(bases),length(bases)), 
         count.trans=FALSE, only.num.events=FALSE, 
-        gmfile=NULL, ... ) {
+        gmfile=NULL, simplify=TRUE, ... ) {
     # Simulate a random sequence and evolve it with genmatrix, wrapping mutations around as needed.
     #  record transition counts if count.trans it TRUE (e.g. for debugging)
     #
@@ -94,45 +94,52 @@ simseq <- function (seqlen, tlen, mutpats, mutrates,
     ####
     # number and locations of possible changes, ordered by time they occur at
     mean.n.events <- maxrate * tlen * seqlen
-    cat("simseq: Total number of potential substitutions around ", mean.n.events, "\n")
+    cat("simseq: Total number of potential substitutions around ", paste(mean.n.events,collapse=", "), "\n")
     if (only.num.events) {  # don't actually simulate them, just say how many
         return(mean.n.events)
     }
-    n.events <- rpois(1,lambda=maxrate*tlen*seqlen)
-    loc.events <- sample(seqlen,n.events,replace=TRUE)
-    wrap.events <- (loc.events+pad.patlen>seqlen+1) #events wrapping around the end
-    # count transitions, for debugging
-    ntrans <- if (count.trans) { data.frame( i=factor(rep(NA,n.events),levels=rownames(genmatrix)), j=factor(rep(NA,n.events),levels=colnames(genmatrix)), loc=loc.events ) } else { NULL }
-    # initial and final sequences
-    if (missing(initseq)) { initseq <- rinitseq(seqlen,bases,basefreqs) }
-    finalseq <- initseq
-    for (k in seq_along(loc.events)) {
-        subseq <- if (wrap.events[k]) { # from string (cyclical)
-                xscat( subseq( finalseq, loc.events[k], seqlen), subseq(finalseq, 1, loc.events[k]+pad.patlen-seqlen-1) )
-            } else {
-                subseq(finalseq, loc.events[k], loc.events[k]+pad.patlen-1 )
+    ###
+    # if tlen is a vector, return a list of sequences
+    seqlen <- rep_len(seqlen,length(tlen))
+    output.list <- lapply( seq_along(tlen), function (k.tlen) {
+        n.events <- rpois(1,lambda=maxrate*tlen[k.tlen]*seqlen[k.tlen])
+        loc.events <- sample(seqlen[k.tlen],n.events,replace=TRUE)
+        wrap.events <- (loc.events+pad.patlen>seqlen[k.tlen]+1) #events wrapping around the end
+        # count transitions, for debugging
+        ntrans <- if (count.trans) { data.frame( i=factor(rep(NA,n.events),levels=rownames(genmatrix)), j=factor(rep(NA,n.events),levels=colnames(genmatrix)), loc=loc.events ) } else { NULL }
+        # initial and final sequences
+        if (missing(initseq)) { initseq <- rinitseq(seqlen[k.tlen],bases,basefreqs) }
+        finalseq <- initseq
+        for (k in seq_along(loc.events)) {
+            subseq <- if (wrap.events[k]) { # from string (cyclical)
+                    xscat( subseq( finalseq, loc.events[k], seqlen[k.tlen]), subseq(finalseq, 1, loc.events[k]+pad.patlen-seqlen[k.tlen]-1) )
+                } else {
+                    subseq(finalseq, loc.events[k], loc.events[k]+pad.patlen-1 )
+                }
+            msubseq <- match( subseq, patstrings )  # which row for this string?
+            isubseq <- which( (genmatrix@i + 1) == msubseq ) # transitions are these entries of genmatrix
+            if (length(isubseq)>0) {   # do nothing if this pattern doesn't mutate
+                jsubseq <- c( msubseq, (genmatrix.j[isubseq]+1) ) # indices of possible replacement patterns (self is first)
+                psubseq <- c( diags[msubseq], genmatrix@x[isubseq] )  # probabilities of choosing these
+                replind <- sample( jsubseq, 1, prob=psubseq ) # choose this replacement string (index)
+                replstr <- patstrings[[replind]] # what is the replacement string
+                if (count.trans) {  ntrans$i[k] <- patterns[msubseq]; ntrans$j[k] <- patterns[replind] } # record this (is a factor so not storing actual strings)
+                if (wrap.events[k]) { # put this back in (cyclical)
+                    subseq( finalseq, loc.events[k], seqlen[k.tlen] ) <- subseq( replstr, 1, seqlen[k.tlen]-loc.events[k]+1 )
+                    subseq( finalseq, 1, loc.events[k]+pad.patlen-seqlen[k.tlen]-1 ) <- subseq( replstr, seqlen[k.tlen]-loc.events[k]+2, pad.patlen )
+                } else {
+                    subseq( finalseq, loc.events[k], loc.events[k]+pad.patlen-1 ) <- replstr
+                }
             }
-        msubseq <- match( subseq, patstrings )  # which row for this string?
-        isubseq <- which( (genmatrix@i + 1) == msubseq ) # transitions are these entries of genmatrix
-        if (length(isubseq)>0) {   # do nothing if this pattern doesn't mutate
-            jsubseq <- c( msubseq, (genmatrix.j[isubseq]+1) ) # indices of possible replacement patterns (self is first)
-            psubseq <- c( diags[msubseq], genmatrix@x[isubseq] )  # probabilities of choosing these
-            replind <- sample( jsubseq, 1, prob=psubseq ) # choose this replacement string (index)
-            replstr <- patstrings[[replind]] # what is the replacement string
-            if (count.trans) {  ntrans$i[k] <- patterns[msubseq]; ntrans$j[k] <- patterns[replind] } # record this (is a factor so not storing actual strings)
-            if (wrap.events[k]) { # put this back in (cyclical)
-                subseq( finalseq, loc.events[k], seqlen ) <- subseq( replstr, 1, seqlen-loc.events[k]+1 )
-                subseq( finalseq, 1, loc.events[k]+pad.patlen-seqlen-1 ) <- subseq( replstr, seqlen-loc.events[k]+2, pad.patlen )
-            } else {
-                subseq( finalseq, loc.events[k], loc.events[k]+pad.patlen-1 ) <- replstr
-            }
+            # sanity check:
+            # if (nchar(finalseq) != nchar(initseq)) { browser() }
         }
-        # sanity check:
-        # if (nchar(finalseq) != nchar(initseq)) { browser() }
-    }
-    output <- list( initseq=initseq, finalseq=finalseq, maxrate=maxrate, ntrans=ntrans, mutpats=mutpats, selpats=selpats, mutrates=mutrates, selcoef=selcoef, tlen=tlen, seqlen=seqlen, bases=bases, fixfn.params=list(...) )
-    class(output) <- "simseq"
-    return(output)
+        output <- list( initseq=initseq, finalseq=finalseq, maxrate=maxrate, ntrans=ntrans, mutpats=mutpats, selpats=selpats, mutrates=mutrates, selcoef=selcoef, tlen=tlen[k.tlen], seqlen=seqlen[k.tlen], bases=bases, fixfn.params=list(...) )
+        class(output) <- "simseq"
+        output
+    })
+    # should not do this horrible hack-ey conditional return...
+    return( if (length(output.list)==1 && ! simplify) { output.list[[1]] } else { output.list } )
 }
 
 simseq.tree <- function (seqlen,config,...) {
