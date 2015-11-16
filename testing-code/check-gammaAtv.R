@@ -89,3 +89,11 @@ extend.fac <- 0.8
 egAtv <- extend.expAtv( A=M, scale=scale, dscale=dscale, gAtv=gAtv, tol=1e-8 )
 stopifnot( all( abs( egAtv - gammaAtv( M, scale=scale+dscale, shape=1, v=Diagonal(nrow(M)), tol=1e-8 ) ) < 2e-8 ) )
 
+
+###
+# check extend.expAtv agrees with gammaAtv when scale=0
+scale <- 2.1
+dscale <- 0.5
+gAtv <- gammaAtv(M, scale=scale, shape=1, v=Diagonal(nrow(M)), tol=1e-8)
+egAtv <- extend.expAtv(A=M, scale=0, dscale=scale, gAtv=Diagonal(nrow(M)), tol=1e-8)
+stopifnot(all(abs(gAtv-egAtv)<.Machine$double.eps))  # should be less than machine tolerance as they do the same thing
