@@ -72,6 +72,47 @@ extend.gammam <- function (P,a,da,eps=da/(a+da),tol=1e-8) {
     return(ans)
 }
 
+
+extend.expAtv <- function (A,scale,dscale,gAtv,tol=1e-8,verbose=FALSE,shape) {
+    # Suppose that gAtv is the output of gammaAtv(A,shape=1,scale=scale,v)
+    # and we want to return gammaAtv(A,shape=1,scale=scale+dscale,v)
+    #
+    # The number of extra events that occur is zero with probability scale/(scale+dscale)
+    # and otherwise is a Geometric with parameter (scale+dscale)*lambda/(1+lambda*(scale+dscale)),
+    # (which can still be zero);
+    # in total the probability of being zero is
+    #   P(N'=0) = scale/(scale+dscale) + dscale/(scale+dscale) * 1/(1+lambda*(scale+dscale))
+    # and 
+    #   P(N'=1) = dscale/(scale+dscale) * 1/(1+lambda*(scale+dscale)) * lambda*(scale+dscale)/(1+lambda*(scale+dscale))
+    #   P(N'=n+1) = P(N'=n) * lambda*(scale+dscale)/(1+lambda*(scale+dscale))  for n>1
+    #
+    # Below, scale.t is lambda.
+    # 
+    # Note that diag(A) is not used.
+    if (!missing(shape)) { stop("not implemented for shape != 1: need to extend to a binomial number of these.") }
+    totalrates <- rowSums(A)-diag(A)
+    scale.t <- max(totalrates)
+    stopifnot(scale.t>0)
+    P <- (1/scale.t) * A
+    diag(P) <- (1-totalrates/scale.t)
+    pp <- scale.t*(scale+dscale)/(1+scale.t*(scale+dscale))
+    bg.prob <- dscale/(scale+dscale) * (1-pp)
+    kterm <- bg.prob * gAtv
+    total.prob <- (scale/(scale+dscale) + bg.prob)
+    ans <- (scale/(scale+dscale) + bg.prob) * gAtv
+    m <- qgeom(p=1-tol,prob=1-pp)
+    if (verbose) { cat("gammaAtv: summing ", m, "terms\n") }
+    for (n in 1:m) {   # N(T)=n
+        bg.prob <- bg.prob * pp
+        total.prob <- total.prob + bg.prob  # total prob so far
+        kterm <- pp * ( P %*% kterm )
+        ans <- ans + kterm
+    }
+    stopifnot((1-total.prob)<tol)
+    return(ans/total.prob)  # normalize by remaining probability so it sums to 1
+}
+
+
 expAtv.poisson <- function (A,t,v,tol=1e-8) {
     # use a similar strategy to evaluate exp(Atv) for generator matrices
     #   for comparison:
@@ -115,11 +156,11 @@ if (FALSE) {
 
     # Claim: if
     #   N ~ NegBinom(M,q)  
-    #    (in R's notation, so P(N=x) = Gamma(x+M)/(Gamma(M) x!) q^n (1-q)^x )
+    #    (in R's notation, so P(N=x) = Gamma(x+M)/(Gamma(M) x!) q^M (1-q)^x )
     #   M ~ Geo(p)
     #    (also in R's notation, so P(M=x) = p (1-p)^x )
     # then P(N=0) = 1-(1-p)(1-q)/(1-(1-p)q)
-    # and  P(N=n) = (1-p)pq((1-q)/(1-(1-p)q))^n
+    # and  P(N=n) = p((1-q)/(1-(1-p)q))^n
     rneggeo <- function (n,p,q) {
         M <- rgeom(n,p)
         ans <- numeric(n)
@@ -127,21 +168,15 @@ if (FALSE) {
         ans
     }
     dneggeo <- function (x,p,q) {
-        u <- (1-p)*q
-        ans <- u*p*((1-q)/(1-u))^x
-        ans[x==0] <- ans[x==0]/(u*(1-u))
+        u <- rep_len((1-p)*q,length(x))
+        ans <- p*u/(1-u)*((1-q)/(1-u))^x
+        ans[x==0] <- ans[x==0]/u[x==0]
         ans
-    }
-    f <- function (x,p,q) {
-        sapply( x, function (n) {
-               if (x==0) {
-
-               }
-            } )
     }
     p <- 0.2
     q <- 0.3
-    xx <- rneggeo(1e4,p,q)
-    data.frame( n=seq(0,max(xx)), obs=tabulate(1+xx)/length(xx), exp=dneggeo(0:max(xx),p,q) )
-
+    xx <- rneggeo(1e6,p,q)
+    comp <- data.frame( n=seq(0,max(xx)), obs=tabulate(1+xx)/length(xx), exp=dneggeo(0:max(xx),p,q) )
+    with( comp, plot( exp ~ obs, log='xy' ) )
+    abline(0,1)
 }

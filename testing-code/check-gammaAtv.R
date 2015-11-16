@@ -73,3 +73,19 @@ extend.fac <- 0.8
 egM <- extend.gammam( gM, eps=1-extend.fac, tol=1e-8 )
 stopifnot( all( abs( egM - gammam( M, scale=scale/extend.fac, shape=1, tol=1e-8 ) ) < 2e-8 ) )
 
+###
+# test extend.expAtv
+scale <- 0.3
+dscale <- 0.1
+gAtv <- gammaAtv(M, scale=scale, shape=1, v=Diagonal(nrow(M)), tol=1e-8)
+extend.fac <- 0.8
+egAtv <- extend.expAtv( A=M, scale=scale, dscale=dscale, gAtv=gAtv, tol=1e-8 )
+stopifnot( all( abs( egAtv - gammaAtv( M, scale=scale+dscale, shape=1, v=Diagonal(nrow(M)), tol=1e-8 ) ) < 2e-8 ) )
+
+scale <- 2.1
+dscale <- 0.05
+gAtv <- gammaAtv(M, scale=scale, shape=1, v=Diagonal(nrow(M)), tol=1e-8)
+extend.fac <- 0.8
+egAtv <- extend.expAtv( A=M, scale=scale, dscale=dscale, gAtv=gAtv, tol=1e-8 )
+stopifnot( all( abs( egAtv - gammaAtv( M, scale=scale+dscale, shape=1, v=Diagonal(nrow(M)), tol=1e-8 ) ) < 2e-8 ) )
+
