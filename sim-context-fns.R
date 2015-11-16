@@ -28,7 +28,7 @@ simseq <- function (seqlen, tlen, mutpats, mutrates,
         patlen, bases=c("A","C","G","T"), 
         initseq, basefreqs=rep(1/length(bases),length(bases)), 
         count.trans=FALSE, only.num.events=FALSE, 
-        gmfile=NULL, simplify=TRUE, ... ) {
+        gmfile=NULL, simplify=TRUE, quiet=FALSE, ... ) {
     # Simulate a random sequence and evolve it with genmatrix, wrapping mutations around as needed.
     #  record transition counts if count.trans it TRUE (e.g. for debugging)
     #
@@ -94,7 +94,7 @@ simseq <- function (seqlen, tlen, mutpats, mutrates,
     ####
     # number and locations of possible changes, ordered by time they occur at
     mean.n.events <- maxrate * tlen * seqlen
-    cat("simseq: Total number of potential substitutions around ", paste(mean.n.events,collapse=", "), "\n")
+    if (!quiet) { cat("simseq: Total number of potential substitutions around ", paste(unique(range(mean.n.events)),collapse=" to "), "\n") }
     if (only.num.events) {  # don't actually simulate them, just say how many
         return(mean.n.events)
     }
