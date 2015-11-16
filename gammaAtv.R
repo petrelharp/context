@@ -87,6 +87,8 @@ extend.expAtv <- function (A,scale,dscale,gAtv,tol=1e-8,verbose=FALSE,shape) {
     #   P(N'=n+1) = P(N'=n) * lambda*(scale+dscale)/(1+lambda*(scale+dscale))  for n>1
     #
     # Below, scale.t is lambda.
+    #
+    # Note this is a generalization of gammaAtv().
     # 
     # Note that diag(A) is not used.
     if (!missing(shape)) { stop("not implemented for shape != 1: need to extend to a binomial number of these.") }
