@@ -101,6 +101,7 @@ simseq <- function (seqlen, tlen, mutpats, mutrates,
     ###
     # if tlen is a vector, return a list of sequences
     seqlen <- rep_len(seqlen,length(tlen))
+    if (missing(initseq)) { initseq <- lapply(seqlen, rinitseq, bases, basefreqs) }
     output.list <- lapply( seq_along(tlen), function (k.tlen) {
         n.events <- rpois(1,lambda=maxrate*tlen[k.tlen]*seqlen[k.tlen])
         loc.events <- sample(seqlen[k.tlen],n.events,replace=TRUE)
@@ -108,8 +109,7 @@ simseq <- function (seqlen, tlen, mutpats, mutrates,
         # count transitions, for debugging
         ntrans <- if (count.trans) { data.frame( i=factor(rep(NA,n.events),levels=rownames(genmatrix)), j=factor(rep(NA,n.events),levels=colnames(genmatrix)), loc=loc.events ) } else { NULL }
         # initial and final sequences
-        if (missing(initseq)) { initseq <- rinitseq(seqlen[k.tlen],bases,basefreqs) }
-        finalseq <- initseq
+        finalseq <- initseq[[k.tlen]]
         for (k in seq_along(loc.events)) {
             subseq <- if (wrap.events[k]) { # from string (cyclical)
                     xscat( subseq( finalseq, loc.events[k], seqlen[k.tlen]), subseq(finalseq, 1, loc.events[k]+pad.patlen-seqlen[k.tlen]-1) )
@@ -134,7 +134,7 @@ simseq <- function (seqlen, tlen, mutpats, mutrates,
             # sanity check:
             # if (nchar(finalseq) != nchar(initseq)) { browser() }
         }
-        output <- list( initseq=initseq, finalseq=finalseq, maxrate=maxrate, ntrans=ntrans, mutpats=mutpats, selpats=selpats, mutrates=mutrates, selcoef=selcoef, tlen=tlen[k.tlen], seqlen=seqlen[k.tlen], bases=bases, fixfn.params=list(...) )
+        output <- list( initseq=initseq[[k.tlen]], finalseq=finalseq, maxrate=maxrate, ntrans=ntrans, mutpats=mutpats, selpats=selpats, mutrates=mutrates, selcoef=selcoef, tlen=tlen[k.tlen], seqlen=seqlen[k.tlen], bases=bases, fixfn.params=list(...) )
         class(output) <- "simseq"
         output
     })
