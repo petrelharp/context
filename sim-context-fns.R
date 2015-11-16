@@ -139,7 +139,7 @@ simseq <- function (seqlen, tlen, mutpats, mutrates,
         output
     })
     # should not do this horrible hack-ey conditional return...
-    return( if (length(output.list)==1 && ! simplify) { output.list[[1]] } else { output.list } )
+    return( if (length(output.list)==1 && simplify) { output.list[[1]] } else { output.list } )
 }
 
 simseq.tree <- function (seqlen,config,...) {
