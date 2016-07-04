@@ -102,6 +102,7 @@ in the interest of computational efficiency and lack of understanding of the und
 but some progress has been made.
 Often, the effects of a complex mutational spectrum are explored using summary statistics of larger blocks or other sensible but \textit{ad hoc} methods.
 For instance, \citet{arndt2003sequence} studied dinucleotide transitions,
+%EM suggest going back to http://www.sciencedirect.com/science/article/pii/016747819290134L
 and \citet{yaari2013models} displayed strong heterogeneity in the probability of synonymous mutations across 5-mers
 in B-cell immunoglobin genes.
 Others have made progress using simplifying assumptions \citep{berard2012accurate},
@@ -190,10 +191,10 @@ The set of all transition triples, $\calT$, determines the time evolution of thi
 
 \begin{example}[CpG mutation]
   A sequence of genome can be written using A, C, G, and T;
-  in the most general model of independent mutation across sites, each of the 12 possible transitions occurs at its own rate.\todo{Given the importance of the independent model, I think it deserves a more complete presentation.}
+  in the most general model of independent mutation across sites, each of the 12 possible transitions occurs at its own rate.
   Furthermore, it is a well-known observation that in many species,
-  adjacent, methylated CG dinucleotides (``CpG sites'') \todo{not all CpG sites are methylated} have a much higher mutation rate to TG and CA
-  than either single nucleotide change \todo{Those *are* single nucleotide changes}.
+  adjacent, methylated CG dinucleotides (``CpG sites'') have a much higher mutation rate to TG and CA
+  than either single nucleotide change under the independent model.
   Embellishing the single-nucleotide model with this additional rate results in the model defined by
 
   \begin{center}
@@ -229,7 +230,7 @@ The set of all transition triples, $\calT$, determines the time evolution of thi
   forgets its spin,
   and reconfigures to a state chosen with probability proportional to the stationary probability of the resulting configuration.
   Ignoring transitions that don't change the state,
-  if patterns $u$ and $v$ differ at only one site then $u$ changes to $v$ at rate $1/(1+\exp(H(v)-H(u)))$ \todo{Hum, this isn't immediately obvious to me-- quick explanation please? Also, shouldn't there be a $\lambda$ up top?}, so
+  if patterns $u$ and $v$ differ at only one site then $u$ changes to $v$ at rate $1/(1+\exp(H(v)-H(u)))$ \todo{Shouldn't there be a $\lambda$ up top?}, so
 
   \begin{center}
     \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }c}
@@ -316,7 +317,7 @@ and the next event is $c_{ij} = \min_{k,h} \{ c_{kh} : c_{kh}>s \}$.
 At $c_{ij}$,
 a new state is then chosen at position $i$
 with probability proportional to the corresponding rate, i.e.\
-\todo{A little confused here. Previously, the $j$ in $u^j$ was used to index the possible patterns, right? Now it's indexing possible changes at a site.}
+\erick{Previously, the $j$ in $\mu^j$ was used to index the possible patterns. Now it's indexing possible changes at a site.}
 \[
 q_j = \begin{cases}
   \mu_j/\mu_* \qquad & \text{if } x_i^{(|u^j|)} = u^j  \\
@@ -344,10 +345,6 @@ retaining information only about the parameters that affect the stationary distr
 In TASEP with any boundary conditions, we lose all information as it approaches stationarity,
 while in the Ising model we have information about the temperature $\beta$ and magnetic field $\gamma$ but not the speed of changes, $\lambda$.
 In the CpG model it is not immediately clear what information is retained.
-\todo[inline]{
-I think that the stationary distribution of the single-nucleotide model should be identifiable for sure. Then, I would guess the two CpG rates are identifiable modulo a rate factor that compares the single-nucleotide mutation rate to the CpG mutation rate.
-}
-
 
 But, how can we extract the information?
 These are Markov processes, on the state space $\calS^n$,
@@ -389,14 +386,14 @@ We provide a precise statement of the error in this approximation later.
 %%%%
 \subsection{Summary statistics}
 
-Since we cannot compute reasonably the full likelihood for the data \todo{Well, can we prove that it's not possible? Perhaps say that we can't using straightforward exponentiation?},
+Since we cannot compute reasonably the full likelihood for the data,
 we will need to choose appropriate summary statistics
 that contain as much information about the process as possible,
 and have a tractable expression for their marginal likelihood.
 For simplicity,
 we assume in this section that approximation \eqref{eqn:window_approx} holds exactly.
 If $i_1 < \ldots < i_{n(x)}$ are a set of nonoverlapping sites where the initial sequence matches $x$
--- i.e.\ $X_{i_k}^{(2\ell+m)}(0)=x$ and $i_{k+1} > i_k + 2\ell+m$ for all $k$ -- \todo{En dash close to math confuses me! This sentence is a doozy.}
+-- i.e.\ $X_{i_k}^{(2\ell+m)}(0)=x$ and $i_{k+1} > i_k + 2\ell+m$ for all $k$ %En dash close to math could be confusing. This sentence is a doozy.
 then the counts $N(x,y)=\#\{ i_k \st X_{i_k+\ell}^{(m)}(t)=y\}$ (the number of these sites that match the smaller pattern $y$ at time $t$)
 are multinomial, with probabilities $\{p_{\ell,m}(x,y)\st y \in \calS^m\}$.
 For instance, if $\ell=3$ then $N(\text{ACTCAC}, \text{CGC})$ counts the number of occurrences of
@@ -469,7 +466,7 @@ Maximum likelihood then gets an asymptotically unbiased estimate of the paramete
 However, since they are not independent, to get confidence intervals, we need to either simulate, or do something different.
 
 If we use only a subset of patterns $\{(x_k,y_k)\}$ chosen so that $\E[M_1(x,y) M_{k+1}(x,y)]$ is small (or zero),
-\todo{M not defined, but I'm guessing that this is effectively saying that the probability of having two different patterns apply to the same sequences is small?}
+\erick{M not defined, but I'm guessing that this is effectively saying that the probability of having two different patterns apply to the same sequences is small?}
 the entire collection $\{N(x_k,y_k)\}$ will be close to independent Poisson.
 (using Stein's method)
 Then we'll have the correct likelihood function for (this subset of) data.
