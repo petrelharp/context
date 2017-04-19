@@ -1,4 +1,3 @@
-
 ###
 # genmatrix code
 
@@ -25,6 +24,7 @@ check.context <- function (cont) {
 #'
 #' @name genmatrix-class
 #' @rdname genmatrix-class
+#' @import Matrix
 #' @exportClass genmatrix
 setClass("genmatrix", representation(
                  muttrans="Matrix",

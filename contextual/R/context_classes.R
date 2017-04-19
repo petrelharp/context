@@ -1,11 +1,12 @@
-@include genmatrix.R tuplecounts.R
+#' @include genmatrix.R tuplecounts.R
 NULL
 
+#' A model of mutation; one for each branch.
+#'
 #' @name contextModel-class
 #' @rdname contextModel-class
 #' @exportClass contextModel
 setClass("contextModel",
-        # A model of mutation; one for each branch.
          representation(
                        genmatrix="genmatrix",
                        projmatrix="Matrix",
@@ -15,6 +16,8 @@ setClass("contextModel",
                     )
             )
 
+#' A model of mutation
+#'
 #' @name context-class
 #' @rdname context-class
 #' @exportClass context
@@ -28,6 +31,8 @@ setClass("context",
             contains="contextModel"
          )
 
+#' The results of a contextual MCMC
+#'
 #' @name contextMCMC-class
 #' @rdname contextMCMC-class
 #' @exportClass contextMCMC
@@ -42,6 +47,8 @@ setClass("contextMCMC",
 
 setOldClass("phylo")  # phylo in ape is an S3 class
 
+#' A context model on a tree
+#'
 #' @name contextTree-class
 #' @rdname contextTree-class
 #' @exportClass contextTree
@@ -60,6 +67,8 @@ setClass("contextTree", representation(
 #' @rdname context-methods
 #' @aliases dimnames,context-method
 setMethod("dimnames", signature=c(x="context"), definition=function (x) { dimnames(x@counts) } )
+#' Methods for contextTree
+#'
 #' @rdname contextTree-methods
 #' @aliases dimnames,contextTree-method
 setMethod("dimnames", signature=c(x="contextTree"), definition=function (x) { dimnames(x@counts) } )
@@ -97,6 +106,8 @@ setGeneric("leftwin", function(x) { standardGeneric("leftwin") })
 #' @exportMethod rightwin
 setGeneric("rightwin", function(x) { longwin(x)-shortwin(x)-leftwin(x) })
 
+#' Methods for genmatix objects
+#'
 #' @rdname genmatrix-methods
 #' @aliases longwin,genmatrix-method
 setMethod("longwin", signature=c(x="genmatrix"), definition=function(x) { nchar(rownames(x)[1]) } )
@@ -153,6 +164,8 @@ setMethod("nsel", signature=c(x="genmatrix"), definition=function (x) { length(x
 #' @rdname genmatrix-methods
 #' @aliases fixparams,genmatrix-method
 setMethod("fixparams", signature=c(x="genmatrix"), definition=function (x) { (setdiff(names(as.list(formals(x@fixfn))),"..."))[-1] } )
+#' Methods for contextModel objects
+#'
 #' @rdname contextModel-methods
 #' @aliases nmuts,contextModel-method
 setMethod("nmuts", signature=c(x="contextModel"), definition=function (x) { nmuts(x@genmatrix) } )

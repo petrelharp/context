@@ -255,6 +255,8 @@ config.dereference <- function (config, x) {
 #' So: selpats should be EITHER:
 #'   - a list of character vectors, OR
 #'   - a list of named lists of numeric values
+#'
+#' @rdname parse.selpats
 .parse.selpats <- function (config) {
     if ( !is.null(names(config$selpats)) && is.list(config$selpats) && (!is.list(config$selpats[[1]]) && !is.vector(config$selpats[[1]])) ) { 
         warning("selpats is a named list; did you forget enclosing parentheses?") 

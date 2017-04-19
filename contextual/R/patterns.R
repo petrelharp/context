@@ -65,7 +65,7 @@ mutnames <- function (mutpats,pretty=TRUE) {
 #' Stringify a list of selpats,
 #'  but use the names if they are available
 #'
-#' @return
+#' @export
 selnames <- function (selpats,pretty=TRUE) {
     stringified <- sapply(selpats,paste,collapse="|")
     if (pretty && !is.null(names(selpats))) {

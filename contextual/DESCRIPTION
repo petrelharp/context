@@ -7,9 +7,27 @@ Depends: R (>= 3.3.3)
 License: GPLv3
 Encoding: UTF-8
 LazyData: true
-Imports: 
+Depends: 
+    methods,
     Matrix, 
+Imports:
     expm,
     jsonlite
 Suggests: 
     stringdist
+Collate: 
+    'tuplecounts.R'
+    'genmatrix.R'
+    'context_classes.R'
+    'fixfns.R'
+    'gammaAtv.R'
+    'input-output.R'
+    'making_matrices.R'
+    'patterns.R'
+    'point_estimates.R'
+    'predict_counts.R'
+    'residuals.R'
+    'transition_matrix.R'
+    'trees.R'
+    'wrapsubstr.R'
+RoxygenNote: 6.0.1
