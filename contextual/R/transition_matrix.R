@@ -11,7 +11,7 @@ computetransmatrix <- function( genmatrix, projmatrix, tlen=1, shape=1, names=FA
         if (is.null(dim(projmatrix))) { dim(projmatrix) <- c(length(projmatrix),1) }
         subtransmatrix <- gammaAtv( A=( if (transpose) { t(genmatrix) } else {genmatrix} ), scale=tlen, shape=shape, v=projmatrix, ... )
     } else {
-        totalrates <- rowSums(genmatrix)
+        totalrates <- Matrix::rowSums(genmatrix)
         scale.t <- mean(totalrates)
         A <- (1/scale.t) * ( ( if (transpose) { t(genmatrix) } else {genmatrix} ) - Diagonal(nrow(genmatrix),totalrates) )
         if (is.null(dim(projmatrix))) { dim(projmatrix) <- c(length(projmatrix),1) }

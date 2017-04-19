@@ -204,16 +204,16 @@ setMethod("coef", signature=c(object="contextTree"), definition=function (object
         } )
 #' @rdname tuplecounts-methods
 #' @aliases rowSums,tuplecounts-method
-setMethod("rowSums", signature=c(x="tuplecounts"), definition=function (x) { rowSums(x@counts) } )
+setMethod("rowSums", signature=c(x="tuplecounts"), definition=function (x) { Matrix::rowSums(x@counts) } )
 #' @rdname tuplecounts-methods
 #' @aliases image,tuplecounts-method
 setMethod("image", signature=c(x="tuplecounts"), definition=function (x) { image(x@counts) } )
 #' @rdname context-methods
 #' @aliases rowSums,context-method
-setMethod("rowSums", signature=c(x="context"), definition=function (x) { rowSums(x@counts@counts) } )
+setMethod("rowSums", signature=c(x="context"), definition=function (x) { Matrix::rowSums(x@counts@counts) } )
 #' @rdname contextTree-methods
 #' @aliases rowSums,contextTree-method
-setMethod("rowSums", signature=c(x="contextTree"), definition=function (x) { rowSums(x@counts@counts) } )
+setMethod("rowSums", signature=c(x="contextTree"), definition=function (x) { Matrix::rowSums(x@counts@counts) } )
 #' @rdname context-methods
 #' @aliases fitted,context-method
 setMethod("fitted", signature=c(object="context"), definition=function (object,...) { predictcounts.context(object,...) } )
