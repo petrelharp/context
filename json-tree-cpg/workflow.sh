@@ -4,7 +4,7 @@ set -eu
 set -o pipefail
 
 
-BASEDIR=sim-01
+BASEDIR=test-sims
 LONGWIN=4
 SHORTWIN=2
 LEFTWIN=1

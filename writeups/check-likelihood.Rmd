@@ -1,0 +1,538 @@
+---
+title: "Computing sequence likelihoods"
+date: "`r date()`"
+---
+
+\newcommand{\deq}{\stackrel{\scriptscriptstyle{d}}{=}}
+\renewcommand{\P}{\mathbb{P}}
+\newcommand{\E}{\mathbb{E}}
+
+```{r doc_setup, include=FALSE}
+fig.dim <- 5
+knitr::opts_chunk$set(fig.width=2*fig.dim,fig.height=fig.dim,fig.align='center')
+context.dir <- "context"
+source(file.path(context.dir,"context-inference-fns.R"),chdir=TRUE)
+source(file.path(context.dir,"sim-context-fns.R"),chdir=TRUE)
+```
+
+
+The basic result is that if $L_k$ is the log-likelihood of all the $(k,w)$ T-mers in a sequence,
+and $w$ and $k$ are long enough,
+then $L_{k+1}-L_k$ should equal the likelihood of the entire sequence.
+
+Let's check this.
+
+Computing the likelihood
+========================
+
+Here's a function to compute the likelihood.
+Note that the full likelihood of the *counts* includes a combinatorial factor
+for where the T-mers occur,
+but we *don't want* that factor.
+```{r lhood_fun, cache=TRUE}
+# opt will be a list with 'longwin', 'shortwin', and 'leftwin' defined.
+
+likelihood_fun <- function (opt,config,seq) {
+    ## count-seq: count T-mers
+    longpats <- getpatterns(opt$longwin,config$bases)
+    shortpats <- getpatterns(opt$shortwin,config$bases)
+    counts <- counttrans.list( list(longpats,shortpats), 
+        seqlist=seq[c("initseq","finalseq")],
+        leftwin=opt$leftwin, bases=config$bases, 
+        shift=0, cyclic=TRUE )
+
+    ## make-genmatrix
+    genmatrix <- do.call( makegenmatrix, c( list( patlen=opt$longwin ), boundary="none", config ) )
+    projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin(counts), fpatterns=colnames(counts) )
+    # this is collapsed transition matrix
+    subtransmatrix <- computetransmatrix( genmatrix, projmatrix, tlen=seq$tlen, time="fixed")
+    # return log-likelihood (*not* negative log-likelihood)
+    ans <- sum( counts@counts * log(subtransmatrix) )
+    dummy <- function() { 1 } # this will allow us access back to this environment
+
+    return(list(loglik=ans,dummy=dummy))
+}
+```
+
+
+The simplest model
+==================
+
+Let's start with a model without context-dependence.
+```{r acgt_model, cache=TRUE}
+acgt.config.json <- '{
+    "bases" : [ "A", "C", "G", "T" ],
+    "initfreqs" : [ 0.25, 0.25, 0.25, 0.25 ],
+    "mutpats" : [
+        [ [ "A", "T" ] ],
+        [ [ "T", "A" ] ],
+        [ [ "C", "G" ] ],
+        [ [ "G", "C" ] ],
+        [ [ "A", "C" ] ],
+        [ [ "T", "G" ] ],
+        [ [ "A", "G" ] ],
+        [ [ "T", "C" ] ],
+        [ [ "C", "A" ] ],
+        [ [ "G", "T" ] ],
+        [ [ "C", "T" ] ],
+        [ [ "G", "A" ] ]
+    ],
+    "mutrates" : [ 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 ]
+}'
+acgt.config <- fill.default.config(read.config(json=acgt.config.json))
+```
+
+Long time
+---------
+
+First, we'll do it for a long time, so the distribution should be uniform:
+```{r first_likelihood, cache=TRUE, dependson=c("acgt_model","lhood_fun")}
+seq <- simseq.config( seqlen=100, tlen=10.0, config=acgt.config )
+opts.numerator <- list( 
+            list(longwin=4, shortwin=2, leftwin=1),
+            list(longwin=5, shortwin=3, leftwin=1),
+            list(longwin=6, shortwin=4, leftwin=1)
+        )
+opts.denominator <- lapply( opts.numerator, function (x) { x$shortwin <- x$shortwin-1; x } )
+loglik.numerators <- loglik.denominators <- list()
+for (k in seq_along(opts.numerator)) {
+    loglik.numerators[[k]] <- likelihood_fun( opts.numerator[[k]], config=acgt.config, seq=seq )
+    loglik.denominators[[k]] <- likelihood_fun( opts.denominator[[k]], config=acgt.config, seq=seq )
+}
+results <- data.frame( 
+      longwin=sapply(opts.numerator,"[[","longwin"),
+      numerators=sapply(loglik.numerators,"[[","loglik"),
+      denominators=sapply(loglik.denominators,"[[","loglik"),
+      theory=(-1)*length(seq[["initseq"]])*log(4)
+      )
+results$est_loglik <- results$numerators-results$denominators
+results
+```
+The likelihood differences should be close to the theory.
+Note that we're treating the string as cyclic, so we don't need to worry about edge effects.
+
+Less long time
+--------------
+
+For a shorter time, since the total time is `r seq$tlen` and the mutation rate is 1.0 to each of the possible three other bases,
+a base is randomized after an Exponential(4) time;
+so the likelihood, where $m$ bases differ from the original and $n-m$ remain the same,
+$$\begin{aligned}
+\left( e^{-4t} + (1-e^{-4t}) \frac{1}{4} \right)^{n-m}
+\left( (1-e^{-4t}) \frac{1}{4} \right)^m  .
+\end{aligned}$$
+```{r shorter_likelihood, cache=TRUE, dependson=c("acgt_model","lhood_fun")}
+seq <- simseq.config( seqlen=100, tlen=0.1, config=acgt.config )
+theoretical <- function (seq) {
+    n <- length(seq$initseq)
+    m <- stringDist( DNAStringSet( seq[c("initseq","finalseq")]), method="hamming" )
+    m * ( log((1-exp(-4*seq$tlen))/4) ) + (n-m) * log( exp(-4*seq$tlen) - expm1(-4*seq$tlen)/4)
+}
+opts.numerator <- list( 
+            list(longwin=4, shortwin=2, leftwin=1),
+            list(longwin=5, shortwin=3, leftwin=1),
+            list(longwin=6, shortwin=4, leftwin=1)
+        )
+opts.denominator <- lapply( opts.numerator, function (x) { x$shortwin <- x$shortwin-1; x } )
+loglik.numerators <- loglik.denominators <- list()
+for (k in seq_along(opts.numerator)) {
+    loglik.numerators[[k]] <- likelihood_fun( opts.numerator[[k]], config=acgt.config, seq=seq )
+    loglik.denominators[[k]] <- likelihood_fun( opts.denominator[[k]], config=acgt.config, seq=seq )
+}
+results <- data.frame( 
+      longwin=sapply(opts.numerator,"[[","longwin"),
+      numerators=sapply(loglik.numerators,"[[","loglik"),
+      denominators=sapply(loglik.denominators,"[[","loglik"),
+      theory=as.numeric(theoretical(seq))
+      )
+results$est_loglik <- results$numerators-results$denominators
+results
+```
+The "diff" column should match the "theory" column.
+
+
+
+Simple, context-dependent model
+===============================
+
+Now, let's check this looks sensible for a simple context-dependent one.
+```{r binary_model, cache=TRUE, dependson=c("lhood_fun")}
+xo.config.json <- '{
+    "bases" : [ "O", "X" ], 
+    "initfreqs" : [ 0.5, 0.5 ],
+    "mutpats" : [
+        [ [ "O", "X" ], [ "X", "O" ] ],
+        [ [ "OO", "XX" ], [ "XX", "OO" ] ]
+    ],
+    "mutrates" : [ 1.0, 1.0 ]
+}'
+xo.config <- fill.default.config(read.config(json=xo.config.json))
+xo.seq <- simseq.config( seqlen=10000, tlen=0.1, config=xo.config )
+opts.numerator <- list( 
+            list(longwin=4, shortwin=2, leftwin=1),
+            list(longwin=6, shortwin=2, leftwin=2),
+            list(longwin=8, shortwin=2, leftwin=3),
+            list(longwin=5, shortwin=3, leftwin=1),
+            list(longwin=7, shortwin=3, leftwin=2),
+            list(longwin=8, shortwin=3, leftwin=3),
+            list(longwin=9, shortwin=3, leftwin=3),
+            list(longwin=6, shortwin=4, leftwin=1),
+            list(longwin=8, shortwin=4, leftwin=2)
+        )
+opts.denominator <- lapply( opts.numerator, function (x) { x$shortwin <- x$shortwin-1; x } )
+loglik.numerators <- loglik.denominators <- list()
+for (k in seq_along(opts.numerator)) {
+    loglik.numerators[[k]] <- likelihood_fun( opts.numerator[[k]], config=xo.config, seq=xo.seq )
+    loglik.denominators[[k]] <- likelihood_fun( opts.denominator[[k]], config=xo.config, seq=xo.seq )
+}
+results <- data.frame( 
+      longwin=sapply(opts.numerator,"[[","longwin"),
+      shortwin=sapply(opts.numerator,"[[","shortwin"),
+      numerators=sapply(loglik.numerators,"[[","loglik"),
+      denominators=sapply(loglik.denominators,"[[","loglik")
+      )
+results$est_loglik <- results$numerators-results$denominators
+results
+```
+
+With a prior on the branch length
+========================
+
+Now, let's modify the function to allow for a Gamma prior on the branch length,
+with shape $\alpha$ and scale $\theta$.
+```{r lhood_fun_gamma, cache=TRUE}
+# opt will be a list with 'longwin', 'shortwin', and 'leftwin' defined.
+likelihood_fun_gamma <- function (opt,config,seq,shape,scale) {
+    ## count-seq: count T-mers
+    longpats <- getpatterns(opt$longwin,config$bases)
+    shortpats <- getpatterns(opt$shortwin,config$bases)
+    counts <- counttrans.list( list(longpats,shortpats), 
+        seqlist=seq[c("initseq","finalseq")],
+        leftwin=opt$leftwin, bases=config$bases, 
+        shift=0, cyclic=TRUE )
+    ## make-genmatrix
+    genmatrix <- do.call( makegenmatrix, c( list( patlen=opt$longwin ), boundary="none", config ) )
+    projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin(counts), fpatterns=colnames(counts) )
+    # this is collapsed transition matrix
+    subtransmatrix <- computetransmatrix( genmatrix, projmatrix, tlen=scale, shape=shape, time="gamma")
+    # return log-likelihood (*not* negative log-likelihood)
+    ans <- sum( counts@counts * log(subtransmatrix) )
+    dummy <- function() { 1 } # this will allow us access back to this environment
+    return(list(loglik=ans,dummy=dummy))
+}
+```
+
+
+The first model
+--------------
+
+In the first model, in the expression for the likelihood
+we just need to adjust the probability of having mutated or not;
+the probability that a Gamma($k$,$\theta$) occurs before a Exponential(4)
+is
+$$\begin{aligned}
+\int_0^\infty \frac{1}{\Gamma(k)\theta^k} t^{k-1} e^{-t/\theta} e^{-4t} dt
+&=
+\int_0^\infty \frac{1}{\Gamma(k)\theta^k} t^{k-1} e^{-t\frac{4\theta+1}{\theta}} dt \\
+&=
+\frac{1}{\Gamma(k)\theta^k} \left(\frac{\theta}{4\theta+1}\right)^k \int_0^\infty u^{k-1} e^{-u} du \\
+&=
+\frac{1}{(4\theta+1)^k}
+\end{aligned}$$
+(also the Laplace transform for a Gamma distribution)
+and so the likelihood of a sequence with $m$ sites differing is, as above,
+$$\begin{aligned}
+\left( \frac{1}{(4θ+1)ᵏ} + \left(1-\frac{1}{(4\theta+1)ᵏ}\right) \frac{1}{4} \right)^{n-m}
+\left( \left(1-\frac{1}{(4\theta+1)ᵏ}\right) \frac{1}{4} \right)^m  .
+\end{aligned}$$
+```{r gamma_likelihood, cache=TRUE, dependson=c("acgt_model","lhood_fun_gamma")}
+shape <- 3
+scale <- 0.1/3
+
+seq <- simseq.config( seqlen=100, tlen=0.1, config=acgt.config )
+theoretical_gamma <- function (seq,shape,scale) {
+    n <- length(seq$initseq)
+    m <- stringDist( DNAStringSet( seq[c("initseq","finalseq")]), method="hamming" )
+    p <- 1/(4*scale+1)^shape
+    m * ( log((1-p)/4) ) + (n-m) * log( p + (1-p)/4 )
+}
+opts.numerator <- list( 
+            list(longwin=4, shortwin=2, leftwin=1),
+            list(longwin=5, shortwin=3, leftwin=1),
+            list(longwin=6, shortwin=4, leftwin=1)
+        )
+opts.denominator <- lapply( opts.numerator, function (x) { x$shortwin <- x$shortwin-1; x } )
+loglik.numerators <- loglik.denominators <- list()
+for (k in seq_along(opts.numerator)) {
+    loglik.numerators[[k]] <- likelihood_fun_gamma( opts.numerator[[k]], config=acgt.config, seq=seq, shape=shape, scale=scale )
+    loglik.denominators[[k]] <- likelihood_fun_gamma( opts.denominator[[k]], config=acgt.config, seq=seq, shape=shape, scale=scale )
+}
+results <- data.frame( 
+      longwin=sapply(opts.numerator,"[[","longwin"),
+      shortwin=sapply(opts.numerator,"[[","shortwin"),
+      numerators=sapply(loglik.numerators,"[[","loglik"),
+      denominators=sapply(loglik.denominators,"[[","loglik"),
+      theory=as.numeric(theoretical_gamma(seq, shape=shape, scale=scale))
+      )
+results$est_loglik <- results$numerators-results$denominators
+results
+```
+The "diff" column should match the "theory" column.
+
+
+Finding the MLE for the time
+============================
+
+We'll do this with a lightly context-dependent model.
+```{r cpg_model, cache=TRUE}
+cpg.config.json <- '{
+    "bases" : [ "A", "C", "G", "T" ],
+    "initfreqs" : [ 0.25, 0.25, 0.25, 0.25 ],
+    "mutpats" : [
+        [ [ "A", "T" ] ],
+        [ [ "T", "A" ] ],
+        [ [ "C", "G" ] ],
+        [ [ "G", "C" ] ],
+        [ [ "A", "C" ] ],
+        [ [ "T", "G" ] ],
+        [ [ "A", "G" ] ],
+        [ [ "T", "C" ] ],
+        [ [ "C", "A" ] ],
+        [ [ "G", "T" ] ],
+        [ [ "C", "T" ] ],
+        [ [ "G", "A" ] ],
+        [ [ "CG", "CT" ], [ "CG", "AG" ] ]
+    ],
+    "mutrates" : [ 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.8 ]
+}'
+cpg.config <- fill.default.config(read.config(json=cpg.config.json))
+```
+
+
+Fixed times
+-----------
+
+Let $P_t = e^{tG}$.
+This involves computing $P_t V$, where $V$ is a projection matrix.
+If we've already computed this for $t$,
+and want to check the likelihood for $t+s$, 
+then we need $P_{t+s} V = P_s P_t V$ --
+so, the previous sub-transition matrix $P_t V$ can be re-used for larger times.
+
+```{r infer_fixed_time_fun, cache=TRUE}
+t_lhoods <- function (opt, config, seq, dt, ndt) {
+    ans <- numeric(ndt)
+    longpats <- getpatterns(opt$longwin,config$bases)
+    shortpats <- getpatterns(opt$shortwin,config$bases)
+    counts <- counttrans.list( list(longpats,shortpats), 
+        seqlist=seq[c("initseq","finalseq")],
+        leftwin=opt$leftwin, bases=config$bases, 
+        shift=0, cyclic=TRUE )
+    genmatrix <- do.call( makegenmatrix, c( list( patlen=opt$longwin ), boundary="none", config ) )
+    projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin(counts), fpatterns=colnames(counts) )
+    subtransmatrix <- projmatrix
+    for (k in 1:ndt) {
+        subtransmatrix <- computetransmatrix( genmatrix, subtransmatrix, tlen=dt, time="fixed")  # add time dt
+        # return log-likelihood (*not* negative log-likelihood)
+        ans[k] <- sum( counts@counts * log(subtransmatrix) )
+    }
+    return(ans)
+}
+lower_opt <- function (x) { x$shortwin <- (x$shortwin-1); x }
+```
+
+OK, here's the likelihood profile:
+```{r infer_fixed_time, cache=TRUE, dependson=c("cpg_model","infer_fixed_time_fun")}
+cpg.seq <- simseq.config( seqlen=10000, tlen=0.1, config=cpg.config )
+opts <- list( 
+            list(longwin=4, shortwin=2, leftwin=1)
+        )
+dt <- .005
+ndt <- ceiling(.2/dt)
+tt <- (1:ndt)*dt
+numerators <- t_lhoods(opts[[1]], cpg.config, cpg.seq, dt, ndt )
+denominators <- t_lhoods(lower_opt(opts[[1]]), cpg.config, cpg.seq, dt, ndt )
+cbind(tlen=seq$tlen,num=numerators,den=denominators,diff=numerators-denominators)
+plot( tt, numerators-denominators )
+abline(v=seq$tlen)
+```
+
+
+
+Exponential times
+-----------------
+
+Consider the case $k=1$, i.e., Exponential.
+Let $\lambda = \max_i -G_{ii}$ and $Q_{ij} = G_{ij}/\lambda$ and $Q_{ii}=-\sum_{j \neq i} G_{ij}$,
+so that the process jumps as $Q$ at the times of a Poisson($\lambda$) process.
+As described in [context/writeups/gamma-prob.html](the context project),
+to move from an Exponential($1/\theta$) time to an Exponential($1/(\theta+u)$) time,
+we need to add either zero jumps (with probability $\theta/(\theta+u)$)
+or a Geometric($\lambda(\theta+u)/(1+\lambda(\theta+u))$) number of jumps.
+This is done by `extend.expAtv`;
+a similar thing could be done for Gamma times with shape not equal to 1.
+```{r infer_expl_time_fun, cache=TRUE}
+e_lhoods <- function (opt, config, seq, dscale, ndscale) {
+    ans <- numeric(ndscale)
+    longpats <- getpatterns(opt$longwin,config$bases)
+    shortpats <- getpatterns(opt$shortwin,config$bases)
+    counts <- counttrans.list( list(longpats,shortpats), 
+        seqlist=seq[c("initseq","finalseq")],
+        leftwin=opt$leftwin, bases=config$bases, 
+        shift=0, cyclic=TRUE )
+    genmatrix <- do.call( makegenmatrix, c( list( patlen=opt$longwin ), boundary="none", config ) )
+    projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin(counts), fpatterns=colnames(counts) )
+    # subtransmatrix <- computetransmatrix( genmatrix, projmatrix, tlen=dscale, time="gamma")  # add scale dscale
+    subtransmatrix <- projmatrix
+    scale <- 0
+    for (k in 1:ndscale) {
+        subtransmatrix <- extend.expAtv( A=genmatrix, scale=scale, dscale=dscale, gAtv=subtransmatrix )  # add scale dscale
+        # return log-likelihood (*not* negative log-likelihood)
+        ans[k] <- sum( counts@counts * log(subtransmatrix) )
+    }
+    return(ans)
+}
+lower_opt <- function (x) { x$shortwin <- (x$shortwin-1); x }
+```
+
+OK, here's the likelihood profile:
+```{r infer_expl_time, cache=TRUE, dependson=c("cpg_model","infer_expl_time_fun")}
+scale <- 0.1
+shape <- 1
+nseqs <- 1000
+seqlen <- 100
+random.tlen <- rgamma(nseqs,scale=scale,shape=shape)
+expl.seqs <- simseq.config( seqlen=seqlen, tlen=random.tlen, config=cpg.config )
+expl.seq <- list(
+        initseq = do.call( xscat, lapply(expl.seqs,"[[","initseq") ),
+        finalseq = do.call( xscat, lapply(expl.seqs,"[[","finalseq") ),
+        scale=scale,
+        shape=shape
+    )
+opts <- list( 
+            list(longwin=4, shortwin=2, leftwin=1)
+        )
+dscale <- .005
+ndscale <- ceiling(.2/dscale)
+scalevals <- (1:ndscale)*dscale
+numerators <- e_lhoods(opts[[1]], cpg.config, expl.seq, dscale, ndscale )
+denominators <- e_lhoods(lower_opt(opts[[1]]), cpg.config, expl.seq, dscale, ndscale )
+cbind(scale=scalevals,num=numerators,den=denominators,diff=numerators-denominators)
+plot( scalevals, numerators-denominators, main=paste( names(opts[[1]]), opts[[1]], sep="=", collapse=", ") )
+abline(v=expl.seq$scale)
+```
+
+Hm, let's try that again with a longer window?
+```{r infer_expl_longer, cache=TRUE, dependson="infer_expl_time"}
+longer.opt <- list( longwin=7, shortwin=3, leftwin=2 )
+numerators <- e_lhoods(longer.opt, cpg.config, expl.seq, dscale, ndscale )
+denominators <- e_lhoods(lower_opt(longer.opt), cpg.config, expl.seq, dscale, ndscale )
+cbind(scale=scalevals,num=numerators,den=denominators,diff=numerators-denominators)
+plot( scalevals, numerators-denominators, main=paste( names(longer.opt), longer.opt, sep="=", collapse=", ") )
+abline(v=expl.seq$scale)
+```
+
+Not useful or not used
+======================
+
+Gamma inference
+---------------
+
+Let $f(t;k,\theta)$ be the density function for a Gamma distribution
+with shape $k$ and scale $\theta$ (and hence mean $k \theta$).
+Define
+$$  P_{k,\theta} = \int_0^\infty f(t;k,\theta) P_t dt ,$$
+i.e., the transition matrix after a Gamma($k$,$\theta$)-distributed time.
+If $T_i$ are independent, Gamma($k_i$,$\theta$), then $\sum_i T_i$ is Gamma($\sum_i k_i$,$\theta$),
+and so
+$$\begin{aligned}
+    P_{k_1,\theta} P_{k_2,\theta} &= P_{k_1+k_2,\theta} .
+\end{aligned}$$
+
+For $k$ an integer,
+since a Gamma($k$,$\theta$) is the sum of $k$ independent Exponential($1/\theta$) times,
+and by Poisson thinning,
+a Gamma($k$,$\theta/(1-\epsilon)$) is the sum of a NegativeBinomial($k$,$1-\epsilon$) number of Exponential($1/\theta$) times,
+i.e., the number of times to flip a $1-\epsilon$ coin until getting $k$ heads,
+so
+$$\begin{aligned}
+    P_{k,\theta/(1-\epsilon)}
+    &=
+    \sum_{n \ge 0} 
+    \binom{n+k-1}{n} \epsilon^{n} (1-\epsilon)^k
+    P_{1,\theta}^{n+k}  .
+\end{aligned}$$
+Or, to get a Gamma($k$,$\theta/(1-\epsilon)$),
+we could start with a Gamma($k$,$\theta$),
+and add on $M$ indepenent Exponential($1/\theta$) times,
+where $M$ is NegativeBinomial($N$,$1-\epsilon$)
+and $N$ is Binomial($k$,$\epsilon$).
+
+
+
+Extending gamma times
+---------------------
+
+Now consider the case $k=1$.
+By Poisson thinning,
+a Geometric($p$) number of independent Exponential($\lambda$) times
+is Exponential($\lambda p$);
+and therefore
+$$\begin{aligned}
+    P_{1,\theta/(1-\epsilon)}
+    &=
+    \sum_{n \ge 1} 
+    \epsilon^{n-1} (1-\epsilon)
+    P_{1,\theta}^n \\
+    &=
+    \sum_{n=1}^k
+    \epsilon^{n-1} (1-\epsilon)
+    P_{1,\theta}^n
+    + O(\epsilon^k) .
+\end{aligned}$$
+
+```{r build_exponential_fun, cache=TRUE}
+extend_transmatrix <- function (P,a,da,eps=da/(a+da),tol=1e-8) {
+    # if P is e^{TG} where T is Exp(a)
+    #   return e^{SG} where S is Exp(a+da), with da>0.
+    # as above, a+da = a/(1-eps), so eps=(da/a)/(1+da/a)
+    ans <- Pm <- (1-eps)*P
+    m <- ceiling(log(tol)/log(eps))
+    # cat("m=",m,"\n")
+    for (k in seq(2,length.out=(m-1))) {
+        Pm <- eps * P %*% Pm
+        ans <- ans + Pm
+    }
+    return(ans)
+}
+# prob an exponential(theta) is greater than an exponential(1) is 1/(1+theta), so:
+stopifnot( abs( 1/(1+0.25/.8) - extend_transmatrix( 1/(1+0.25), eps=0.2 ) ) <= 1e-8 )
+stopifnot( abs( 1/(1+0.25/.8) - extend_transmatrix( 1/(1+0.25), eps=0.2, tol=1e-15 ) ) <= 1e-15 )
+```
+
+Here's a quick check of this:
+```{r check_exponential_additivity, cache=TRUE, dependson="build_exponential_fun"}
+## one step
+scale <- 0.3
+genmatrix <- do.call( makegenmatrix, c( list( patlen=2 ), boundary="none", acgt.config ) )
+subtransmatrix <- computetransmatrix( genmatrix, Diagonal(nrow(genmatrix)), tlen=scale, shape=1, time="gamma", tol=1e-12 )
+stm1 <- extend_transmatrix( subtransmatrix, eps=.2, tol=1e-12 )
+stm2 <- computetransmatrix( genmatrix, Diagonal(nrow(genmatrix)), tlen=scale/0.8, shape=1, time="gamma", tol=1e-12 )
+range(stm1-stm2)
+stopifnot(all(abs(stm1-stm2)<1e-12))
+## more steps
+tt <- seq(0,scale,length.out=11)[-1]
+stm.list <- vector(length(tt),mode='list')
+stm.list[[1]] <- computetransmatrix( genmatrix, Diagonal(nrow(genmatrix)), tlen=tt[1], shape=1, time="gamma", tol=1e-12 ) 
+for (k in seq_along(tt)[-1]) {
+    stm.list[[k]] <- extend_transmatrix( stm.list[[k-1]], a=tt[k-1], da=diff(tt)[k-1], tol=1e-12 )
+}
+range(subtransmatrix-stm.list[[length(tt)]])
+stopifnot(all(abs(subtransmatrix-stm.list[[length(tt)]])<1e-12))
+```
+
+Now let's look at inference.
+Hm, since we're actually dealing with $P_{k,\theta} v$ instead of $P_{k,\theta}$ itself,
+maybe that's not too useful.
+
+

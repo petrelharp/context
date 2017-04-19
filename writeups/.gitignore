@@ -3,3 +3,6 @@ _build
 context-dependence.bbl
 context-dependence.blg
 context-dependence.pdf
+*_cache
+*.bbl
+*.blg
