@@ -9,8 +9,9 @@
 #   fit model
 #   compute residuals
 
-source("../context-inference-fns.R",chdir=TRUE)
-source("../sim-context-fns.R",chdir=TRUE)
+library(contextual)
+library(simcontext)
+
 library(MASS)
 library(numDeriv)
 

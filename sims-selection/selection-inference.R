@@ -34,10 +34,9 @@ if (gmfile=="TRUE") { gmfile <- paste(paste("genmatrices/genmatrix",longwin,boun
 
 if (is.null(infile)) { cat("Run\n  cpg-tree-inference.R -h\n for help.") }
 
-setwd('/Users/Jessica/Documents/USC/context/sims-cpg-tree')
-scriptdir <- "../"
-source(paste(scriptdir,"context-inference-fns.R",sep=''),chdir=TRUE)
-source(paste(scriptdir,"sim-context-fns.R",sep=''),chdir=TRUE)
+library(contextual)
+library(contextutils)
+library(simcontext)
 
 require(mcmc)
 

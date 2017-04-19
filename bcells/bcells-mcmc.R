@@ -29,10 +29,10 @@ if (mcmcopt$debug & !interactive()) { options(error = quote({dump.frames(to.file
 if (!file.exists(infile)) { stop("Cannot read file ", infile) }
 basename <- gsub("-results.RData","",infile)
 
-scriptdir <- "../"
-source(paste(scriptdir,"context-inference-fns.R",sep=''),chdir=TRUE)
-# source(paste(scriptdir,"sim-context-fns.R",sep=''),chdir=TRUE)
-require(mcmc)
+library(contextual)
+library(contextutils)
+
+library(mcmc)
 
 load(infile)  # has mrun and previous things (called 'datafile' in -inference.R)
 

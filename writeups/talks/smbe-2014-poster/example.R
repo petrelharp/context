@@ -1,5 +1,7 @@
-source("../../../sim-context-fns.R")
-source("../../../context-inference-fns.R")
+
+library(contextual)
+library(contextutils)
+library(simcontext)
 
 bases <- c("X","O")
 mutpats <- list( list(c("X","O"),c("O","X")), list(c("XO","OX")) )

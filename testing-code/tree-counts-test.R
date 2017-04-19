@@ -1,7 +1,8 @@
 #!/usr/bin/Rscript 
 
-source("../context-inference-fns.R",chdir=TRUE)
-source("../sim-context-fns.R",chdir=TRUE)
+library(contextual)
+library(contextutils)
+library(simcontext)
 
 config <- parse.models( treeify.config( read.config("big-tree-model.json") ) )
 

@@ -30,9 +30,9 @@ if (logfile!="" & !interactive()) {
     sink(file=logcon, type="output")   # send both to log file
 }
 
-scriptdir <- "../"
-source(paste(scriptdir,"context-inference-fns.R",sep=''),chdir=TRUE)
-source(paste(scriptdir,"sim-context-fns.R",sep=''),chdir=TRUE)
+library(contextual)
+library(contextutils)
+library(simcontext)
 
 require(mcmc)
 

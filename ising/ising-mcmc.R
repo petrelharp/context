@@ -34,10 +34,11 @@ if (!file.exists(basedir)) {
     dir.create(basedir)
 }
 
-scriptdir <- "../"
-source(paste(scriptdir,"context-inference-fns.R",sep=''),chdir=TRUE)
-source(paste(scriptdir,"sim-context-fns.R",sep=''),chdir=TRUE)
-require(mcmc)
+library(contextual)
+library(contextutils)
+library(simcontext)
+
+library(mcmc)
 
 # set-up
 bases <- c("X","O")

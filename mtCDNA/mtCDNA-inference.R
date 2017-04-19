@@ -44,9 +44,9 @@ if (basedir=="") { basedir <- gsub(".nuc","",infile,fixed=TRUE) }
 
 require(Biostrings)
 
-scriptdir <- "../"
-source(paste(scriptdir,"context-inference-fns.R",sep=''),chdir=TRUE)
-source(paste(scriptdir,"sim-context-fns.R",sep=''),chdir=TRUE)
+library(contextual)
+library(contextutils)
+library(simcontext)
 
 if (!file.exists(basedir)) { dir.create(basedir) }
 basename <- paste(basedir,"/win-",leftwin,"-",shortwin,"-",rightwin,sep='')

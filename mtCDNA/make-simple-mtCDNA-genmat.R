@@ -32,9 +32,9 @@ if (interactive()) { longwin <- 3; boundary <- "none"; meanboundary <- 0 }
 
 bases <- c("A","T","C","G")
 
-source("../sim-context-fns.R",chdir=TRUE)
-source("../context-inference-fns.R",chdir=TRUE)
-source("../context.R",chdir=TRUE)
+library(contextual)
+library(contextutils)
+
 codonstrings <- as.character(codons$codon)
 
 # all pairwise bases

@@ -1,4 +1,7 @@
-source("../gammaAtv.R")
+# source("../gammaAtv.R")
+
+library(contextual)
+library(contextutils)
 
 # randomly generated matrix
 M <- matrix(rexp(100),nrow=10,ncol=10)

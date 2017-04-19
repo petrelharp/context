@@ -13,7 +13,10 @@ names(required.input) <- required.input
 opt <- lapply( required.input, get )
 opt$boundary <- "none"
 if (!exists("lik.grid")) { lik.grid <- 10 }
-source("context-inference-fns.R",chdir=TRUE)
+
+library(contextual)
+library(contextutils)
+
 library(MASS)
 library(numDeriv)
 library(pander)

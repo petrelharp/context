@@ -1,5 +1,6 @@
 #!/usr/bin/Rscript
-source("../context-inference-fns.R",chdir=TRUE)
+library(contextual)
+library(contextutils)
 
 resultsfile <- commandArgs(TRUE)[1]
 if (length(commandArgs(TRUE))<2) {

@@ -33,8 +33,9 @@ if (is.null(opt$basedir)) { opt$basedir <- dirname(opt$infile) }
 if (is.null(opt$outfile)) { opt$outfile <- paste( opt$basedir, "/", gsub("(-mcmc-[0-9]*)*\\.[^.]*","",basename(opt$infile) ), "-mcmc-", opt$jobid, ".RData", sep='' ) }
 print(opt) # this will go in the pbs log
 
-scriptdir <-  dirname(sub("--file=","",commandArgs()[grep("--file",commandArgs())]))
-source(file.path(scriptdir,"context-inference-fns.R"),chdir=TRUE)
+library(contextual)
+library(contextutils)
+
 options(error = print.and.dump)
 
 # load previously fit model

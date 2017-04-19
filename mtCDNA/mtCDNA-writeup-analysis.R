@@ -1,4 +1,5 @@
-source("../context.R")
+
+library(contextutils)
 
 
 load(gmfile)

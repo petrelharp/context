@@ -5,8 +5,8 @@ library(pander)
 library(ape)
 
 
-scriptdir <-  dirname(sub("--file=","",commandArgs()[grep("--file",commandArgs())]))
-source(file.path(scriptdir,"sim-context-fns.R"),chdir=TRUE)
+library(contextual)
+library(contextutils)
 
 usage <- '\
 Convert an RData file to a Markdown file. \

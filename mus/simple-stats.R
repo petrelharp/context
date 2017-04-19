@@ -24,8 +24,8 @@ longwin <- shortwin + leftwin + rightwin
 
 if (opt$outfile=="") { outfile <- with(opt, paste(basedir,"/simple-stats",shortwin,"-",leftwin,"-",rightwin,".pdf",sep='')) }
 
-scriptdir <- "../"
-source(paste(scriptdir,"context-inference-fns.R",sep=''),chdir=TRUE)
+library(contextual)
+library(contextutils)
 
 countfiles <- list.files(basedir,paste("*",longwin,lrwin,"counts",sep="."), full.names=TRUE)
 names(countfiles) <- gsub(".*chr([0-9XY]*).*","chr\\1",countfiles)

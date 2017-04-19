@@ -22,7 +22,7 @@ if (is.null(opt$basedir)) { opt$basedir <- dirname(opt$infile) }
 print(opt) # this will go in the pbs log
 
 library(contextual)
-library(helpers)
+library(contextutils)
 
 options(error = print.and.dump)
 

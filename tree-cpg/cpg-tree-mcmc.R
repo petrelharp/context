@@ -33,9 +33,9 @@ if (!'infile'%in%names(opt)) { stop("Run\n  cpg-inference.R -h\n for help.") }
 
 # options(error=traceback)
 
-scriptdir <- "../"
-source(paste(scriptdir,"context-inference-fns.R",sep=''),chdir=TRUE)
-source(paste(scriptdir,"sim-context-fns.R",sep=''),chdir=TRUE)
+library(contextual)
+library(contextutils)
+library(simcontext)
 require(mcmc)
 
 basedir <- gsub(".RData","",infile,fixed=TRUE)

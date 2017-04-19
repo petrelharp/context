@@ -42,8 +42,8 @@ if (is.null(opt$outfile)) { opt$outfile <- paste( opt$basedir, "/", gsub("\\.[^.
 if ( !is.null(opt$seed) ) { set.seed(opt$seed) }
 print(opt) # this will go in the pbs log
 
-scriptdir <-  dirname(sub("--file=","",commandArgs()[grep("--file",commandArgs())]))
-source(file.path(scriptdir,"context-inference-fns.R"), chdir=TRUE)
+library(contextual)
+library(contextutils)
 
 options(error = print.and.dump)
 

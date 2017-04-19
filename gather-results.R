@@ -11,8 +11,9 @@ option_list <- list(
         )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 
-scriptdir <-  dirname(sub("--file=","",commandArgs()[grep("--file",commandArgs())]))
-source(file.path(scriptdir,"context-inference-fns.R"),chdir=TRUE)
+
+library(contextual)
+library(contextutils)
 
 load(opt$sim)  # provides "simseq.opt"    "simseq.config" "simseqs"
 load(opt$fit)  # provides "model"

@@ -1,7 +1,8 @@
 #/usr/bin/R --vanilla
 
-source("../sim-context-fns.R",chdir=TRUE)
-source("../context-inference-fns.R",chdir=TRUE)
+library(contextual)
+library(contextutils)
+library(simcontext)
 
 
 # EXAMPLE 1 in the talk

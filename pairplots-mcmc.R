@@ -3,9 +3,11 @@
 args <- commandArgs(TRUE)
 simdir <- args[1]
 
-scriptdir <-  dirname(sub("--file=","",commandArgs()[grep("--file",commandArgs())]))
-source(file.path(scriptdir,"context-inference-fns.R"),chdir=TRUE)
-source(file.path(scriptdir,"sim-context-fns.R"),chdir=TRUE)
+
+library(contextual)
+library(contextutils)
+library(simcontext)
+
 library(mcmc)
 
 if (interactive()) {

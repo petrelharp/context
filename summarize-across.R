@@ -8,8 +8,8 @@ option_list <- list(
         )
 cmd <- parse_args(OptionParser(option_list=option_list,description=usage), positional_arguments = TRUE)
 
-scriptdir <-  dirname(sub("--file=","",commandArgs()[grep("--file",commandArgs())]))
-source(file.path(scriptdir,"context-inference-fns.R"),chdir=TRUE)
+library(contextual)
+library(contextutils)
 
 digest <- function(path_complete) {
     load(path_complete)

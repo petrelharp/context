@@ -50,8 +50,8 @@ if (logfile=="") {
     sink(file=logcon, type="output", split=interactive())   # send both to log file
 }
 
-scriptdir <- "../"
-source(paste(scriptdir,"context-inference-fns.R",sep=''),chdir=TRUE)
+library(contextual)
+library(contextutils)
 
 require(mcmc)
 

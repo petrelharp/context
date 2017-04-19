@@ -57,8 +57,8 @@ if (is.null(opt$outfile)) {
 basename <- gsub(".RData",'',opt$outfile)
 if (!file.exists(dirname(opt$outfile))) { dir.create(dirname(opt$outfile)) }
 
-scriptdir <-  dirname(sub("--file=","",commandArgs()[grep("--file",commandArgs())]))
-source(file.path(scriptdir,"context-inference-fns.R"),chdir=TRUE)
+library(contextual)
+library(contextutils)
 
 config <- read.config(opt$configfile)
 if (!is.null(config$tree)) {
