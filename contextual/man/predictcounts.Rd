@@ -8,6 +8,5 @@ predictcounts(longwin, shortwin, leftwin, initcounts, mutrates, selcoef,
   genmatrix, projmatrix, params = NULL, tlen = 1)
 }
 \description{
-Compute expected counts of paired patterns:
- where the actual computation happens
+Compute expected counts of paired patterns.
 }

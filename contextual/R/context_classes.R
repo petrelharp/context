@@ -110,33 +110,43 @@ setGeneric("rightwin", function(x) { longwin(x)-shortwin(x)-leftwin(x) })
 #'
 #' @rdname genmatrix-methods
 #' @aliases longwin,genmatrix-method
+#' @export
 setMethod("longwin", signature=c(x="genmatrix"), definition=function(x) { nchar(rownames(x)[1]) } )
 #' @rdname tuplecounts-methods
 #' @aliases longwin,tuplecounts-method
+#' @export
 setMethod("longwin", signature=c(x="tuplecounts"), definition=function(x) { nchar(rownames(x@counts)[1]) } )
 #' @rdname context-methods
 #' @aliases longwin,context-method
+#' @export
 setMethod("longwin", signature=c(x="context"), definition=function(x) { longwin(x@counts) } )
 #' @rdname contextTree-methods
 #' @aliases longwin,contextTree-method
+#' @export
 setMethod("longwin", signature=c(x="contextTree"), definition=function(x) { longwin(x@counts) } )
 #' @rdname tuplecounts-methods
 #' @aliases shortwin,tuplecounts-method
+#' @export
 setMethod("shortwin", signature=c(x="tuplecounts"), definition=function(x) { unique(sapply(lapply(lapply(colpatterns(x),levels),"[",1),nchar)) } )
 #' @rdname context-methods
 #' @aliases shortwin,context-method
+#' @export
 setMethod("shortwin", signature=c(x="context"), definition=function(x) { shortwin(x@counts) } )
 #' @rdname contextTree-methods
 #' @aliases shortwin,contextTree-method
+#' @export
 setMethod("shortwin", signature=c(x="contextTree"), definition=function(x) { shortwin(x@counts) } )
 #' @rdname tuplecounts-methods
 #' @aliases leftwin,tuplecounts-method
+#' @export
 setMethod("leftwin", signature=c(x="tuplecounts"), definition=function(x) { x@leftwin } )
 #' @rdname context-methods
 #' @aliases leftwin,context-method
+#' @export
 setMethod("leftwin", signature=c(x="context"), definition=function(x) { leftwin(x@counts) } )
 #' @rdname contextTree-methods
 #' @aliases leftwin,contextTree-method
+#' @export
 setMethod("leftwin", signature=c(x="contextTree"), definition=function(x) { leftwin(x@counts) } )
 
 ##############
@@ -156,7 +166,6 @@ setGeneric("nsel", function (x) { standardGeneric("nsel") } )
 setGeneric("fixparams", function (x) { standardGeneric("fixparams") } )
 #' @rdname genmatrix-methods
 #' @aliases nmuts,genmatrix-method
-
 setMethod("nmuts", signature=c(x="genmatrix"), definition=function (x) { length(x@mutpats) } )
 #' @rdname genmatrix-methods
 #' @aliases nsel,genmatrix-method
@@ -188,8 +197,17 @@ setMethod("fixparams", signature=c(x="contextTree"), definition=function (x) { l
 #######
 # methods related to model fitting
 
+#' @rdname context-methods
+#' @aliases coef,context-method
+#' @export
+setMethod("coef", signature=c(object="context"), definition=function (object) {
+          coef <- c( object@mutrates, object@selcoef, object@params )
+          names(coef) <- c( mutnames( object@genmatrix@mutpats, pretty=TRUE ), selnames( object@genmatrix@selpats, pretty=TRUE ), names(object@params) )
+          return(coef) } )
+
 #' @rdname contextModel-methods
 #' @aliases coef,contextModel-method
+#' @export
 setMethod("coef", signature=c(object="contextModel"), definition=function (object) {
           coef <- c( object@mutrates, object@selcoef, object@params )
           names(coef) <- c( mutnames( object@genmatrix@mutpats, pretty=TRUE ), selnames( object@genmatrix@selpats, pretty=TRUE ), names(object@params) )
@@ -197,6 +215,7 @@ setMethod("coef", signature=c(object="contextModel"), definition=function (objec
 
 #' @rdname contextTree-methods
 #' @aliases coef,contextTree-method
+#' @export
 setMethod("coef", signature=c(object="contextTree"), definition=function (object) { 
             tlens <- object@tree$edge.length
             names(tlens) <- paste("tlen",edge.labels(object@tree),sep='.')
@@ -216,9 +235,11 @@ setMethod("rowSums", signature=c(x="context"), definition=function (x) { Matrix:
 setMethod("rowSums", signature=c(x="contextTree"), definition=function (x) { Matrix::rowSums(x@counts@counts) } )
 #' @rdname context-methods
 #' @aliases fitted,context-method
+#' @export
 setMethod("fitted", signature=c(object="context"), definition=function (object,...) { predictcounts.context(object,...) } )
 #' @rdname context-methods
 #' @aliases residuals,context-method
+#' @export
 setMethod("residuals", signature=c(object="context"), definition=function (object,...) { resid.context(object,...) } )
 
 

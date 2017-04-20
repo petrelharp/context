@@ -5,6 +5,8 @@ library(contextual)
 library(contextutils)
 library(simcontext)
 
+set.seed(23)
+
 bases <- c("X","O")
 
 patlen <- 2

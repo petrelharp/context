@@ -30,4 +30,4 @@ EOF
 
 echo "$SCRIPT"
 
-echo "$SCRIPT" | R --vanilla --slave 
+echo "$SCRIPT" | R --slave 

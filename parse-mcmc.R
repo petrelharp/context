@@ -1,4 +1,4 @@
-#!/usr/bin/Rscript --vanilla
+#!/usr/bin/Rscript
 usage <- "\
 Summarize results from mcmc runs.
 "

@@ -15,6 +15,7 @@
 \alias{nmuts}
 \alias{nsel}
 \alias{fixparams}
+\alias{coef,context-method}
 \alias{rowSums,context-method}
 \alias{fitted,context-method}
 \alias{residuals,context-method}
@@ -45,6 +46,8 @@ nmuts(x)
 nsel(x)
 
 fixparams(x)
+
+\S4method{coef}{context}(object)
 
 \S4method{rowSums}{context}(x)
 

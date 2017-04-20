@@ -18,3 +18,6 @@ Rscript -e 'load("TEMP-tree-test.RData");suppressMessages({require(Biostrings);r
     -e 'stopifnot(all(x$sp1==x$an5))' \
     -e 'stopifnot(all(x$sp3==x$an6))' \
     -e 'stopifnot(all(x$an5==x$root))' 
+
+rm TEMP-tree-test.RData
+rm TEMP-tree-test.Rout

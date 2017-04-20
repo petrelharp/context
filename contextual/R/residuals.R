@@ -26,7 +26,7 @@ computeresids <- function (model, pretty=TRUE, in_longwin=longwin(model), in_sho
         counts <- model@counts
     }
 
-    expected <- fitted( model, longwin=longwin(model), shortwin=shortwin(model), leftwin=leftwin(model), initcounts=rowSums(counts), genmatrix=genmatrix )
+    expected <- fitted( model, longwin=longwin(model), shortwin=shortwin(model), leftwin=leftwin(model), initcounts=Matrix::rowSums(counts), genmatrix=genmatrix )
 
     if ( (in_longwin < longwin(counts)) || (in_shortwin < shortwin(counts)) ) {
         counts <- projectcounts( counts, in_leftwin, in_shortwin, in_longwin, overlapping=overlapping )
@@ -57,7 +57,7 @@ computeresids <- function (model, pretty=TRUE, in_longwin=longwin(model), in_sho
 
 #' used in setMethod
 resid.context <- function (object, counts=object@counts, genmatrix=object@genmatrix, pretty=FALSE) {
-    expected <- fitted(object, initcounts=rowSums(counts),
+    expected <- fitted(object, initcounts=Matrix::rowSums(counts),
                        longwin=longwin(counts), shortwin=shortwin(counts), leftwin=leftwin(counts),
                        genmatrix=genmatrix )
     stopifnot( all( rownames(expected)==rownames(counts) ) && all( colnames(expected)==colnames(counts) ) )

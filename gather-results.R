@@ -1,4 +1,4 @@
-#!/usr/bin/Rscript --vanilla
+#!/usr/bin/Rscript
 library(optparse)
 
 usage <- "Gather and summarize results of analysis into a single .RData file."
@@ -47,7 +47,7 @@ if ( ! opt$json ) {
 } else {
     library(jsonlite)
     outfile <- openwrite(opt$outfile)
-    json <- toJSON( list(
+    json <- jsonlite::toJSON( list(
                     fit.coef = as.list(coef(model)),
                     sim.coef = as.list( sim.params ),
                     fit.params = list( leftwin=leftwin(model),

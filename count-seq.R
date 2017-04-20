@@ -1,4 +1,4 @@
-#!/usr/bin/Rscript --vanilla
+#!/usr/bin/Rscript
 library(optparse)
 
 usage <- "\
@@ -83,14 +83,14 @@ if (opt$RData) {
     outfile <- opt$outfile
     cat("Writing to:", outfile, "\n")
     cframe <- countframe( counts )
-    cat( paste('#', toJSON( list( leftwin=opt$leftwin, longwin=opt$longwin, shortwin=opt$shortwin, shift=opt$shift, offset=0 ), auto_unbox=TRUE ), "\n" ), file=outfile )
+    cat( paste('#', jsonlite::toJSON( list( leftwin=opt$leftwin, longwin=opt$longwin, shortwin=opt$shortwin, shift=opt$shift, offset=0 ), auto_unbox=TRUE ), "\n" ), file=outfile )
     write.table(cframe, file=opt$outfile, row.names=FALSE, sep='\t', quote=FALSE, append=TRUE)
 } else {
     for (k in 1:opt$shift) {
         cframe <- countframe( counts[[k]] )
         outfile <- paste(opt$outfile,k,sep='.')
         cat("Writing to:", outfile, "\n")
-        cat( paste('#', toJSON( list( leftwin=opt$leftwin, longwin=opt$longwin, shortwin=opt$shortwin, shift=opt$shift, offset=k ), auto_unbox=TRUE ), "\n" ), file=outfile )
+        cat( paste('#', jsonlite::toJSON( list( leftwin=opt$leftwin, longwin=opt$longwin, shortwin=opt$shortwin, shift=opt$shift, offset=k ), auto_unbox=TRUE ), "\n" ), file=outfile )
         # cat( paste('# { "leftwin" : ', opt$leftwin, '}\n', sep=''), file=outfile )
         write.table(cframe, file=outfile, row.names=FALSE, sep='\t', quote=FALSE, append=TRUE)
     }

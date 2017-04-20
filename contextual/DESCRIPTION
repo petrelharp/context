@@ -17,6 +17,7 @@ Suggests:
     stringdist,
     testthat
 Collate: 
+    '00import.R'
     'tuplecounts.R'
     'genmatrix.R'
     'context_classes.R'

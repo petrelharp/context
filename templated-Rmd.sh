@@ -21,10 +21,11 @@ shift
 RDataList="c(\""$(echo $@| sed -e 's/ /", "/g')"\")"
 outfile=$(pwd)/$(dirname $RData)/$(basename $RData .RData)-$(basename $template .Rmd).html
 
-R --vanilla --slave << EOF
+R --slave << EOF
 library("rmarkdown")
 
-source("$(dirname $0)/context-inference-fns.R",chdir=TRUE)
+library(contextual)
+library(contextutils)
 for (rdata in ${RDataList}) { cat("Loading ", rdata, "\n"); load(rdata) }
 render("$template", output_file="$outfile")
 EOF

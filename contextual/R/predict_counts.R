@@ -1,5 +1,9 @@
 
-predictcounts.context <- function (model, longwin=NULL, shortwin=NULL, leftwin=NULL, initcounts=rowSums(model), mutrates=model@mutrates, selcoef=model@selcoef, genmatrix=model@genmatrix, projmatrix=model@projmatrix, params=model@params, tlen=1 ) {
+#' @export
+predictcounts.context <- function (model, longwin=NULL, shortwin=NULL, leftwin=NULL, 
+                                   initcounts=rowSums(model), mutrates=model@mutrates, 
+                                   selcoef=model@selcoef, genmatrix=model@genmatrix, 
+                                   projmatrix=model@projmatrix, params=model@params, tlen=1 ) {
     # default values not cooperating with S4 methods:
     if (is.null(longwin)) { longwin <- longwin(model) }
     if (is.null(shortwin)) { shortwin <- shortwin(model) }
@@ -13,9 +17,9 @@ predictcounts.context <- function (model, longwin=NULL, shortwin=NULL, leftwin=N
 
 #' Predict Counts from a Model
 #'
-#' Compute expected counts of paired patterns:
-#'  where the actual computation happens
+#' Compute expected counts of paired patterns.
 #'
+#' @export
 predictcounts <- function (longwin, shortwin, leftwin, initcounts, mutrates, selcoef, genmatrix, projmatrix, params=NULL, tlen=1 ) {
     rightwin <- longwin-shortwin-leftwin
     if (!missing(mutrates)||!missing(selcoef)||!is.null(params)) { genmatrix@x <- do.call( update, c( list(genmatrix,mutrates=mutrates,selcoef=selcoef), params ) ) }
