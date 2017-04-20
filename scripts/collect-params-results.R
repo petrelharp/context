@@ -4,7 +4,7 @@ json.files <- commandArgs(TRUE)
 
 if (length(json.files)==0) {
     cat("Usage:\
-        Rscript collect-many-sims.R (list of json files) > outfile\
+        Rscript collect-params-results.R (list of json files) > outfile\
 ")
     q()
 }

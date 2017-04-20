@@ -40,28 +40,28 @@ do
     mkdir -p $GMDIR
 
     echo "Simulating from ${MODEL} ."
-    Rscript ../sim-seq.R -c $MODELFILE -t 0.7 -s 1000000 -m $SIMGENMAT -z $SEED -o $SIMFILE
+    Rscript ../scripts/sim-seq.R -c $MODELFILE -t 0.7 -s 1000000 -m $SIMGENMAT -z $SEED -o $SIMFILE
 
     echo "counting tuples, recording to ${COUNTFILE}"
     ls $SIMFILE && \
-        Rscript ../count-seq.R -i $SIMFILE -w $LONGWIN -s $SHORTWIN -l $LEFTWIN -o $COUNTFILE
+        Rscript ../scripts/count-seq.R -i $SIMFILE -w $LONGWIN -s $SHORTWIN -l $LEFTWIN -o $COUNTFILE
 
     echo "precompute generator matrices, saving to ${GENMAT}"
-    Rscript ../make-genmat.R -c $MODELFILE -w ${LONGWIN} -o ${GENMAT}
+    Rscript ../scripts/make-genmat.R -c $MODELFILE -w ${LONGWIN} -o ${GENMAT}
 
     echo "check simulated model matches expected"
-    ../templated-Rmd.sh ../testing-code/check-sim.Rmd $SIMFILE ${GENMAT}
+    ../scripts/templated-Rmd.sh ../scripts/check-sim.Rmd $SIMFILE ${GENMAT}
 
     echo "fit a model, saving to ${FITFILE}"
     ls $COUNTFILE $INITMODELFILE $GENMAT && \
-        Rscript ../fit-model.R -i $COUNTFILE -t 1.0 --maxit 500 -c $INITMODELFILE -m $GENMAT -o $FITFILE
+        Rscript ../scripts/fit-model.R -i $COUNTFILE -t 1.0 --maxit 500 -c $INITMODELFILE -m $GENMAT -o $FITFILE
 
     echo "computing residuals"
     echo "saving residuals to ${RESIDFILE}"
     ls $FITFILE && \
-        Rscript ../compute-resids.R -i $FITFILE -o $RESIDFILE
+        Rscript ../scripts/compute-resids.R -i $FITFILE -o $RESIDFILE
 
     echo "look at results"
-    ../templated-Rmd.sh ../simulation.Rmd $FITFILE $SIMFILE
+    ../scripts/templated-Rmd.sh ../scripts/simulation.Rmd $FITFILE $SIMFILE
 
 done

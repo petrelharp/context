@@ -3,7 +3,7 @@
 set -eu
 set -o pipefail
 
-cd /home/rcf-40/pralph/panfs/context/json-tree-cpg
+cd /home/rcf-40/pralph/panfs/context/tree-cpg
 source /home/rcf-40/pralph/cmb/bin/R-setup-usc.sh
 
 MODEL=tree-cpg-model.json
@@ -17,7 +17,7 @@ for LONGWIN in 3 4 5 6
 do
     GENMAT="genmatrices/cpg-${LONGWIN}.RData"  # (specified in config file)
     echo "Genmatrix to $GENMAT ."
-    Rscript ../make-genmat.R -c ${MODEL} -w ${LONGWIN} 
+    Rscript ../scripts/make-genmat.R -c ${MODEL} -w ${LONGWIN} 
 done
 
 for N in $(seq $NJOBS)
@@ -28,7 +28,7 @@ do
         mkdir -p simseqs/sim-$DIR
         # simulate up some sequence for testing;
         SIMFILE="simseqs/sim-$DIR/tree-cpg.RData"
-        Rscript ../sim-seq.R -c tree-cpg-model.json -s $SEQLEN -o $SIMFILE
+        Rscript ../scripts/sim-seq.R -c tree-cpg-model.json -s $SEQLEN -o $SIMFILE
         # and count the Tmers;
         for LONGWIN in 3 4 5 6
         do
@@ -36,12 +36,12 @@ do
             LEFTWIN=$(( (LONGWIN-SHORTWIN)/2 ))
             echo "Doing $LONGWIN, $SHORTWIN, $LEFTWIN now."
             COUNTSFILE="simseqs/sim-$DIR/tree-cpg-${LONGWIN}-${SHORTWIN}.counts"
-            Rscript ../count-seq.R -i $SIMFILE -c sp1 -w $LONGWIN -s $SHORTWIN -l $LEFTWIN --shift $LONGWIN -o $COUNTSFILE;
+            Rscript ../scripts/count-seq.R -i $SIMFILE -c sp1 -w $LONGWIN -s $SHORTWIN -l $LEFTWIN --shift $LONGWIN -o $COUNTSFILE;
             # fit the model;
             FITFILE="simseqs/sim-$DIR/fit-${LONGWIN}-${SHORTWIN}.RData"
-            Rscript ../fit-tree-model.R -i ${COUNTSFILE}.1 -c tree-cpg-model.json -o $FITFILE --maxit $MAXIT
+            Rscript ../scripts/fit-tree-model.R -i ${COUNTSFILE}.1 -c tree-cpg-model.json -o $FITFILE --maxit $MAXIT
             RESFILE="simseqs/sim-$DIR/fit-${LONGWIN}-${SHORTWIN}.json"
-            Rscript ../gather-results.R --fit $FITFILE --sim $SIMFILE --outfile $RESFILE --json 2>/dev/null 
+            Rscript ../scripts/gather-results.R --fit $FITFILE --sim $SIMFILE --outfile $RESFILE --json 2>/dev/null 
         done
     ) &
 done
@@ -49,7 +49,7 @@ done
 wait;
 
 # after, run:
-#   Rscript ../collect-params-results.R $(find simseqs -name "*json") > many-sims-results.tsv
+#   Rscript ../scripts/collect-params-results.R $(find simseqs -name "*json") > many-sims-results.tsv
 # and then
 #   x <- read.table("many-sims-results.tsv",header=TRUE,check.names=FALSE)
 #   layout(matrix(1:16,nrow=4))

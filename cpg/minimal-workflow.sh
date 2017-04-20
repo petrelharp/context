@@ -10,7 +10,7 @@ mkdir -p $BASEDIR
 
 echo "simulate up some sequence for testing"
 SIMFILE="$BASEDIR/sim.RData"
-Rscript ../sim-seq.R -c $MODEL -t .01 -s 1000 -o $SIMFILE
+Rscript ../scripts/sim-seq.R -c $MODEL -t .01 -s 1000 -o $SIMFILE
 
 echo "and count the Tmers"
 LONGWIN=2
@@ -20,15 +20,15 @@ GENMAT="$BASEDIR/genmatrix-${LONGWIN}.RData"
 
 COUNTFILE=$BASEDIR/sim-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.counts
 ls $SIMFILE && \
-    Rscript ../count-seq.R -i $SIMFILE -w $LONGWIN -s $SHORTWIN -l $LEFTWIN -o $COUNTFILE
+    Rscript ../scripts/count-seq.R -i $SIMFILE -w $LONGWIN -s $SHORTWIN -l $LEFTWIN -o $COUNTFILE
 
 echo "precompute generator matrices:"
-Rscript ../make-genmat.R -c $MODEL -w ${LONGWIN} -o ${GENMAT}
+Rscript ../scripts/make-genmat.R -c $MODEL -w ${LONGWIN} -o ${GENMAT}
 
 echo "check simulated model matches expected"
-../templated-Rmd.sh ../testing-code/check-sim.Rmd ${BASEDIR}/sim.RData ${GENMAT}
+../scripts/templated-Rmd.sh ../scripts/check-sim.Rmd ${BASEDIR}/sim.RData ${GENMAT}
 
 echo "fit a model"
 FITFILE=$BASEDIR/fit-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.RData
-ls ../fit-model.R $COUNTFILE $MODEL $GENMAT && \
-    Rscript ../fit-model.R -i $COUNTFILE -t .01 --maxit 5 -c $MODEL -m $GENMAT -o $FITFILE
+ls ../scripts/fit-model.R $COUNTFILE $MODEL $GENMAT && \
+    Rscript ../scripts/fit-model.R -i $COUNTFILE -t .01 --maxit 5 -c $MODEL -m $GENMAT -o $FITFILE

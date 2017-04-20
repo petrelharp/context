@@ -21,7 +21,7 @@ do
     do
         read -a trip <<< "$TRIPLET"
         OUTFILE="${MODEL}-likelihood-${trip[0]}-${trip[1]}-${trip[2]}.html"
-        ../likelihood-surface.sh $MODELFILE $OUTFILE longwin=${trip[0]} shortwin=${trip[1]} leftwin=${trip[2]} tlen=0.02 ncounts=10000000
+        likelihood-surface.sh $MODELFILE $OUTFILE longwin=${trip[0]} shortwin=${trip[1]} leftwin=${trip[2]} tlen=0.02 ncounts=10000000
     done
 done
 ```

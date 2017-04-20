@@ -19,7 +19,7 @@ mcmcs : $(mcmcfiles)
 info : 
 	Rscript ../siminfo.R huchgo-sims > $@
 	Rscript ../parse-mcmc.R  >> $@
-	Rscript ../pairplots-mcmc.R huchgo-sims
+	Rscript pairplots-mcmc.R huchgo-sims
 
 %/mcmc-run-1.Rout : %.RData
 	Rscript huchgo-mcmc.R -i $< -o $@ ${ARGS}

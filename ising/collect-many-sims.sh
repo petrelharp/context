@@ -9,7 +9,7 @@ do
     do
         OUTFILE=$(echo $SIMFIT | sed -e 's/RData$/json/')
         echo "Reading from ${SIMFIT}, writing to ${OUTFILE}."
-        Rscript ../gather-results.R --fit $SIMFIT --sim $DIR/test-ising.RData --outfile $OUTFILE --json 2>/dev/null &
+        Rscript ../scripts/gather-results.R --fit $SIMFIT --sim $DIR/test-ising.RData --outfile $OUTFILE --json 2>/dev/null &
         while (( $(jobs 2>&1 | grep -c Running) >= 8 )); do sleep 0.1; done
     done
 done

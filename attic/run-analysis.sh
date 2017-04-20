@@ -25,29 +25,29 @@ LEFTWIN=$(( ($LONGWIN-$SHORTWIN)/2 ))
 
 echo "Simulating some sequence from ${MODEL} ."
 SIMFILE="${BASEDIR}/${BASE}-sim.RData"
-Rscript ../sim-seq.R -c $MODEL -t $TLEN -s $NSITES -o $SIMFILE
+Rscript ../scripts/sim-seq.R -c $MODEL -t $TLEN -s $NSITES -o $SIMFILE
 
 GENMAT="genmatrices/genmatrix-${LONGWIN}-${BASE}.RData"
 if [[ ! -e $GENMAT ]]
 then
     echo "Making generator matrix $GENMAT ."
     mkdir -p genmatrices
-    Rscript ../make-genmat.R -c $MODEL -w ${LONGWIN} -o $GENMAT
+    Rscript ../scripts/make-genmat.R -c $MODEL -w ${LONGWIN} -o $GENMAT
 fi
 
 COUNTFILE="$BASEDIR/$BASE-counts-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}-shift0.counts"
 echo "Counting ${LONGWIN}/${SHORTWIN}/${LEFTWIN} Tmers, to $COUNTFILE ."
-Rscript ../count-seq.R -i $SIMFILE -w $LONGWIN -s $SHORTWIN -l $LEFTWIN -o $COUNTFILE
+Rscript ../scripts/count-seq.R -i $SIMFILE -w $LONGWIN -s $SHORTWIN -l $LEFTWIN -o $COUNTFILE
 
 FITFILE="$BASEDIR/$BASE-fit-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}-shift0.RData"
 echo "Fitting a model, to $FITFILE ."
-Rscript ../fit-model.R -i $COUNTFILE -m $GENMAT -c $MODEL -t $TLEN -o $FITFILE
+Rscript ../scripts/fit-model.R -i $COUNTFILE -m $GENMAT -c $MODEL -t $TLEN -o $FITFILE
 
 echo "Look at results."
-../templated-Rmd.sh ../simulation.Rmd $FITFILE $SIMFILE
+../scripts/templated-Rmd.sh ../scripts/simulation.Rmd $FITFILE $SIMFILE
 
 ## STOP HERE FOR NOW
 exit 0
 
 echo "mcmc also"
-Rscript ../mcmc-model.R -i $FITFILE -c $MODEL -t $TLEN -b 1000 -j 3333
+Rscript ../scripts/mcmc-model.R -i $FITFILE -c $MODEL -t $TLEN -b 1000 -j 3333

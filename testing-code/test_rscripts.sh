@@ -9,7 +9,7 @@ TEMPFILE=$(mktemp tempXXXXX.RData)
 
 # TEST 1
 echo "Test 1:"
-Rscript ../make-genmat.R -c <(echo '{ "bases":["X","O"], "mutpats":[[["X","O"],["O","X"]]], "mutrates":[1] }') -w 2 -o $TEMPFILE 2>/dev/null
+Rscript ../scripts/make-genmat.R -c <(echo '{ "bases":["X","O"], "mutpats":[[["X","O"],["O","X"]]], "mutrates":[1] }') -w 2 -o $TEMPFILE 2>/dev/null
 TEST1=$( diff <(Rscript -e "library(contextual); load(\"$TEMPFILE\"); as.matrix(genmatrix)" 2>/dev/null | sed -e 's/^ *//' -e 's/ *$//' -e 's/  */ /g') <(( cat <<END
       XX OX XO OO
    XX  0  1  1  0
@@ -27,7 +27,7 @@ fi
 
 # Test 2
 echo "Test 2:"
-Rscript ../make-genmat.R -c <(echo '{ "bases":["X","O"], "mutpats":[[["X","O"]],[["O","X"]]], "mutrates":[1,2] }') -w 2 -o $TEMPFILE 2>/dev/null
+Rscript ../scripts/make-genmat.R -c <(echo '{ "bases":["X","O"], "mutpats":[[["X","O"]],[["O","X"]]], "mutrates":[1,2] }') -w 2 -o $TEMPFILE 2>/dev/null
 TEST2=$( diff <(Rscript -e "library(contextual); load(\"$TEMPFILE\"); as.matrix(genmatrix)" 2>/dev/null | sed -e 's/^ *//' -e 's/ *$//' -e 's/  */ /g') <(( cat <<END
       XX OX XO OO
    XX  0  1  1  0
@@ -44,7 +44,7 @@ else
 fi
 
 # Test 3
-Rscript ../make-genmat.R -c <(echo '{ "bases":["X","O"], "mutpats":[[["X","O"]],[["O","X"]],[["OX","XX"]],[["XO","XX"]]], "mutrates":[1,2,3,5] }') -w 3 -o $TEMPFILE 2>/dev/null
+Rscript ../scripts/make-genmat.R -c <(echo '{ "bases":["X","O"], "mutpats":[[["X","O"]],[["O","X"]],[["OX","XX"]],[["XO","XX"]]], "mutrates":[1,2,3,5] }') -w 3 -o $TEMPFILE 2>/dev/null
 TEST2=$( diff <(Rscript -e "library(contextual); load(\"$TEMPFILE\"); as.matrix(genmatrix)" 2>/dev/null | sed -e 's/^ *//' -e 's/ *$//' -e 's/  */ /g') <(( cat <<END
     XXX OXX XOX OOX XXO OXO XOO OOO
 XXX   0   1   1   0   1   0   0   0
