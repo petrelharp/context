@@ -181,30 +181,37 @@ check.genmatrix <- function (config,genmatrix) {
 nodenames <- function (tr) { selfname( c( tr$tip.label, tr$node.label ) ) }
 
 #' @describeIn nodenames Assign node names to a tree.
+#' @export
 "nodenames<-" <- function (tr,value) { tr$tip.label <- value[seq_along(tr$tip.label)]; tr$node.label <- value[length(tr$tip.label)+seq(1,length.out=tr$Nnode)]; return(tr) }
 
 #' @describeIn nodenames Find the name of a root of a tree.
+#' @export
 rootname <- function (tr) { nodenames(tr)[ get.root(tr) ] }
 
 #' @describeIn nodenames Assign the name of a root of a tree.
+#' @export
 "rootname<-" <- function (tr,value) { tr$node.label[get.root(tr)-length(tr$tip.label)] <- value; return(tr) }
 
 #' @describeIn nodenames Return the name of the downstream node of each edge.
+#' @export
 edge.labels <- function (tr) {
     c(tr$tip.label,tr$node.label)[tr$edge[,2]]
 }
 
 #' @describeIn nodenames Return the index of the root in (tips,nodes) order
+#' @export
 get.root <- function (tr) {
     setdiff( tr$edge[,1], tr$edge[,2] )
 }
 
 #' @describeIn nodenames Return index of the parent of node in (tips,nodes) order
+#' @export
 get.parent <- function (node,tr) {
     tr$edge[match(node,tr$edge[,2]),1]
 }
 
 #' @describeIn nodenames Return pairs in node (or NA if none exists)
+#' @export
 get.cherries <- function (node,tr) {
     parents <- get.parent(node,tr)
     siblings <- outer( parents, parents, "==" )
@@ -291,6 +298,7 @@ config.dereference <- function (config, x) {
 #'  turn fixfn into functions, etc.
 #'
 #' @return A model configuration.
+#' @export parse.models
 parse.models <- function (config,do.fixfns=TRUE) {
     # Edges are labeled by the node/tip below them:
     nodenames <- nodenames(config$tree)

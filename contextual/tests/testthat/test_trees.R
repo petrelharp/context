@@ -1,34 +1,96 @@
-#!/usr/bin/Rscript 
-
 library(contextual)
-library(contextutils)
+
+library(testthat)
+library(jsonlite)
+
+set.seed(23)
 
 
 ####################################
 # Little tree
-cat("testing basic operations on a little tree:\n")
+context("testing basic operations on a little tree:\n")
 
-config <- treeify.config( read.config("little-tree-model.json") )
+little_model <- '
+{
+    "comment" : "Simple tree, for testing.",
+    "tree" : [ "(sp1 : 0.1, sp2 : 0.2) root;" ],
+    "bases" : [ "X", "O" ],
+    "initfreqs" : [ 0.5, 0.5 ],
+    "forward" : {
+        "mutpats" : [
+            [ [ "X", "O" ] ],
+            [ [ "O", "X" ] ]
+        ],
+        "mutrates" : [ 1, 0.5 ]
+    },
+    "reverse" : {
+        "mutpats" : [
+            [ [ "X", "O" ] ],
+            [ [ "O", "X" ] ]
+        ],
+        "mutrates" : [ 0.5, 1 ]
+    },
+    "sp1" : "forward",
+    "sp2" : "reverse"
+}
+'
+config <- treeify.config( read.config(json=little_model) )
+
+# This model has independent mutations at each site.
+# Here are the single-site matrices for each edge:
+#  patterns are XX OX XO OO
+#  recall that the diagonal is omitted
+true_genmats <- list( sp1 = rbind(c(-2,1,1,0),
+                                  c(0.5,-1.5,0,1),
+                                  c(0.5,0,-1.5,1),
+                                  c(0,0.5,0.5,-1)),
+                      sp2 = rbind(c(-1,0.5,0.5,0),
+                                  c(1,-1.5,0,0.5),
+                                  c(1,0,-1.5,0.5),
+                                  c(0,1,1,-2)))
+zero_diag <- function (x) { diag(x) <- rep(0.0,nrow(x)); x }
+
+true_branchmats <- list( sp1 = expm(0.1 * true_genmats[['sp1']]),
+                          sp2 = expm(0.2 * true_genmats[['sp2']]) )
 
 genmatrices <- lapply( selfname(c("forward","reverse")), function (x) {
         makegenmatrix( mutpats=config[[x]]$mutpats, bases=config$bases, mutrates=config[[x]]$mutrates, patlen=2, fixfn=null.fixfn )
     } )
+
+test_that("correct generator matrices", {
+              expect_equal( as.numeric(zero_diag(true_genmats[["sp1"]])), as.numeric(genmatrices[["forward"]]) ) 
+              expect_equal( as.numeric(zero_diag(true_genmats[["sp2"]])), as.numeric(genmatrices[["reverse"]]) ) 
+    } )
+
 models <- unlist( config[ nodenames(config$tree) ] )
 
 projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrices[[1]]), leftwin=0, fpatterns=getpatterns(1,config$bases) )
-root.distrn <- runif( nrow(projmatrix) )
-root.distrn <- root.distrn / sum(root.distrn)
+root.distrn <- c(4,3,2,1)/10
 
-peel.config <- peel.transmat( config$tree, rowtaxon="sp1", coltaxa=c("sp2"), models=models, genmatrices=genmatrices, projmatrix=projmatrix, root.distrn=root.distrn, return.list=TRUE )
-transmat <- peel.config$transmat
+peel.config <- contextual:::peel.transmat( config$tree, rowtaxon="sp1", coltaxa=c("sp2"), models=models, genmatrices=genmatrices, 
+                                           projmatrix=projmatrix, root.distrn=root.distrn, return.list=TRUE )
+transmat <- peel.config$transmats
 
-# check if probabilities sum to 1:
-stopifnot( all( ( abs( sapply( transmat, sum ) - 1 ) < sqrt(.Machine$double.eps) ) | ( sapply( transmat, function (x) all( abs(rowSums(x)-1) < sqrt(.Machine$double.eps) ) ) ) ) )
+the_transmat <- transmat[[peel.config$row.node]]
+
+true_transmats <- list( sp2 = projmatrix,
+                        root = ( sweep(true_branchmats$sp2, 1, root.distrn, "*") %*% projmatrix),
+                        sp1 = t(true_branchmats$sp1) %*% ( sweep(true_branchmats$sp2, 1, root.distrn, "*") %*% projmatrix) )
+
+test_that("check if probabilities sum to 1:", {
+    expect_true( all( ( abs( sapply( transmat, sum ) - 1 ) < sqrt(.Machine$double.eps) ) | ( sapply( transmat, function (x) all( abs(rowSums(x)-1) < sqrt(.Machine$double.eps) ) ) ) ) )
+})
+
+test_that("check transition matrices agree", {
+              expect_equal(transmat$sp2, true_transmats$sp2)
+              expect_equal(as.numeric(transmat$root), as.numeric(true_transmats$root))
+              expect_equal(as.numeric(transmat$sp1), as.numeric(true_transmats$sp1))
+})
 
 
 ####################################
 # Bigger tree
-cat("testing basic operations on a bigger tree:\n")
+context("testing basic operations on a bigger tree:\n")
 
 config <- treeify.config( read.config("big-tree-model.json") )
 
@@ -41,16 +103,19 @@ projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrices[[1]]), leftwin=0
 root.distrn <- runif( nrow(projmatrix) )
 root.distrn <- root.distrn / sum(root.distrn)
 
-peel.config <- peel.transmat( config$tree, rowtaxon="sp1", coltaxa=c("sp2","sp3","sp4","sp5","sp6"), models=models, genmatrices=genmatrices, projmatrix=projmatrix, root.distrn=root.distrn, return.list=TRUE )
-transmat <- peel.config$transmat
+peel.config <- contextual:::peel.transmat( config$tree, rowtaxon="sp1", coltaxa=c("sp2","sp3","sp4","sp5","sp6"), models=models, genmatrices=genmatrices, projmatrix=projmatrix, root.distrn=root.distrn, return.list=TRUE )
+transmat <- peel.config$transmats
 
-# check if probabilities sum to 1:
-stopifnot( all( ( abs( sapply( transmat, sum ) - 1 ) < sqrt(.Machine$double.eps) ) | ( sapply( transmat, function (x) all( abs(rowSums(x)-1) < sqrt(.Machine$double.eps) ) ) ) ) )
+test_that("check if probabilities sum to 1:", {
+    expect_true( all( ( abs( sapply( transmat, sum ) - 1 ) < sqrt(.Machine$double.eps) ) | ( sapply( transmat, function (x) all( abs(rowSums(x)-1) < sqrt(.Machine$double.eps) ) ) ) ) )
+})
+
 
 
 ####################################
 # check out transition probabilities
-cat("Testing pattern probabilities on a little tree.\n")
+context("Testing pattern probabilities on a little tree.\n")
+context("Transition matrix on two-taxon tree all good.\n")
 
 aa <- 0.5
 bb <- 1
@@ -81,8 +146,8 @@ json.config <- paste( '
     "sp2" : "reverse"
 }
 ', sep='' )
-config <- parse.models( treeify.config( fromJSON(json.config,simplifyMatrix=FALSE) ) )
-models <- config.dereference( config, nodenames(config$tree) )
+config <- contextual:::parse.models( treeify.config( jsonlite::fromJSON(json.config,simplifyMatrix=FALSE) ) )
+models <- contextual:::config.dereference( config, nodenames(config$tree) )
 
 longpats <- getpatterns(2,config$bases)
 shortpats <- getpatterns(1,config$bases)
@@ -96,11 +161,13 @@ genmatrices <- lapply( config$.models, function (mm) {
 initfreq.index  <- product.index( longpats=longpats, bases=config$bases ) # which base is at each position in each pattern
 initfreqs <- config$initfreqs
 root.distrn <- get.root.distrn( initfreqs, initfreq.index )
-stopifnot( all.equal(sum(root.distrn),1) )
 
-transmat <- peel.transmat( tree=config$tree, rowtaxon="sp1", coltaxa="sp2", models=models, genmatrices=genmatrices, projmatrix=projmatrix, root.distrn=root.distrn, tlens=config$tree$edge.length, debug=TRUE, return.list=FALSE )
+expect_equal(sum(root.distrn), 1)
 
-stopifnot( all.equal(sum(transmat), 1) )
+transmat <- contextual:::peel.transmat( tree=config$tree, rowtaxon="sp1", coltaxa="sp2", models=models, genmatrices=genmatrices, projmatrix=projmatrix, 
+                                       root.distrn=root.distrn, tlens=config$tree$edge.length, return.list=FALSE )
+
+expect_equal( sum(transmat), 1)
 
 # truth
 fwd.genmat <- matrix( c( # XX  OX   XO  OO
@@ -125,16 +192,16 @@ joint.transmat <- rowSums( sapply( 1:4, function (k) {
         } ) )
 dim(joint.transmat) <- c(4,4)
 dimnames(joint.transmat) <- list( longpats, longpats )
-stopifnot( all.equal(sum(joint.transmat), 1) )
+
+expect_equal(sum(joint.transmat), 1)
 
 true.transmat <- joint.transmat %*% projmatrix
 
-stopifnot( all.equal( as.vector(true.transmat), as.vector(transmat) ) )
-cat("Transition matrix on two-taxon tree all good.\n")
+expect_equal( as.vector(true.transmat), as.vector(transmat) )
 
 ####################################
 # bigger tree
-cat("Testing pattern probabilities on a bigger tree.\n")
+context("Testing pattern probabilities on a bigger tree.\n")
 
 aa <- 0.5
 bb <- 1
@@ -169,8 +236,8 @@ json.config <- paste( '
     "sp3" : "reverse"
 }
 ', sep='' )
-config <- parse.models( treeify.config( fromJSON(json.config,simplifyMatrix=FALSE) ) )
-models <- config.dereference( config, nodenames(config$tree) )
+config <- contextual:::parse.models( treeify.config( jsonlite::fromJSON(json.config,simplifyMatrix=FALSE) ) )
+models <- contextual:::config.dereference( config, nodenames(config$tree) )
 
 longpats <- getpatterns(2,config$bases)
 shortpats <- getpatterns(1,config$bases)
@@ -186,13 +253,16 @@ initfreq.index  <- product.index( longpats=longpats, bases=config$bases ) # whic
 initfreqs <- config$initfreqs
 root.distrn <- get.root.distrn( initfreqs, initfreq.index )
 names(root.distrn) <- longpats
-stopifnot( all.equal(sum(root.distrn),1) )
 
-big.transmat <- peel.transmat( tree=config$tree, rowtaxon="sp1", coltaxa=c("sp2","sp3"), models=models, genmatrices=genmatrices, projmatrix=big.projmatrix, root.distrn=root.distrn, tlens=config$tree$edge.length, debug=TRUE, return.list=FALSE )
+expect_equal(sum(root.distrn),1)
 
-transmat <- peel.transmat( tree=config$tree, rowtaxon="sp1", coltaxa=c("sp2","sp3"), models=models, genmatrices=genmatrices, projmatrix=projmatrix, root.distrn=root.distrn, tlens=config$tree$edge.length, debug=TRUE, return.list=FALSE )
+big.transmat <- contextual:::peel.transmat( tree=config$tree, rowtaxon="sp1", coltaxa=c("sp2","sp3"), models=models, 
+                                           genmatrices=genmatrices, projmatrix=big.projmatrix, root.distrn=root.distrn, tlens=config$tree$edge.length, return.list=FALSE )
 
-stopifnot( all.equal(sum(transmat), 1) )
+transmat <- contextual:::peel.transmat( tree=config$tree, rowtaxon="sp1", coltaxa=c("sp2","sp3"), models=models, 
+                                       genmatrices=genmatrices, projmatrix=projmatrix, root.distrn=root.distrn, tlens=config$tree$edge.length, return.list=FALSE )
+
+expect_equal(sum(transmat), 1)
 
 # truth
 fwd.genmat <- matrix( c( # XX  OX   XO  OO
@@ -230,36 +300,40 @@ joint.transmat <- t( apply( sp1.transmat, 2, function (xx) {
         xx[4] * root.translist[[4]] 
     } ) )
 colnames(joint.transmat) <- outer(longpats,longpats,paste,sep=',')
-stopifnot( all.equal(sum(joint.transmat), 1) )
+expect_equal(sum(joint.transmat), 1)
 
 pp <- kronecker(projmatrix,projmatrix)
 rownames(pp) <- outer(longpats,longpats,paste,sep=',')
 colnames(pp) <- outer(shortpats,shortpats,paste,sep=',')
 true.transmat <- joint.transmat %*% pp
 
-stopifnot( all.equal( as.vector(joint.transmat), as.vector(big.transmat) ) )
-stopifnot( all.equal( as.vector(true.transmat), as.vector(transmat) ) )
-cat("Transition matrix on three-taxon tree good.\n")
+test_that("Transition matrix on three-taxon tree:", {
+    expect_equal( as.vector(joint.transmat), as.vector(big.transmat) )
+    expect_equal( as.vector(true.transmat), as.vector(transmat) )
+})
 
 
 ###################################
 ## more peeling: check can create setup then update it
-cat("Checking if can update peeling setup.\n")
+context("Checking if can update peeling setup.\n")
 
-big.transmat.setup <- peel.transmat( tree=config$tree, rowtaxon="sp1", coltaxa=c("sp2","sp3"), models=models, genmatrices=genmatrices, projmatrix=big.projmatrix, root.distrn=root.distrn, tlens=config$tree$edge.length, debug=TRUE, return.list=TRUE )
+big.transmat.setup <- contextual:::peel.transmat( tree=config$tree, rowtaxon="sp1", coltaxa=c("sp2","sp3"), models=models, genmatrices=genmatrices, 
+                                                 projmatrix=big.projmatrix, root.distrn=root.distrn, tlens=config$tree$edge.length, debug=TRUE, return.list=TRUE )
 
 big.transmat.setup <- peel.transmat.compute( setup=big.transmat.setup, models=models, genmatrices=genmatrices, root.distrn=root.distrn, tlens=config$tree$edge.length )
 
 big.transmat <- big.transmat.setup$transmats[[ big.transmat.setup$row.node ]]
 
-transmat.setup <- peel.transmat( tree=config$tree, rowtaxon="sp1", coltaxa=c("sp2","sp3"), models=models, genmatrices=genmatrices, projmatrix=projmatrix, root.distrn=root.distrn, tlens=config$tree$edge.length, debug=TRUE, return.list=TRUE )
+transmat.setup <- contextual:::peel.transmat( tree=config$tree, rowtaxon="sp1", coltaxa=c("sp2","sp3"), models=models, genmatrices=genmatrices, 
+                                             projmatrix=projmatrix, root.distrn=root.distrn, tlens=config$tree$edge.length, return.list=TRUE )
 
 transmat.setup <- peel.transmat.compute( setup=transmat.setup, models=models, genmatrices=genmatrices, root.distrn=root.distrn, tlens=config$tree$edge.length )
 
 transmat <- transmat.setup$transmats[[ transmat.setup$row.node ]]
 
 
-stopifnot( all.equal( as.vector(joint.transmat), as.vector(big.transmat) ) )
-stopifnot( all.equal( as.vector(true.transmat), as.vector(transmat) ) )
-cat("Can update peeling setup.\n")
+test_that("Can update peeling setup:", {
+    expect_equal( as.vector(joint.transmat), as.vector(big.transmat) )
+    expect_equal( as.vector(true.transmat), as.vector(transmat) )
+})
 

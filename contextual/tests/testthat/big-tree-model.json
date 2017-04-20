@@ -1,0 +1,30 @@
+{
+    "comment" : "Complicated tree, for testing.",
+    "tree" : [ "( ((sp1 : 0.1, sp2 : 0.2) an7 : 0.1, (sp3 : 0.1, sp4 : 0.2) an8 : 0.05 ) an9 : 0.04, (sp5 : 0.02, sp6 : 0.12) an10 : 0.03 ) root;" ],
+    "bases" : [ "X", "O" ],
+    "initfreqs" : [ 0.5, 0.5 ],
+    "forward" : {
+        "mutpats" : [
+            [ [ "X", "O" ] ],
+            [ [ "O", "X" ] ]
+        ],
+        "mutrates" : [ 1, 2 ]
+    },
+    "reverse" : {
+        "mutpats" : [
+            [ [ "X", "O" ] ],
+            [ [ "O", "X" ] ]
+        ],
+        "mutrates" : [ 2, 1 ]
+    },
+    "sp1" : "forward",
+    "sp2" : "forward",
+    "sp3" : "forward",
+    "sp4" : "reverse",
+    "sp5" : "reverse",
+    "sp6" : "reverse",
+    "an7" : "reverse",
+    "an8" : "reverse",
+    "an9" : "reverse",
+    "an10" : "reverse"
+}

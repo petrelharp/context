@@ -81,7 +81,7 @@ getselmatches <- function (selpats, patterns, selfactors,
     patlen <- nchar(patterns[1])
     if (!is.list(selpats)) { selpats <- as.list(selpats) }
     this.lapply <- if ( do.parallel && numcores>1 ) { function (...) { parallel::mclapply( ..., mc.cores=numcores ) } } else { lapply }
-    selmatches <- t( do.call( cbind.dsparseVector, lapply(seq_along(selpats), function (i) {   # loop over selpats
+    selmatches <- Matrix::t( do.call( cbind.dsparseVector, lapply(seq_along(selpats), function (i) {   # loop over selpats
             y <- selpats[[i]]
             Matrix::rowSums( do.call( cbind.dsparseVector, this.lapply(seq_along(y), function (j) {  # loop over elements of selpats[[y]]
                     x <- y[j]
@@ -105,6 +105,15 @@ getselmatches <- function (selpats, patterns, selfactors,
         colnames(selmatches) <- patterns
     }
     return(selmatches)
+}
+
+
+
+dgTtodgC <- function (M) {
+    # convert between matrix classes.  For understanding.
+    ijx <- data.frame( i=M@i, j=M@j, x=M@x )
+    ijx <- ijx[ order( ijx$j, ijx$i ), ]
+    with(ijx, new( "dgCMatrix", i=i, p=sapply(0:ncol(M), function(k) sum(j<k)), x=x, Dim=dim(M) ) )
 }
 
 

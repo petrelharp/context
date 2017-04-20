@@ -9,13 +9,13 @@
 computetransmatrix <- function( genmatrix, projmatrix, tlen=1, shape=1, names=FALSE, transpose=FALSE, time="fixed",...) {
     if (time=="gamma") {
         if (is.null(dim(projmatrix))) { dim(projmatrix) <- c(length(projmatrix),1) }
-        subtransmatrix <- gammaAtv( A=( if (transpose) { t(genmatrix) } else {genmatrix} ), scale=tlen, shape=shape, v=projmatrix, ... )
+        subtransmatrix <- gammaAtv( A=( if (transpose) { Matrix::t(genmatrix) } else {genmatrix} ), scale=tlen, shape=shape, v=projmatrix, ... )
     } else {
         totalrates <- Matrix::rowSums(genmatrix)
         scale.t <- mean(totalrates)
-        A <- (1/scale.t) * ( ( if (transpose) { t(genmatrix) } else {genmatrix} ) - Diagonal(nrow(genmatrix),totalrates) )
+        A <- (1/scale.t) * ( ( if (transpose) { Matrix::t(genmatrix) } else {genmatrix} ) - Diagonal(nrow(genmatrix),totalrates) )
         if (is.null(dim(projmatrix))) { dim(projmatrix) <- c(length(projmatrix),1) }
-        subtransmatrix <- sapply( 1:ncol(projmatrix), function (k) { expAtv( A=A, t=tlen*scale.t, v=projmatrix[,k], ... )$eAtv } )
+        subtransmatrix <- sapply( 1:ncol(projmatrix), function (k) { expm::expAtv( A=A, t=tlen*scale.t, v=projmatrix[,k], ... )$eAtv } )
     }
     if (names) {
         rownames(subtransmatrix) <- rownames(genmatrix)
@@ -81,11 +81,40 @@ cherry.transmats <- function (m1,m2,do.names=FALSE) {
 
 #' Compute probabilities of all combinations, on a tree
 #'
-#' @param rowtaxon The name of a single tip, or the root
-#' @param coltaxa A vector of names of tips
+#' Does quite a bit of precomputation to figure out how to (re-)do this computation,
+#' but if called with return.list=FALSE will only return the transition matrix
+#' that matches with counts (possibly reordered using reorder.counts).
+#'
+#' @param rowtaxon The name of a single tip, or the root - that gets the 'long' patterns
+#' @param coltaxa A vector of names of tips - these get 'short' patterns
 #' @param models A list of model names, in (tip,node) order
 #' @param genmatrices A list of genmatrix'es whose names are model names
+#' @param projmatrix A projection matrix that moves from 'long' to 'short' pattern space
+#' @param root.distrn A numeric vector of long pattern frequencies at the root
+#' @param tlens Lengths of the tree's branches.
+#' @param return.list Whether to return everything (dfault) or just the transition matrices
+#' @param debug Whether to keep around some extra information useful for checking.
 #'
+#' @return A list with the following components:
+#'
+#' transmats - named by the terminal node of each branch, this gives the transition matrix describing
+#'             the probability of seeing the patterns at those tips which this branch separates
+#'             from the rowtaxon, given a long pattern at the end of this branch closest to the rowtaxon
+#' up  - Gives indices of genmatrices and times for the "up" steps of the peeling algorithm
+#' root - Same for the "turning around" step at the root
+#' down - Same for moving back down towards the rowtaxon
+#' final - Same for the final step connecting to the rowtaxon
+#' tlens - Lengths of branches
+#' tlens.ord - Unused
+#' col.order - 
+#' row.node - index of the node that corresponds to rows - transmats[[row.node]]
+#'            is the transition matrix we are interested in
+#'
+#' @details 
+#' If `return.list` is TRUE (the default), the output can be used as `setup` to
+#' subsequent calls to peel.transmat.compute(), saving on recomputation.
+#'
+#' @export
 peel.transmat <- function (tree, rowtaxon, coltaxa, models, genmatrices, projmatrix, root.distrn,
     tlens=tree$edge.length,
     return.list=TRUE, debug=FALSE) {
@@ -104,6 +133,8 @@ peel.transmat <- function (tree, rowtaxon, coltaxa, models, genmatrices, projmat
 #' Set up for peel.transmat
 #'
 #' Figures out what order to do things in.
+#'
+#' @describeIn peel.transmat Set up computation for peel.transmat.compute
 #'
 #' @export
 peel.transmat.setup <- function (tree, rowtaxon, coltaxa, models, genmatrices, projmatrix, 
@@ -195,6 +226,8 @@ peel.transmat.setup <- function (tree, rowtaxon, coltaxa, models, genmatrices, p
 
 
 #' Compute probabilities of all combinations, on a tree
+#'
+#' @describeIn peel.transmat Compute transition matrices
 #'
 #' @export
 peel.transmat.compute <- function (setup, models, genmatrices, root.distrn, tlens, debug=FALSE, return.list=TRUE ) {

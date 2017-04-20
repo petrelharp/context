@@ -14,7 +14,8 @@ Imports:
     expm,
     jsonlite
 Suggests: 
-    stringdist
+    stringdist,
+    testthat
 Collate: 
     'tuplecounts.R'
     'genmatrix.R'

@@ -6,6 +6,14 @@
 \usage{
 \method{reorder}{counts}(counts, new.ord)
 }
+\arguments{
+\item{counts}{A tuplecounts object.}
+
+\item{new.ord}{A vector of taxon names.}
+}
+\value{
+A new tuplecounts object.
+}
 \description{
 Rearrange the columns of counts to a new ordering of taxa
 new.ord should be a vector of taxon names, i.e. a reordering of colnames(counts@colpatterns)

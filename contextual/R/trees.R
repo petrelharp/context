@@ -3,7 +3,12 @@
 #' Rearrange the columns of counts to a new ordering of taxa
 #' new.ord should be a vector of taxon names, i.e. a reordering of colnames(counts@colpatterns)
 #'
-#' @export
+#' @param counts A tuplecounts object.
+#' @param new.ord A vector of taxon names.
+#'
+#' @return A new tuplecounts object.
+#'
+#' @export reorder.counts
 reorder.counts <- function (counts, new.ord) {
     old.ord <- colnames(counts@colpatterns) 
     if (! setequal( new.ord, old.ord ) ) { stop("Cannot reorder to a new set of taxa.") }

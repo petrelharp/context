@@ -11,6 +11,7 @@ getpatterns <- function(patlen,bases) {
 #' return list of single-base changes for each list of patterns in mutpats
 #' a `mutpat` is a 2-element string list of the form (from, to)
 #'
+#' @export
 mutpatchanges <- function (mutpats) {
     lapply( mutpats, function (x) { do.call(rbind, lapply( x, function (y) {
                 ysplit <- strsplit(y,'')

@@ -11,6 +11,42 @@ simseq(seqlen, tlen, mutpats, mutrates, selpats = list(),
   only.num.events = FALSE, gmfile = NULL, simplify = TRUE,
   quiet = FALSE, ...)
 }
+\arguments{
+\item{seqlen}{Length of the sequence in base pairs.}
+
+\item{tlen}{Length of time to simulate for (may be a vector).}
+
+\item{mutpats}{List of list of T-mers describing mutation patterns.}
+
+\item{mutrates}{Vector of mutation rates.}
+
+\item{selpats}{List of list of selection patterns.}
+
+\item{selfactors}{List of vectors of relative selection coefficients.}
+
+\item{selcoef}{Vector of selection coefficients.}
+
+\item{patlen}{Maximum pattern length (determines size of genmatrix), safe to let it be automatically determined.}
+
+\item{bases}{Character string of bases.}
+
+\item{initseq}{List of initial sequences to start from, of the same length as tlen (if missing will be simulated).}
+
+\item{basefreqs}{Frequencies to simulate initial sequences from (independently) if missing.}
+
+\item{count.trans}{Whether to count up the number of transitions.}
+
+\item{only.num.events}{Just count how many events to expect?}
+
+\item{gmfile}{File where a precomputed generator matrix and associated other objects are found (NOTE: differs from genmatrix for inference!),
+or will be saved to if the file doesn't exist.}
+
+\item{simplify}{Strip out the list if only simulating one sequence?}
+
+\item{quiet}{Be quiet?}
+
+\item{...}{Additional arguments passed to contextual::makegenmatrix.}
+}
 \description{
 Simulate a random sequence and evolve it with genmatrix, wrapping mutations around as needed.
  record transition counts if count.trans it TRUE (e.g. for debugging)

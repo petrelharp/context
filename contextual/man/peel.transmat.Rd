@@ -2,21 +2,72 @@
 % Please edit documentation in R/transition_matrix.R
 \name{peel.transmat}
 \alias{peel.transmat}
+\alias{peel.transmat.setup}
+\alias{peel.transmat.compute}
 \title{Compute probabilities of all combinations, on a tree}
 \usage{
 peel.transmat(tree, rowtaxon, coltaxa, models, genmatrices, projmatrix,
   root.distrn, tlens = tree$edge.length, return.list = TRUE,
   debug = FALSE)
+
+peel.transmat.setup(tree, rowtaxon, coltaxa, models, genmatrices, projmatrix,
+  tlens = tree$edge.length, return.list = FALSE, debug = FALSE)
+
+peel.transmat.compute(setup, models, genmatrices, root.distrn, tlens,
+  debug = FALSE, return.list = TRUE)
 }
 \arguments{
-\item{rowtaxon}{The name of a single tip, or the root}
+\item{rowtaxon}{The name of a single tip, or the root - that gets the 'long' patterns}
 
-\item{coltaxa}{A vector of names of tips}
+\item{coltaxa}{A vector of names of tips - these get 'short' patterns}
 
 \item{models}{A list of model names, in (tip,node) order}
 
 \item{genmatrices}{A list of genmatrix'es whose names are model names}
+
+\item{projmatrix}{A projection matrix that moves from 'long' to 'short' pattern space}
+
+\item{root.distrn}{A numeric vector of long pattern frequencies at the root}
+
+\item{tlens}{Lengths of the tree's branches.}
+
+\item{return.list}{Whether to return everything (dfault) or just the transition matrices}
+
+\item{debug}{Whether to keep around some extra information useful for checking.}
+}
+\value{
+A list with the following components:
+
+transmats - named by the terminal node of each branch, this gives the transition matrix describing
+            the probability of seeing the patterns at those tips which this branch separates
+            from the rowtaxon, given a long pattern at the end of this branch closest to the rowtaxon
+up  - Gives indices of genmatrices and times for the "up" steps of the peeling algorithm
+root - Same for the "turning around" step at the root
+down - Same for moving back down towards the rowtaxon
+final - Same for the final step connecting to the rowtaxon
+tlens - Lengths of branches
+tlens.ord - Unused
+col.order - 
+row.node - index of the node that corresponds to rows - transmats[[row.node]]
+           is the transition matrix we are interested in
 }
 \description{
+Does quite a bit of precomputation to figure out how to (re-)do this computation,
+but if called with return.list=FALSE will only return the transition matrix
+that matches with counts (possibly reordered using reorder.counts).
+
+Figures out what order to do things in.
+
 Compute probabilities of all combinations, on a tree
 }
+\details{
+If `return.list` is TRUE (the default), the output can be used as `setup` to
+subsequent calls to peel.transmat.compute(), saving on recomputation.
+}
+\section{Functions}{
+\itemize{
+\item \code{peel.transmat.setup}: Set up computation for peel.transmat.compute
+
+\item \code{peel.transmat.compute}: Compute transition matrices
+}}
+

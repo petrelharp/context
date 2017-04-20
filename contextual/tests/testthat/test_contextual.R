@@ -1,11 +1,6 @@
 library(testthat)
 
-library("Biobase")
-library("Biostrings")
-library("IRanges")
-
 library(contextual)
-library(contextutils)
 
 tests_data_fname <- "unit-tests.Rdata"
 load(tests_data_fname)
@@ -39,7 +34,6 @@ test_that("mutpatchanges returns stored", {
     )
 })
 
-getmutpats(bases=bases,patlen=2)
 
 test_that("getmutpats returns stored", {
     expect_equal(
@@ -48,11 +42,7 @@ test_that("getmutpats returns stored", {
     )
 })
 
-test_that("npatterns works", {
-    expect_equal(npatterns(2,bases), 4)
-})
-
-test_that("mutanmes works", {
+test_that("mutnames works", {
     expect_equal(mutnames(mutpats),"XO->OX")
 })
 

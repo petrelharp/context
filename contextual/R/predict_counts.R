@@ -59,7 +59,7 @@ projectcounts <- function( counts, new.leftwin, new.shortwin, new.longwin, overl
     for (k in max(0L,leftwin-new.leftwin):((leftwin+shortwin)-(new.leftwin+new.shortwin)+min(0L,rightwin-new.rightwin))) {
         lpmat <- collapsepatmatrix( ipatterns=rownames(counts), leftwin=k, rightwin=longwin-(k+new.longwin), bases=counts@bases )
         rpmat <- collapsepatmatrix( ipatterns=colnames(counts), leftwin=k+new.leftwin-leftwin, rightwin=shortwin-(k+new.leftwin-leftwin+new.shortwin), bases=counts@bases )
-        pcounts <- pcounts + t(lpmat) %*% counts %*% (rpmat)
+        pcounts <- pcounts + Matrix::t(lpmat) %*% counts %*% (rpmat)
     }
     dimnames(pcounts) <- list( colnames(lpmat), colnames(rpmat) )
     if (overlapping) {

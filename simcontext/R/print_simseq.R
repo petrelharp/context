@@ -5,8 +5,8 @@
 #'
 #' @export
 show.simseq <- function (x,printit=FALSE,maxchar=min(nchar(x$initseq),200),latex=FALSE) {
-    x$initseq <- subseq(x$initseq,1,maxchar)
-    fseq <- BString( subseq(x$finalseq,1,maxchar) )
+    x$initseq <- Biostrings::subseq(x$initseq,1,maxchar)
+    fseq <- Biostrings::BString( Biostrings::subseq(x$finalseq,1,maxchar) )
     if (!is.null(x$ntrans)) {
         x$ntrans <- subset(x$ntrans,loc<=maxchar)
         patlen <- nchar( levels( x$ntrans$i )[1] )
@@ -15,7 +15,7 @@ show.simseq <- function (x,printit=FALSE,maxchar=min(nchar(x$initseq),200),latex
         if (length(events)>0) {
             whichchanged <- sapply( events, function (k) { kev <- (x$ntrans$loc==k); any( x$ntrans$i[kev] != x$ntrans$j[kev] ) } )
             changedlocs <- ( seq_len(nchar(fseq)) %in% outer( events[whichchanged], 0:(patlen-1), "+" ) )
-            fseq[eventlocs & !changedlocs] <- BString( tolower(fseq[eventlocs & !changedlocs]) )
+            fseq[eventlocs & !changedlocs] <- Biostrings::BString( tolower(fseq[eventlocs & !changedlocs]) )
         }
         fseq[!eventlocs] <- "."
     }

@@ -24,7 +24,7 @@ check.context <- function (cont) {
 #'
 #' @name genmatrix-class
 #' @rdname genmatrix-class
-#' @import Matrix
+#' @importClassesFrom Matrix dgCMatrix 
 #' @exportClass genmatrix
 setClass("genmatrix", representation(
                  muttrans="Matrix",
@@ -131,7 +131,7 @@ makegenmatrix <- function (
         ##  the following has (fromsel-tosel); combined to reduce memory usage
         # Made this sparse in case selpats is large
         ## alternative 1:
-        selmatches <- t(selmatches)
+        selmatches <- Matrix::t(selmatches)
         fromsel <- selmatches[ allmutmats$i, , drop=FALSE ]
         tosel <- selmatches[  allmutmats$j, , drop=FALSE ]
         seltrans <- ( tosel - fromsel )
@@ -204,7 +204,7 @@ meangenmatrix <- function (leftwin,rightwin,patlen,...) {
     projmat <- collapsepatmatrix(ipatterns=rownames(genmat),leftwin=leftwin,rightwin=rightwin, bases=genmat@bases)  # this is P
     # Divide entries by column sums, then transpose. Makes M, which is now has rows indexed by
     # the short version and columns the usual one.
-    meanmat <- t( sweep( projmat, 2, colSums(projmat), "/" ) )
+    meanmat <- Matrix::t( sweep( projmat, 2, Matrix::colSums(projmat), "/" ) )
     pgenmat <- meanmat %*% genmat %*% projmat   # this is H = M G P
     # ii gives the (zero-based) row indices of nonzero entries of pgenmat:
     ii <- pgenmat@i

@@ -62,11 +62,13 @@ gammaAtv <- function (A,scale,shape,v,tol=1e-6,verbose=FALSE) {
 }
 
 #' @describeIn gammaAtv Return the whole transition matrix
+#' @export
 gammam <- function (A,scale,shape,...) {
     gammaAtv(A=A,scale=scale,shape=shape,v=Diagonal(n=nrow(A)),...)
 }
 
 #' @describeIn gammaAtv Extend a transition matrix from gammam() to a longer time.
+#' @export
 extend.gammam <- function (P,a,da,eps=da/(a+da),tol=1e-8) {
     # if P is e^{TG} where T is Exp(a)
     #   return e^{SG} where S is Exp(a+da), with da>0,
@@ -83,6 +85,7 @@ extend.gammam <- function (P,a,da,eps=da/(a+da),tol=1e-8) {
 
 
 #' @describeIn gammaAtv Extend a computed gammaAtv to a longer time.
+#' @export
 extend.expAtv <- function (A,scale,dscale,gAtv,tol=1e-8,verbose=FALSE,shape) {
     # Suppose that gAtv is the output of gammaAtv(A,shape=1,scale=scale,v)
     # and we want to return gammaAtv(A,shape=1,scale=scale+dscale,v)

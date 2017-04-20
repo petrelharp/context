@@ -8,7 +8,7 @@
 #'
 #' @export
 rinitseq <- function (seqlen,bases,basefreqs=rep(1/length(bases),length(bases))) {
-    stringfun <- if ( all(bases %in% c("A","C","G","T","-") ) ) { DNAString } else { BString }
+    stringfun <- if ( all(bases %in% c("A","C","G","T","-") ) ) { Biostrings::DNAString } else { Biostrings::BString }
     patlen <- mean( nchar(bases) )
     rpats <- c()
     while( sum(nchar(rpats))<seqlen ) {
@@ -39,6 +39,25 @@ simseq.config <- function (seqlen,tlen,config,...) {
 #' IF only.num.events is TRUE, then JUST set things up, and estimate how many mutation events will be needed,
 #'   and return this (to check before embarking on something ridiculous).
 #'
+#' @param seqlen Length of the sequence in base pairs.
+#' @param tlen Length of time to simulate for (may be a vector).
+#' @param mutpats List of list of T-mers describing mutation patterns.
+#' @param mutrates Vector of mutation rates.
+#' @param selpats List of list of selection patterns.
+#' @param selfactors List of vectors of relative selection coefficients.
+#' @param selcoef Vector of selection coefficients.
+#' @param patlen Maximum pattern length (determines size of genmatrix), safe to let it be automatically determined.
+#' @param bases Character string of bases.
+#' @param initseq List of initial sequences to start from, of the same length as tlen (if missing will be simulated).
+#' @param basefreqs Frequencies to simulate initial sequences from (independently) if missing.
+#' @param count.trans Whether to count up the number of transitions.
+#' @param only.num.events Just count how many events to expect?
+#' @param gmfile File where a precomputed generator matrix and associated other objects are found (NOTE: differs from genmatrix for inference!),
+#'          or will be saved to if the file doesn't exist.
+#' @param simplify Strip out the list if only simulating one sequence?
+#' @param quiet Be quiet?
+#' @param ... Additional arguments passed to contextual::makegenmatrix.
+#'
 #' @export
 simseq <- function (seqlen, tlen, mutpats, mutrates, 
         selpats=list(), 
@@ -53,7 +72,7 @@ simseq <- function (seqlen, tlen, mutpats, mutrates,
     #    e.g. if the rate of CG -> TG is 1.5, and pattern length is 4,
     #    then we'll match on CG.., .CG., and ..CG, so the transition rates of e.g. CGTT -> TGTT should be 1.5/(4-2+1) = 0.5
     #    To fix this, we rescale mutrates below.
-    stringsetfun <- if ( all(bases %in% c("A","C","G","T","-") ) ) { DNAStringSet } else { BStringSet }
+    stringsetfun <- if ( all(bases %in% c("A","C","G","T","-") ) ) { Biostrings::DNAStringSet } else { Biostrings::BStringSet }
     # determine size of padding window
     sellen <- if (length(selpats)>0) { max( sapply( unlist( selpats ), nchar ) ) } else { 0 }
     mutpatlens <- unlist( lapply( mutpats, function (x) unique(nchar(unlist(x))) ) )
@@ -73,9 +92,9 @@ simseq <- function (seqlen, tlen, mutpats, mutrates,
         }
     } else {
         # construct generator matrix for (sellen-1,patlen,sellen-1) but with outer padding not changing
-        full.genmatrix <- makegenmatrix( mutpats, selpats, patlen=pad.patlen, boundary="none", bases=bases, selfactors=selfactors, ... )
+        full.genmatrix <- contextual::makegenmatrix( mutpats, selpats, patlen=pad.patlen, boundary="none", bases=bases, selfactors=selfactors, ... )
         mutrates <- mutrates / (patlen-mutpatlens+1)  # avoid overcounting (see above)
-        full.genmatrix@x <- update(full.genmatrix,mutrates,selcoef,...)
+        full.genmatrix@x <- contextual::update(full.genmatrix,mutrates,selcoef,...)
         patterns <- rownames(full.genmatrix)
         # max mutation rate
         stopifnot( inherits(full.genmatrix,"dgCMatrix") )  # we access @i, @p, and @x directly...
@@ -98,8 +117,8 @@ simseq <- function (seqlen, tlen, mutpats, mutrates,
     }
     stopifnot( all( genmatrix@x >= 0 ) )  # assume this comes WITHOUT the diagonal
     patstrings <- stringsetfun( patterns )
-    maxrate <- max( rowSums(genmatrix) )
-    diags <- maxrate - rowSums(genmatrix)
+    maxrate <- max( Matrix::rowSums(genmatrix) )
+    diags <- maxrate - Matrix::rowSums(genmatrix)
     ####
     # number and locations of possible changes, ordered by time they occur at
     mean.n.events <- maxrate * tlen * seqlen
@@ -121,11 +140,11 @@ simseq <- function (seqlen, tlen, mutpats, mutrates,
         finalseq <- initseq[[k.tlen]]
         for (k in seq_along(loc.events)) {
             subseq <- if (wrap.events[k]) { # from string (cyclical)
-                    xscat( subseq( finalseq, loc.events[k], seqlen[k.tlen]), subseq(finalseq, 1, loc.events[k]+pad.patlen-seqlen[k.tlen]-1) )
+                    Biostrings::xscat( Biostrings::subseq( finalseq, loc.events[k], seqlen[k.tlen]), Biostrings::subseq(finalseq, 1, loc.events[k]+pad.patlen-seqlen[k.tlen]-1) )
                 } else {
-                    subseq(finalseq, loc.events[k], loc.events[k]+pad.patlen-1 )
+                    Biostrings::subseq(finalseq, loc.events[k], loc.events[k]+pad.patlen-1 )
                 }
-            msubseq <- match( subseq, patstrings )  # which row for this string?
+            msubseq <- Biostrings::match( subseq, patstrings )  # which row for this string?
             isubseq <- which( (genmatrix@i + 1) == msubseq ) # transitions are these entries of genmatrix
             if (length(isubseq)>0) {   # do nothing if this pattern doesn't mutate
                 jsubseq <- c( msubseq, (genmatrix.j[isubseq]+1) ) # indices of possible replacement patterns (self is first)
@@ -134,16 +153,17 @@ simseq <- function (seqlen, tlen, mutpats, mutrates,
                 replstr <- patstrings[[replind]] # what is the replacement string
                 if (count.trans) {  ntrans$i[k] <- patterns[msubseq]; ntrans$j[k] <- patterns[replind] } # record this (is a factor so not storing actual strings)
                 if (wrap.events[k]) { # put this back in (cyclical)
-                    subseq( finalseq, loc.events[k], seqlen[k.tlen] ) <- subseq( replstr, 1, seqlen[k.tlen]-loc.events[k]+1 )
-                    subseq( finalseq, 1, loc.events[k]+pad.patlen-seqlen[k.tlen]-1 ) <- subseq( replstr, seqlen[k.tlen]-loc.events[k]+2, pad.patlen )
+                    Biostrings::subseq( finalseq, loc.events[k], seqlen[k.tlen] ) <- Biostrings::subseq( replstr, 1, seqlen[k.tlen]-loc.events[k]+1 )
+                    Biostrings::subseq( finalseq, 1, loc.events[k]+pad.patlen-seqlen[k.tlen]-1 ) <- Biostrings::subseq( replstr, seqlen[k.tlen]-loc.events[k]+2, pad.patlen )
                 } else {
-                    subseq( finalseq, loc.events[k], loc.events[k]+pad.patlen-1 ) <- replstr
+                    Biostrings::subseq( finalseq, loc.events[k], loc.events[k]+pad.patlen-1 ) <- replstr
                 }
             }
             # sanity check:
             # if (nchar(finalseq) != nchar(initseq)) { browser() }
         }
-        output <- list( initseq=initseq[[k.tlen]], finalseq=finalseq, maxrate=maxrate, ntrans=ntrans, mutpats=mutpats, selpats=selpats, mutrates=mutrates, selcoef=selcoef, tlen=tlen[k.tlen], seqlen=seqlen[k.tlen], bases=bases, fixfn.params=list(...) )
+        output <- list( initseq=initseq[[k.tlen]], finalseq=finalseq, maxrate=maxrate, ntrans=ntrans, mutpats=mutpats, 
+                       selpats=selpats, mutrates=mutrates, selcoef=selcoef, tlen=tlen[k.tlen], seqlen=seqlen[k.tlen], bases=bases, fixfn.params=list(...) )
         class(output) <- "simseq"
         output
     })
@@ -161,7 +181,7 @@ simseq.tree <- function (seqlen,config,...) {
     more.args <- list(...)
     simseqs[[rootname(config$tree)]] <- if ("initseq" %in% names(more.args)) {
         list(finalseq=more.args[["initseq"]])
-    }else {
+    } else {
         list(finalseq=rinitseq(seqlen,config$bases,basefreqs=config$initfreqs))
     }
     more.args[["initseq"]] <- NULL # remove it now if it's there
@@ -173,7 +193,7 @@ simseq.tree <- function (seqlen,config,...) {
         nn <- 1; while (is.character(modconfig)) { modconfig <- config[[ modconfig ]]; nn <- nn+1; if (nn>100){stop("Circular model reference.")} }
         # simulate, with config for corresponding edge
         simseqs[[ edge.pair[2] ]] <- do.call( simseq, c( 
-                list( initseq=simseqs[[ edge.pair[1] ]]$finalseq, 
+                list( initseq=list(simseqs[[ edge.pair[1] ]]$finalseq), 
                     tlen=config$tree$edge.length[k],
                     seqlen=seqlen, 
                     mutpats=modconfig$mutpats, mutrates=modconfig$mutrates, 
