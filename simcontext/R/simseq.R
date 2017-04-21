@@ -94,7 +94,7 @@ simseq <- function (seqlen, tlen, mutpats, mutrates,
         # construct generator matrix for (sellen-1,patlen,sellen-1) but with outer padding not changing
         full.genmatrix <- contextual::makegenmatrix( mutpats, selpats, patlen=pad.patlen, boundary="none", bases=bases, selfactors=selfactors, ... )
         mutrates <- mutrates / (patlen-mutpatlens+1)  # avoid overcounting (see above)
-        full.genmatrix@x <- contextual::update(full.genmatrix,mutrates,selcoef,...)
+        full.genmatrix@x <- contextual::update_x(full.genmatrix,mutrates,selcoef,...)
         patterns <- rownames(full.genmatrix)
         # max mutation rate
         stopifnot( inherits(full.genmatrix,"dgCMatrix") )  # we access @i, @p, and @x directly...

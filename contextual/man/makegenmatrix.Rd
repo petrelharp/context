@@ -2,6 +2,7 @@
 % Please edit documentation in R/genmatrix.R
 \name{makegenmatrix}
 \alias{makegenmatrix}
+\alias{meangenmatrix}
 \title{Make a Generator Matrix}
 \usage{
 makegenmatrix(mutpats, selpats = list(), patlen = nchar(patterns[1]),
@@ -9,6 +10,29 @@ makegenmatrix(mutpats, selpats = list(), patlen = nchar(patterns[1]),
   length(mutpats)), selcoef = rep(1, length(selpats)),
   selfactors = lapply(selpats, sapply, function(x) 1), boundary = "none",
   ...)
+
+meangenmatrix(leftwin, rightwin, patlen, ...)
+}
+\arguments{
+\item{mutpats}{List of mutation Tmer motifs.}
+
+\item{selpats}{List of selection motifs.}
+
+\item{patlen}{Length of the patterns that index rows and columns of the matrix.}
+
+\item{patterns}{List of the patterns that index rows and columns of the matrix.}
+
+\item{bases}{Alphabet used.}
+
+\item{fixfn}{Fixation function.}
+
+\item{mutrates}{Vector of mutation rates corresponding to mutpats.}
+
+\item{selcoef}{Vector of selection coefficients corresponding to selpats.}
+
+\item{selfactors}{List of numeric vectors of the same structure as selpats of relative selection coefficients.}
+
+\item{boundary}{What to do with the boundary of the *patterns* ("none" or "wrap").}
 }
 \value{
 A genmatrix object.
@@ -19,8 +43,9 @@ carrying with it the means to quickly update itself.
  DON'T do the diagonal (i.e. it must be left empty), so that the updating is easier.
 }
 \details{
-Works with column-oriented sparse matrices (see ?"dgCMatrix-class" and ?"CsparseMatrix-class"),
-for which the following vectors implicitly index the vector @x that actually stores the entries:
+Result is a superclass of column-oriented sparse matrices (see
+?"dgCMatrix-class" and ?"CsparseMatrix-class"), for which the following
+vectors implicitly index the vector @x that actually stores the entries:
   @i ; (0-based) row numbers of nonzero entries
   @p : (0-based) indices of the first nonzero entries in each column (so
         diff(x@p) gives the number of nonzero entries by column)
@@ -50,4 +75,23 @@ Construct this as follows:
    J[l,k] = 1 if the l-th element of I came from I_k, and 0 otherwise,
  then
    P = Q %*% J .
+}
+\section{Functions}{
+\itemize{
+\item \code{meangenmatrix}: Create a Generator Matrix Averaged Over Possible Boundary States
+}}
+
+\examples{
+# XO -> OX at rate 3 and OX -> XO at rate 1:
+G <- makegenmatrix( patlen=3, mutpats=list(list(c("XO","OX")),list(c("OX","XO"))), mutrates=c(3,1),
+                selpats=list(), selfactors=list(), bases=c("X","O"), fixfn=function (...) { 1 } )
+dim(G)
+G
+# with selection
+G <- makegenmatrix( patlen=3, mutpats=list(list(c("XO", "OX")), list(c("OX", "XO"))), mutrates=c(3,1),
+                selpats=list(c("XX","OO"),c("X")), selfactors=list(c(2,1),c(1)), selcoef=c(5,1),
+                bases=c("X","O"), fixfn=function (...) { 1 } )
+dim(G)
+G
+
 }

@@ -1,28 +1,58 @@
 
 
-#' Count Transitions
+#' Count Transitions (Tmers)
 #'
-#' count number of times initseq matches ipatterns while finalseq matches fpatterns
-#'   optionally, cyclical
-#' if shift is nonzero, return a list  with the counts in each of (shift) frames
+#' `counttrans` counts the number of times `initseq` matches each of
+#' `ipatterns` while `finalseq` matches each of `fpatterns` (in a Tmer). 
+#' The result has rows indexed by patterns in `initseq` and columns indexed by
+#' patterns in `finalseq`.
+#' 
+#' `counttrans.list` counts the number of times that each pattern in
+#' `lpatterns[[k]]` appears in `seqlist[[k]]` (for each combination).
+#' The result has rows indexed by patterns in the first sequence, and columns
+#' indexed by combinations of patterns in the remaining sequences.
+#' 
+#' Both count optionally cyclically. If `shift` is
+#' nonzero, return a list  with the counts in each of (shift) frames: for
+#' instance, if `shift=2`, then counts[[1]] will contain counts of Tmers
+#' starting at odd positions, and counts[[2]] will contain counts starting at
+#' even positions.
 #'
-#' @return A tuplecounts object.
+#' @param ipatterns Patterns to count in `initseq`, which will be put on the rows of the resulting matrix.
+#' @param fpatterns Patterns to count in `finalseq`, which will be put on the columns of the resulting matrix.
+#' @param lpatterns A list of patterns to count, of the same length as `seqlist`.
+#' @param seqlist A list of sequences to count transitions between.
+#' @param initseq The sequence we count "long" patterns in, for `counttrans`.
+#' @param finalseq The sequence we count "short" patterns in, for `counttrans`.
+#' @param simseqs As output by simseq() - will obtain initseq and finalseq from here if they are missing.
+#' @param leftwin The left-hand offset of `fpatterns` under `ipatterns` to make the Tmers.
+#' @param shift If this is positive, will return a list of tuplecounts of length `shift`, one anchored at each offset from 1 to shift.
+#' @param cyclic Whether to treat the sequences as cyclic.
+#' @param bases The vector of possible bases (only used to pass on to the resulting tuplecounts).
+#'
+#' @return A tuplecounts object, or a list of them if `shift>0`.
 #'
 #' @export
 counttrans <- function (ipatterns, fpatterns, 
-                        initseq=simseqs[["initseq"]], finalseq=simseqs[["finalseq"]],
-                        simseqs, leftwin=0, shift=0, cyclic=FALSE, bases=sort(unique(unlist(strsplit(ipatterns,""))))) {
+                        initseq=simseqs[["initseq"]], 
+                        finalseq=simseqs[["finalseq"]],
+                        simseqs, 
+                        leftwin=0, 
+                        shift=0, 
+                        cyclic=FALSE, 
+                        bases=sort(unique(unlist(strsplit(ipatterns,""))))
+                    ) {
     patlen <- nchar(ipatterns[1])
     seqlen <- nchar(initseq)
     stopifnot( seqlen == nchar(finalseq) )
     # cyclic-ize
     if (cyclic) {
-        initseq <- xscat( initseq, Biostrings::subseq(initseq,1,patlen-1) )
-        finalseq <- xscat( finalseq, Biostrings::subseq(finalseq,1,patlen-1) )
+        initseq <- Biostrings::xscat( initseq, Biostrings::subseq(initseq,1,patlen-1) )
+        finalseq <- Biostrings::xscat( finalseq, Biostrings::subseq(finalseq,1,patlen-1) )
     }
     # Ok, count occurrences.  uses bioconductor stuff.
-    initmatches <- lapply( ipatterns, matchPattern, initseq )
-    finalmatches <- lapply( fpatterns, matchPattern, finalseq )
+    initmatches <- lapply( ipatterns, Biostrings::matchPattern, initseq )
+    finalmatches <- lapply( fpatterns, Biostrings::matchPattern, finalseq )
     counts <- lapply( 1:max(1,shift), function (k) Matrix( 0, nrow=length(initmatches), ncol=length(finalmatches), dimnames=list(ipatterns,fpatterns) ) )
     for (x in seq_along(initmatches))  {
         for (y in seq_along(finalmatches)) {
@@ -34,22 +64,23 @@ counttrans <- function (ipatterns, fpatterns,
             }
         }
     }
-    counts <- lapply( counts, function (x) new("tuplecounts",counts=x,leftwin=leftwin,bases=bases,rowtaxon="long",colpatterns=data.frame(short=colnames(x))) )
+    counts <- lapply( counts, function (x) new("tuplecounts", counts=x, leftwin=leftwin, bases=bases, 
+                                               rowtaxon="long", colpatterns=data.frame(short=colnames(x))) )
     if (shift==0) { counts <- counts[[1]] }
     return(counts)
 }
 
 
-#' Count transitions with Shift
-#'
-#' count number of times each of seqlist matches corresponding lpatterns
-#'   optionally, cyclical
-#' if shift is nonzero, return a list  with the counts in each of (shift) frames
-#'
-#' @export
-counttrans.list <- function (lpatterns, seqlist=lapply(simseqs,"[[","finalseq"), 
-                             simseqs, leftwin, shift=0, cyclic=FALSE, 
-                             bases=sort(unique(unlist(strsplit(lpatterns[[1]],""))))) {
+#' @describeIn counttrans Count Transitions in a List of Sequences
+#' @export counttrans.list
+counttrans.list <- function (lpatterns, 
+                             seqlist=lapply(simseqs,"[[","finalseq"), 
+                             simseqs, 
+                             leftwin, 
+                             shift=0, 
+                             cyclic=FALSE, 
+                             bases=sort(unique(unlist(strsplit(lpatterns[[1]],""))))
+                             ) {
     patlen <- max( sapply( lapply( lpatterns, "[", 1 ), nchar ) )
     seqlen <- unique( sapply(seqlist, nchar) )
     stopifnot(length(seqlen)==1)

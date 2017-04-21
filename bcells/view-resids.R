@@ -52,7 +52,7 @@ if (FALSE) {
                 likfun <- function (params) {
                     # params are: mutrates*tlen, shape
                     base.mutrates[k] <- params
-                    genmatrix@x <- update(genmatrix,mutrates=base.mutrates,selcoef=numeric(0))
+                    genmatrix@x <- update_x(genmatrix,mutrates=base.mutrates,selcoef=numeric(0))
                     # this is collapsed transition matrix
                     subtransmatrix <- computetransmatrix( genmatrix, projmatrix, tlen=1, time="fixed") # shape=params[length(params)], time="gamma" )
                     # return NEGATIVE log-likelihood 

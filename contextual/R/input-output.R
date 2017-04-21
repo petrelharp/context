@@ -74,6 +74,21 @@ read.counts <- function (infile,leftwin,bases,longpats,shortpats,skip=0) {
 #'
 #' @return A model configuration (list).
 #'
+#' @examples
+#'
+#' model_json <- '
+#' {
+#'     "bases" : [ "X", "O" ],
+#'     "initfreqs" : [ 0.5, 0.5 ],
+#'     "mutpats" : [
+#'         [ [ "XO", "OX" ] ]
+#'     ],
+#'     "mutrates" : [ 1 ],
+#'     "mutrates.scale" : [ 0.1 ]
+#' }
+#' '
+#' model_config <- read.config(json=model_json)
+#'
 #' @export
 read.config <- function (configfile,quiet=FALSE,json) {
     if (!missing(configfile)&&is.null(configfile)) { cat("Config: NULL.\n"); return(NULL) }
@@ -138,11 +153,33 @@ fill.default.config <- function (config, defaults=NULL) {
 
 #' Treeify a Configuration.
 #'
-#' Turn Newick tree representation into a tree, 
-#'   and do associated error checks.
-#' no tree at all =>  stick tree.
+#' Turn the text representation of a tree (in Newick) into a tree object (as
+#' from the ape package), and do associated error checks.  If no tree is
+#' specified at all, a stick tree is inserted. Tips and nodes in the tree must be labeled,
+#' and branch lengths can be specified in the argument tlen.
 #'
 #' @return A model configuration (list).
+#'
+#' @examples
+#'
+#' # simple two-taxon tree
+#' tree_model_json <- '{
+#'     "tree" : [ "(sp1 : 0.8, sp2 : 1.2) root;" ],
+#'     "bases" : [ "X", "O" ],
+#'     "initfreqs" : [ 0.5, 0.5 ],
+#'     "sp1" : {
+#'         "mutpats" : [ [ [ "XO", "OX" ] ] ],
+#'         "mutrates" : [ 1 ]
+#'     }, "sp2" : {
+#'         "mutpats" : [ [ [ "XO", "OX" ] ] ],
+#'         "mutrates" : [ 0.5 ]
+#'     } } '
+#' orig_config <- read.config(json=tree_model_json)
+#' tree_config <- treeify.config(orig_config)
+#' # text
+#' orig_config$tree
+#' # tree object
+#' tree_config$tree
 #'
 #' @export
 treeify.config <- function (config,tlen=NULL) {
@@ -298,6 +335,28 @@ config.dereference <- function (config, x) {
 #'  turn fixfn into functions, etc.
 #'
 #' @return A model configuration.
+#'
+#' @examples
+#'
+#' model_json <- '{
+#'     "tree" : [ "(sp1 : 0.8, (sp2 : 1.2, sp3 : 1.0)) root;" ],
+#'     "bases" : [ "X", "O" ],
+#'     "initfreqs" : [ 0.5, 0.5 ],
+#'     "selpats" : [ "X" ],
+#'     "selcoef" : [ 0.1 ],
+#'     "sp1" : {
+#'         "mutpats" : [ [ [ "XO", "OX" ] ] ],
+#'         "mutrates" : [ 1 ],
+#'         "fixfn" : "popgen.fixfn"
+#'     }, "sp2" : {
+#'         "mutpats" : [ [ [ "XO", "OX" ] ] ],
+#'         "mutrates" : [ 0.5 ]
+#'     }, "sp3" : "sp2" } '
+#' config <- treeify.config(read.config(json=model_json))
+#' config <- parse.models(config)
+#' # note that default specified at top level has been copied over
+#' config$sp1$selpats
+#'
 #' @export parse.models
 parse.models <- function (config,do.fixfns=TRUE) {
     # Edges are labeled by the node/tip below them:
@@ -334,7 +393,6 @@ parse.models <- function (config,do.fixfns=TRUE) {
 
 #' Name a list or vector with itself.
 #' @return Itself, named.
-#' @export
 selfname <- function (x) { names(x) <- x; return(x) }
 
 # use to open stdin/stdout or process substitution things correctly

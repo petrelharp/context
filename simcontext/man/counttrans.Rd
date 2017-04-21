@@ -2,17 +2,63 @@
 % Please edit documentation in R/count_transitions.R
 \name{counttrans}
 \alias{counttrans}
-\title{Count Transitions}
+\alias{counttrans.list}
+\title{Count Transitions (Tmers)}
 \usage{
 counttrans(ipatterns, fpatterns, initseq = simseqs[["initseq"]],
   finalseq = simseqs[["finalseq"]], simseqs, leftwin = 0, shift = 0,
   cyclic = FALSE, bases = sort(unique(unlist(strsplit(ipatterns, "")))))
+
+counttrans.list(lpatterns, seqlist = lapply(simseqs, "[[", "finalseq"),
+  simseqs, leftwin, shift = 0, cyclic = FALSE,
+  bases = sort(unique(unlist(strsplit(lpatterns[[1]], "")))))
+}
+\arguments{
+\item{ipatterns}{Patterns to count in `initseq`, which will be put on the rows of the resulting matrix.}
+
+\item{fpatterns}{Patterns to count in `finalseq`, which will be put on the columns of the resulting matrix.}
+
+\item{initseq}{The sequence we count "long" patterns in, for `counttrans`.}
+
+\item{finalseq}{The sequence we count "short" patterns in, for `counttrans`.}
+
+\item{simseqs}{As output by simseq() - will obtain initseq and finalseq from here if they are missing.}
+
+\item{leftwin}{The left-hand offset of `fpatterns` under `ipatterns` to make the Tmers.}
+
+\item{shift}{If this is positive, will return a list of tuplecounts of length `shift`, one anchored at each offset from 1 to shift.}
+
+\item{cyclic}{Whether to treat the sequences as cyclic.}
+
+\item{bases}{The vector of possible bases (only used to pass on to the resulting tuplecounts).}
+
+\item{lpatterns}{A list of patterns to count, of the same length as `seqlist`.}
+
+\item{seqlist}{A list of sequences to count transitions between.}
 }
 \value{
-A tuplecounts object.
+A tuplecounts object, or a list of them if `shift>0`.
 }
 \description{
-count number of times initseq matches ipatterns while finalseq matches fpatterns
-  optionally, cyclical
-if shift is nonzero, return a list  with the counts in each of (shift) frames
+`counttrans` counts the number of times `initseq` matches each of
+`ipatterns` while `finalseq` matches each of `fpatterns` (in a Tmer). 
+The result has rows indexed by patterns in `initseq` and columns indexed by
+patterns in `finalseq`.
 }
+\details{
+`counttrans.list` counts the number of times that each pattern in
+`lpatterns[[k]]` appears in `seqlist[[k]]` (for each combination).
+The result has rows indexed by patterns in the first sequence, and columns
+indexed by combinations of patterns in the remaining sequences.
+
+Both count optionally cyclically. If `shift` is
+nonzero, return a list  with the counts in each of (shift) frames: for
+instance, if `shift=2`, then counts[[1]] will contain counts of Tmers
+starting at odd positions, and counts[[2]] will contain counts starting at
+even positions.
+}
+\section{Functions}{
+\itemize{
+\item \code{counttrans.list}: Count Transitions in a List of Sequences
+}}
+

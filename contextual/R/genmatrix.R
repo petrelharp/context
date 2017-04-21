@@ -44,11 +44,25 @@ setClass("genmatrix", representation(
 #' carrying with it the means to quickly update itself.
 #'  DON'T do the diagonal (i.e. it must be left empty), so that the updating is easier.
 #'
-#' Works with column-oriented sparse matrices (see ?"dgCMatrix-class" and ?"CsparseMatrix-class"),
-#' for which the following vectors implicitly index the vector @x that actually stores the entries:
+#' Result is a superclass of column-oriented sparse matrices (see
+#' ?"dgCMatrix-class" and ?"CsparseMatrix-class"), for which the following
+#' vectors implicitly index the vector @x that actually stores the entries:
 #'   @i ; (0-based) row numbers of nonzero entries
 #'   @p : (0-based) indices of the first nonzero entries in each column (so
 #'         diff(x@p) gives the number of nonzero entries by column)
+#'
+#' @param mutpats List of mutation Tmer motifs.
+#' @param selpats List of selection motifs.
+#' @param patlen Length of the patterns that index rows and columns of the matrix.
+#' @param patterns List of the patterns that index rows and columns of the matrix.
+#' @param bases Alphabet used.
+#' @param fixfn Fixation function.
+#' @param mutrates Vector of mutation rates corresponding to mutpats.
+#' @param selcoef Vector of selection coefficients corresponding to selpats.
+#' @param selfactors List of numeric vectors of the same structure as selpats of relative selection coefficients.
+#' @param boundary What to do with the boundary of the *patterns* ("none" or "wrap").
+#'
+#' @return A genmatrix object.
 #'
 #' @details
 #'
@@ -76,7 +90,18 @@ setClass("genmatrix", representation(
 #'  then
 #'    P = Q %*% J .
 #'
-#' @return A genmatrix object.
+#' @examples
+#' # XO -> OX at rate 3 and OX -> XO at rate 1:
+#' G <- makegenmatrix( patlen=3, mutpats=list(list(c("XO","OX")),list(c("OX","XO"))), mutrates=c(3,1),
+#'                 selpats=list(), selfactors=list(), bases=c("X","O"), fixfn=function (...) { 1 } )
+#' dim(G)
+#' G
+#' # with selection
+#' G <- makegenmatrix( patlen=3, mutpats=list(list(c("XO", "OX")), list(c("OX", "XO"))), mutrates=c(3,1),
+#'                 selpats=list(c("XX","OO"),c("X")), selfactors=list(c(2,1),c(1)), selcoef=c(5,1),
+#'                 bases=c("X","O"), fixfn=function (...) { 1 } )
+#' dim(G)
+#' G
 #'
 #' @export
 makegenmatrix <- function (
@@ -162,7 +187,7 @@ makegenmatrix <- function (
     genmatrix <- with( allmutmats[dgCord,,drop=FALSE], new( "genmatrix",
             i=(i-1L)[!dups], # Only include a given index if it's not a duplicate.
             p=sapply(0:length(patterns), function (k) sum(j[!dups]<k+1)),
-            x=rep(1,sum(!dups)), # Placeholder to get calculated by update.
+            x=rep(1,sum(!dups)), # Placeholder to get calculated by update_x.
             Dim=c(length(patterns),length(patterns)),
             muttrans=muttrans,
             seltrans=seltrans,
@@ -174,26 +199,35 @@ makegenmatrix <- function (
             boundary=boundary
         ) )
     rownames( genmatrix ) <- colnames( genmatrix ) <- patterns
-    genmatrix@x <- update( genmatrix, mutrates, selcoef, ... )
+    genmatrix@x <- update_x( genmatrix, mutrates, selcoef, ... )
     return(genmatrix)
 }
 
 #' Update the Entries of a Generator Matrix With New Rates.
 #'
 #' Calculate the new entries of `x` from muttrans et al.
-#' use like: genmatrix@x <- update(genmatrix,...)
+#' use like: genmatrix@x <- update_x(genmatrix,...)
+#'
+#' @param G A genmatrix object.
+#' @param mutrates A new vector of mutation rates.
+#' @param selcoef A new vector of selection coefficients (length zero if not needed).
+#' @param ... Additional arguments passed to the fixation function, `G@fixfn(s,...)`
+#'
+#' @return A numeric vector of the same length as G@x.
+#'
+#' @details
+#' The returned value is computed as:
+#'   fixfn(seltrans %*% selcoef) * (muttrans %*% mutrates)
+#' which works as `seltrans` and `muttrans` have been precomputed appropriately.
 #'
 #' @export
-update <- function (G, mutrates, selcoef, ...) {
+update_x <- function (G, mutrates, selcoef, ...) {
     fixprob <- if (length(selcoef)>0) { G@fixfn( as.vector(G@seltrans%*%selcoef), ... ) } else { 1 }
     as.vector( G@muttrans %*% mutrates ) * fixprob
 }
 
 
-#' Create an Boundary-Averaged Generator Matrix
-#'
-#' Create a generator matrix that averages over possible adjacent states
-#'
+#' @describeIn makegenmatrix Create a Generator Matrix Averaged Over Possible Boundary States
 #' @export
 meangenmatrix <- function (leftwin,rightwin,patlen,...) {
     longpatlen <- patlen+leftwin+rightwin
@@ -242,7 +276,7 @@ meangenmatrix <- function (leftwin,rightwin,patlen,...) {
     args <- list(...)
     if (is.null(args$mutrates)) { args$mutrates <- rep(1,length(genmat@mutpats)) }
     if (is.null(args$selcoef)) { args$selcoef <- rep(1,length(genmat@selpats)) }
-    meangenmat@x <- do.call(update,c( list(G=meangenmat), args ) )
+    meangenmat@x <- do.call(update_x, c( list(G=meangenmat), args ) )
     return( meangenmat )
 }
 

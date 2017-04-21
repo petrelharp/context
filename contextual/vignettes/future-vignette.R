@@ -53,7 +53,7 @@ genmatrix <- makegenmatrix(
                 fixfn=config[[mm]]$fixfn,
                 Ne=config[[mm]]$fixfn.params$Ne
             )
-genmatrix@x <- do.call( update, c( list(G=genmatrix, mutrates=config[[mm]]$mutrates, selcoef=config[[mm]]$selcoef), config[[mm]]$fixfn.params ) )
+genmatrix@x <- do.call( update_x, c( list(G=genmatrix, mutrates=config[[mm]]$mutrates, selcoef=config[[mm]]$selcoef), config[[mm]]$fixfn.params ) )
 
 
 ## fit-model
@@ -74,7 +74,7 @@ likfun <- function (sub.params){
     params[use.par] <- sub.params
     fparams <- params[seq( 1+nmuts(genmatrix)+nsel(genmatrix), length.out=length(fixparams(genmatrix)) )]
     names(fparams) <- fixparams(genmatrix)
-    genmatrix@x <- do.call( update, c( list( G=genmatrix,mutrates=params[1:nmuts(genmatrix)],selcoef=params[seq(1+nmuts(genmatrix),length.out=nsel(genmatrix))]), as.list(fparams) ) )
+    genmatrix@x <- do.call( update_x, c( list( G=genmatrix,mutrates=params[1:nmuts(genmatrix)],selcoef=params[seq(1+nmuts(genmatrix),length.out=nsel(genmatrix))]), as.list(fparams) ) )
     # this is collapsed transition matrix
     subtransmatrix <- computetransmatrix( genmatrix, projmatrix, tlen=1, time="fixed") # shape=params[length(params)], time="gamma" )
     # return POSITIVE log-likelihood

@@ -14,3 +14,19 @@ A model configuration (list).
 parameters, and fills in selfactors if it isn't there, or moves values from
 selpats if it is.
 }
+\examples{
+
+model_json <- '
+{
+    "bases" : [ "X", "O" ],
+    "initfreqs" : [ 0.5, 0.5 ],
+    "mutpats" : [
+        [ [ "XO", "OX" ] ]
+    ],
+    "mutrates" : [ 1 ],
+    "mutrates.scale" : [ 0.1 ]
+}
+'
+model_config <- read.config(json=model_json)
+
+}

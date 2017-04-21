@@ -96,7 +96,7 @@ for (mm in modelnames) {
                         config[[mm]]$fixfn.params ) )
     }
     if (!is.null(config[[mm]]$mutrates)) {
-        genmatrix@x <- do.call( update, c( list(G=genmatrix, mutrates=config[[mm]]$mutrates, selcoef=config[[mm]]$selcoef), config[[mm]]$fixfn.params ) )
+        genmatrix@x <- do.call( update_x, c( list(G=genmatrix, mutrates=config[[mm]]$mutrates, selcoef=config[[mm]]$selcoef), config[[mm]]$fixfn.params ) )
     }
     outfile <- gsub("%",opt$longwin,config[[mm]]$genmatrix,fixed=TRUE)
     cat("Writing out to ", outfile, "\n")

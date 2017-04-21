@@ -1,0 +1,147 @@
+
+```{r setup}
+library(contextual)
+library(simcontext)
+```
+
+# A single span of time
+
+This is a very simple model (TASEP)
+where there are two possible bases, `X` and `O`;
+and `XO -> OX` at rate 1.
+We will add a small amount of "noise" as well.
+
+First we need to read in the basic model specification.
+There are several steps to this:
+```{r model}
+model_json <- '
+{
+    "bases" : [ "X", "O" ],
+    "initfreqs" : [ 0.5, 0.5 ],
+    "mutpats" : [
+        [ [ "XO", "OX" ] ],
+        [ [ "X", "O" ], [ "O", "X" ] ]
+    ],
+    "mutrates" : [ 1, 0.05 ]
+}
+'
+model_config <- read.config(json=model_json)
+config <- parse.models(treeify.config(model_config,tlen=1))
+```
+
+Here is a short simulated sequence.
+Mutated sites are shown in upper case;
+unmutated sites that affected mutation rates are shown in lower case.
+```{r simseq}
+simseqs <- simseq.tree(200, config, count.trans=TRUE)
+simseqs$tip
+```
+
+Now we will count T-mers.
+These are not part of the model, so we specify these separately,
+and then count up how many of each Tmer occurs in the sequence.
+```{r opts}
+opt <- list( longwin=5, shortwin=3, leftwin=1)
+
+longpats <- getpatterns(opt$longwin,config$bases)
+shortpats <- getpatterns(opt$shortwin,config$bases)
+
+counts <- counttrans.list( list(longpats,shortpats), simseqs=simseqs, 
+                leftwin=opt$leftwin, bases=config$bases )
+
+```
+
+## Generator and projection matrices
+
+To get ready for inference we want to build some objects:
+the generator matrix and the projection matrix.
+
+The generator matrix:
+```{r genmatrix}
+genmatrix <- makegenmatrix(
+                patlen=opt$longwin, 
+                mutpats=config[["tip"]]$mutpats, 
+                selpats=config[["tip"]]$selpats, 
+                selfactors=config[["tip"]]$selfactors, 
+                bases=config[["tip"]]$bases, 
+                fixfn=config[["tip"]]$fixfn,
+                Ne=config[["tip"]]$fixfn.params$Ne
+            )
+genmatrix@x <- update_x(G=genmatrix, mutrates=config[["tip"]]$mutrates, 
+                      selcoef=config[["tip"]]$selcoef)
+genmatrix
+```
+
+and the projection matrix:
+```{r projemat}
+projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), 
+                                leftwin=leftwin(counts), 
+                                fpatterns=colnames(counts) )
+projmatrix
+```
+
+## A likelihood function
+
+To compute the likelihood we need another set of counts and the corresponding projection matrix:
+
+```{r more_setup}
+shortpats_2 <- getpatterns(opt$shortwin-1, config$bases)
+counts_2 <- counttrans.list( list(longpats,shortpats_2), simseqs=simseqs, 
+                leftwin=opt$leftwin, bases=config$bases )
+projmatrix_2 <- collapsepatmatrix( ipatterns=rownames(genmatrix), 
+                                  leftwin=leftwin(counts_2), 
+                                  fpatterns=colnames(counts_2) )
+```
+
+
+We can use these to construct a likelihood function
+```{r likfun}
+loglikfun <- function (x) {
+    genmatrix@x <- update_x( G=genmatrix, mutrates=x, selcoef=c() )
+    subtransmatrix <- computetransmatrix( genmatrix, projmatrix, tlen=1, time="fixed")
+    subtransmatrix_2 <- computetransmatrix( genmatrix, projmatrix_2, tlen=1, time="fixed")
+    # return POSITIVE log-likelihood
+    num <- sum( counts@counts * log(subtransmatrix) )
+    denom <- sum( counts_2@counts * log(subtransmatrix_2) )
+    return(num-denom)
+}
+
+loglikfun(c(1,.05))
+```
+
+
+
+
+# A tree
+
+Here is a simple configuration for a model with different mutation process on each branch.
+
+```{r tree_model}
+tree_model_json <- '
+{
+    "tree" : [ "(sp1 : 0.8, sp2 : 1.2) root;" ],
+    "bases" : [ "X", "O" ],
+    "initfreqs" : [ 0.5, 0.5 ],
+    "sp1" : {
+        "comment" : "Each X moves right.",
+        "mutpats" : [
+            [ [ "XO", "OX" ] ],
+            [ [ "X", "O" ], [ "O", "X" ] ]
+        ],
+        "mutrates" : [ 1, .05 ]
+    },
+    "sp2" : {
+        "comment" : "Each X moves left.",
+        "mutpats" : [
+            [ [ "OX", "XO" ] ],
+            [ [ "X", "O" ], [ "O", "X" ] ]
+        ],
+        "mutrates" : [ 1, .05 ]
+    }
+}
+'
+tree_model_config <- read.config(json=tree_model_json)
+
+tree_config <- treeify.config(tree_model_config)
+tree_config <- parse.models(tree_config)
+```

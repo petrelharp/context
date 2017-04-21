@@ -92,7 +92,7 @@ stopifnot(nsel==0)
 # (quasi)-likelihood function using all counts -- multinomial
 likfun <- function (params) {
     # params are: mutrates*tlen, shape
-    genmatrix@x <- update(genmatrix,mutrates=params[1:nmuts],selcoef=numeric(0))
+    genmatrix@x <- update_x(genmatrix,mutrates=params[1:nmuts],selcoef=numeric(0))
     # this is collapsed transition matrix
     subtransmatrix <- computetransmatrix( genmatrix, projmatrix, tlen=1, time="fixed") # shape=params[length(params)], time="gamma" )
     # return NEGATIVE log-likelihood 
@@ -114,7 +114,7 @@ lud <- function (params) {
     if (any(mutrates<0)) {
         return( -Inf )
     } else {
-        genmatrix@x <- update(genmatrix,mutrates=mutrates,selcoef=numeric(0))
+        genmatrix@x <- update_x(genmatrix,mutrates=mutrates,selcoef=numeric(0))
         subtransmatrix <- computetransmatrix( genmatrix, projmatrix, shape=shape, time="gamma" )
         # return POSITIVE log-posterior
         return( sum( counts * log(subtransmatrix) ) - sum(mutrates/priormeans) - shape/shapemean )
@@ -147,7 +147,7 @@ names(point.estimate) <- c( sapply(mutpats,function(x){paste(sapply(x,paste,coll
 # plot(as.vector(counts),as.vector(ip)); abline(0,1)
 # plot(as.vector(counts),as.vector(ip2)); abline(0,1)
 # likfun.parts <- function (params) {
-#     genmatrix@x <- update(genmatrix,mutrates=params[1:nmuts],selcoef=numeric(0))
+#     genmatrix@x <- update_x(genmatrix,mutrates=params[1:nmuts],selcoef=numeric(0))
 #     subtransmatrix <- computetransmatrix( genmatrix, projmatrix, shape=params[length(params)], time="gamma" )
 #     return( (-1) * ( counts * log(subtransmatrix) ) )
 # }

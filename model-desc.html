@@ -1,0 +1,80 @@
+<h1 id="code-structure">Code structure</h1>
+<h2 id="context-objects"><code>context</code> objects</h2>
+<p>An object of class <code>context</code> is the result of fitting a <code>model</code> to some <code>counts</code> data. It should therefore carry around:</p>
+<ul>
+<li><code>counts</code> : an object of class <code>tuplecounts</code> giving numbers of observed paired tuples</li>
+<li><code>genmatrix</code> : an object of class <code>genmatrix</code> with rows and columns indexed by <code>headpats</code> (in the same order)</li>
+<li><code>mutrates</code> : instantaneous rates corresponding to <code>genmatrix@mutpats</code></li>
+<li><code>selcoef</code> : selection coefficients corresponding to <code>genmatrix@selpats</code></li>
+<li><code>params</code> : other parameters (branch lengths, arguments to fixfn, etc)</li>
+<li><code>projmatrix</code> : a (projection) matrix with rows indexed by <code>headpats</code> and columns indexed by <code>tailpats</code></li>
+<li><code>likfun</code> : the function that returns the negative log-likelihood of the data as a function of (mutrates,selcoef,params)</li>
+<li><code>results</code> : output from routine that estimated parameters (either optim() or metrop())</li>
+<li><code>invocation</code> : an optional character string giving the command that produced it</li>
+</ul>
+<p><em>Methods:</em></p>
+<ul>
+<li><code>winlen( )</code> : an integer giving the length of the patterns that index rows of <code>counts</code></li>
+<li><code>win( )</code> : an integer giving the length of the patterns that index columns of <code>counts</code></li>
+<li><code>lwin( )</code> : an integer giving the offset that aligns columns of <code>counts</code> with rows of <code>counts</code></li>
+<li><code>rownames( )</code> : a character vector of (winlen)-mers indexing the rows of <code>counts</code></li>
+<li><code>colnames( )</code> : a character vector of (win)-mers indexing the columns of <code>counts</code></li>
+</ul>
+<p>and even more usefully,</p>
+<ul>
+<li><code>coef( )</code> : a named list of mutation and selection coefficients (mutrates, selcoef, params)</li>
+<li><code>fitted( )</code> : predicted counts under the model</li>
+<li><code>residuals( )</code> : fitted - counts</li>
+<li><code>residuals( , pretty=TRUE)</code> : residuals, in a data frame, with z-scores, sorted by z-score</li>
+</ul>
+<p>Note that by default <code>fitted(model)</code> predicts counts for the pattern lengths used to fit the model, but by passing other parameters, you can obtain predicted counts for other pattern lengths (but note: must pass in a new <code>genmatrix</code>). The same goes for <code>residuals(model)</code>, but for patterns longer than those initially used, you must pass in the observed counts.</p>
+<h2 id="tuplecounts-objects"><code>tuplecounts</code> objects</h2>
+<p>An object of class <code>tuplecounts</code> is a matrix of counts of paired tuples, that additionally carries:</p>
+<ul>
+<li><code>lwin</code> : an integer giving the offset that aligns long patterns with short patterns</li>
+<li><code>bases</code> : a character vector of allowed bases</li>
+<li><code>counts</code> : a Matrix of counts, with rows indexed by long patterns and columns indexed by (combinations of) short patterns; and</li>
+<li><code>rownames(counts)</code> : long patterns.</li>
+<li><code>colnames(counts)</code> : either short patterns (for two taxa), or arbitrary, with corresponding information encoded by colpatterns</li>
+<li><code>rowtaxon</code> : the taxon in which we count long patterns</li>
+<li><code>colpatterns</code> : a data frame whose columns are indexed by taxa in which short patterns are counted, and the k-th row of which gives the combination of short patterns corresponding to the k-th column of counts</li>
+<li><code>coltaxa( )</code> : the column names of colpatterns.</li>
+</ul>
+<p>For instance, if the tree has taxa <code>sp1</code>, <code>sp2</code>, and <code>sp3</code>; <code>bases</code> is <code>A,T</code>; and <code>rowtaxon</code> is <code>sp1</code>; then <code>rownames(counts)</code> could be <code>AA,AT,TA,TT</code>, and the rows of <code>colpatterns</code> could be <code>A,A</code>, <code>A,T</code>, <code>T,A</code>, and <code>T,T</code>; meaning that, for instance, there were <code>counts[1,2]</code> times that <code>sp1</code> was found to have <code>AA</code> at a site where <code>sp2</code> had <code>A</code> while <code>sp3</code> had <code>T</code>.</p>
+<p><em>Methods:</em></p>
+<ul>
+<li><code>countframe</code> : returns the <code>counts</code> as a data.frame, with the first, named, columns giving the patterns in each taxa, and the last (named <code>count</code>) giving the number of occurrences</li>
+</ul>
+<p>An object of class <code>genmatrix</code> is a sparse matrix that additionally carries the following information (and some more stuff): - <code>bases</code> : character vector of allowed bases - <code>rownames( )</code> and <code>colnames( )</code> : character vectors; should match with e.g. <code>headpats</code> above. - <code>mutpats</code> : list of mutation motifs - <code>selpats</code> : list of selection motifs - <code>selfactors</code> : a list of numeric vectors of the same structure of <code>selpats</code> that provide weights to these (defaults to <code>1</code>s). This is not used in computation, since these have been used in constructing the genmatrix, but can be used for checking how the genmatrix was constructed. - <code>fixfn</code> : fixation function that translates differences in selection coefficient to mutation rate multipliers - <code>nmuts( )</code>: the number of mutation patterns present in that genmatrix</p>
+<h1 id="configuration-files">Configuration files</h1>
+<p>A full config file can have:</p>
+<ul>
+<li><code>tree</code> : tree, in Newick format, with node labels and optional edge lengths,</li>
+<li><code>bases</code> : as above</li>
+<li><code>named model stanzas</code> : including one for each node label, specifying the model that occurs on the branch above the named node. This can also be a character string referring to a different named model stanza, indicating that the two edges should have the same model, and <code>share parameters</code>.</li>
+</ul>
+<p>Other stuff (e.g. &quot;comment&quot;) will be ignored.</p>
+<p>Tree-based config files should also have:</p>
+<ul>
+<li><code>initfreqs</code> : base frequencies at the root.</li>
+<li><code>initfreqs.scale</code> : scaling factor for initfreqs.</li>
+<li><code>tlen.scale</code> : scaling factor for branch lengths in the tree.</li>
+</ul>
+<p>A <code>model stanza</code> has:</p>
+<ul>
+<li><code>mutpats</code> : list of lists of character pairs (one list per mutation motif)</li>
+<li><code>mutrates</code> : numeric, nonnegative, same length as mutpats</li>
+<li><code>selpats</code> : either:</li>
+<li>list of lists of character strings (one list per selection motif)
+<ul>
+<li><em>and</em> [optionally] : <code>selfactors</code> : list of numeric vectors</li>
+</ul></li>
+<li><strong>or</strong> : list of lists of named numeric vectors, one list per selection motif, and the numbers multiplying the selection coefficient (names will be used as selpats; numbers as selfactors)</li>
+<li><code>selcoef</code> : numeric, same length as selpats</li>
+<li><code>fixfn</code> : name of a function, or R code (e.g. &quot;function (x) { ... }&quot;</li>
+<li><code>fixfn.params</code> : named list of additional parameters to fixfn</li>
+<li><code>genmatrix</code> : pattern for where to save genmatrix files, with <code>%</code> to be substituted for the pattern length</li>
+<li><code>mutrates.prior</code>, <code>selcoef.prior</code>, <code>fixfn.params.prior</code> : coefficients for priors on respective parameters</li>
+<li><code>mutrates.scale</code>, <code>selcoef.scale</code>, <code>fixfn.params.scale</code> : scale over which to move in optimization, MCMC, etcetera.</li>
+</ul>
+<p>Parameters whose scale is set to zero <em>will be held as fixed</em> in the analysis.</p>

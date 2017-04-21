@@ -22,7 +22,7 @@ predictcounts.context <- function (model, longwin=NULL, shortwin=NULL, leftwin=N
 #' @export
 predictcounts <- function (longwin, shortwin, leftwin, initcounts, mutrates, selcoef, genmatrix, projmatrix, params=NULL, tlen=1 ) {
     rightwin <- longwin-shortwin-leftwin
-    if (!missing(mutrates)||!missing(selcoef)||!is.null(params)) { genmatrix@x <- do.call( update, c( list(genmatrix,mutrates=mutrates,selcoef=selcoef), params ) ) }
+    if (!missing(mutrates)||!missing(selcoef)||!is.null(params)) { genmatrix@x <- do.call( update_x, c( list(genmatrix,mutrates=mutrates,selcoef=selcoef), params ) ) }
     if (missing(projmatrix)) { projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, rightwin=rightwin, bases=genmatrix@bases ) }
     subtransmatrix <- computetransmatrix( genmatrix, projmatrix, names=TRUE, tlen=tlen)
     fullcounts <- initcounts * subtransmatrix

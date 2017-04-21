@@ -24,6 +24,7 @@ Collate:
     'fixfns.R'
     'gammaAtv.R'
     'input-output.R'
+    'likelihood.R'
     'making_matrices.R'
     'patterns.R'
     'point_estimates.R'

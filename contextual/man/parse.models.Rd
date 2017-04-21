@@ -14,3 +14,25 @@ Check that all models are specified,
  fill in defaults,
  turn fixfn into functions, etc.
 }
+\examples{
+
+model_json <- '{
+    "tree" : [ "(sp1 : 0.8, (sp2 : 1.2, sp3 : 1.0)) root;" ],
+    "bases" : [ "X", "O" ],
+    "initfreqs" : [ 0.5, 0.5 ],
+    "selpats" : [ "X" ],
+    "selcoef" : [ 0.1 ],
+    "sp1" : {
+        "mutpats" : [ [ [ "XO", "OX" ] ] ],
+        "mutrates" : [ 1 ],
+        "fixfn" : "popgen.fixfn"
+    }, "sp2" : {
+        "mutpats" : [ [ [ "XO", "OX" ] ] ],
+        "mutrates" : [ 0.5 ]
+    }, "sp3" : "sp2" } '
+config <- treeify.config(read.config(json=model_json))
+config <- parse.models(config)
+# note that default specified at top level has been copied over
+config$sp1$selpats
+
+}

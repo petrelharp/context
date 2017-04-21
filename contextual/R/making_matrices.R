@@ -87,7 +87,9 @@ getselmatches <- function (selpats, patterns, selfactors,
                     x <- y[j]
                     maxshift <- patlen - switch( boundary, wrap=1, none=nchar(x) )
                     nonz.list <- lapply( 0:maxshift, function (k) { which(x == substrfun( patterns, 1+k, k+nchar(x) ) ) } ) 
-                    return( selfactors[[i]][j] * Matrix::rowSums( sparseMatrix( i=unlist(nonz.list), p=c(0,cumsum(sapply(nonz.list,length))), dims=c(length(patterns),1+maxshift) ) , sparseResult=TRUE ) )
+                    return( selfactors[[i]][j] * Matrix::rowSums( sparseMatrix(i=unlist(nonz.list), 
+                                                                               p=c(0,cumsum(sapply(nonz.list,length))), 
+                                                                               dims=c(length(patterns),1+maxshift) ) , sparseResult=TRUE ) )
                 } ) ), sparseResult=TRUE )
         } ) ) )
     # selmatches <- do.call( rbind, lapply(selpats, function (y) {

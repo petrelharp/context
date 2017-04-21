@@ -82,12 +82,30 @@ selnames <- function (selpats,pretty=TRUE) {
 #' ipatterns are the "input" patterns, while fpatterns are the "final" projected patterns
 #' This function assumes that all input patterns are the same length.
 #'
-#' @return A (nbases)^k by (nbases)^{k-leftwin-rightwin} matrix projection matrix that
-#'    maps patterns onto the shorter patterns obtained by deleting leftwin
-#'    characters at the start and rightwin characters at the end.  
+#' @param ipatterns Long patterns index the rows of the result.
+#' @param leftwin Left offset of short patterns from long patterns.
+#' @param shortwin Length of short patterns.
+#' @param rightwin Right offset of short patterns from long patterns.
+#' @param fpatterns Short patterns, which index the columns of the result.
+#' @param bases Alphabet of bases.
+#' @return A (nbases)^k by (nbases)^{k-leftwin-rightwin} sparse matrix
+#' projection matrix that maps patterns onto the shorter patterns obtained by
+#' deleting leftwin characters at the start and rightwin characters at the end.  
+#'
+#' @examples
+#' bases <- c("X","O")
+#' # columns are the right-hand character
+#' collapsepatmatrix(ipatterns=getpatterns(2,bases), leftwin=1, fpatterns=bases)
+#' # columns are the middle two characters
+#' collapsepatmatrix(ipatterns=getpatterns(4,bases), leftwin=1, rightwin=1, bases=bases)
 #'
 #' @export
-collapsepatmatrix <- function (ipatterns, leftwin, shortwin=nchar(fpatterns[1]), rightwin=nchar(ipatterns[1])-shortwin-leftwin, fpatterns=getpatterns(nchar(ipatterns[1])-leftwin-rightwin,bases), bases ) {
+collapsepatmatrix <- function (ipatterns, 
+                               leftwin, 
+                               shortwin=nchar(fpatterns[1]), 
+                               rightwin=nchar(ipatterns[1])-shortwin-leftwin, 
+                               fpatterns=getpatterns(nchar(ipatterns[1])-leftwin-rightwin,bases), 
+                               bases ) {
     patlen <- nchar(ipatterns[1])
     shortwin <- patlen - leftwin - rightwin
     stopifnot(shortwin>0)

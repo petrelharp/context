@@ -89,7 +89,7 @@ lud <- function (params) {
     if (any(mutrates<0)) {
         return( -Inf )
     } else {
-        genmatrix@x <- update(genmatrix,mutrates=mutrates,selcoef=numeric(0))
+        genmatrix@x <- update_x(genmatrix,mutrates=mutrates,selcoef=numeric(0))
         subtransmatrix <- computetransmatrix( genmatrix, projmatrix, shape=shape, time="gamma" )
         # return POSITIVE log-posterior
         return( sum( counts * log(subtransmatrix) ) - sum(mutrates/priormeans) - shape/shapemean )

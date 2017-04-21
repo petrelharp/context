@@ -38,9 +38,9 @@ getupdowntrans <- function ( genmatrix, projmatrix, mutrates, selcoef,
     op.1 <- lapply( otherparams, "[[", 1 )
     op.2 <- lapply( otherparams, "[[", 2 )
     genmatrix.up <- genmatrix
-    genmatrix.up@x <- do.call( update, c( list( G=genmatrix, mutrates=mutrates[[1]]*tlens[1], selcoef=selcoef[[1]] ), op.1 ) )
+    genmatrix.up@x <- do.call( update_x, c( list( G=genmatrix, mutrates=mutrates[[1]]*tlens[1], selcoef=selcoef[[1]] ), op.1 ) )
     genmatrix.down <- genmatrix
-    genmatrix.down@x <- do.call( update, c( list( G=genmatrix, mutrates=mutrates[[2]]*tlens[2], selcoef=selcoef[[2]] ), op.2 ) )
+    genmatrix.down@x <- do.call( update_x, c( list( G=genmatrix, mutrates=mutrates[[2]]*tlens[2], selcoef=selcoef[[2]] ), op.2 ) )
     upbranch <- initfreqs * computetransmatrix( genmatrix.up, projmatrix )   #  prob of root, y
     downbranch <- computetransmatrix( genmatrix.down, initfreqs, transpose=TRUE )  # marginal prob of x
     return( computetransmatrix( genmatrix.down, upbranch, transpose=TRUE ) / as.vector(downbranch) )  # conditional prob of y given x
@@ -51,7 +51,7 @@ getupdowntrans <- function ( genmatrix, projmatrix, mutrates, selcoef,
 #' So, result has
 #'   upbranch[i,j] = rootfreqs[i] * E[ tipmatrix[X(tlen),j] | X(0) = i ]
 upbranch <- function ( genmatrix, tipmatrix, rootfreqs, mutrates, selcoef, tlen, ... ) {
-    if (!missing(mutrates)) { genmatrix@x <- update( G=genmatrix, mutrates=mutrates*tlen, selcoef=selcoef, ... ) }
+    if (!missing(mutrates)) { genmatrix@x <- update_x( G=genmatrix, mutrates=mutrates*tlen, selcoef=selcoef, ... ) }
     upbranch <- rootfreqs * computetransmatrix( genmatrix, projmatrix )   #  prob of root, y
     return( upbranch )
 }
@@ -60,7 +60,7 @@ upbranch <- function ( genmatrix, tipmatrix, rootfreqs, mutrates, selcoef, tlen,
 #'
 #' @return e^( tlen * t(genmatrix(mut,sel)) ) %*% rootmatrix
 downbranch <- function ( genmatrix, rootmatrix, mutrates, selcoef, tlen, ... ) {
-    if (!missing(mutrates)) { genmatrix@x <- update( G=genmatrix, mutrates=mutrates*tlen, selcoef=selcoef, ... ) }
+    if (!missing(mutrates)) { genmatrix@x <- update_x( G=genmatrix, mutrates=mutrates*tlen, selcoef=selcoef, ... ) }
     downbranch <- computetransmatrix( genmatrix.down, rootmatrix, transpose=TRUE )  # marginal prob of x
     return(downbranch)
 }

@@ -10,7 +10,30 @@ treeify.config(config, tlen = NULL)
 A model configuration (list).
 }
 \description{
-Turn Newick tree representation into a tree, 
-  and do associated error checks.
-no tree at all =>  stick tree.
+Turn the text representation of a tree (in Newick) into a tree object (as
+from the ape package), and do associated error checks.  If no tree is
+specified at all, a stick tree is inserted. Tips and nodes in the tree must be labeled,
+and branch lengths can be specified in the argument tlen.
+}
+\examples{
+
+# simple two-taxon tree
+tree_model_json <- '{
+    "tree" : [ "(sp1 : 0.8, sp2 : 1.2) root;" ],
+    "bases" : [ "X", "O" ],
+    "initfreqs" : [ 0.5, 0.5 ],
+    "sp1" : {
+        "mutpats" : [ [ [ "XO", "OX" ] ] ],
+        "mutrates" : [ 1 ]
+    }, "sp2" : {
+        "mutpats" : [ [ [ "XO", "OX" ] ] ],
+        "mutrates" : [ 0.5 ]
+    } } '
+orig_config <- read.config(json=tree_model_json)
+tree_config <- treeify.config(orig_config)
+# text
+orig_config$tree
+# tree object
+tree_config$tree
+
 }

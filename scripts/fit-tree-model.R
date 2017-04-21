@@ -127,7 +127,7 @@ likfun <- function (sub.params){
     selcoef.list <- lapply( seq_along(genmatrices), .param.map, type="selcoef", params=params )
     fixparam.list <- lapply( seq_along(genmatrices), function (k) { x <- .param.map(k, type="fixparams", params=params); names(x) <- fixparams(genmatrices[[k]]); x } )
     for (k in seq_along(genmatrices)) {
-        genmatrices[[k]]@x <- do.call( update, c( list( G=genmatrices[[k]],mutrates=mutrates.list[[k]],selcoef=selcoef.list[[k]] ), as.list(fixparam.list[[k]]) ) )
+        genmatrices[[k]]@x <- do.call( update_x, c( list( G=genmatrices[[k]],mutrates=mutrates.list[[k]],selcoef=selcoef.list[[k]] ), as.list(fixparam.list[[k]]) ) )
     }
     # get branch lengths
     tlens <- .param.map( type="tlens", params=params )

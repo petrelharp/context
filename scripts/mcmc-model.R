@@ -95,7 +95,7 @@ likfun <- function (sub.params){
     fparams <- params[seq( 1+nmuts(genmatrix)+nsel(genmatrix), length.out=length(fixparams(genmatrix)) )]
     names(fparams) <- fixparams(model)
     if (any(mutrates<0)) { return( -Inf ) }
-    genmatrix@x <- do.call( update, c( list(G=genmatrix, mutrates=mutrates, selcoef=selcoef ), as.list(fparams) ) )
+    genmatrix@x <- do.call( update_x, c( list(G=genmatrix, mutrates=mutrates, selcoef=selcoef ), as.list(fparams) ) )
     # this is collapsed transition matrix
     subtransmatrix <- computetransmatrix( genmatrix, projmatrix, tlen=1, time="fixed") # shape=params[length(params)], time="gamma" )
     # return POSITIVE log-likelihood

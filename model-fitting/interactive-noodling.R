@@ -40,7 +40,7 @@ genmatrix@x
 
 adhoc.mutrates
 
-genmatrix@x <- update(genmatrix,mutrates=adhoc.mutrates,selcoef=c())
+genmatrix@x <- update_x(genmatrix,mutrates=adhoc.mutrates,selcoef=c())
 # get an initial transition matrix
 subtransmatrix <- computetransmatrix( genmatrix, projmatrix, tlen=1, time="fixed")
 

@@ -78,7 +78,7 @@ stopifnot(nsel==0)
 # (quasi)-likelihood function using all counts -- multinomial
 likfun <- function (params) {
     # params are: mutrates*tlen, shape
-    genmatrix@x <- update(genmatrix,mutrates=params[1:nmuts],selcoef=numeric(0))
+    genmatrix@x <- update_x(genmatrix,mutrates=params[1:nmuts],selcoef=numeric(0))
     # this is collapsed transition matrix
     subtransmatrix <- computetransmatrix( genmatrix, projmatrix, tlen=1, time="fixed") # shape=params[length(params)], time="gamma" )
     # return NEGATIVE log-likelihood 
