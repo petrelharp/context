@@ -53,7 +53,7 @@ counttrans <- function (ipatterns, fpatterns,
     # Ok, count occurrences.  uses bioconductor stuff.
     initmatches <- lapply( ipatterns, Biostrings::matchPattern, initseq )
     finalmatches <- lapply( fpatterns, Biostrings::matchPattern, finalseq )
-    counts <- lapply( 1:max(1,shift), function (k) Matrix( 0, nrow=length(initmatches), ncol=length(finalmatches), dimnames=list(ipatterns,fpatterns) ) )
+    counts <- lapply( 1:max(1,shift), function (k) Matrix::Matrix( 0, nrow=length(initmatches), ncol=length(finalmatches), dimnames=list(ipatterns,fpatterns) ) )
     for (x in seq_along(initmatches))  {
         for (y in seq_along(finalmatches)) {
             xycounts <- intersect(start(initmatches[[x]]),(-leftwin)+start(finalmatches[[y]]))
@@ -117,7 +117,7 @@ counttrans.list <- function (lpatterns,
             colnames(x) <- apply(colpatterns,1,paste,collapse='.')
             new("tuplecounts", 
                 leftwin=leftwin,
-                counts=Matrix(x),
+                counts=Matrix::Matrix(x),
                 bases=bases,
                 rowtaxon=names(seqlist)[1],
                 colpatterns=colpatterns

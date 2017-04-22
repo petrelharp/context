@@ -9,10 +9,11 @@ Encoding: UTF-8
 LazyData: true
 Depends: 
     methods,
-    Matrix, 
+    Matrix
 Imports:
     expm,
-    jsonlite
+    jsonlite,
+    ape
 Suggests: 
     stringdist,
     testthat

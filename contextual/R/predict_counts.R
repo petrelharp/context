@@ -1,3 +1,4 @@
+#' @include context_classes.R
 
 #' Predict counts for a 'context' model
 predictcounts.context <- function (model, longwin=NULL, shortwin=NULL, leftwin=NULL, 

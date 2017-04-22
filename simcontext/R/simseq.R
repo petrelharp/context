@@ -177,9 +177,9 @@ simseq <- function (seqlen, tlen, mutpats, mutrates,
 #'
 #' @export
 simseq.tree <- function (seqlen,config,...) {
-    simseqs <- lapply(nodenames(config$tree),function(e)NULL)
+    simseqs <- lapply(contextual::nodenames(config$tree),function(e)NULL)
     more.args <- list(...)
-    simseqs[[rootname(config$tree)]] <- if ("initseq" %in% names(more.args)) {
+    simseqs[[contextual::rootname(config$tree)]] <- if ("initseq" %in% names(more.args)) {
         list(finalseq=more.args[["initseq"]])
     } else {
         list(finalseq=rinitseq(seqlen,config$bases,basefreqs=config$initfreqs))
@@ -188,7 +188,7 @@ simseq.tree <- function (seqlen,config,...) {
     for (k in 1:nrow(config$tree$edge)) {
         # edge.pair is (from, to)
         edge.pair <- config$tree$edge[k,]
-        modconfig <- config[[ nodenames(config$tree)[ edge.pair[2] ] ]]
+        modconfig <- config[[ contextual::nodenames(config$tree)[ edge.pair[2] ] ]]
         # can't help but allow this
         nn <- 1; while (is.character(modconfig)) { modconfig <- config[[ modconfig ]]; nn <- nn+1; if (nn>100){stop("Circular model reference.")} }
         # simulate, with config for corresponding edge

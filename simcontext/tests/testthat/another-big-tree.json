@@ -1,0 +1,48 @@
+{
+    "comment" : "Complicated tree, for testing.",
+    "tree" : [ "( (sp1 : 0.1, sp2 : 0.1) an1 : 1.0, (sp3 : 1.0, sp4 : 0.2) an2 : 3.0 ) root;" ],
+    "bases" : [ "X", "O" ],
+    "initfreqs" : [ 1.0, 0.0 ],
+    "mutpats" : [
+        [ [ "X", "O" ] ]
+    ],
+    "mutrates" : [ 10 ],
+    "selpats" : [ [ "X" ] ],
+    "selcoef" : [ 0.01 ],
+    "fixfn" : "popgen.fixfn",
+    "fixfn.params" : { "Ne" : 100 },
+    "an1" : { 
+            "comment" : "do nothing",
+            "selfactors" : [ 100 ]
+        },
+    "an2" : { 
+            "comment" : "default, X -> O"
+        },
+    "sp1" : { 
+            "comment" : "X -> O",
+            "selpats" : [ [ "O" ] ],
+            "selfactors" : [ [ 5 ] ]
+        },
+    "sp2" : { 
+            "comment" : "X -> O",
+            "mutpats" : [
+                [ [ "X", "O" ] ],
+                [ [ "O", "X" ] ]
+            ],
+            "mutrates" : [ 1, 1 ],
+            "selpats" : [ [ "O" ] ],
+            "selcoef" : [ 1.0 ]
+        },
+    "sp3" : { 
+            "comment" : "do nothing",
+            "mutpats" : [ [ "O", "X" ] ],
+            "mutrates" : [ 10 ],
+            "selpats" : [ [ "O" ] ],
+            "selcoef" : [ 100 ]
+        },
+    "sp4" : {
+            "comment" : "O -> X",
+            "mutpats" : [ [ "O", "X" ] ],
+            "mutrates" : [ 30 ]
+        }
+}

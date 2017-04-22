@@ -3,6 +3,8 @@
 library(contextual)
 library(simcontext)
 
+library(testthat)
+
 context("Another extreme example simulation.")
 
 ## Pattern should be:

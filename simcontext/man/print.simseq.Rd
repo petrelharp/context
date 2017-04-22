@@ -4,7 +4,7 @@
 \alias{print.simseq}
 \title{Print Simulated Sequence}
 \usage{
-\method{print}{simseq}(x, ...)
+print.simseq(x, ...)
 }
 \description{
 Print Simulated Sequence

@@ -63,6 +63,8 @@ setMethod("countframe", signature=c(x="tuplecounts"), definition=function (x) {
         return(cf)
     } )
 
+setGeneric("dim")
+setGeneric("dimnames")
 # things to make tuplecounts act like the matrix inside of it:
 #' @rdname tuplecounts-methods
 #' @aliases dim,tuplecounts-method

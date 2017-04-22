@@ -7,8 +7,10 @@ Depends: R (>= 3.3.3)
 License: GPLv3
 Encoding: UTF-8
 LazyData: true
-Imports:
+Depends:
     methods,
+    Matrix
+Imports:
     contextual,
     Biostrings,
     IRanges,
