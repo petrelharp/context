@@ -1,3 +1,41 @@
+
+
+# Configuration files 
+
+A full config file can have:
+
+- `tree` : tree, in Newick format, with node labels and optional edge lengths, 
+- `bases` : as above
+- `named model stanzas` : including one for each node label, specifying the
+   model that occurs on the branch above the named node.  This can also be a
+   character string referring to a different named model stanza, indicating that
+   the two edges should have the same model, and `share parameters`.
+
+Other stuff (e.g. "comment") will be ignored.
+
+Tree-based config files should also have:
+
+- `initfreqs` : base frequencies at the root.
+- `initfreqs.scale` : scaling factor for initfreqs.
+- `tlen.scale` : scaling factor for branch lengths in the tree.
+
+A `model stanza` has:
+
+- `mutpats` : list of lists of character pairs (one list per mutation motif)
+- `mutrates` : numeric, nonnegative, same length as mutpats
+- `selpats` : either:
+  - list of lists of character strings (one list per selection motif)
+    - *and* [optionally] : `selfactors` : list of numeric vectors
+  - **or** : list of lists of named numeric vectors, one list per selection motif, and the numbers multiplying the selection coefficient (names will be used as selpats; numbers as selfactors)
+- `selcoef` : numeric, same length as selpats
+- `fixfn` : name of a function, or R code (e.g. "function (x) { ... }"
+- `fixfn.params` : named list of additional parameters to fixfn
+- `genmatrix` : pattern for where to save genmatrix files, with `%` to be substituted for the pattern length
+- `mutrates.prior`, `selcoef.prior`, `fixfn.params.prior` : coefficients for priors on respective parameters
+- `mutrates.scale`, `selcoef.scale`, `fixfn.params.scale` : scale over which to move in optimization, MCMC, etcetera. 
+
+Parameters whose scale is set to zero *will be held as fixed* in the analysis.
+
 # Code structure
 
 ## `context`
@@ -55,6 +93,7 @@ For instance, if the tree has taxa `sp1`, `sp2`, and `sp3`; `bases` is `A,T`; an
 
 - `countframe` : returns the `counts` as a data.frame, with the first, named, columns giving the patterns in each taxa, and the last (named `count`) giving the number of occurrences
 
+## `genmatrix`
 
 An object of class `genmatrix` is a sparse matrix that additionally carries the following information (and some more stuff):
 - `bases` : character vector of allowed bases
@@ -66,39 +105,3 @@ An object of class `genmatrix` is a sparse matrix that additionally carries the 
 - `fixfn` : fixation function that translates differences in selection coefficient to mutation rate multipliers
 - `nmuts( )`: the number of mutation patterns present in that genmatrix
 
-
-# Configuration files 
-
-A full config file can have:
-
-- `tree` : tree, in Newick format, with node labels and optional edge lengths, 
-- `bases` : as above
-- `named model stanzas` : including one for each node label, specifying the
-   model that occurs on the branch above the named node.  This can also be a
-   character string referring to a different named model stanza, indicating that
-   the two edges should have the same model, and `share parameters`.
-
-Other stuff (e.g. "comment") will be ignored.
-
-Tree-based config files should also have:
-
-- `initfreqs` : base frequencies at the root.
-- `initfreqs.scale` : scaling factor for initfreqs.
-- `tlen.scale` : scaling factor for branch lengths in the tree.
-
-A `model stanza` has:
-
-- `mutpats` : list of lists of character pairs (one list per mutation motif)
-- `mutrates` : numeric, nonnegative, same length as mutpats
-- `selpats` : either:
-  - list of lists of character strings (one list per selection motif)
-    - *and* [optionally] : `selfactors` : list of numeric vectors
-  - **or** : list of lists of named numeric vectors, one list per selection motif, and the numbers multiplying the selection coefficient (names will be used as selpats; numbers as selfactors)
-- `selcoef` : numeric, same length as selpats
-- `fixfn` : name of a function, or R code (e.g. "function (x) { ... }"
-- `fixfn.params` : named list of additional parameters to fixfn
-- `genmatrix` : pattern for where to save genmatrix files, with `%` to be substituted for the pattern length
-- `mutrates.prior`, `selcoef.prior`, `fixfn.params.prior` : coefficients for priors on respective parameters
-- `mutrates.scale`, `selcoef.scale`, `fixfn.params.scale` : scale over which to move in optimization, MCMC, etcetera. 
-
-Parameters whose scale is set to zero *will be held as fixed* in the analysis.

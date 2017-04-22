@@ -8,5 +8,5 @@ get.root.distrn(initfreqs, initfreq.index)
 }
 \description{
 Given initial frequencies find the distribution over longpats
-(the product measure) #' with helper matrix computed in product.index()
+(the product measure) with helper matrix computed in product.index()
 }

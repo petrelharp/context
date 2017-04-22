@@ -1,7 +1,7 @@
 ###
 # input and output functions
 #
-# TODO: move some functions over from the other files
+
 
 read.config.counts <- function (infile) {
     count.paramstring <- scan(infile,what='char',nlines=1,sep="\n")

@@ -388,7 +388,7 @@ e_lhoods <- function (opt, config, seq, dscale, ndscale) {
     subtransmatrix <- projmatrix
     scale <- 0
     for (k in 1:ndscale) {
-        subtransmatrix <- extend.expAtv( A=genmatrix, scale=scale, dscale=dscale, gAtv=subtransmatrix )  # add scale dscale
+        subtransmatrix <- contextual:::extend.expAtv( A=genmatrix, scale=scale, dscale=dscale, gAtv=subtransmatrix )  # add scale dscale
         # return log-likelihood (*not* negative log-likelihood)
         ans[k] <- sum( counts@counts * log(subtransmatrix) )
     }

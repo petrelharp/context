@@ -126,7 +126,7 @@ product.index <- function ( longpats, bases ) {
 #' Product Distribution for the Root of a Tree
 #'
 #' Given initial frequencies find the distribution over longpats
-#' (the product measure) #' with helper matrix computed in product.index()
+#' (the product measure) with helper matrix computed in product.index()
 #'
 #' @export
 get.root.distrn <- function ( initfreqs, initfreq.index ) {

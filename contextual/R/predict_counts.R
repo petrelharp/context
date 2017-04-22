@@ -1,5 +1,5 @@
 
-#' @export
+#' Predict counts for a 'context' model
 predictcounts.context <- function (model, longwin=NULL, shortwin=NULL, leftwin=NULL, 
                                    initcounts=rowSums(model), mutrates=model@mutrates, 
                                    selcoef=model@selcoef, genmatrix=model@genmatrix, 
@@ -83,6 +83,7 @@ projectcounts <- function( counts, new.leftwin, new.shortwin, new.longwin, overl
 
 #' Compute expected counts of paired patterns
 #'
+#' @export
 predicttreecounts <- function (shortwin, leftwin=0, rightwin=0, initcounts, mutrates, selcoef, tlens, genmatrix, projmatrix, initfreqs, patcomp, ... ) {
     longwin <- leftwin+shortwin+rightwin
     if (missing(genmatrix)) { genmatrix <- makegenmatrix(patlen=leftwin+shortwin+rightwin,...) }

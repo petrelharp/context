@@ -27,7 +27,6 @@ Collate:
     'likelihood.R'
     'making_matrices.R'
     'patterns.R'
-    'point_estimates.R'
     'predict_counts.R'
     'residuals.R'
     'transition_matrix.R'
