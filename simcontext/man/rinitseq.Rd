@@ -12,3 +12,4 @@ bases can in fact be longer patterns.
 Note that if bases are longer than 1 character,
  DOES NOT actually produce a sting with frequencies basefreqs.
 }
+
