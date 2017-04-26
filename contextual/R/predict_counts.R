@@ -52,7 +52,7 @@ predictcounts <- function (longwin, shortwin, leftwin, initcounts, mutrates, sel
 #'
 #'
 #' @examples
-#' counts <- counttrans(ipatterns=getpatterns(3,bases=c("X","O")), fpatterns=getpatterns(2,bases=c("X","O")), 
+#' counts <- simcontext::counttrans(ipatterns=getpatterns(3,bases=c("X","O")), fpatterns=getpatterns(2,bases=c("X","O")), 
 #'                         initseq="XOOXXXOXOXOXOOOXXO", finalseq="XOXOXOXOXXOXOOOXXO", leftwin=1)
 #' projectcounts(counts, new.longwin=2, new.leftwin=0) 
 #' projectcounts(counts, new.shortwin=1)

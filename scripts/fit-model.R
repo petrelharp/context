@@ -69,6 +69,7 @@ counts <- read.counts(opt$infile, bases=genmatrix@bases, longpats=rownames(genma
 stopifnot( all( rownames(counts) == rownames(genmatrix) ) )
 
 # shorter counts for full likelihood
+stopifnot(shortwin(counts) > 1)
 counts.0 <- projectcounts(counts, new.shortwin=shortwin(counts) - 1)
 
 projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin(counts), fpatterns=colnames(counts) )

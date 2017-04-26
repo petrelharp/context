@@ -46,12 +46,12 @@ likelihood.function <- function (
     shorterpats <- getpatterns(shortwin-1, config$bases)
     genmatrix <- do.call( makegenmatrix, c( list(patlen=longwin), config ) )
     # for the numerator
-    counts_1 <- counttrans.list( list(longpats, shortpats), 
+    counts_1 <- simcontext::counttrans.list( list(longpats, shortpats), 
         seqlist=seq[c("initseq", "finalseq")],
         leftwin=leftwin, bases=config$bases )
     projmatrix_1 <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin(counts), fpatterns=colnames(counts) )
     # for the denominator
-    counts_2 <- counttrans.list( list(longpats, shorterpats),
+    counts_2 <- simcontext::counttrans.list( list(longpats, shorterpats),
         seqlist=seq[c("initseq", "finalseq")],
         leftwin=leftwin, bases=config$bases )
     projmatrix_2 <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin(counts), fpatterns=colnames(counts) )

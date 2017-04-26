@@ -15,13 +15,13 @@ Imports:
     ape
 Suggests: 
     stringdist,
-    testthat
+    testthat,
+    simcontext
 Collate: 
     '00import.R'
     'tuplecounts.R'
     'genmatrix.R'
     'context_classes.R'
-    'count_transitions.R'
     'fixfns.R'
     'gammaAtv.R'
     'input-output.R'
