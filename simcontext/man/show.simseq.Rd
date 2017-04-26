@@ -10,4 +10,3 @@ show.simseq(x, printit = FALSE, maxchar = min(nchar(x$initseq), 200),
 \description{
 Display the output of simulation by lowercasing or replacing with "." bases that didn't change
 }
-

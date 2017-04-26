@@ -12,4 +12,3 @@ A list of the simulated sequences in the same order as the tips,nodes of the tre
 \description{
 Simulate on a Tree
 }
-

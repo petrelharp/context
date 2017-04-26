@@ -59,4 +59,3 @@ Computation of the generator matrix may be costly; so it can be stored for later
 IF only.num.events is TRUE, then JUST set things up, and estimate how many mutation events will be needed,
   and return this (to check before embarking on something ridiculous).
 }
-

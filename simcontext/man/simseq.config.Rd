@@ -10,4 +10,3 @@ simseq.config(seqlen, tlen, config, ...)
 Run simseq but from a config object, basically a named list
  note: probably want to run contextual::fill.default.config( ) on config first.
 }
-

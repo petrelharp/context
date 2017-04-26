@@ -9,4 +9,3 @@ print.simseq(x, ...)
 \description{
 Print Simulated Sequence
 }
-
