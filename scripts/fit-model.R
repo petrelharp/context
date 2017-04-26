@@ -68,7 +68,11 @@ check.genmatrix(init.config,genmatrix)
 counts <- read.counts(opt$infile, bases=genmatrix@bases, longpats=rownames(genmatrix) )
 stopifnot( all( rownames(counts) == rownames(genmatrix) ) )
 
+# shorter counts for full likelihood
+counts.0 <- projectcounts(counts, new.shortwin=shortwin(counts) - 1)
+
 projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin(counts), fpatterns=colnames(counts) )
+projmatrix.0 <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin(counts), fpatterns=colnames(counts.0) )
 
 if (FALSE) {  ## DO NOT DO THIS; move elsewhere
     if (is.null(init.config$mutrates)) {
@@ -117,8 +121,11 @@ likfun <- function (sub.params){
     genmatrix@x <- do.call( update_x, c( list( G=genmatrix,mutrates=params[1:nmuts(genmatrix)],selcoef=params[seq(1+nmuts(genmatrix),length.out=nsel(genmatrix))]), as.list(fparams) ) )
     # this is collapsed transition matrix
     subtransmatrix <- computetransmatrix( genmatrix, projmatrix, tlen=1, time="fixed") # shape=params[length(params)], time="gamma" )
+    subtransmatrix.0 <- computetransmatrix( genmatrix, projmatrix.0, tlen=1, time="fixed") # shape=params[length(params)], time="gamma" )
     # return POSITIVE log-likelihood
-    ans <- sum( counts@counts * log(subtransmatrix) )
+    num <- sum( counts@counts * log(subtransmatrix) )
+    den <- sum( counts.0@counts * log(subtransmatrix.0) )
+    ans <- num - den
     if (!is.finite(ans)) { print(paste("Warning: non-finite likelihood with params:",paste(params,collapse=", "))) }
     return(ans)
 }

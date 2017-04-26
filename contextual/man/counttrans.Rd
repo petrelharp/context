@@ -62,3 +62,14 @@ even positions.
 \item \code{counttrans.list}: Count Transitions in a List of Sequences
 }}
 
+\examples{
+counts <- counttrans(ipatterns=getpatterns(3,bases=c("X","O")), fpatterns=getpatterns(2,bases=c("X","O")), 
+                        initseq="XOOXXXOXOXOXOOOXXO", finalseq="XOXOXOXOXXOXOOOXXO", leftwin=1)
+counts(counts)
+
+count.list <- counttrans(ipatterns=getpatterns(3,bases=c("X","O")), fpatterns=getpatterns(2,bases=c("X","O")), 
+                        initseq="XOOXXXOXOXOXOOOXXO", finalseq="XOXOXOXOXXOXOOOXXO", leftwin=1, shift=2)
+counts(count.list[[1]])
+counts(count.list[[2]])
+
+}

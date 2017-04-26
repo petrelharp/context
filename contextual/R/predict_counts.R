@@ -50,8 +50,19 @@ predictcounts <- function (longwin, shortwin, leftwin, initcounts, mutrates, sel
 #'      ... but patterns at the boundary of the sequence will not be overcounted. 
 #'     Take the ceiling of the resulting counts to fix these.
 #'
+#'
+#' @examples
+#' counts <- counttrans(ipatterns=getpatterns(3,bases=c("X","O")), fpatterns=getpatterns(2,bases=c("X","O")), 
+#'                         initseq="XOOXXXOXOXOXOOOXXO", finalseq="XOXOXOXOXXOXOOOXXO", leftwin=1)
+#' projectcounts(counts, new.longwin=2, new.leftwin=0) 
+#' projectcounts(counts, new.shortwin=1)
+#'
 #' @export
-projectcounts <- function( counts, new.leftwin, new.shortwin, new.longwin, overlapping=FALSE ) {
+projectcounts <- function(counts, 
+                          new.leftwin=leftwin(counts), 
+                          new.shortwin=shortwin(counts), 
+                          new.longwin=longwin(counts), 
+                          overlapping=FALSE ) {
     leftwin <- leftwin(counts)
     longwin <- longwin(counts)
     shortwin <- shortwin(counts)

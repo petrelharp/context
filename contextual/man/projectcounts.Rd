@@ -4,7 +4,8 @@
 \alias{projectcounts}
 \title{Compute Counts for Shorter Tmers.}
 \usage{
-projectcounts(counts, new.leftwin, new.shortwin, new.longwin,
+projectcounts(counts, new.leftwin = leftwin(counts),
+  new.shortwin = shortwin(counts), new.longwin = longwin(counts),
   overlapping = FALSE)
 }
 \description{
@@ -20,4 +21,11 @@ If the original counts were from overlapping windows, then this will overcount t
    so we need to divide the counts by the factor 'overcount' below
      ... but patterns at the boundary of the sequence will not be overcounted. 
     Take the ceiling of the resulting counts to fix these.
+}
+\examples{
+counts <- counttrans(ipatterns=getpatterns(3,bases=c("X","O")), fpatterns=getpatterns(2,bases=c("X","O")), 
+                        initseq="XOOXXXOXOXOXOOOXXO", finalseq="XOXOXOXOXXOXOOOXXO", leftwin=1)
+projectcounts(counts, new.longwin=2, new.leftwin=0) 
+projectcounts(counts, new.shortwin=1)
+
 }

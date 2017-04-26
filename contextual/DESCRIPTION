@@ -3,13 +3,12 @@ Title: Do inference with observations of context-dependent neighborhood-based Ma
 Version: 0.0.0.9000
 Authors@R: person("Peter", "Ralph", email = "petrel.harp@gmail.com", role = c("aut", "cre"))
 Description: Provides code to simulate from such processes and do inference.
-Depends: R (>= 3.3.3)
+Depends:
+    methods,
+    Matrix
 License: GPLv3
 Encoding: UTF-8
 LazyData: true
-Depends: 
-    methods,
-    Matrix
 Imports:
     expm,
     jsonlite,
@@ -22,6 +21,7 @@ Collate:
     'tuplecounts.R'
     'genmatrix.R'
     'context_classes.R'
+    'count_transitions.R'
     'fixfns.R'
     'gammaAtv.R'
     'input-output.R'
