@@ -21,7 +21,6 @@ RUN install2.r --error --deps TRUE \
 RUN install2.r -r http://bioconductor.org/packages/3.0/bioc --deps TRUE \
     BiocInstaller \
     Biostrings \
-    IRanges \
     && rm -rf /tmp/downloaded_packages/
 RUN pip install nestly
 

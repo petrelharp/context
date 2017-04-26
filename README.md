@@ -24,6 +24,13 @@ install_github("petrelharp/context/contextual")
 install_github("petrelharp/context/simcontext")
 install_github("petrelharp/context/contextutils")
 ```
+or else to do it from a local copy:
+```
+git clone https://github.com/petrelharp/context.git
+cd context
+Rscript -e 'library(devtools); install("contextual"); install("simcontext"); install("contextutils")'
+```
+
 Simulation requires some Bioconductor packages;
 see below for how to install those.
 
@@ -83,5 +90,15 @@ biocLite(c("Biostrings", "IRanges", "S4Vectors"))
 ```
 If the BioConductor installer does not work due to permissions, the following may:
 ```r
-install.packages(c("Biostrings", "IRanges", "S4Vectors"), repos=biocinstallRepos())
+source("http://bioconductor.org/biocLite.R")
+install.packages(c("Biostrings", "S4Vectors"), repos=biocinstallRepos())
+```
+If you don't have the most recent Bioconductor version, you may need to
+```r
+remove.packages("BiocInstaller") 
+
+## -- exit R then start again --
+
+source("http://bioconductor.org/biocLite.R")
+install.packages(c("Biostrings", "S4Vectors"), repos=biocinstallRepos())
 ```

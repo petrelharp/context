@@ -3,17 +3,15 @@ Title: Simulate Context-Dependent Substitution Models
 Version: 0.0.0.9000
 Authors@R: person("Peter", "Ralph", email = "petrel.harp@gmail.com", role = c("aut", "cre"))
 Description: Simulate from the models described in contextual.
-Depends: R (>= 3.3.3)
-License: GPLv3
-Encoding: UTF-8
-LazyData: true
 Depends:
     methods,
     Matrix
+License: GPLv3
+Encoding: UTF-8
+LazyData: true
 Imports:
     contextual,
     Biostrings,
-    IRanges,
     S4Vectors
 Suggests:
     testthat
