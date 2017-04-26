@@ -29,6 +29,7 @@
 \newcommand{\alike}{\widetilde{\like}}
 \newcommand{\aloglike}{\widetilde{\loglike}}
 
+
 \theoremstyle{plain}
 \newtheorem{theorem}{Theorem}
 \theoremstyle{definition}
@@ -60,9 +61,6 @@ Practical use of such models often requires
 inferring transition rules
 based on observations of the system at several time points,
 or of several states evolved along a tree from a single starting point.
-In this paper,
-we propose one solution to this problem,
-motivated by the problem of inferring context-dependent mutation rates from diverged nucleotide sequences.
 
 The general class of models we consider are known in the probability literature as
 interacting particle systems \citep{liggett2005ips} with neighborhood structure
@@ -73,9 +71,13 @@ and the rates of such instantaneous changes depend only on the states in some bo
 As finite-state Markov chains,
 transition probabilities are in principle simply expressable as a matrix exponential,
 but this is impractical because the size of the matrix is equal to the number of possible configurations.
-\todo{I suggest pulling this sentence together with your "In this paper" sentence to form a separate paragraph.}
-As an alternative, we show that the conditional likelihood of local pattern count statistics
+
+In this paper, we propose a solution to this problem,
+showing that the conditional likelihood of local pattern count statistics
 can be well-approximated by marginalizing over a finite amount of surrounding context.
+Motivated by the problem of inferring context-dependent mutation rates from diverged nucleotide sequences,
+we extend the inference framework to observations on trees.
+\peter{something about efficient computation and sparse matrices}
 
 The situation is similar to the widely-studied problem of inference based on observation
 of a single instance of a Markov random field,
@@ -138,12 +140,12 @@ but these methods may still prove useful in the modeling process.
 
 
 %%%%%%% %%%%%%%%%%
-\section{Notation and Examples}
+\section{A general context-dependent model}
 
-Each example above describes \todo{Has a formulation as? Glauber can be greater than 1 D} a 1-dimensional grid of sites, each of which can take one of a finite set of states,
-and that switch randomly between states according to a local set of rules.
-Concretely, we suppose that we observe a finite collection of these sites at only a few times,
-and that the dynamics are Markov:
+Consider a 1-dimensional grid of sites, each of which can take one of a finite set of states,
+and that switch randomly between states according to a local set of rules;
+we then observe a finite collection of these sites at only a few times,
+Suppose that the dynamics are Markov:
 with the set of possible states by $\calS$,
 and $X_i(t)$ the state of site $i$ at time $t$,
 we assume that $\{X(t)\}_{t \ge 0}$ is a Markov process on sequences of $n$ states $\calS^n$
@@ -168,15 +170,18 @@ saying ``pattern $u$ changes to $v$ at rate $\mu$'' means that
 \]
 regardless of the location $i$ along the sequence.
 If more than one pattern would match to cause the same change, their rates add.
-Such a rule is defined by its ``transition triple'' $(\mu,u,v)$.
+Such a rule is defined by its ``transition triple'' $(\mu,u,v)$,
+written as ``$u \to v$ at rate $\mu$''.
 The set of all transition triples, $\calT$, determines the time evolution of this process.
+
+\peter{INCLUDE SELECTION}
 
 
 \begin{example}[TASEP]
   The \emph{Totally Asymmetric Simple Exclusion Process} labels each site as ``empty'' or ``occupied'' (0 or 1, respectively),
   and says that each occupied site, independently at rate $\lambda$, checks the site to the right to see if it is empty,
   and if it is, moves there.
-  This process therefore has only one transition triple \todo{Not sure if reviewers will like having a different notation for triples so soon after you defined the parens notation}:
+  This process therefore has only one transition triple:
 
   \begin{center}
     \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }c}
@@ -234,7 +239,10 @@ The set of all transition triples, $\calT$, determines the time evolution of thi
   forgets its spin,
   and reconfigures to a state chosen with probability proportional to the stationary probability of the resulting configuration.
   Ignoring transitions that don't change the state,
-  if patterns $u$ and $v$ differ at only one site then $u$ changes to $v$ at rate $1/(1+\exp(H(v)-H(u)))$ \todo{Shouldn't there be a $\lambda$ up top?}, so
+  if patterns $u$ and $v$ differ at only one site then $u$ changes to $v$ at rate $\lambda/(1+\exp(H(v)-H(u)))$,
+  so
+
+    \peter{reformulate with a potential}
 
   \begin{center}
     \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }c}
@@ -298,8 +306,7 @@ This paper proposes an alternate strategy.
 
 First, it will be useful for later proofs to have an explicit construction of the process,
 also used for simulation,
-using a variant of the ``jump chain representation'', also known as the ``Gillespie algorithm.''
-.
+using a variant of the ``jump chain representation'', also known as the ``Gillespie algorithm''.
 Briefly, this  works by first sampling a homogeneous Poisson process of times and locations of possible changes,
 at an appropriate rate $\mu_*$ per site,
 and then resolving each possible change in temporal order.
@@ -338,6 +345,8 @@ and if so, switch them.
 
 
 \section{Inference}
+
+\peter{shorten, refer to figure}
 
 The problem at hand is to infer the parameters of the model, given the state at time 0 and later at time $t$.
 If $n$ is large enough and $t$ is not too large,
@@ -387,473 +396,12 @@ is close to $p_{\ell,m}(x,y)$, regardless of context wider than $2k+l$:
 \end{align}
 We provide a precise statement of the error in this approximation later.
 
-%%%%
-\subsection{Summary statistics}
-
-Since we cannot compute reasonably the full likelihood for the data,
-we will need to choose appropriate summary statistics
-that contain as much information about the process as possible,
-and have a tractable expression for their marginal likelihood.
-For simplicity,
-we assume in this section that approximation \eqref{eqn:window_approx} holds exactly.
-If $i_1 < \ldots < i_{n(x)}$ are a set of nonoverlapping sites where the initial sequence matches $x$
--- i.e.\ $X_{i_k}^{(2\ell+m)}(0)=x$ and $i_{k+1} > i_k + 2\ell+m$ for all $k$ %En dash close to math could be confusing. This sentence is a doozy.
-then the counts $N(x,y)=\#\{ i_k \st X_{i_k+\ell}^{(m)}(t)=y\}$ (the number of these sites that match the smaller pattern $y$ at time $t$)
-are multinomial, with probabilities $\{p_{\ell,m}(x,y)\st y \in \calS^m\}$.
-For instance, if $\ell=3$ then $N(\text{ACTCAC}, \text{CGC})$ counts the number of occurrences of
-\begin{center}
-\begin{tabular}{c|ccccccc}
- $x$ &  C  & A & C & T & C & A & C \\
- $y$ &  $\centerdot$  & $\centerdot$  & C & G & C & $\centerdot$  & $\centerdot$
-\end{tabular}
-\end{center}
-where $\cdot$ represents any base.
-More generally, if we partition the sequence into windows of length $2\ell+m$,
-and let $N(x,y)$ be the number of times we see a window in which $x$ matches $X(0)$ and $y$ matches $X(t)$,
-then these counts are independently multinomial across each $x$.
-% so the marginal likelihood of the statistics $N(x,y)$ is
-% \begin{align}
-%     \prod_{x \in \calS^{2\ell+m}} N(x)! \prod_{y \in \calS^m} \frac{p_{\ell,m}(x,y)^{N(x,y)}}{N(x,y)!} ,
-% \end{align}
-% where $N(x) = \sum_y N(x,y)$.
-
-Of course, a drawback to this approach is that we throw away a good fraction of the data.
-In fact, we do not even look at a fraction $2\ell/(2\ell+m)$ of the second sequence, $X(t)$,
-that lies in the outside edges of each window.
-As before, let $N(x)$ be the number of occurrences of a pattern $x$ in $X(0)$,
-and $N(x,y)$ the number of times $x$ is seen juxtaposed with $y$ in $X(t)$,
-but this time, count over all positions,
-so that e.g.\ $N(x) = \#\{ 1 \le i \le n - 2\ell - m + 1 \st X_i^{(m+2\ell)}(0)=x\}$.
-
-Now we will now calculate the expectation and covariances of $N(x,y)$.
-\peter{The following is Not Right, but also we don't really use it at the moment.}
-If we assume that \eqref{eqn:window_approx} is exact, then
-\[
-    \E [N(x,y)] = N(x) \, p_{\ell,m}(x,y).
-\]
-To compute covariances, define $\chi_i(x,y)$ to be 1 if $X_{i-\ell}^{(|x|)}(0)=x$ and $X_i^{(|y|)}(t)=y$, and 0 otherwise,
-so that $N(x,y) = \sum_{i=1}^n \chi_i(x,y)$.
-Overloading notation, also define $\chi_i(x)$ to be 1 if $X_{i-\ell}^{(|x|)}(0)=x$,
-\begin{align}
-  \var[N(x,y)] &= \sum_{i=1}^n \var[\chi_i(x,y)] + \sum_{i\neq j} \cov[\chi_i(x,y), \chi_j(x,y)] \\
-               &\approx \sum_{i=1}^n \chi_i(x) p_{\ell,m}(x,y)(1-p_{\ell,m}(x,y))
-            + 2 \sum_{i=1}^{n-2\ell-m} \sum_{j=i+1}^{i+2\ell+m-1} \cov[ \chi_i(x,y) \chi_j(x,y) ] \\
-            &= N(x) p_{\ell,m}(x,y)(1-p_{\ell,m}(x,y)) +
-\end{align}
-The term $\E[\chi_1(x,y) \chi_{k+1}(x,y)]$ is the probability that $x$ matches at both site 1 and site $k+1$,
-and that $y$ matches both at site $\ell+1$ and at site $\ell+k+1$.
-For this to be nonzero, the joint pattern $(x,y)$ must allow self-overlaps.
-Similarly, if $(x_1,y_1) \neq (x_2,y_2)$ then
-\begin{align}
-  \begin{split}
-    \cov[N(x_1,y_1),N(x_2,y_2)]
-    & \approx - n (2m+4\ell) p_{\ell,m}(x_1,y_1)p_{\ell,m}(x_2,y_2) \\
-    & \qquad {} + n\sum_{k=1}^{m+2\ell} \E[\chi_1(x_1,y_1) \chi_{k+1}(x_2,y_2) + \chi_1(x_2,y_2) \chi_{k+1}(x_1,y_1)] .
-  \end{split}
-\end{align}
-
-
-%%%%
-\subsection{A likelihood function}
-
-The covariance calculations show that
-if $p_{\ell,m}(x,y)$ is small enough (i.e.\ the pattern is not common),
-then $N(x,y)$ is close to Poisson.
-Using this observation, we can estimate parameters by composite likelihood,
-using all $N(x,y)$ as data.
-Specifically, this composite likelihood is
-\begin{align} \label{eqn:comp_like}
-  \prod_{x,y} F_{(x,y)}^{N(x,y)}
-\end{align}
-where $F$ is the $|\calS|^{m+2\ell} \times |\calS|^m$ matrix whose $(x,y)^\text{th}$ entry is $p_{m,\ell}(t,x,y)$ as described in the "Computation" section.
-Maximum likelihood then gets an asymptotically unbiased estimate of the parameters. (cite)
-However, since they are not independent, to get confidence intervals, we need to either simulate, or do something different.
-
-If we use only a subset of patterns $\{(x_k,y_k)\}$ chosen so that $\E[M_1(x,y) M_{k+1}(x,y)]$ is small (or zero),
-\erick{M not defined, but I'm guessing that this is effectively saying that the probability of having two different patterns apply to the same sequences is small?}
-the entire collection $\{N(x_k,y_k)\}$ will be close to independent Poisson.
-(using Stein's method)
-Then we'll have the correct likelihood function for (this subset of) data.
-
-If changes are rare, then one way to get a set of patterns with this property is to only choose ones such that going from $x$ to $y$ entails a change;
-and any overlapping patterns must require additional changes,
-i.e.\ if $(x_1,y_1)$ matches at $i_1$,
-then for $(x_2,y_2)$ to match at $i_2$,
-there must be additional changes outside $(i_1,\ldots,i_1+\ell-1)$.
-
-Here is one way to obtain such a set.
-Take a pair of patterns $(x,y)$, that overlap at $m$ positions,
-and suppose that they differ at $1 \le i_1, \ldots, i_d \le m$.
-Let $\bar i = (1/d) \sum_{j=1}^d i_j$ be the mean position of the changes,
-and take only patterns with $(m-1)/2 < \bar i \le (m+1)/2$.
-For example, in the example above with $m=3$ and $\ell=2$,
-\begin{center}
-\begin{tabular}{c|ccccccc}
- $x$ &  C  & A & C & T & C & A & C \\
- $y$ &  $\centerdot$  & $\centerdot$  & C & G & C & $\centerdot$  & $\centerdot$
-\end{tabular}
-\end{center}
-$x$ and $y$ differ only at (relative) position $i_1=2$.
-
-Another way to achieve the same goal of having all overlapping patterns require additional changes is to require $i_1 = \bar i = 1$.
-No two such patterns can be shifted versions of each other
-without adding more changed sites,
-since shifting by $k$ without adding changed sites just adds $k$ to $\bar i$.
-For example, we might take
-\begin{center}
-\begin{tabular}{c|ccccccc}
- $x$ &  A & C & T & C & A & C & G \\
- $y$ &  $\centerdot$  & $\centerdot$  & G & C & A & $\centerdot$  & $\centerdot$
-\end{tabular}
-\end{center}
-
-
-%%%%
-\subsection*{Proof of the approximation}
-
-\begin{proof}
-
-In fact, the approximation improves exponentially as $\ell$ and $m$ increase --
-here is a simple argument.
-Suppose the maximum length of any transition pattern is $R = \max\{ |u| : (\mu,u,v) \in \calT \}$.
-The transition rate at site $i$ at time $s$ is determined if we know $X_{i-R}^{(2R+1)}(s)$;
-this can be determined from $X_{i-R}^{2R+1}(0)$ and the outcome of all changes happening before time $s$ at sites in $(i-R-1, \ldots, i+R)$.
-These will depend in turn on the outcome of previous possible changes.
-For each site $i$ and times $s_1 < s_2$, define the set of states $H(i,s_1,s_2)$
-so that if one knows the possible change points $s_{ij}$,
-then changes outside of $H(i,s_1,s_2)$ do not affect the distribution of $X_i(s_2)$.
-Concretely, define $H(i,s_1,s_2)$ by the property that $i \in H(i,s_1,s_2)$, and
-\begin{gather}
-  \text{if } s_1 < s_{jk} \le s_2 \text{ for some } i-R-1 \le j \le i+R, \text{ then } H(j,s_1,s_{jk}) \subseteq H(i,s_1,s_2) .
-\end{gather}
-In other words, $H(i,s_1,s_2)$ is the union of the $R$-neighborhoods of $i$ and all possible changes occurring in $H(i,s_1,s_2)$ between $s_1$ and $s_2$.
-For a set of states $I$, let $H(I,s_1,s_2) = \bigcup_{i\in I} H(i,s_1,s_2)$.
-Formally, the state $X_i(s_2)$ is conditionally independent of $\{X_j(s_1) \st j \notin H(i,s_1,s_2)\}$.
-Informally, the approximation \eqref{eqn:window_approx} will be good if $H$ does note expand beyond the flanking context.
-Now, MAKE THIS EASIER TO READ
-\begin{multline}
-  \P\{ X_i^{(m)}(t) = y \mid X(0) \}
-  = \P\left\{ H(\{i,\ldots,i+m\},0,t)\subseteq\{i-\ell,\ldots,i+m+r\} \right\} \\
-   \qquad \qquad {} \times \P\left\{ X_i^{(m)}(t) = y \mid X_{i-\ell}^{(\ell+m+r)}(0), \; H(\{i,\ldots,i+m\},0,t)\subseteq\{i-\ell,\ldots,i+m+r\} \right\} \\
-     \qquad {} + \P\left\{ H(\{i,\ldots,i+m\},0,t)\nsubseteq\{i-\ell,\ldots,i+m+r\} \right\}  \\
-   \qquad\qquad {} \times \P\left\{ X_i^{(m)}(t) = y \mid X_{i-\ell}^{(\ell+m+r)}(0), \; H(\{i,\ldots,i+m\},0,t)\nsubseteq\{i-\ell,\ldots,i+m+r\} \right\} ,
-\end{multline}
-and so
-\begin{align} \label{eqn:prob_approx}
-  \left| \P\{ X_i^{(m)}(t) = y \mid X(0) \} - p_{\ell,m}(t;x,y) \right| \le 2 \P\left\{  H(\{I,\ldots,i+m\},0,t)\subseteq\{i-\ell,\ldots,i+m+r\} \right\}.
-\end{align}
-
-So, the error is bounded by the probability that $H(I,0,t)$ is larger than the context from $I-\ell$ to $I+r$.
-However, following $H$ backwards in time, the outer edge of $H$ expands as a continuous-time random walk:
-for instance, the left edge $L(s) = \min \{ j \in H(I,t-s,t) \}$ jumps leftwards at rate $R\mu_*$ with a random jump size
-that has mean $R/2$.
-General facts about random walks imply that \eqref{eqn:prob_approx} is bounded above by $C e^{-\alpha \ell/t}$, for some constants $C$ and $\alpha$.
-
-\end{proof}
-
-%%%%%%%%
-\subsection{Edge effects and cyclicization}
-
-The choice to treat long sequences as cyclical is generally of little importance.
-However, we have defined in \eqref{eqn:G_defn} the basic building block of our approximation, $G(m)$,
-to be the transition matrix \emph{for a circular sequence} of length $m$, where $m$ may be short.
-This seems strange -- but, what else would we do at the edges?
-We want to use $G(\ell+m+r)$ to compute the chance that a given $(\ell+m+r)$-sequence ends up with another given $m$-sequence in the middle;
-and if $\ell$ and $r$ are big enough relative to $t$, this will be a good approximation regardless of what we do at the edges.
-One answer would be to not allow patterns hanging off of either end to match,
-resulting in a slight underestimate of the chance of change.
-A better approximation would be to use the marginal frequencies in some way to average over surroudning sequence
--- but, this requires marginal frequencies to be known, and these are not stationary.
-However, the leftmost site in a randomly chosen window is a sample from the marginal distribution,
-and if sites separated by distance $\ell+m+r$ are sufficiently uncorrelated,
-wrapping the sequence around is a good approximation to averaging over marginal frequencies in the surrounding sequence.
-It is easy to imagine situations where this would not be the best solution --
-but again, if $\ell$ and $r$ are large enough, it won't matter much.
-
-%%%%%%%%
-\section{Phylogenetic inference}
-
-In phylogenetic applications, rather than ``before'' and ``after'' observations,
-we get two (or more) observations evolved from a common root.
-In the simplest case of two taxa we have two processes $X$ and $Y$,
-with identical starting states $X(0)=Y(0)$,
-observed only at times $t_X$ and $t_Y$ respectively.
-
-If the approximation described above holds,
-then we can write the probability that we see (long) pattern $x$ in $X(t_X)$ juxtaposed with (short) pattern $y$ in $Y(t_Y)$
-using the pattern frequencies at the root.
-Concretely: pick a random location $I$ in the sequence and let $X_{I-\ell}^{m+2\ell}(0) = \rho$ be the (long) pattern seen there at the root,
-and write $\pi(z)$ for the frequency of pattern $z$ in $X(0)$, i.e.\ $\P\{\rho=z\}=\pi(z)$.
-% Given the corresponding pattern in $X(t_X)$, the distribution of $\rho$ is proportional to
-% \[
-%     \P\{ \rho=z \mid X_{I-\ell}^{m+2\ell}(t_X)=x\} \propto \pi(z) p_{m+2\ell}(t,z,x) .
-% \]
-The probability that we see $x$ and $y$ at the random location $I$ is
-\begin{align} \label{eqn:phylo_likelihood}
-    \P\{X_{I-\ell}^{m+2\ell}(t_X)=x \text{ and } Y_I^\ell(t_Y)=y \} = \sum_{z \in \calS^{m+2\ell}} \pi(z) p_{m+2\ell}(t_X,z,x) p_{m,\ell}(t_Y,z,y) .
-\end{align}
-This can be computed without much more effort than the simpler case above,
-given the frequencies at the root, as described in greater generality below.
-
-
-
-%%%%
-\subsection{The root distribution}
-
-We clearly don't want to add an extra parameter $\pi(z)$ for all $z \in \calS^{m+2\ell}$.
-If nothing else, it would make the inference depend on $m$ and $\ell$, which we'd like to avoid.
-One approach would be to put a Dirichlet distribution on $\pi(z)$.
-This has the nice property that you can choose priors that are consistent across different values of $m$ and $\ell$.
-We'd have to still MCMC around in the space of $\pi(z)$, so they'd be nuisance parameters from that point of view.
-Also, making the frequencies at the root random introduces correlations between counts, which we want to avoid.
-An alternative is to specify $\pi$ through lower-dimensional statistics,
-for instance to model the root state as a sample from a Markov random field
-with parameters for the marginal frequencies of each state, and pairwise (or higher) correlations between them.
-
-A Markov random field with interactions between sites no more than distance two away
-is determined by the energy function $\phi(a,b,c)$ which gives the ``energy'' of the configuration $abc$ for each $a,b,c \in \calS$.
-We use this to define the distribution on root patterns $\pi$ by
-\begin{align}  \label{eqn:root_mrf}
-    \pi(z) = \frac{1}{Z} \exp\left( - \sum_{i=1}^{|z|} \phi(z_{i-1},z_i,z_{i+1}) \right),
-\end{align}
-i.e.\ the exponential of the total energy of each three adjacent sites,
-where $Z$ is the normalizing constant.
-Note that it is often difficult to compute $Z$ in applications of Markov random fields,
-but here we are working with relatively short sequences,
-so we just compute \eqref{eqn:root_mrf} for all possible $z$, and divide by the sum.
-(However, for this same reason this is not equivalent to saying that $X(0)$ is a sample from the Markov random field
-and finding the distribution of patterns within this.)
-
-
-%%%%%
-\subsubsection{Mixing}
-
-There can be significant confounding of the frequencies at the root with the other parameters,
-which results in poor mixing.
-(See CpG results, below.)
-To see why this is, consider the following back-of-the-envelope calculation.
-Take $x \neq y$ to be single bases (so, set $\ell=0$ and $w=1$),
-so that $N(x,y)$ gives the number of times an $x$ and a $y$ are homologous.
-Let $q(x,y)$ be the instantaneous rate that $x \to y$ (averaged somehow over context?),
-so that $N(x,y)$ should be, roughly,
-\begin{align*}
-  \sum_z \pi(z) q(z,x) q(z,y) &\approx t \pi(x) (1+q(x,x)) q(x,y) + t \pi(y) q(y,x) (1+q(y,y)) ,
-\end{align*}
-where as usual $q(x,x) = (-1) \sum_{z \neq x} q(x,z)$ is (minus) the total jump rate out of $x$.
-
-So, when we propose a change to $\pi$ we might want to also adjust the rates accordingly to keep this more-or-less constant:
-if we chnage $\pi(x) \mapsto \pi(x) + \epsilon_x$, we want $\delta_{xy}$ to satisfy
-\begin{align*}
-  \sum_z \pi(z) q(z,x) q(z,y) = \sum_z (\pi(z) + \epsilon_z) ( q(z,x) + \delta_{zx} ) ( q(z,y) + \delta_{zy} ) ,
-\end{align*}
-or, to first order in $\delta$,
-\begin{align*}
-  0 &\approx \sum_z \epsilon_z q(z,x) q(z,y) + \sum_z \pi(z) \delta_{zx} q(z,y) + \sum_z \pi(z) q(z,x) \delta_{zy} \\
-   &\approx \sum_z \epsilon_z q(z,x) q(z,y) + \sum_z (\pi(z)+\epsilon_z) \delta_{zx} q(z,y) + \sum_z (\pi(z)+\epsilon_z) q(z,x) \delta_{zy} \\
-   &\approx \epsilon_x (1+q(x,x)) q(x,y) + \epsilon_y q(y,x) (1+q(y,y)) + (\pi(y)+\epsilon_y) \delta_{yx} (1+q(y,y)) + (\pi(x)+\epsilon_x) (1+q(x,x)) \delta_{xy} \\
-   &= \left( \epsilon_x q(x,y) + (\pi(x)+\epsilon_x) \delta_{xy} \right)(1+q(x,x)) + \left( \epsilon_y q(y,x) + (\pi(y)+\epsilon_y) \delta_{yx} \right)(1+q(y,y))
-\end{align*}
-One solution to this is to let $\delta_{xy} = - \epsilon_x q(x,y) / \pi(x)$.
-
-Suppose each change is a single-base change, so that changes $\delta \mu_i$ in $\mu$ contribute to $q$ by
-$\delta_{xy} = \sum_{i: x \to y} \delta \mu_i$.
-Given $\delta_{xy}$, this gives a linear equation for $\delta \mu_i$ that may or may not be solvable,
-but certainly is if we have all the single-base transitions as paramters.
-
-%%%%%%%%%%%
-\section{Computation}
-
-For inference, we need to compute the $|\calS|^{m+2\ell} \times |\calS|^m$ matrix $F$ whose $(x,y)^\text{th}$ entry is $p_{m,\ell}(t,x,y)$,
-for various $t$.
-This matrix is a projection of the $|\calS|^{m+2\ell} \times |\calS|^{m+2\ell}$ matrix whose $(x,z)^\text{th}$ entry is
-\begin{align}
-    p_{m+2\ell}(x,z) = \left( e^{t G(m+2\ell)} \right)_{x,z} ,
-\end{align}
-where $G(m+2\ell)$ is the sparse $|\calS|^{m+2\ell} \times |\calS|^{m+2\ell}$ matrix defined in \eqref{eqn:G_defn}.
-The ``projection'' we need just marginalizes over long patterns $z$ that match the shorter pattern $y$:
-if we define the matrix $U$ in this way, so that $U_{zy}=1$ if $z_\ell^m=y$ and $U_{zy}=0$ otherwise,
-then
-\begin{align} \label{eqn:Tmer_trans}
-    p_{m,\ell}(t,x,y) = \sum_{z \in \calS^{m+2\ell}} \left( e^{t G(m+2\ell)} \right)_{xz} U_{zy} ,
-\end{align}
-so in fact we don't need the entire matrix $e^{t G(m+2\ell)}$,
-just the product of this matrix with each of the columns of $U$.
-
-Modern techniques in sparse matrix computation (Krylov methods) provide efficient ways to do this
-by only multiplying $G$ and $U$ some number of times,
-which is much more efficient because $G$ is sparse.
-
-\subsection{Updating $G$}
-
-We can also take advantage of the sparsity of $G$ to perform efficient computation of the likelihood
-under many sets of parameters.
-First note that $G(m+2\ell)$ has, assuming only single-position changes,
-$(1+m(|\calS|-1)) |\calS|^{m+2\ell}$ nonzero entries, since each of the $|\calS|^{m+2\ell}$ can change in $m$ places.
-This will determine how the computation scales with $m$, $\ell$, and $|\calS|$,
-once we precompute a number of things.
-Let $g = (g_1, \ldots, g_d)$ be the nonzero entries of $G$, in some fixed ordering;
-sparse matrix representations of $G$ store only $g$ along with information about the rows and columns these are found in.
-Each $g_i$ is a linear combination of mutation rates $\mu_j$, say $g_i = \sum_j a_{ij} \mu_j$;
-so by precomputing $a_{ij}$ we can efficiently update $G$.
-This is true if the boundary conditions are circular, mean-value, or neither.
-
-We can do similar precomputations to help with the case of selective differences:
-XXX describe
-
-
-\subsection{Phylogenetic peeling}
-
-Furthermore, note that the further calculations in the phylogenetic case can be done using these methods.
-To compute
-\[
-    \sum_z \pi(z) p_{m+2\ell}(t_X,z,x) p_{m,\ell}(t_Y,z,y)
-    = \sum_z \left( e^{t_X G(m+2\ell)} \right)_{zx} \pi(z) \sum_w \left( e^{t_X G(m+2\ell)} \right)_{zw} U_{wy} ,
-\]
-we can first compute $\sum_w \left( e^{t_X G(m+2\ell)} \right)_{zw} U_{wy}$ as above,
-multiply by $\pi(z)$, and then apply the algorithm again using the transpose of $G(m+2\ell)$.
-
-Using the R package expm, this makes computation quite feasible:
-with four possible states and $\ell=2$ and $m=1$, so that $G(m+2\ell)$ is a $1024 \times 1024$ matrix,
-computing $e^{t G(5) }$ takes 13 seconds, while computing $e^{t G(5)} U$ takes only 0.3 seconds.
-Increasing to $\ell=4$ and $m=1$ or $\ell=3$ and $m=2$ is still feasible, taking $e^{t G(8)} U$ in 42 and 47 seconds, respectively
-(and much longer for the whole matrix $e^{t G(8)}$).
-
-More generally\dots
-
-\begin{center}
-\includegraphics{peeling-schematic}
-\end{center}
-
-To compute the likelihood on a more complicated tree, consider the following,
-with the three-taxon tree above as an example,
-where we are counting occurrences of (long) $m+2\ell$-tuples in taxon $X$,
-and (shorter) $m$-tuples in taxa $Y$ and $Z$.
-
-We can compute the likelihood in a similar way, summing over the root state (the summation over $u$)
-and the interior node ($v$):
-\begin{align} \label{eqn:three_taxa_likelihood}
-  \begin{split}
-    & \P\{X_{I-\ell}^{m+2\ell}=x \text{ and } Y_I^\ell=y \text{ and } Z_I^\ell=z \} \\
-    &\qquad = \sum_{u \in \calS^{m+2\ell}} \pi(u) p_{m,\ell}(t_C,u,z) \sum_{v \in \calS^{m+2\ell}} p_{m+2\ell}(t_{AB},u,v) p_{m+2\ell}(t_{A},v,x) p_{m,\ell}(t_B,v,y)
-  \end{split}
-\end{align}
-The steps for computing this are then:
-\begin{enumerate}
-
-  \item Compute $M_1(u,z) = p_{m,\ell}(t_C,u,z)$ (a $|\calS|^{m+2\ell} \times |\calS|^m$ matrix)
-
-  \item Compute $M_2(v,z) = \sum_{u \in \calS^{m+2\ell}}  p_{m+2\ell}(t_{AB},u,v) \pi(u) M_1(u,z)$ (still a $|\calS|^{m+2\ell} \times |\calS|^m$ matrix)
-
-  \item Compute $M_3(v,y) = p_{m,\ell}(t_B,v,y)$ (a $|\calS|^{m+2\ell} \times |\calS|^m$ matrix)
-
-  \item Compute $M_4(x,(y,z)) = \sum_{v \in \calS^{m+2\ell}} p_{m+2\ell}(t_{A},v,x) M_2(v,z) M_3(v,y)$ (stored as a $|\calS|^{m+2\ell} \times |\calS|^{2m}$ matrix).
-
-\end{enumerate}
-Then $M_4$ gives all the likelihoods.
-This is depicted in the figure, writing $\left(e^{tG}\right)_{ab}$ for the matrix $p_{m+2\ell}(t,a,b)$,
-and $P$ for the projection matrix that gives $p_{m,\ell}(t,a,b) = \left( e^{tG} P\right)_{ab}$.
-
-
-In total there are $|\calS|^{3m+2\ell}$ possible data combinations.
-However, we can reduce dimensionality by replacing the last step with
-\begin{enumerate}
-
-  \item[4'.] Compute $M_4(x,w) = \sum_{v \in \calS^{m+2\ell}} p_{m+2\ell}(t_{A},v,x) M_3(v,w) M_4(v,w)$ (stored as a $|\calS|^{m+2\ell} \times |\calS|^{m}$ matrix).
-
-\end{enumerate}
-and only computing the likelihood for cases with $y=z=w$.
-On a three-taxon tree it is not clear that this is desireable, since missing out on double transitions
-might be a significant loss of information,
-but on larger trees it seems likely that we'd want to restrict to combinations with most sites agreeing across the tree.
-(Note, however, that one should not first look at the data, observe which combinations $(y,z)$ were most common, and then restrict to only those!)
-
-
-\subsection*{Algorithm}
-
-Fix one tip of the tree, $a$, to be the taxa where we count ``long'' sequences, let $\rho$ be the root, and let $b_1, \ldots, b_n$ be the remaining tips,
-where we observe ``short'' sequences.
-Let $v_0=\rho, v_1, \ldots, v_\ell = a$ be the path from the root down to $a$,
-let $u_1, u_2, \ldots, u_m$ be the remaining internal nodes,
-and for each $v_i$ let $u(v_i)$ be the offspring of $v_i$ that is not one of the other $v$.
-For each node in the tree,
-we will compute a matrix of probabilities:
-for nodes not on the path from $a$ to the root,
-we compute the chance that that each ``long'' sequence observed at that node
-is matched by each possible combination of ``short'' sequences on the tips of the tree below it.
-For nodes on the path from $a$ to the root, we compute the probability of observing
-each ``long'' sequence at that node, along with the combinations of ``short'' sequences
-on all tips further away from $a$ (i.e.\ below that node if it was rooted at $a$).
-For a node $w$ this will be stored as a $|\calS|^{m+2\ell} \times |\calS|^{cm}$ matrix, for some $c$,
-and denoted $M(w)$.
-Rows of $M(u_j)$ sum to 1,
-while each entire matrix $M(v_i)$ sums to 1;
-the difference being that $M(v_i)$ sums over the prior at the root,
-and $M(u_j)$ takes the value at $u_j$ as given.
-
-Let $t(w)$ be the length of the branch above node $w$, for $w \neq \rho$,
-and denote by $G^T$ the transpose of $G$.
-
-\begin{enumerate}
-
-  \item Set $M(b_i) = P$ for each $b_i$.
-
-  \item While there are $u_j$ whose children $w_1$ and $w_2$ both have matrices computed,
-    \begin{enumerate}
-      \item let
-        \begin{align}
-          M(u_j)_{x,(y,z)} = \left( e^{t(w_1) G} M(w_1) \right)_{x,y} \left( e^{t(w_2) G} M(w_2)_{x,z} \right)_{x,z} .
-        \end{align}
-    \end{enumerate}
-
-  \item Let
-    \begin{align}
-      M(\rho)_{x,y} = \pi(x) \left( e^{t(u(\rho)) G} M(w(\rho)) \right)_{x,y}
-    \end{align}
-
-  \item For each $1 \le k < \ell$,
-    \begin{enumerate}
-      \item let
-        \begin{align}
-          M(v_k)_{x,(y,z)} = \left( e^{t(v_k) G^T} M(v_{k-1}) \right)_{y,x} \left( e^{t(u(v_k)) G} M(u(v_{k-1})) \right)_{x,z}  .
-        \end{align}
-    \end{enumerate}
-
-  \item Finally, let
-    \begin{align}
-      M(a)_{x,y} = \left( e^{t(a) G^T} M(v_{\ell-1}) \right)_{x,y}  .
-    \end{align}
-
-\end{enumerate}
-
-
-
-%%%%%%
-\section{Bayesian things}
-
-So, suppose we've got a list of patterns $(x_i,y_i)$
-and we're happy with the idea that they're independent.
-Recall that
-\[
-\E\left[ N(x,y) \mid N(x) \right] = N(x) p_{m,\ell}(x,y) ,
-\]
-Parameters $\theta$ enter implicitly through $p_{m,\ell}$.
-
-
-In the case that we observe the initial sequence, $N(x,y)$ are binomial with sample size $N(x)$.
-and so the likelihood is
-\[
-\prod_x N(x)! \prod_y \frac{ p_{m,\ell}(x,y)^{N(x,y)} }{ N(x,y)! } ,
-\]
-and so the negative log likelihood is, up to a constant,
-\[
-\sum_{x,y} N(x,y) \log p_{m,\ell}(x,y) .
-\]
-
+\peter{how to choose window size}
 
 %%%%%%
 \section{Full likelihood}
 
-\emph{The following is copied over from work on the abphylo project.}
+\peter{shorten/edit this to follow on from the above}
 
 The s5f model is defined as follows:
 for each $(a,b,c,d,e,x) \subset \{\nA,\nC,\nG,\nT\}$,
@@ -1020,13 +568,158 @@ divided by the likelihoods of all the $(w,2w)$ T-mers.
 
 
 
+%%%%%%%%%%%
+\section{Computation}
+
+For inference, we need to compute the $|\calS|^{m+2\ell} \times |\calS|^m$ matrix $F$ whose $(x,y)^\text{th}$ entry is $p_{m,\ell}(t,x,y)$,
+for various $t$.
+This matrix is a projection of the $|\calS|^{m+2\ell} \times |\calS|^{m+2\ell}$ matrix whose $(x,z)^\text{th}$ entry is
+\begin{align}
+    p_{m+2\ell}(x,z) = \left( e^{t G(m+2\ell)} \right)_{x,z} ,
+\end{align}
+where $G(m+2\ell)$ is the sparse $|\calS|^{m+2\ell} \times |\calS|^{m+2\ell}$ matrix defined in \eqref{eqn:G_defn}.
+The ``projection'' we need just marginalizes over long patterns $z$ that match the shorter pattern $y$:
+if we define the matrix $U$ in this way, so that $U_{zy}=1$ if $z_\ell^m=y$ and $U_{zy}=0$ otherwise,
+then
+\begin{align} \label{eqn:Tmer_trans}
+    p_{m,\ell}(t,x,y) = \sum_{z \in \calS^{m+2\ell}} \left( e^{t G(m+2\ell)} \right)_{xz} U_{zy} ,
+\end{align}
+so in fact we don't need the entire matrix $e^{t G(m+2\ell)}$,
+just the product of this matrix with each of the columns of $U$.
+
+Modern techniques in sparse matrix computation (Krylov methods) provide efficient ways to do this
+by only multiplying $G$ and $U$ some number of times,
+which is much more efficient because $G$ is sparse.
+
+\subsection{Updating $G$}
+
+We can also take advantage of the sparsity of $G$ to perform efficient computation of the likelihood
+under many sets of parameters.
+First note that $G(m+2\ell)$ has, assuming only single-position changes,
+$(1+m(|\calS|-1)) |\calS|^{m+2\ell}$ nonzero entries, since each of the $|\calS|^{m+2\ell}$ can change in $m$ places.
+This will determine how the computation scales with $m$, $\ell$, and $|\calS|$,
+once we precompute a number of things.
+Let $g = (g_1, \ldots, g_d)$ be the nonzero entries of $G$, in some fixed ordering;
+sparse matrix representations of $G$ store only $g$ along with information about the rows and columns these are found in.
+Each $g_i$ is a linear combination of mutation rates $\mu_j$, say $g_i = \sum_j a_{ij} \mu_j$;
+so by precomputing $a_{ij}$ we can efficiently update $G$.
+This is true if the boundary conditions are circular, mean-value, or neither.
+
+We can do similar precomputations to help with the case of selective differences:
+XXX describe
+
+
+%%%%%%%%
+\section{Phylogenetic inference}
+
+In phylogenetic applications, rather than ``before'' and ``after'' observations,
+we get two (or more) observations evolved from a common root.
+In the simplest case of two taxa we have two processes $X$ and $Y$,
+with identical starting states $X(0)=Y(0)$,
+observed only at times $t_X$ and $t_Y$ respectively.
+
+If the approximation described above holds,
+then we can write the probability that we see (long) pattern $x$ in $X(t_X)$ juxtaposed with (short) pattern $y$ in $Y(t_Y)$
+using the pattern frequencies at the root.
+Concretely: pick a random location $I$ in the sequence and let $X_{I-\ell}^{m+2\ell}(0) = \rho$ be the (long) pattern seen there at the root,
+and write $\pi(z)$ for the frequency of pattern $z$ in $X(0)$, i.e.\ $\P\{\rho=z\}=\pi(z)$.
+% Given the corresponding pattern in $X(t_X)$, the distribution of $\rho$ is proportional to
+% \[
+%     \P\{ \rho=z \mid X_{I-\ell}^{m+2\ell}(t_X)=x\} \propto \pi(z) p_{m+2\ell}(t,z,x) .
+% \]
+The probability that we see $x$ and $y$ at the random location $I$ is
+\begin{align} \label{eqn:phylo_likelihood}
+    \P\{X_{I-\ell}^{m+2\ell}(t_X)=x \text{ and } Y_I^\ell(t_Y)=y \} = \sum_{z \in \calS^{m+2\ell}} \pi(z) p_{m+2\ell}(t_X,z,x) p_{m,\ell}(t_Y,z,y) .
+\end{align}
+This can be computed without much more effort than the simpler case above,
+given the frequencies at the root, as described in greater generality below.
+
+
+
+\subsection{Phylogenetic peeling}
+
+Furthermore, note that the further calculations in the phylogenetic case can be done using these methods.
+To compute
+\[
+    \sum_z \pi(z) p_{m+2\ell}(t_X,z,x) p_{m,\ell}(t_Y,z,y)
+    = \sum_z \left( e^{t_X G(m+2\ell)} \right)_{zx} \pi(z) \sum_w \left( e^{t_X G(m+2\ell)} \right)_{zw} U_{wy} ,
+\]
+we can first compute $\sum_w \left( e^{t_X G(m+2\ell)} \right)_{zw} U_{wy}$ as above,
+multiply by $\pi(z)$, and then apply the algorithm again using the transpose of $G(m+2\ell)$.
+
+Using the R package expm, this makes computation quite feasible:
+with four possible states and $\ell=2$ and $m=1$, so that $G(m+2\ell)$ is a $1024 \times 1024$ matrix,
+computing $e^{t G(5) }$ takes 13 seconds, while computing $e^{t G(5)} U$ takes only 0.3 seconds.
+Increasing to $\ell=4$ and $m=1$ or $\ell=3$ and $m=2$ is still feasible, taking $e^{t G(8)} U$ in 42 and 47 seconds, respectively
+(and much longer for the whole matrix $e^{t G(8)}$).
+
+More generally\dots
+
+\begin{center}
+\includegraphics{peeling-schematic}
+\end{center}
+
+To compute the likelihood on a more complicated tree, consider the following,
+with the three-taxon tree above as an example,
+where we are counting occurrences of (long) $m+2\ell$-tuples in taxon $X$,
+and (shorter) $m$-tuples in taxa $Y$ and $Z$.
+
+We can compute the likelihood in a similar way, summing over the root state (the summation over $u$)
+and the interior node ($v$):
+\begin{align} \label{eqn:three_taxa_likelihood}
+  \begin{split}
+    & \P\{X_{I-\ell}^{m+2\ell}=x \text{ and } Y_I^\ell=y \text{ and } Z_I^\ell=z \} \\
+    &\qquad = \sum_{u \in \calS^{m+2\ell}} \pi(u) p_{m,\ell}(t_C,u,z) \sum_{v \in \calS^{m+2\ell}} p_{m+2\ell}(t_{AB},u,v) p_{m+2\ell}(t_{A},v,x) p_{m,\ell}(t_B,v,y)
+  \end{split}
+\end{align}
+The steps for computing this are then:
+\begin{enumerate}
+
+  \item Compute $M_1(u,z) = p_{m,\ell}(t_C,u,z)$ (a $|\calS|^{m+2\ell} \times |\calS|^m$ matrix)
+
+  \item Compute $M_2(v,z) = \sum_{u \in \calS^{m+2\ell}}  p_{m+2\ell}(t_{AB},u,v) \pi(u) M_1(u,z)$ (still a $|\calS|^{m+2\ell} \times |\calS|^m$ matrix)
+
+  \item Compute $M_3(v,y) = p_{m,\ell}(t_B,v,y)$ (a $|\calS|^{m+2\ell} \times |\calS|^m$ matrix)
+
+  \item Compute $M_4(x,(y,z)) = \sum_{v \in \calS^{m+2\ell}} p_{m+2\ell}(t_{A},v,x) M_2(v,z) M_3(v,y)$ (stored as a $|\calS|^{m+2\ell} \times |\calS|^{2m}$ matrix).
+
+\end{enumerate}
+Then $M_4$ gives all the likelihoods.
+This is depicted in the figure, writing $\left(e^{tG}\right)_{ab}$ for the matrix $p_{m+2\ell}(t,a,b)$,
+and $P$ for the projection matrix that gives $p_{m,\ell}(t,a,b) = \left( e^{tG} P\right)_{ab}$.
+
+
+In total there are $|\calS|^{3m+2\ell}$ possible data combinations.
+However, we can reduce dimensionality by replacing the last step with
+\begin{enumerate}
+
+  \item[4'.] Compute $M_4(x,w) = \sum_{v \in \calS^{m+2\ell}} p_{m+2\ell}(t_{A},v,x) M_3(v,w) M_4(v,w)$ (stored as a $|\calS|^{m+2\ell} \times |\calS|^{m}$ matrix).
+
+\end{enumerate}
+and only computing the likelihood for cases with $y=z=w$.
+On a three-taxon tree it is not clear that this is desireable, since missing out on double transitions
+might be a significant loss of information,
+but on larger trees it seems likely that we'd want to restrict to combinations with most sites agreeing across the tree.
+(Note, however, that one should not first look at the data, observe which combinations $(y,z)$ were most common, and then restrict to only those!)
+
+The algorithm in general is written out in Appendix \peter{ref it}.
+
+
+
+
 %%%%%%%
-\section{Simulation results}
+\section{Results}
+
+\peter{from simulation: parameter estimation; model selection}
+
+\peter{do a three-taxon tree? infer with shape data?}
 
 The method works well to find point estimates of the parameters.
 Obtaining posterior density estimates using the approximation likelihood function on a subset of patterns
 works in some cases;
 in other cases the likelihood surface is still too peaked, underestimating the uncertainty.
+(but counting in nonoverlapping windows fixes the peakiness problem)
+
 
 \subsection{TASEP}
 
@@ -1188,49 +881,346 @@ Assess power and accuracy in the Ising model, by running replicates at these par
   \hline
 \end{tabular}
 
-\section{Applications}
+\section{Discussion}
 
-graham:
+
 \begin{itemize}
 
-\item estimating freq spectrum [Hernandez]
+  \item estimating freq spectrum [Hernandez]
 
-\item probabilistic ancestral states for common ancestor of e.g. humans 4N generations ago [Siepel] -- would widely used for primates
-
-\end{itemize}
-
-
-sergey:
-\begin{itemize}
+  \item probabilistic ancestral states for common ancestor of e.g. humans 4N generations ago [Siepel] -- would widely used for primates
 
   \item ancestral CpG
 
   \item ancient DNA
 
-\end{itemize}
+  \item noisy image transmission denoising: first learn model; then reduce redundancy
 
+  \item root distribution and confounding/mixing
 
-%%%%%%%%
-\section{What next}
-
-\begin{enumerate}
-
-  \item Allow more than single-base distribution at the root.
-
-  \item What's up with the mixing problem in root frequencies?
-
-  \item See if counting in nonoverlapping windows fixes the peakiness problem with TASEP. \emph{Yes, it does.}
-
-  \item See what's feasible with a larger alphabet -- 60 codons -- and more parameters.
+  \item shrinkage prior on highly parameterized model
 
   \item Show that taking no context ($\ell=0$) can be positively misleading in some context.
 
-  \item Do a three-taxa tree.
-
   \item How to identify motifs in the residuals?
+
+\end{itemize}
+
+\subsection{Acknowledgements}
+Erick, Jessica, Graham, Yaniv, Sergey, Simon, Matt, Rasmus
+
+\bibliography{context-dependence}
+
+\appendix
+
+%%%%
+\section*{Proof of the approximation}
+
+\begin{proof}
+
+In fact, the approximation improves exponentially as $\ell$ and $m$ increase --
+here is a simple argument.
+Suppose the maximum length of any transition pattern is $R = \max\{ |u| : (\mu,u,v) \in \calT \}$.
+The transition rate at site $i$ at time $s$ is determined if we know $X_{i-R}^{(2R+1)}(s)$;
+this can be determined from $X_{i-R}^{2R+1}(0)$ and the outcome of all changes happening before time $s$ at sites in $(i-R-1, \ldots, i+R)$.
+These will depend in turn on the outcome of previous possible changes.
+For each site $i$ and times $s_1 < s_2$, define the set of states $H(i,s_1,s_2)$
+so that if one knows the possible change points $s_{ij}$,
+then changes outside of $H(i,s_1,s_2)$ do not affect the distribution of $X_i(s_2)$.
+Concretely, define $H(i,s_1,s_2)$ by the property that $i \in H(i,s_1,s_2)$, and
+\begin{gather}
+  \text{if } s_1 < s_{jk} \le s_2 \text{ for some } i-R-1 \le j \le i+R, \text{ then } H(j,s_1,s_{jk}) \subseteq H(i,s_1,s_2) .
+\end{gather}
+In other words, $H(i,s_1,s_2)$ is the union of the $R$-neighborhoods of $i$ and all possible changes occurring in $H(i,s_1,s_2)$ between $s_1$ and $s_2$.
+For a set of states $I$, let $H(I,s_1,s_2) = \bigcup_{i\in I} H(i,s_1,s_2)$.
+Formally, the state $X_i(s_2)$ is conditionally independent of $\{X_j(s_1) \st j \notin H(i,s_1,s_2)\}$.
+Informally, the approximation \eqref{eqn:window_approx} will be good if $H$ does note expand beyond the flanking context.
+Now, MAKE THIS EASIER TO READ
+\begin{multline}
+  \P\{ X_i^{(m)}(t) = y \mid X(0) \}
+  = \P\left\{ H(\{i,\ldots,i+m\},0,t)\subseteq\{i-\ell,\ldots,i+m+r\} \right\} \\
+   \qquad \qquad {} \times \P\left\{ X_i^{(m)}(t) = y \mid X_{i-\ell}^{(\ell+m+r)}(0), \; H(\{i,\ldots,i+m\},0,t)\subseteq\{i-\ell,\ldots,i+m+r\} \right\} \\
+     \qquad {} + \P\left\{ H(\{i,\ldots,i+m\},0,t)\nsubseteq\{i-\ell,\ldots,i+m+r\} \right\}  \\
+   \qquad\qquad {} \times \P\left\{ X_i^{(m)}(t) = y \mid X_{i-\ell}^{(\ell+m+r)}(0), \; H(\{i,\ldots,i+m\},0,t)\nsubseteq\{i-\ell,\ldots,i+m+r\} \right\} ,
+\end{multline}
+and so
+\begin{align} \label{eqn:prob_approx}
+  \left| \P\{ X_i^{(m)}(t) = y \mid X(0) \} - p_{\ell,m}(t;x,y) \right| \le 2 \P\left\{  H(\{I,\ldots,i+m\},0,t)\subseteq\{i-\ell,\ldots,i+m+r\} \right\}.
+\end{align}
+
+So, the error is bounded by the probability that $H(I,0,t)$ is larger than the context from $I-\ell$ to $I+r$.
+However, following $H$ backwards in time, the outer edge of $H$ expands as a continuous-time random walk:
+for instance, the left edge $L(s) = \min \{ j \in H(I,t-s,t) \}$ jumps leftwards at rate $R\mu_*$ with a random jump size
+that has mean $R/2$.
+General facts about random walks imply that \eqref{eqn:prob_approx} is bounded above by $C e^{-\alpha \ell/t}$, for some constants $C$ and $\alpha$.
+
+\end{proof}
+
+
+\section*{Peeling algorithm}
+
+Fix one tip of the tree, $a$, to be the taxa where we count ``long'' sequences, let $\rho$ be the root, and let $b_1, \ldots, b_n$ be the remaining tips,
+where we observe ``short'' sequences.
+Let $v_0=\rho, v_1, \ldots, v_\ell = a$ be the path from the root down to $a$,
+let $u_1, u_2, \ldots, u_m$ be the remaining internal nodes,
+and for each $v_i$ let $u(v_i)$ be the offspring of $v_i$ that is not one of the other $v$.
+For each node in the tree,
+we will compute a matrix of probabilities:
+for nodes not on the path from $a$ to the root,
+we compute the chance that that each ``long'' sequence observed at that node
+is matched by each possible combination of ``short'' sequences on the tips of the tree below it.
+For nodes on the path from $a$ to the root, we compute the probability of observing
+each ``long'' sequence at that node, along with the combinations of ``short'' sequences
+on all tips further away from $a$ (i.e.\ below that node if it was rooted at $a$).
+For a node $w$ this will be stored as a $|\calS|^{m+2\ell} \times |\calS|^{cm}$ matrix, for some $c$,
+and denoted $M(w)$.
+Rows of $M(u_j)$ sum to 1,
+while each entire matrix $M(v_i)$ sums to 1;
+the difference being that $M(v_i)$ sums over the prior at the root,
+and $M(u_j)$ takes the value at $u_j$ as given.
+
+Let $t(w)$ be the length of the branch above node $w$, for $w \neq \rho$,
+and denote by $G^T$ the transpose of $G$.
+
+\begin{enumerate}
+
+  \item Set $M(b_i) = P$ for each $b_i$.
+
+  \item While there are $u_j$ whose children $w_1$ and $w_2$ both have matrices computed,
+    \begin{enumerate}
+      \item let
+        \begin{align}
+          M(u_j)_{x,(y,z)} = \left( e^{t(w_1) G} M(w_1) \right)_{x,y} \left( e^{t(w_2) G} M(w_2)_{x,z} \right)_{x,z} .
+        \end{align}
+    \end{enumerate}
+
+  \item Let
+    \begin{align}
+      M(\rho)_{x,y} = \pi(x) \left( e^{t(u(\rho)) G} M(w(\rho)) \right)_{x,y}
+    \end{align}
+
+  \item For each $1 \le k < \ell$,
+    \begin{enumerate}
+      \item let
+        \begin{align}
+          M(v_k)_{x,(y,z)} = \left( e^{t(v_k) G^T} M(v_{k-1}) \right)_{y,x} \left( e^{t(u(v_k)) G} M(u(v_{k-1})) \right)_{x,z}  .
+        \end{align}
+    \end{enumerate}
+
+  \item Finally, let
+    \begin{align}
+      M(a)_{x,y} = \left( e^{t(a) G^T} M(v_{\ell-1}) \right)_{x,y}  .
+    \end{align}
 
 \end{enumerate}
 
-\bibliography{context-dependence}
+
+%%%%
+\section{Other likelihood functions}
+
+\subsection{Summary statistics}
+
+Since we cannot compute reasonably the full likelihood for the data,
+we will need to choose appropriate summary statistics
+that contain as much information about the process as possible,
+and have a tractable expression for their marginal likelihood.
+For simplicity,
+we assume in this section that approximation \eqref{eqn:window_approx} holds exactly.
+If $i_1 < \ldots < i_{n(x)}$ are a set of nonoverlapping sites where the initial sequence matches $x$
+-- i.e.\ $X_{i_k}^{(2\ell+m)}(0)=x$ and $i_{k+1} > i_k + 2\ell+m$ for all $k$ %En dash close to math could be confusing. This sentence is a doozy.
+then the counts $N(x,y)=\#\{ i_k \st X_{i_k+\ell}^{(m)}(t)=y\}$ (the number of these sites that match the smaller pattern $y$ at time $t$)
+are multinomial, with probabilities $\{p_{\ell,m}(x,y)\st y \in \calS^m\}$.
+For instance, if $\ell=3$ then $N(\text{ACTCAC}, \text{CGC})$ counts the number of occurrences of
+\begin{center}
+\begin{tabular}{c|ccccccc}
+ $x$ &  C  & A & C & T & C & A & C \\
+ $y$ &  $\centerdot$  & $\centerdot$  & C & G & C & $\centerdot$  & $\centerdot$
+\end{tabular}
+\end{center}
+where $\cdot$ represents any base.
+More generally, if we partition the sequence into windows of length $2\ell+m$,
+and let $N(x,y)$ be the number of times we see a window in which $x$ matches $X(0)$ and $y$ matches $X(t)$,
+then these counts are independently multinomial across each $x$.
+% so the marginal likelihood of the statistics $N(x,y)$ is
+% \begin{align}
+%     \prod_{x \in \calS^{2\ell+m}} N(x)! \prod_{y \in \calS^m} \frac{p_{\ell,m}(x,y)^{N(x,y)}}{N(x,y)!} ,
+% \end{align}
+% where $N(x) = \sum_y N(x,y)$.
+
+Of course, a drawback to this approach is that we throw away a good fraction of the data.
+In fact, we do not even look at a fraction $2\ell/(2\ell+m)$ of the second sequence, $X(t)$,
+that lies in the outside edges of each window.
+As before, let $N(x)$ be the number of occurrences of a pattern $x$ in $X(0)$,
+and $N(x,y)$ the number of times $x$ is seen juxtaposed with $y$ in $X(t)$,
+but this time, count over all positions,
+so that e.g.\ $N(x) = \#\{ 1 \le i \le n - 2\ell - m + 1 \st X_i^{(m+2\ell)}(0)=x\}$.
+
+Now we will now calculate the expectation and covariances of $N(x,y)$.
+\peter{The following is Not Right, but also we don't really use it at the moment.}
+If we assume that \eqref{eqn:window_approx} is exact, then
+\[
+    \E [N(x,y)] = N(x) \, p_{\ell,m}(x,y).
+\]
+To compute covariances, define $\chi_i(x,y)$ to be 1 if $X_{i-\ell}^{(|x|)}(0)=x$ and $X_i^{(|y|)}(t)=y$, and 0 otherwise,
+so that $N(x,y) = \sum_{i=1}^n \chi_i(x,y)$.
+Overloading notation, also define $\chi_i(x)$ to be 1 if $X_{i-\ell}^{(|x|)}(0)=x$,
+\begin{align}
+  \var[N(x,y)] &= \sum_{i=1}^n \var[\chi_i(x,y)] + \sum_{i\neq j} \cov[\chi_i(x,y), \chi_j(x,y)] \\
+               &\approx \sum_{i=1}^n \chi_i(x) p_{\ell,m}(x,y)(1-p_{\ell,m}(x,y))
+            + 2 \sum_{i=1}^{n-2\ell-m} \sum_{j=i+1}^{i+2\ell+m-1} \cov[ \chi_i(x,y) \chi_j(x,y) ] \\
+            &= N(x) p_{\ell,m}(x,y)(1-p_{\ell,m}(x,y)) +
+\end{align}
+The term $\E[\chi_1(x,y) \chi_{k+1}(x,y)]$ is the probability that $x$ matches at both site 1 and site $k+1$,
+and that $y$ matches both at site $\ell+1$ and at site $\ell+k+1$.
+For this to be nonzero, the joint pattern $(x,y)$ must allow self-overlaps.
+Similarly, if $(x_1,y_1) \neq (x_2,y_2)$ then
+\begin{align}
+  \begin{split}
+    \cov[N(x_1,y_1),N(x_2,y_2)]
+    & \approx - n (2m+4\ell) p_{\ell,m}(x_1,y_1)p_{\ell,m}(x_2,y_2) \\
+    & \qquad {} + n\sum_{k=1}^{m+2\ell} \E[\chi_1(x_1,y_1) \chi_{k+1}(x_2,y_2) + \chi_1(x_2,y_2) \chi_{k+1}(x_1,y_1)] .
+  \end{split}
+\end{align}
+
+
+%%%%
+\subsection{A likelihood function}
+
+The covariance calculations show that
+if $p_{\ell,m}(x,y)$ is small enough (i.e.\ the pattern is not common),
+then $N(x,y)$ is close to Poisson.
+Using this observation, we can estimate parameters by composite likelihood,
+using all $N(x,y)$ as data.
+Specifically, this composite likelihood is
+\begin{align} \label{eqn:comp_like}
+  \prod_{x,y} F_{(x,y)}^{N(x,y)}
+\end{align}
+where $F$ is the $|\calS|^{m+2\ell} \times |\calS|^m$ matrix whose $(x,y)^\text{th}$ entry is $p_{m,\ell}(t,x,y)$ as described in the "Computation" section.
+Maximum likelihood then gets an asymptotically unbiased estimate of the parameters. (cite)
+However, since they are not independent, to get confidence intervals, we need to either simulate, or do something different.
+
+If we use only a subset of patterns $\{(x_k,y_k)\}$ chosen so that $\E[M_1(x,y) M_{k+1}(x,y)]$ is small (or zero),
+\erick{M not defined, but I'm guessing that this is effectively saying that the probability of having two different patterns apply to the same sequences is small?}
+the entire collection $\{N(x_k,y_k)\}$ will be close to independent Poisson.
+(using Stein's method)
+Then we'll have the correct likelihood function for (this subset of) data.
+
+If changes are rare, then one way to get a set of patterns with this property is to only choose ones such that going from $x$ to $y$ entails a change;
+and any overlapping patterns must require additional changes,
+i.e.\ if $(x_1,y_1)$ matches at $i_1$,
+then for $(x_2,y_2)$ to match at $i_2$,
+there must be additional changes outside $(i_1,\ldots,i_1+\ell-1)$.
+
+Here is one way to obtain such a set.
+Take a pair of patterns $(x,y)$, that overlap at $m$ positions,
+and suppose that they differ at $1 \le i_1, \ldots, i_d \le m$.
+Let $\bar i = (1/d) \sum_{j=1}^d i_j$ be the mean position of the changes,
+and take only patterns with $(m-1)/2 < \bar i \le (m+1)/2$.
+For example, in the example above with $m=3$ and $\ell=2$,
+\begin{center}
+\begin{tabular}{c|ccccccc}
+ $x$ &  C  & A & C & T & C & A & C \\
+ $y$ &  $\centerdot$  & $\centerdot$  & C & G & C & $\centerdot$  & $\centerdot$
+\end{tabular}
+\end{center}
+$x$ and $y$ differ only at (relative) position $i_1=2$.
+
+Another way to achieve the same goal of having all overlapping patterns require additional changes is to require $i_1 = \bar i = 1$.
+No two such patterns can be shifted versions of each other
+without adding more changed sites,
+since shifting by $k$ without adding changed sites just adds $k$ to $\bar i$.
+For example, we might take
+\begin{center}
+\begin{tabular}{c|ccccccc}
+ $x$ &  A & C & T & C & A & C & G \\
+ $y$ &  $\centerdot$  & $\centerdot$  & G & C & A & $\centerdot$  & $\centerdot$
+\end{tabular}
+\end{center}
+
+\section{Removed bits that we probably don't want}
+
+
+%%%%%%%%
+\subsection{Edge effects and cyclicization}
+
+The choice to treat long sequences as cyclical is generally of little importance.
+However, we have defined in \eqref{eqn:G_defn} the basic building block of our approximation, $G(m)$,
+to be the transition matrix \emph{for a circular sequence} of length $m$, where $m$ may be short.
+\peter{no we haven't}
+This seems strange -- but, what else would we do at the edges?
+We want to use $G(\ell+m+r)$ to compute the chance that a given $(\ell+m+r)$-sequence ends up with another given $m$-sequence in the middle;
+and if $\ell$ and $r$ are big enough relative to $t$, this will be a good approximation regardless of what we do at the edges.
+One answer would be to not allow patterns hanging off of either end to match,
+resulting in a slight underestimate of the chance of change.
+A better approximation would be to use the marginal frequencies in some way to average over surroudning sequence
+-- but, this requires marginal frequencies to be known, and these are not stationary.
+However, the leftmost site in a randomly chosen window is a sample from the marginal distribution,
+and if sites separated by distance $\ell+m+r$ are sufficiently uncorrelated,
+wrapping the sequence around is a good approximation to averaging over marginal frequencies in the surrounding sequence.
+It is easy to imagine situations where this would not be the best solution --
+but again, if $\ell$ and $r$ are large enough, it won't matter much.
+
+%%%%
+\subsection{The root distribution}
+
+We clearly don't want to add an extra parameter $\pi(z)$ for all $z \in \calS^{m+2\ell}$.
+If nothing else, it would make the inference depend on $m$ and $\ell$, which we'd like to avoid.
+One approach would be to put a Dirichlet distribution on $\pi(z)$.
+This has the nice property that you can choose priors that are consistent across different values of $m$ and $\ell$.
+We'd have to still MCMC around in the space of $\pi(z)$, so they'd be nuisance parameters from that point of view.
+Also, making the frequencies at the root random introduces correlations between counts, which we want to avoid.
+An alternative is to specify $\pi$ through lower-dimensional statistics,
+for instance to model the root state as a sample from a Markov random field
+with parameters for the marginal frequencies of each state, and pairwise (or higher) correlations between them.
+
+A Markov random field with interactions between sites no more than distance two away
+is determined by the energy function $\phi(a,b,c)$ which gives the ``energy'' of the configuration $abc$ for each $a,b,c \in \calS$.
+We use this to define the distribution on root patterns $\pi$ by
+\begin{align}  \label{eqn:root_mrf}
+    \pi(z) = \frac{1}{Z} \exp\left( - \sum_{i=1}^{|z|} \phi(z_{i-1},z_i,z_{i+1}) \right),
+\end{align}
+i.e.\ the exponential of the total energy of each three adjacent sites,
+where $Z$ is the normalizing constant.
+Note that it is often difficult to compute $Z$ in applications of Markov random fields,
+but here we are working with relatively short sequences,
+so we just compute \eqref{eqn:root_mrf} for all possible $z$, and divide by the sum.
+(However, for this same reason this is not equivalent to saying that $X(0)$ is a sample from the Markov random field
+and finding the distribution of patterns within this.)
+
+
+%%%%%
+\subsubsection{Mixing}
+
+There can be significant confounding of the frequencies at the root with the other parameters,
+which results in poor mixing.
+(See CpG results, below.)
+To see why this is, consider the following back-of-the-envelope calculation.
+Take $x \neq y$ to be single bases (so, set $\ell=0$ and $w=1$),
+so that $N(x,y)$ gives the number of times an $x$ and a $y$ are homologous.
+Let $q(x,y)$ be the instantaneous rate that $x \to y$ (averaged somehow over context?),
+so that $N(x,y)$ should be, roughly,
+\begin{align*}
+  \sum_z \pi(z) q(z,x) q(z,y) &\approx t \pi(x) (1+q(x,x)) q(x,y) + t \pi(y) q(y,x) (1+q(y,y)) ,
+\end{align*}
+where as usual $q(x,x) = (-1) \sum_{z \neq x} q(x,z)$ is (minus) the total jump rate out of $x$.
+
+So, when we propose a change to $\pi$ we might want to also adjust the rates accordingly to keep this more-or-less constant:
+if we chnage $\pi(x) \mapsto \pi(x) + \epsilon_x$, we want $\delta_{xy}$ to satisfy
+\begin{align*}
+  \sum_z \pi(z) q(z,x) q(z,y) = \sum_z (\pi(z) + \epsilon_z) ( q(z,x) + \delta_{zx} ) ( q(z,y) + \delta_{zy} ) ,
+\end{align*}
+or, to first order in $\delta$,
+\begin{align*}
+  0 &\approx \sum_z \epsilon_z q(z,x) q(z,y) + \sum_z \pi(z) \delta_{zx} q(z,y) + \sum_z \pi(z) q(z,x) \delta_{zy} \\
+   &\approx \sum_z \epsilon_z q(z,x) q(z,y) + \sum_z (\pi(z)+\epsilon_z) \delta_{zx} q(z,y) + \sum_z (\pi(z)+\epsilon_z) q(z,x) \delta_{zy} \\
+   &\approx \epsilon_x (1+q(x,x)) q(x,y) + \epsilon_y q(y,x) (1+q(y,y)) + (\pi(y)+\epsilon_y) \delta_{yx} (1+q(y,y)) + (\pi(x)+\epsilon_x) (1+q(x,x)) \delta_{xy} \\
+   &= \left( \epsilon_x q(x,y) + (\pi(x)+\epsilon_x) \delta_{xy} \right)(1+q(x,x)) + \left( \epsilon_y q(y,x) + (\pi(y)+\epsilon_y) \delta_{yx} \right)(1+q(y,y))
+\end{align*}
+One solution to this is to let $\delta_{xy} = - \epsilon_x q(x,y) / \pi(x)$.
+
+Suppose each change is a single-base change, so that changes $\delta \mu_i$ in $\mu$ contribute to $q$ by
+$\delta_{xy} = \sum_{i: x \to y} \delta \mu_i$.
+Given $\delta_{xy}$, this gives a linear equation for $\delta \mu_i$ that may or may not be solvable,
+but certainly is if we have all the single-base transitions as paramters.
 
 \end{document}
