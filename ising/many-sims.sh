@@ -3,23 +3,35 @@
 set -eu
 set -o pipefail
 
-cd /home/rcf-40/pralph/panfs/context/ising
-source /home/rcf-40/pralph/cmb/bin/R-setup-usc.sh
+if [ $# -gt 0 ]
+then
+    NRUNS=$1
+else
+    echo "Usage:   $0 (number of runs)"
+    exit 0
+fi
 
 # precompute generator matrices:
-Rscript ../scripts/make-genmat.R -c genmatrices/complete.json -w 3
-Rscript ../scripts/make-genmat.R -c genmatrices/complete.json -w 4
-Rscript ../scripts/make-genmat.R -c genmatrices/complete.json -w 5
-Rscript ../scripts/make-genmat.R -c genmatrices/complete.json -w 6
+#   the `complete.json` file is the same as ising-model.json but without model fitting stuff
+for k in 3 4 5 6
+do
+    if ! [ -f genmatrices/genmatrix-${k}-complete.RData ]
+    then
+        Rscript ../scripts/make-genmat.R -c genmatrices/complete.json -w $k
+    fi
+done
 
-for N in $(seq 16)
+# this takes ~200 secs to simulate
+SEQLEN=1000000
+
+for N in $(seq $NRUNS)
 do
     (
         DIR=$(printf "%05g" $RANDOM);
         echo "Simulation $N, in simseqs/$DIR";
         mkdir -p simseqs/sim-$DIR
         # simulate up some sequence for testing;
-        Rscript ../scripts/sim-seq.R -c ising-model.json -t .1 -s 100000 -d simseqs/sim-$DIR -o test-ising.RData;
+        Rscript ../scripts/sim-seq.R -c ising-model.json -t .1 -s $SEQLEN -d simseqs/sim-$DIR -o test-ising.RData;
         # and count the Tmers;
         Rscript ../scripts/count-seq.R -i simseqs/sim-$DIR/test-ising.RData -w 3 -s 1 -l 1;
         Rscript ../scripts/count-seq.R -i simseqs/sim-$DIR/test-ising.RData -w 4 -s 2 -l 1;

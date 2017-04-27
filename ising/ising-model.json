@@ -1,4 +1,5 @@
 {
+    "comment": "The basic Ising model. The first selection coefficient is inverse temperature beta, second is magnetic field gamma",
     "bases" : [ "X", "O" ],
     "initfreqs" : [ 0.5, 0.5 ],
     "mutpats" : [
@@ -7,7 +8,6 @@
     ],
     "mutrates" : [ 0.5, 0.5 ],
     "mutrates.scale" : [ 0.02, 0.02 ],
-    "comment": "first line is inverse temperature beta, second is magnetic field gamma",
     "selpats" : [
         [ "OX","XO" ],
         [ "X" ]

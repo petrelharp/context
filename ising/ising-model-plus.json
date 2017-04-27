@@ -1,4 +1,5 @@
 {
+    "comment": "The Ising model with an additional rule.",
     "bases" : [ "X", "O" ],
     "initfreqs" : [ 0.5, 0.5 ],
     "mutpats" : [
@@ -7,7 +8,6 @@
         [ [ "XO", "OO" ], [ "OX", "OO" ] ]
     ],
     "mutrates" : [ 0.5, 0.5, 0.1 ],
-    "comment": "first line is inverse temperature beta, second is magnetic field gamma",
     "selpats" : [
         [ "OX","XO" ],
         [ "X" ]
