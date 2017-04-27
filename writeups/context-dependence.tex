@@ -447,36 +447,8 @@ is close to $p_{\ell,m}(x,y)$, regardless of context wider than $2k+l$:
     p_{n,\ell,r}(x,y) \approx \P\{ X_{i+\ell}^{(n-\ell-r)}(t) = y \mid X_i^{(n)}(0) = x \}.
 \end{align}
 
-%%%%%
-\subsection{Choice of overhang}
-
-The intuition behind this fact is straightforward, and provides a way to pick the overhang lengths $\ell$ and $r$;
-a precise statement of the approximation is given in Section \ref{ss:approx_pf}.
-Suppose that each instantaneous change depends on positions at most $w$ sites away.
-Then, the mutation process at any particular site
-depends on the initial sequence at that site and within distance $w$ on either side, 
-and the outcomes of any mutations that have occurred within that window.
-
-Then, the sequence at a particular site may directly affect the process at the neighboring $w$ sites on either side.
-If another change happens, say, at the end of this window,
-then the indirect effects of this change may extend out to $2w-1$ sites.
-In this way, the influence of the sequence at each site extends outwards, as shown in Figure \ref{fig:Tmers} --
-so if we take the overhangs long enough that this dependency is unlikely to extend to the base of the Tmer,
-the approximation will be good.
-As we show in Section \ref{ss:approx_pf}, if the overhangs are $\ell = r = kw$,
-then the error in approximation \eqref{eqn:window_approx}
-is bounded by the probability that there are more than $k$ changes in a given window of length $w$.
-
-For instance, in the CpG model the maximum dependency is $w=1$ as the process only depends on neighboring sites;
-and if the sequence has evolved for time $t$ then we expect no more than a Poisson($\lambda t$) number of changes at each site.
-If $\lambda t = 0.75$ (three-quarters of the sequence will have changed!),
-then taking $\ell = r = 3$ allows us to compute Tmer probabilities to within an error of 0.007,
-since this is the probability that a Poisson with mean 0.75 will be larger than 3.
-If $\lambda t = 0.25$ we would do even better with $\ell = r = 2$.
-
-
 %%%%%%
-\section{Full likelihood}
+\subsection{Full likelihood}
 
 What we actually want is the \emph{full likelihood} $\like(y|x)$,
 the probability that a given sequence $x$ evolves into another, $y$, over a given period of time.
@@ -485,29 +457,69 @@ defining $x_{<i}=(x_1, \ldots, x_{i-1})$, this is:
 \begin{align*}
     \like(y|x) &= \prod_i \P\{ Y_i = y_i \given Y_{<i} = y_{<i} \;\&\; X=x \} .
 \end{align*}
-We can compute these term by discarding sites outside the window of influence:
-\begin{align*}
-    \P\{ Y_i = y_i \given Y_{<i} = y_{<i} \;\&\; X=x \} 
+Using the same methods, we can approximate the terms in this sum
+by discarding approximately independent sites from the conditioning.
+If $\ell$ is long enough that approximation \eqref{eqn:window_approx} holds, then:
+\begin{align} \label{eqn:full_approx}
+    \P\{ Y_i = y_i \given Y_{<i} \;\&\; X \} 
+    &\approx
+        \P\{ Y_i = y_i \given Y_{i-2\ell}^{(2\ell+1)} \;\&\; X_{i-3\ell}^{(4\ell+1)} \}  \\
     &=
         \frac{
-            \P\{ Y_i = y_i \;\&\; Y_{< i} = y_{<i} \;\&\; X=x \} 
+            p_{2\ell+1,\ell,\ell}(x_{i-3\ell}^{(4\ell+1)}, y_{i-2\ell}^{(2\ell+1)})
         }{
-            \P\{ Y_{<i} = y_{<i} \;\&\; X=x \} 
-        } \\
-    &\approx
-        \frac{
-            p_{n,\ell,\ell}(x_{i-n+\ell}^{(n)}, y_{i-n+2\ell}^{(n-2\ell)})
-        }{
-            p_{n,\ell,\ell+1}(x_{i-n+\ell}^{(n)}, y_{i-n+2\ell}^{(n-2\ell-1)})
+            p_{2\ell+1,\ell,\ell+1}(x_{i-3\ell}^{(4\ell+1)}, y_{i-2\ell}^{(2\ell)})
         } .
-\end{align*}
-The approximation depends on $\ell$ being large enough, as discussed above, and $n \ge 2\ell+1$ --
-this is because (a) to compute the likelihood in the numerator of the $i^\text{th}$ site, we need the flanking $\ell$ sites (as discussed above),
-and (b) to compute the denominator we need to include all sites to the left affected by those $2\ell+1$ sites.
-
+\end{align}
 By rearranging the product, 
-this gives us an expression for the full likelihood as the ratio of the likelihoods of all $(n,\ell,\ell)$ T-mers
-and the likelihood of all $(n,\ell,\ell+1)$ T-mers.
+this gives us an expression for the full likelihood as the ratio of the likelihoods of all $(n,\ell,\ell)$ T-mers in $(x,y)$
+to that of of all $(n,\ell,\ell+1)$ T-mers.
+% Define $n_\ell(x,y;a,b)$ to be the number of times pattern $a$ is seen in sequence $x$
+% matched to pattern $b$ in $y$ at a position offset by $\ell$.
+% Then
+% \begin{align}
+%     \log \like(y|x) 
+%     &\approx 
+%         \sum_{a \in \calS^n} \sum_{b \in \calS^{n-2\ell}} n_\ell(x,y;a,b) \log p_{n,\ell,\ell}(a,b)
+%         -
+%         \sum_{c \in \calS^n} \sum_{d \in \calS^{n-2\ell-1}} n_\ell(x,y;c,d) \log p_{n,\ell,\ell+1}(c,d)
+% \end{align}
+
+%%%%%
+\subsection{Choice of overhang}
+
+The approximations in \eqref{eqn:window_approx} and \eqref{eqn:full_approx} hold if the overhang, $\ell$, is long enough.
+The intuition is straightforward, and provides a way to pick the overhang lengths $\ell$ and $r$;
+a precise statement is given in Section \ref{ss:approx_pf}.
+Suppose that each instantaneous change depends on positions at most $w$ sites away.
+Then, the mutation process at any particular site
+depends on the initial sequence at that site and within distance $w$ on either side, 
+and the outcomes of any mutations that have occurred within that window.
+
+Therefore, the sequence at a particular site may directly affect the process at the neighboring $w$ sites on either side.
+If another change happens, say, at the end of this window,
+then the indirect effects of this change may extend out to $2w-1$ sites.
+In this way, the influence of the sequence at each site extends outwards, as shown in Figure \ref{fig:Tmers} --
+so if we take the overhangs long enough that this dependency is unlikely to extend to the base of the Tmer,
+the approximation will be good.
+As we show in Section \ref{ss:approx_pf}, if the overhangs are $\ell = r = kw$,
+then the error in approximation \eqref{eqn:window_approx}
+is bounded by the probability that there are more than $k$ changes in a given window of length $w$.
+Concretely, sites further away than $kw$ only matter if there is a chain of at least $k$ intervening mutations
+-- which is unlikely if $k$ is larger than the expected number.
+
+For instance, in the CpG model the maximum dependency is $w=1$ as the process only depends on neighboring sites;
+and if the sequence has evolved for time $t$ then we expect no more than a Poisson($\lambda t$) number of changes at each site.
+If $\lambda t = 0.75$ (three-quarters of the sequence will have changed!),
+then taking $\ell = r = 3$ allows us to compute Tmer probabilities to within an error of 0.007,
+since this is the probability that a Poisson with mean 0.75 will be larger than 3.
+If $\lambda t = 0.25$ we would do even better with $\ell = r = 2$.
+
+To obtain the full likelihood, in \eqref{eqn:full_approx}, in addition to an overhang of $\ell$
+we needed the base of the T-mer to be of length $2\ell+1$.
+This is because we have also conditioned on the final sequence to the left of the focal site, $Y_{<i}$,
+and although the process at $i$ only depends on events within $\pm \ell$,
+these events may affect other sites in $Y$ going back a distance $2\ell$.
 
 
 %%%%%%%%%%%
@@ -528,13 +540,15 @@ then
 \end{align}
 so in fact we don't need the entire matrix $e^{t G(m+2\ell)}$,
 just the product of this matrix with each of the columns of $U$.
+Modern techniques in sparse matrix computation (e.g., Krylov methods) provide efficient ways to do this.
 
-Modern techniques in sparse matrix computation (Krylov methods) provide efficient ways to do this
-by only multiplying $G$ and $U$ some number of times,
-which is much more efficient because $G$ is sparse.
+Using the R package expm \citep{R_expm}, this makes computation quite feasible:
+with four possible states and $\ell=2$ and $m=1$, so that $G(m+2\ell)$ is a $1024 \times 1024$ matrix,
+computing $e^{t G(5) }$ takes 13 seconds, while computing $e^{t G(5)} U$ takes only 0.3 seconds.
+Increasing to $\ell=4$ and $m=1$ or $\ell=3$ and $m=2$ is still feasible, taking $e^{t G(8)} U$ in 42 and 47 seconds, respectively
+(and much longer for the whole matrix $e^{t G(8)}$).
 
-\subsection{Updating $G$}
-
+\paragraph{Sparsity and updating $G$}
 We can also take advantage of the sparsity of $G$ to perform efficient computation of the likelihood
 under many sets of parameters.
 First note that $G(m+2\ell)$ has, assuming only single-position changes,
@@ -543,20 +557,21 @@ This will determine how the computation scales with $m$, $\ell$, and $|\calS|$,
 once we precompute a number of things.
 Let $g = (g_1, \ldots, g_d)$ be the nonzero entries of $G$, in some fixed ordering;
 sparse matrix representations of $G$ store only $g$ along with information about the rows and columns these are found in.
-Each $g_i$ is a linear combination of mutation rates $\mu_j$, say $g_i = \sum_j a_{ij} \mu_j$;
-so by precomputing $a_{ij}$ we can efficiently update $G$.
-This is true if the boundary conditions are circular, mean-value, or neither.
-
-We can do similar precomputations to help with the case of selective differences:
-XXX describe
-
+Each $g_i$ is a linear combination of mutation rates $\mu_j$,
+multiplied by a function ($\phi$) of a linear combination of energy coefficents $e_j$, 
+say $g_i = \sum_j A_{ij} \mu_j \phi(\sum_k B_{ik} e_k)$,
+so by precomputing the matrices $A$ and $B$ we can update $G$ with new parameter values
+using only two matrix multiplications and evaluation of $\phi()$ over a vector.
+This remains efficient to perform in interpreted languages such as R,
+since each step is carried out by lower-level compiled code (e.g., optimized linear algebra libraries).
+% This is true if the boundary conditions are circular, mean-value, or neither.
 
 %%%%%%%%
 \section{Phylogenetic inference}
 
 In phylogenetic applications, rather than ``before'' and ``after'' observations,
 we get two (or more) observations evolved from a common root.
-In the simplest case of two taxa we have two processes $X$ and $Y$,
+In the simplest case of two tips we have two processes $X$ and $Y$,
 with identical starting states $X(0)=Y(0)$,
 observed only at times $t_X$ and $t_Y$ respectively.
 
@@ -575,38 +590,36 @@ The probability that we see $x$ and $y$ at the random location $I$ is
 \end{align}
 This can be computed without much more effort than the simpler case above,
 given the frequencies at the root, as described in greater generality below.
-
-
-
-\subsection{Phylogenetic peeling}
-
-Furthermore, note that the further calculations in the phylogenetic case can be done using these methods.
-To compute
+These calculations can be done using the the same sparse matrix methods as above.
+For instance, to compute
 \[
     \sum_z \pi(z) p_{m+2\ell}(t_X,z,x) p_{m,\ell}(t_Y,z,y)
     = \sum_z \left( e^{t_X G(m+2\ell)} \right)_{zx} \pi(z) \sum_w \left( e^{t_X G(m+2\ell)} \right)_{zw} U_{wy} ,
 \]
 we can first compute $\sum_w \left( e^{t_X G(m+2\ell)} \right)_{zw} U_{wy}$ as above,
-multiply by $\pi(z)$, and then apply the algorithm again using the transpose of $G(m+2\ell)$.
+multiply rows by $\pi(z)$, and then matrix multiply by the transpose of $G(m+2\ell)$.
 
-Using the R package expm, this makes computation quite feasible:
-with four possible states and $\ell=2$ and $m=1$, so that $G(m+2\ell)$ is a $1024 \times 1024$ matrix,
-computing $e^{t G(5) }$ takes 13 seconds, while computing $e^{t G(5)} U$ takes only 0.3 seconds.
-Increasing to $\ell=4$ and $m=1$ or $\ell=3$ and $m=2$ is still feasible, taking $e^{t G(8)} U$ in 42 and 47 seconds, respectively
-(and much longer for the whole matrix $e^{t G(8)}$).
 
-More generally\dots
+\subsection{Phylogenetic peeling}
 
-\begin{center}
-\includegraphics{peeling-schematic}
-\end{center}
+The general case is a modification of Felsenstein's ``peeling'' algorithm.
+
+\begin{figure}
+    \begin{center}
+    \includegraphics{peeling-schematic}
+    \end{center}
+    \caption{
+        A depiction of the four steps in computing the likelihood of finding particular ``short'' subsequence at $Y$ and $Z$
+        given the ``long'' subsequence at $X$: see text for details.
+        \label{fig:peeling}
+    }
+\end{figure}
 
 To compute the likelihood on a more complicated tree, consider the following,
-with the three-taxon tree above as an example,
+with the three-taxon tree of figure \ref{fig:peeling} as an example,
 where we are counting occurrences of (long) $m+2\ell$-tuples in taxon $X$,
 and (shorter) $m$-tuples in taxa $Y$ and $Z$.
-
-We can compute the likelihood in a similar way, summing over the root state (the summation over $u$)
+The likelihood in this example is found by summing over the root state (the summation over $u$)
 and the interior node ($v$):
 \begin{align} \label{eqn:three_taxa_likelihood}
   \begin{split}
@@ -638,15 +651,13 @@ However, we can reduce dimensionality by replacing the last step with
   \item[4'.] Compute $M_4(x,w) = \sum_{v \in \calS^{m+2\ell}} p_{m+2\ell}(t_{A},v,x) M_3(v,w) M_4(v,w)$ (stored as a $|\calS|^{m+2\ell} \times |\calS|^{m}$ matrix).
 
 \end{enumerate}
-and only computing the likelihood for cases with $y=z=w$.
+i.e., only computing the likelihood for cases with $y=z=w$.
 On a three-taxon tree it is not clear that this is desireable, since missing out on double transitions
 might be a significant loss of information,
 but on larger trees it seems likely that we'd want to restrict to combinations with most sites agreeing across the tree.
 (Note, however, that one should not first look at the data, observe which combinations $(y,z)$ were most common, and then restrict to only those!)
 
-The algorithm in general is written out in Appendix \peter{ref it}.
-
-
+The algorithm for a general tree is written out in Appendix \ref{ss:peeling_algorithm}.
 
 
 %%%%%%%
@@ -858,12 +869,13 @@ Erick, Jessica, Graham, Yaniv, Sergey, Simon, Matt, Rasmus
 \appendix
 
 %%%%
-\section*{Proof of the approximation}
+\section{Proof of the approximation}
 \label{ss:approx_pf}
 
 \begin{proof}
 
-In fact, the approximation improves exponentially as $\ell$ and $m$ increase --
+First we quantify and prove the approximation \eqref{eqn:window_approx}.
+In fact, the approximation improves exponentially as $\ell$ and $r$ increase --
 here is a simple argument.
 Suppose the maximum length of any transition pattern is $R = \max\{ |u| : (\mu,u,v) \in \calT \}$.
 The transition rate at site $i$ at time $s$ is determined if we know $X_{i-R}^{(2R+1)}(s)$;
@@ -899,10 +911,125 @@ for instance, the left edge $L(s) = \min \{ j \in H(I,t-s,t) \}$ jumps leftwards
 that has mean $R/2$.
 General facts about random walks imply that \eqref{eqn:prob_approx} is bounded above by $C e^{-\alpha \ell/t}$, for some constants $C$ and $\alpha$.
 
+\paragraph{Full likelihood} 
+    Now we use these ideas to quantify and prove approximation \eqref{eqn:full_approx}.
+For two positions $(i,s)$ and $(j,t)$ in sequence $\times$ time,
+let $r(i,s;j,t) = |j-i|/|t-s|$ be the slope of the line between them,
+and if $I$ and $J$ are subsets of sites, let $r(I,s;J,t) = \min\{r(i,s;j,t) : i\in I, j \in J\}$
+be the minimum.
+Above we have shown that there is a speed of dependency propagation $r_*$
+such that if $r(I,s;J,t) > r_*$,
+then $X_I(s)$ and $X_J(t)$ are nearly independent.
+Now, fix $t$ and for each site $i$ let $N_i$ denote its $r_*$-neighborhood,
+i.e.,
+\begin{align}
+    N_i = \{ (j,s) : r(i,t; j,s) \le r_*, \; 0 \le s \le t \} .
+\end{align}
+These are depicted in figure~\ref{fig:neighborhoods}A.
+We will write $i \sim j$ if $|i-j| \le 2 r_* t$,
+or equivalently, if $N_i \cap N_j \neq \emptyset$,
+and $i \nsim j$ otherwise.
+We can think of $N_i$ as the parts of ancestral sequences in which a mutation might have affected the state at $(i,t)$.
+so if $i \nsim j$, then $i$ and $j$ are (approximately) independent at time $t$, given the sequence at time 0.
+Concretely,
+we have a small $\epsilon$ such that for any $i \nsim j$,
+\begin{align}
+    &\big|
+    \log( \P\{ X_i(t) = x_i \and X_j(t) = x_j \} ) \\
+    &\qquad {} -
+    \log( \P\{ X_i(t) = x_i \} \P\{ X_j(t) = x_j \} )
+    ) \big|
+    \le \epsilon .
+\end{align}
+
+
+\begin{figure}
+    \begin{center}
+        \includegraphics{context-neighborhoods-defns}
+
+        \vspace{2em}
+
+        \includegraphics{context-neighborhoods-widths}
+    \end{center}
+    \caption{
+        Diagram of things in the text:
+        (top) Dependency neighboorhods.
+        (bottom) What we need to compute $\P\{X_i(t)=x \given X(0), X_{<i}(t)\}$:
+        site $i$ depends on the blue squares in $N_i$;
+        the sites to the left of this in $L(i)$ are those other sites in $X(t)$
+        whose dependency neighborhoods overlap $N_i$;
+        any further sites to the left of this are basically independent of $X_i(t)$;
+        the red squares give the dependency neighborhood of $L(i)$,
+        so we need to condition on the row of red and blue sites at the top.
+        On the bottom, we have $2w+1$ sites; at the top we have $4w+1$;
+        here $w=2$.
+        \label{fig:neighborhoods}
+    }
+\end{figure}
+
+
+What we'd like to know is the likelihood, i.e.,
+\begin{align}
+    \like(y|x)
+    &:=
+    \P\{ X(t) = y \given X(0) = x \} .
+\end{align}
+If we define $X_{<i}=(X_1, \ldots, X_{i-1})$, then
+\begin{align}
+    \like(y|x)
+    &=
+    \prod_{i=1}^n
+    \P\{ X_i(t) = y_i \given X(0) = x \and X_{<i}(t) = y_{<i} \} .
+\end{align}
+Now, defining $L(i) = \{ j < i \st j \sim i \}$
+to be the sites to the left of $i$ whose dependency neighborhoods overlap with $i$'s,
+and $A(I) = \{ j \st |j-i| \le r_*t \text{ for some } i \in I\}$
+to be the ancestral sites in the dependency neighborhood of $I$,
+\begin{align}
+&\big|
+\log( \P\{ X_i(t) = y_i \given X(0) = x \and X_{<i}(t) = y_{<i} \} ) \\
+& \qquad {} -
+\log( \P\{ X_i(t) = y_i \given X_{A(L(i))}(0) = x_{A(L(i))} \and X_{L(i)}(t) = y_{L(i)} \} )
+ \big| \\
+&\qquad \qquad \le
+    \epsilon ,
+\end{align}
+so that if we define
+\begin{align}
+    \alike(y|x)
+    &=
+    \prod_{i=1}^n
+    \P\{ X_i(t) = y_i \given X_{A(L(i))}(0) = x_{A(L(i))} \and X_{L(i)}(t) = y_{L(i)} \} ,
+\end{align}
+then (with $\loglike = \log \like$),
+\begin{align}
+    \left| \aloglike(y|x) - \loglike(y|x) \right|
+    \le n \epsilon .
+\end{align}
+
+This is good, because we can compute $\aloglike$:
+let $w=r_*t$ be radius of a dependency neighborhood,
+so that the width of $L(i)$ is $2w$,
+and for a sequence $x$ define $x^{(m)}_i = (x_{i-m+1}, \ldots, x_i)$:
+\begin{align}
+    \alike(y|x)
+    &=
+    \prod_{i=1}^n
+    \frac{
+        p_{w,2w+1}(y^{(2w+1)}_i|x^{(4w+1)}_{i+w})
+    }{
+        p_{w,2w}(y^{(2w)}_{i-1}|x^{(4w)}_{i-1+w})
+    }
+\end{align}
+This is the ratio of the likelihoods of all the $(w,2w+1)$ T-mers,
+divided by the likelihoods of all the $(w,2w)$ T-mers.
+
+
 \end{proof}
 
 
-\section*{Peeling algorithm}
+\section{Peeling algorithm}
+\label{ss:peeling_algorithm}
 
 Fix one tip of the tree, $a$, to be the taxa where we count ``long'' sequences, let $\rho$ be the root, and let $b_1, \ldots, b_n$ be the remaining tips,
 where we observe ``short'' sequences.
@@ -1132,121 +1259,6 @@ This has mean $3\gamma t$ and variance $5 \gamma t$;
 with high probability it will not exceed, say,
 $3\gamma t + 6 \sqrt{\gamma t}$;
 if $\gamma t < 1$ this is less than 9.
-
-
-How can we use this to compute the likelihood of a full sequence?
-Actually, we know more.
-For two positions $(i,s)$ and $(j,t)$ in sequence $\times$ time,
-let $r(i,s;j,t) = |j-i|/|t-s|$ be the slope of the line between them,
-and if $I$ and $J$ are subsets of sites, let $r(I,s;J,t) = \min\{r(i,s;j,t) : i\in I, j \in J\}$
-be the minimum.
-Then, we know that there is a speed of dependency propagation $r_*$
-such that if $r(I,s;J,t) > r_*$,
-then $X_I(s)$ and $X_J(t)$ are nearly independent.
-Now, fix $t$ and for each site $i$ let $N_i$ denote its $r_*$-neighborhood,
-i.e.,
-\begin{align}
-    N_i = \{ (j,s) : r(i,t; j,s) \le r_*, \; 0 \le s \le t \} .
-\end{align}
-These are depicted in figure~\ref{fig:neighborhoods}A.
-We will write $i \sim j$ if $|i-j| \le 2 r_* t$,
-or equivalently, if $N_i \cap N_j \neq \emptyset$,
-and $i \nsim j$ otherwise.
-We can think of $N_i$ as the parts of ancestral sequences in which a mutation might have affected the state at $(i,t)$.
-so if $i \nsim j$, then $i$ and $j$ are (approximately) independent at time $t$, given the sequence at time 0.
-Concretely,
-we have a small $\epsilon$ such that for any $i \nsim j$,
-\begin{align}
-    &\big|
-    \log( \P\{ X_i(t) = x_i \and X_j(t) = x_j \} ) \\
-    &\qquad {} -
-    \log( \P\{ X_i(t) = x_i \} \P\{ X_j(t) = x_j \} )
-    ) \big|
-    \le \epsilon .
-\end{align}
-
-
-\begin{figure}
-    \begin{center}
-        \includegraphics{context-neighborhoods-defns}
-
-        \vspace{2em}
-
-        \includegraphics{context-neighborhoods-widths}
-    \end{center}
-    \caption{
-        Diagram of things in the text:
-        (top) Dependency neighboorhods.
-        (bottom) What we need to compute $\P\{X_i(t)=x \given X(0), X_{<i}(t)\}$:
-        site $i$ depends on the blue squares in $N_i$;
-        the sites to the left of this in $L(i)$ are those other sites in $X(t)$
-        whose dependency neighborhoods overlap $N_i$;
-        any further sites to the left of this are basically independent of $X_i(t)$;
-        the red squares give the dependency neighborhood of $L(i)$,
-        so we need to condition on the row of red and blue sites at the top.
-        On the bottom, we have $2w+1$ sites; at the top we have $4w+1$;
-        here $w=2$.
-        \label{fig:neighborhoods}
-    }
-\end{figure}
-
-
-
-What we'd like to know is the likelihood, i.e.,
-\begin{align}
-    \like(y|x)
-    &:=
-    \P\{ X(t) = y \given X(0) = x \} .
-\end{align}
-If we define $X_{<i}=(X_1, \ldots, X_{i-1})$, then
-\begin{align}
-    \like(y|x)
-    &=
-    \prod_{i=1}^n
-    \P\{ X_i(t) = y_i \given X(0) = x \and X_{<i}(t) = y_{<i} \} .
-\end{align}
-Now, defining $L(i) = \{ j < i \st j \sim i \}$
-to be the sites to the left of $i$ whose dependency neighborhoods overlap with $i$'s,
-and $A(I) = \{ j \st |j-i| \le r_*t \text{ for some } i \in I\}$
-to be the ancestral sites in the dependency neighborhood of $I$,
-\begin{align}
-&\big|
-\log( \P\{ X_i(t) = y_i \given X(0) = x \and X_{<i}(t) = y_{<i} \} ) \\
-& \qquad {} -
-\log( \P\{ X_i(t) = y_i \given X_{A(L(i))}(0) = x_{A(L(i))} \and X_{L(i)}(t) = y_{L(i)} \} )
- \big| \\
-&\qquad \qquad \le
-    \epsilon ,
-\end{align}
-so that if we define
-\begin{align}
-    \alike(y|x)
-    &=
-    \prod_{i=1}^n
-    \P\{ X_i(t) = y_i \given X_{A(L(i))}(0) = x_{A(L(i))} \and X_{L(i)}(t) = y_{L(i)} \} ,
-\end{align}
-then (with $\loglike = \log \like$),
-\begin{align}
-    \left| \aloglike(y|x) - \loglike(y|x) \right|
-    \le n \epsilon .
-\end{align}
-
-This is good, because we can compute $\aloglike$:
-let $w=r_*t$ be radius of a dependency neighborhood,
-so that the width of $L(i)$ is $2w$,
-and for a sequence $x$ define $x^{(m)}_i = (x_{i-m+1}, \ldots, x_i)$:
-\begin{align}
-    \alike(y|x)
-    &=
-    \prod_{i=1}^n
-    \frac{
-        p_{w,2w+1}(y^{(2w+1)}_i|x^{(4w+1)}_{i+w})
-    }{
-        p_{w,2w}(y^{(2w)}_{i-1}|x^{(4w)}_{i-1+w})
-    }
-\end{align}
-This is the ratio of the likelihoods of all the $(w,2w+1)$ T-mers,
-divided by the likelihoods of all the $(w,2w)$ T-mers.
 
 
 
