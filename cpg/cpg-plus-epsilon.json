@@ -1,5 +1,5 @@
 {
-    "description" : "CpG model plus pol epsilon mutations, without GC bias.",
+    "description" : "CpG model plus Harris' mutational shift, without GC bias.",
     "bases" : [ "A", "C", "G", "T" ],
     "initfreqs" : [ 0.25, 0.25, 0.25, 0.25 ],
     "mutpats" : [
@@ -16,7 +16,7 @@
         [ [ "C", "T" ] ],
         [ [ "G", "A" ] ],
         [ [ "CG", "TG" ], [ "CG", "CA" ] ],
-        [ [ "TCT", "TAT" ], [ "AGA", "ATA" ], [ "TCG", "TTG" ], [ "AGC", "AAC" ] ]
+        [ [ "TCC", "TTC" ], [ "AGG", "AAG" ] ]
     ],
     "mutrates" : [ 0.1, 0.1, 0.15, 0.15, 0.08, 0.08, 0.08, 0.08, 0.12, 0.12, 0.12, 0.12, 0.4, 0.1 ],
     "mutrates.scale" : [ 0.00005, 0.00005, 0.00005, 0.00005, 0.00005, 0.00005, 0.00005, 0.00005, 0.00005, 0.00005, 0.00005, 0.00005, 0.00005, 0.00005 ],
