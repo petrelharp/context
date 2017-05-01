@@ -34,7 +34,7 @@ option_list <- list(
         make_option( c("-z","--seed"), type="integer", help="Seed for pseudorandom number generator; an integer. [default: does not meddle]")
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
-if (is.null(opt$infile)) { stop("No input file.  Run\n  fit-model.R -h\n for help.\n") }
+if (is.null(opt$infile) || is.null(opt$configfile)) { stop("No input file.  Run\n  fit-model.R -h\n for help.\n") }
 if (!file.exists(opt$infile)) { stop("Cannot read input file.") }
 if ((!is.null(opt$configfile)) && (!file.exists(opt$configfile)) ) { stop("Could not find config file `", opt$configfile, "`.") }
 if (is.null(opt$basedir)) { opt$basedir <- dirname(opt$infile) }
