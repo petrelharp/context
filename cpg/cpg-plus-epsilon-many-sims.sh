@@ -3,6 +3,15 @@
 set -eu
 set -o pipefail
 
+if [ $# -gt 0 ]
+then
+    NRUNS=$1
+else
+    echo "Usage:   $0 (number of runs)"
+    exit 0
+fi
+
+
 if [[ -e '/home/rcf-40/pralph/panfs/context/cpg' ]]
 then
     cd /home/rcf-40/pralph/panfs/context/cpg
@@ -30,18 +39,17 @@ SEQLEN=1000000
 BASEDIR=simseqs/model_selection
 
 
-for N in $(seq 16)
+for N in $(seq $NRUNS)
 do
     (
-        DIR=$BASEDIR/sim-$(printf "%05g" $RANDOM);
+        DIR=$BASEDIR/$(printf "%05g" $RANDOM);
         echo "Simulation $N, in $DIR";
         mkdir -p "$DIR";
         # simulate up some sequence for testing;
         Rscript ../scripts/sim-seq.R -c $MODEL -t $TLEN -s $SEQLEN -d "$DIR" -o "sim.RData";
-        for LONGWIN in 3 4 5 6;
+        for LONGWIN in 4 5 6;
         do
-            SHORTWIN=$(( LONGWIN/2 ));
-            SHORTWIN=$(( SHORTWIN>2?2:SHORTWIN ));
+            SHORTWIN=2
             LEFTWIN=$(( (LONGWIN-SHORTWIN)/2 ));
             # and count the Tmers;
             Rscript ../scripts/count-seq.R -i $DIR/sim.RData -w $LONGWIN -s $SHORTWIN -l $LEFTWIN;
