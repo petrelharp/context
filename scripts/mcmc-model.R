@@ -46,6 +46,11 @@ genmatrix <- model@genmatrix
 projmatrix <- model@projmatrix
 counts <- model@counts
 
+# shorter counts for full likelihood
+stopifnot(shortwin(counts) > 1)
+counts.0 <- projectcounts(counts, new.shortwin=shortwin(counts) - 1)
+projmatrix.0 <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin(counts), fpatterns=colnames(counts.0) )
+
 # read in config file
 prior.config <- read.config(opt$configfile)  # returns NULL if not present
 if (is.null(prior.config$mutrates.prior)) { prior.config$mutrates.prior <- model@mutrates.prior }
@@ -86,7 +91,7 @@ use.par <- ( parscale!=0 )
 params <- coef(model)
 initpar <- params[use.par]
 
-# (quasi)-log-posterior
+# The log-posterior function.
 likfun <- function (sub.params){
     # params are: mutrates*tlen
     params[use.par] <- sub.params
@@ -95,11 +100,19 @@ likfun <- function (sub.params){
     fparams <- params[seq( 1+nmuts(genmatrix)+nsel(genmatrix), length.out=length(fixparams(genmatrix)) )]
     names(fparams) <- fixparams(model)
     if (any(mutrates<0)) { return( -Inf ) }
-    genmatrix@x <- do.call( update_x, c( list(G=genmatrix, mutrates=mutrates, selcoef=selcoef ), as.list(fparams) ) )
+    genmatrix@x <- do.call( update_x, 
+                           c( list(
+                                   G=genmatrix, 
+                                   mutrates=mutrates, 
+                                   selcoef=selcoef ), 
+                             as.list(fparams) ) )
     # this is collapsed transition matrix
     subtransmatrix <- computetransmatrix( genmatrix, projmatrix, tlen=1, time="fixed") # shape=params[length(params)], time="gamma" )
+    subtransmatrix.0 <- computetransmatrix( genmatrix, projmatrix.0, tlen=1, time="fixed") # shape=params[length(params)], time="gamma" )
     # return POSITIVE log-likelihood
-    ans <- sum( counts@counts * log(subtransmatrix) )
+    num <- sum( counts@counts * log(subtransmatrix) )
+    den <- sum( counts.0@counts * log(subtransmatrix.0) )
+    ans <- num - den
     if (!is.finite(ans)) { return( -Inf ) }
     else { return( ans - sum(mutrates/prior.config$mutrates.prior) - sum((selcoef/prior.config$selcoef.prior)^2) - sum((fparams/prior.config$fixfn.params.prior)^2) ) }
 }
