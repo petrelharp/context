@@ -35,15 +35,22 @@ do
         echo "Simulation $N, in $DIR,"
         mkdir -p $DIR
         # simulate up some sequence for testing;
-        Rscript ../scripts/sim-seq.R -c $MODEL -t .1 -s $SEQLEN -d $DIR -o ising.RData;
+        Rscript ../scripts/sim-seq.R -c $MODEL -t .3 -s $SEQLEN -d $DIR -o ising.RData;
         # and count the Tmers;
         Rscript ../scripts/count-seq.R -i $DIR/ising.RData -w 4 -s 2 -l 1;
         Rscript ../scripts/count-seq.R -i $DIR/ising.RData -w 5 -s 3 -l 1;
         Rscript ../scripts/count-seq.R -i $DIR/ising.RData -w 6 -s 2 -l 2;
+
         # fit the model;
-        Rscript ../scripts/fit-model.R -c $MODEL -i $DIR/ising-4-root-2-tip-l1-shift0.counts -t .1 -m genmatrices/genmatrix-4-complete.RData -o $DIR/ising-fit-4-2-1.RData;
-        Rscript ../scripts/fit-model.R -c $MODEL -i $DIR/ising-5-root-3-tip-l1-shift0.counts -t .1 -m genmatrices/genmatrix-5-complete.RData -o $DIR/ising-fit-5-3-1.RData;
-        Rscript ../scripts/fit-model.R -c $MODEL -i $DIR/ising-6-root-2-tip-l2-shift0.counts -t .1 -m genmatrices/genmatrix-6-complete.RData -o $DIR/ising-fit-6-2-2.RData;
+        Rscript ../scripts/fit-model.R -c $MODEL -i $DIR/ising-4-root-2-tip-l1-shift0.counts -t .3 -m genmatrices/genmatrix-4-complete.RData -o $DIR/ising-fit-4-2-1.RData;
+        Rscript ../scripts/fit-model.R -c $MODEL -i $DIR/ising-5-root-3-tip-l1-shift0.counts -t .3 -m genmatrices/genmatrix-5-complete.RData -o $DIR/ising-fit-5-3-1.RData;
+        Rscript ../scripts/fit-model.R -c $MODEL -i $DIR/ising-6-root-2-tip-l2-shift0.counts -t .3 -m genmatrices/genmatrix-6-complete.RData -o $DIR/ising-fit-6-2-2.RData;
+
+        # and mcmc
+        MCMCID=$RANDOM
+        Rscript ../scripts/mcmc-model.R -i $DIR/ising-fit-4-2-1.RData -c ising-model.json -b 1000 -j $MCMCID
+        Rscript ../scripts/mcmc-model.R -i $DIR/ising-fit-5-3-1.RData -c ising-model.json -b 1000 -j $MCMCID
+        Rscript ../scripts/mcmc-model.R -i $DIR/ising-fit-6-2-2.RData -c ising-model.json -b 1000 -j $MCMCID
     ) &
 done
 

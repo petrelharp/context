@@ -16,7 +16,7 @@ do
     do
         OUTFILE=$(echo $SIMFIT | sed -e 's/RData$/json/')
         echo "Reading from ${SIMFIT}, writing to ${OUTFILE}."
-        Rscript ../scripts/gather-results.R --fit $SIMFIT --sim $DIR/ising.RData --outfile $OUTFILE --json 2>/dev/null &
+        Rscript ../scripts/gather-results.R --fit $SIMFIT --sim $DIR/ising.RData --outfile $OUTFILE --json &
         while (( $(jobs 2>&1 | grep -c Running) >= $NJOBS )); do sleep 0.1; done
     done
 done

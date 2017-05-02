@@ -11,13 +11,14 @@ if (length(json.files)==0) {
 
 library(jsonlite)
 
-jsondata <- lapply( lapply( json.files, fromJSON ), function (x) {
+jsondata <- lapply( json.files, function (jf) {
+            x <- fromJSON(jf)            
             simc <- paste('sim',names(x[['sim.coef']]),sep=':')
             fitc <- paste('fit',names(x[['fit.coef']]),sep=':')
             those <- setdiff(names(x),c('sim.coef','fit.coef'))
             y <- do.call(cbind,lapply(x[c('sim.coef','fit.coef',those)],as.data.frame))
             names(y) <- c( simc, fitc, unlist( lapply( x[those], names ) ) )
-            return(y)
+            return(c( list(file=jf), y))
         } )
 
 all.data <- do.call( rbind, jsondata )
