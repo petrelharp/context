@@ -11,16 +11,28 @@ if (length(json.files)==0) {
 
 library(jsonlite)
 
+# fill in empty entries with NA
+adf <- function (z, znames=names(z)) { for (k in znames) { if (length(z[[k]])==0) { z[[k]] <- NA } }; as.data.frame(z) }
+
 jsondata <- lapply( json.files, function (jf) {
             x <- fromJSON(jf)            
             simc <- paste('sim',names(x[['sim.coef']]),sep=':')
             fitc <- paste('fit',names(x[['fit.coef']]),sep=':')
-            those <- setdiff(names(x),c('sim.coef','fit.coef'))
-            y <- do.call(cbind,lapply(x[c('sim.coef','fit.coef',those)],as.data.frame))
+            those <- setdiff(names(x),c('sim.coef','fit.coef','posterior.quantiles'))
+            y <- do.call(cbind,lapply(x[c('sim.coef','fit.coef',those)],adf))
             names(y) <- c( simc, fitc, unlist( lapply( x[those], names ) ) )
+            if (!is.null(x$posterior.quantiles)) {
+                for (k in seq_along(x$posterior.quantiles)) {
+                    names(x$posterior.quantiles[[k]]) <- names(x[['fit.coef']])
+                }
+                pq <- unlist( x$posterior.quantiles )
+                y <- as.data.frame(c(y, pq))
+            }
             return(c( list(file=jf), y))
         } )
 
-all.data <- do.call( rbind, jsondata )
+thenames <- unique(unlist(lapply(jsondata,names)))
+
+all.data <- do.call( rbind, lapply(jsondata, function (x) adf(x, thenames) ))
 
 write.table( all.data, row.names=FALSE, sep='\t', file=stdout() )
