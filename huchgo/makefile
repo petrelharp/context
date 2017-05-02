@@ -17,8 +17,8 @@ mcmcs : $(mcmcfiles)
 	Rscript huchgo-inference.R -i $< -o $@ ${ARGS} 
 
 info : 
-	Rscript ../siminfo.R huchgo-sims > $@
-	Rscript ../parse-mcmc.R  >> $@
+	Rscript siminfo.R huchgo-sims > $@
+	Rscript parse-mcmc.R  >> $@
 	Rscript pairplots-mcmc.R huchgo-sims
 
 %/mcmc-run-1.Rout : %.RData
