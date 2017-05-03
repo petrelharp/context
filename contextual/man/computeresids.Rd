@@ -6,7 +6,29 @@
 \usage{
 computeresids(model, pretty = TRUE, in_longwin = longwin(model),
   in_shortwin = shortwin(model), in_leftwin = leftwin(model),
-  counts = NULL, genmatrixfile = NULL, overlapping = FALSE)
+  counts = NULL, genmatrixfile = NULL, ...)
+}
+\arguments{
+\item{model}{An object inheriting from `context` or `contextTree` having a `fitted` method.}
+
+\item{pretty}{Whether to return results in a data frame sorted by z-score (otherwise, returns a matrix of the same form as `counts`).}
+
+\item{in_longwin}{The `long` window length of Tmers to compute residuals for.}
+
+\item{in_shortwin}{The `short` window length of Tmers to compute residuals for.}
+
+\item{in_leftwin}{The left overhang of Tmers to compute residuals for.}
+
+\item{counts}{A tuplecounts object - can be supplied to compute residuals for longer Tmers than the model was fit with.}
+
+\item{genmatrixfile}{The name of a file where a genmatrix is stored (if `model` doesn't carry an appropriate one).}
+
+\item{...}{Additional arguments to be passed to `projectcounts()`.}
+}
+\value{
+If `pretty` is TRUE, returns a data frame with columns `inpat` (the head of the Tmer), `outpat` (the tail of the Tmer), 
+`observed`, `expected`, `resid` (observed minus expected), and `z` (residual divided by square root of expected).
+Otherwise, returns a matrix of the same dimensions as `counts` with rows and columns labeled by the head and tail Tmer patterns.
 }
 \description{
 Compute Residuals

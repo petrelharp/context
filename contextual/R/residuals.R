@@ -4,8 +4,21 @@
 
 #' Compute Residuals
 #'
+#' @param model An object inheriting from `context` or `contextTree` having a `fitted` method.
+#' @param pretty Whether to return results in a data frame sorted by z-score (otherwise, returns a matrix of the same form as `counts`).
+#' @param in_longwin The `long` window length of Tmers to compute residuals for.
+#' @param in_shortwin The `short` window length of Tmers to compute residuals for.
+#' @param in_leftwin The left overhang of Tmers to compute residuals for.
+#' @param counts A tuplecounts object - can be supplied to compute residuals for longer Tmers than the model was fit with.
+#' @param genmatrixfile The name of a file where a genmatrix is stored (if `model` doesn't carry an appropriate one).
+#' @param ... Additional arguments to be passed to `projectcounts()`.
+#'
+#' @return If `pretty` is TRUE, returns a data frame with columns `inpat` (the head of the Tmer), `outpat` (the tail of the Tmer), 
+#' `observed`, `expected`, `resid` (observed minus expected), and `z` (residual divided by square root of expected).
+#' Otherwise, returns a matrix of the same dimensions as `counts` with rows and columns labeled by the head and tail Tmer patterns.
+#'
 #' @export
-computeresids <- function (model, pretty=TRUE, in_longwin=longwin(model), in_shortwin=shortwin(model), in_leftwin=leftwin(model), counts=NULL, genmatrixfile=NULL, overlapping=FALSE) {
+computeresids <- function (model, pretty=TRUE, in_longwin=longwin(model), in_shortwin=shortwin(model), in_leftwin=leftwin(model), counts=NULL, genmatrixfile=NULL, ...) {
     # pull in defaults for things if they are not specified
     # load generator matrix, if needed
     if (!is.null(genmatrixfile)) {
@@ -29,8 +42,8 @@ computeresids <- function (model, pretty=TRUE, in_longwin=longwin(model), in_sho
     expected <- fitted( model, longwin=longwin(model), shortwin=shortwin(model), leftwin=leftwin(model), initcounts=Matrix::rowSums(counts), genmatrix=genmatrix )
 
     if ( (in_longwin < longwin(counts)) || (in_shortwin < shortwin(counts)) ) {
-        counts <- projectcounts( counts, in_leftwin, in_shortwin, in_longwin, overlapping=overlapping )
-        expected <- projectcounts( expected, in_leftwin, in_shortwin, in_longwin, overlapping=overlapping )
+        counts <- projectcounts( counts, in_leftwin, in_shortwin, in_longwin, ...)
+        expected <- projectcounts( expected, in_leftwin, in_shortwin, in_longwin, ...)
     }
 
     if (pretty) {
