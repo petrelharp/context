@@ -12,7 +12,7 @@ if (length(json.files)==0) {
 library(jsonlite)
 
 # fill in empty entries with NA
-adf <- function (z, znames=names(z)) { for (k in znames) { if (length(z[[k]])==0) { z[[k]] <- NA } }; as.data.frame(z) }
+adf <- function (z, znames=names(z)) { for (k in znames) { if (length(z[[k]])==0) { z[[k]] <- NA } }; as.data.frame(z, check.names=FALSE) }
 
 jsondata <- lapply( json.files, function (jf) {
                 tryCatch( {
@@ -31,7 +31,7 @@ jsondata <- lapply( json.files, function (jf) {
                         names(x$posterior.quantiles[[k]]) <- names(x[['fit.coef']])
                     }
                     pq <- unlist( x$posterior.quantiles )
-                    y <- as.data.frame(c(y, pq))
+                    y <- as.data.frame(c(y, pq), check.names=FALSE)
                 }
                 return(c( list(file=jf), y))
             } )

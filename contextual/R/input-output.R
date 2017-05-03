@@ -111,33 +111,19 @@ read.config <- function (configfile,quiet=FALSE,json) {
 #' @return TRUE or FALSE
 check.config <- function (config) {
     ret <- TRUE
-    if (!is.null(config$bases) && !is.null(config$initfreqs) && length(config$bases) != length(config$initfreqs)) {
-        warning("bases and initfreqs not the same length in configuration")
-        ret <- FALSE
-    }
-    if (!is.null(config$mutpats) && !is.null(config$mutrates) && length(config$mutpats) != length(config$mutrates)) {
-        warning("bases and initfreqs not the same length in configuration")
-        ret <- FALSE
-    }
-    if (!is.null(config$mutpats) && !is.null(config$mutrates.scale) && length(config$mutpats) != length(config$mutrates.scale)) {
-        warning("bases and initfreqs not the same length in configuration")
-        ret <- FALSE
-    }
-    if (!is.null(config$mutpats) && !is.null(config$mutrates.prior) && length(config$mutpats) != length(config$mutrates.prior)) {
-        warning("bases and initfreqs not the same length in configuration")
-        ret <- FALSE
-    }
-    if (!is.null(config$selpats) && !is.null(config$selcoef) && length(config$selpats) != length(config$selcoef)) {
-        warning("bases and initfreqs not the same length in configuration")
-        ret <- FALSE
-    }
-    if (!is.null(config$selpats) && !is.null(config$selcoef.scale) && length(config$selpats) != length(config$selcoef.scale)) {
-        warning("bases and initfreqs not the same length in configuration")
-        ret <- FALSE
-    }
-    if (!is.null(config$selpats) && !is.null(config$selcoef.prior) && length(config$selpats) != length(config$selcoef.prior)) {
-        warning("bases and initfreqs not the same length in configuration")
-        ret <- FALSE
+    check.pairs <- list(
+        c("bases", "initfreqs"),
+        c("mutpats", "mutrates"),
+        c("mutpats", "mutrates.scale"),
+        c("mutpats", "mutrates.prior"),
+        c("selpats", "selcoef"),
+        c("selpats", "selcoef.scale"),
+        c("selpats", "selcoef.prior"))
+    for (ab in check.pairs) {
+        if (!is.null(config[[ab[1]]]) && !is.null(config[[ab[2]]]) && length(config[[ab[1]]]) != length(config[[ab[2]]])) {
+            warning(sprintf("%s and %s not the same length in configuration", ab[1], ab[2]))
+            ret <- FALSE
+        }
     }
     return(ret)
 }
