@@ -27,6 +27,8 @@ SEQLEN=1000000
 BASEDIR=simseqs/coverage
 # the model for inference
 MODEL=ising-model.json
+# number of MCMC iterations
+MCMCITER=10
 
 for N in $(seq $NRUNS)
 do
@@ -44,12 +46,12 @@ do
         # fit the model;
         Rscript ../scripts/fit-model.R -c $MODEL -i $DIR/ising-4-root-2-tip-l1-shift0.counts -t .3 -m genmatrices/genmatrix-4-complete.RData -o $DIR/ising-fit-4-2-1.RData;
         Rscript ../scripts/fit-model.R -c $MODEL -i $DIR/ising-5-root-3-tip-l1-shift0.counts -t .3 -m genmatrices/genmatrix-5-complete.RData -o $DIR/ising-fit-5-3-1.RData;
-        Rscript ../scripts/fit-model.R -c $MODEL -i $DIR/ising-6-root-2-tip-l2-shift0.counts -t .3 -m genmatrices/genmatrix-6-complete.RData -o $DIR/ising-fit-6-2-2.RData;
+        # Rscript ../scripts/fit-model.R -c $MODEL -i $DIR/ising-6-root-2-tip-l2-shift0.counts -t .3 -m genmatrices/genmatrix-6-complete.RData -o $DIR/ising-fit-6-2-2.RData;
 
         # and mcmc
         MCMCID=$RANDOM
-        Rscript ../scripts/mcmc-model.R -i $DIR/ising-fit-4-2-1.RData -c ising-model.json -b 1000 -j $MCMCID
-        Rscript ../scripts/mcmc-model.R -i $DIR/ising-fit-5-3-1.RData -c ising-model.json -b 1000 -j $MCMCID
+        Rscript ../scripts/mcmc-model.R -i $DIR/ising-fit-4-2-1.RData -c ising-model.json -b $MCMCITER -j $MCMCID
+        Rscript ../scripts/mcmc-model.R -i $DIR/ising-fit-5-3-1.RData -c ising-model.json -b $MCMCITER -j $MCMCID
         # too long
         # Rscript ../scripts/mcmc-model.R -i $DIR/ising-fit-6-2-2.RData -c ising-model.json -b 1000 -j $MCMCID
 

@@ -5,7 +5,7 @@
 \alias{meangenmatrix}
 \title{Make a Generator Matrix}
 \usage{
-makegenmatrix(mutpats, selpats = list(), patlen = nchar(patterns[1]),
+makegenmatrix(mutpats, selpats = list(), patlen,
   patterns = getpatterns(patlen, bases), bases, fixfn, mutrates = rep(1,
   length(mutpats)), selcoef = rep(1, length(selpats)),
   selfactors = lapply(selpats, sapply, function(x) 1), boundary = "none",

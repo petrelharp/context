@@ -107,7 +107,7 @@ setClass("genmatrix", representation(
 makegenmatrix <- function (
         mutpats, 
         selpats=list(), 
-        patlen=nchar(patterns[1]), 
+        patlen,
         patterns=getpatterns(patlen,bases), 
         bases, 
         fixfn, 
@@ -116,6 +116,7 @@ makegenmatrix <- function (
         selfactors=lapply(selpats,sapply,function(x)1), 
         boundary="none", ...) {
     if (!is.numeric(patlen)|(missing(patlen)&missing(patterns))) { stop("need patlen or patterns") }
+    if (missing(patlen)) { patlen <- nchar(patterns[1]) }
     if ( (length(selpats)>0 && max(sapply(unlist(selpats),nchar))>patlen) | max(sapply(unlist(mutpats),nchar))>patlen ) { stop("some patterns longer than patlen") }
     # mutmats is a list of matrices, with one matrix for each of the mutpatls in mutpatll describing the induced mutation process on the specified patterns (see getmutmats function def'n)
     mutmats <- getmutmats(mutpats,patterns,boundary=boundary)

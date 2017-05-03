@@ -93,14 +93,53 @@ read.counts <- function (infile,leftwin,bases,longpats,shortpats,skip=0) {
 read.config <- function (configfile,quiet=FALSE,json) {
     if (!missing(configfile)&&is.null(configfile)) { cat("Config: NULL.\n"); return(NULL) }
     if (missing(json)) { 
-        con <- openread(configfile)
+        con <- file(configfile, open="r")
         json <- paste(readLines(con, warn = FALSE), collapse = "\n")
         close(con)
     }
     config <- jsonlite::fromJSON(json,simplifyMatrix=FALSE,simplifyDataFrame=FALSE)
     if (!quiet) { cat("Config: ", jsonlite::toJSON(config), "\n\n") }
     config <- .parse.selpats(config)
+    check.config(config)
     return(config)
+}
+
+#' Check a configuration has obvious errors.
+#'
+#' @param config A configuration.
+#'
+#' @return TRUE or FALSE
+check.config <- function (config) {
+    ret <- TRUE
+    if (!is.null(config$bases) && !is.null(config$initfreqs) && length(config$bases) != length(config$initfreqs)) {
+        warning("bases and initfreqs not the same length in configuration")
+        ret <- FALSE
+    }
+    if (!is.null(config$mutpats) && !is.null(config$mutrates) && length(config$mutpats) != length(config$mutrates)) {
+        warning("bases and initfreqs not the same length in configuration")
+        ret <- FALSE
+    }
+    if (!is.null(config$mutpats) && !is.null(config$mutrates.scale) && length(config$mutpats) != length(config$mutrates.scale)) {
+        warning("bases and initfreqs not the same length in configuration")
+        ret <- FALSE
+    }
+    if (!is.null(config$mutpats) && !is.null(config$mutrates.prior) && length(config$mutpats) != length(config$mutrates.prior)) {
+        warning("bases and initfreqs not the same length in configuration")
+        ret <- FALSE
+    }
+    if (!is.null(config$selpats) && !is.null(config$selcoef) && length(config$selpats) != length(config$selcoef)) {
+        warning("bases and initfreqs not the same length in configuration")
+        ret <- FALSE
+    }
+    if (!is.null(config$selpats) && !is.null(config$selcoef.scale) && length(config$selpats) != length(config$selcoef.scale)) {
+        warning("bases and initfreqs not the same length in configuration")
+        ret <- FALSE
+    }
+    if (!is.null(config$selpats) && !is.null(config$selcoef.prior) && length(config$selpats) != length(config$selcoef.prior)) {
+        warning("bases and initfreqs not the same length in configuration")
+        ret <- FALSE
+    }
+    return(ret)
 }
 
 #' Fill in Default Values in a Configuration List
