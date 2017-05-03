@@ -2,11 +2,25 @@
 % Please edit documentation in R/misc.R
 \name{openread}
 \alias{openread}
+\alias{openwrite}
 \title{Open for reading or writing}
 \usage{
 openread(arg)
+
+openwrite(arg)
+}
+\arguments{
+\item{arg}{A text string: one of "-", "[/dev/]stdin", "[/dev/]stdout", or a file name (including a file descriptor, e.g. "/dev/fd3").}
+}
+\value{
+A connection, from one of `stdout()`, `stdin()`, `fifo()`, or `file()`.
 }
 \description{
 Use to open stdin/stdout or process substitution things correctly
   from  http://stackoverflow.com/questions/15784373/process-substitution
 }
+\section{Functions}{
+\itemize{
+\item \code{openwrite}: Open for writing.
+}}
+

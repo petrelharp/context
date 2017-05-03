@@ -4,10 +4,12 @@
 \alias{divergence}
 \title{Mean Density of Nucleotide Differences}
 \usage{
-divergence(counts, leftwin)
+divergence(counts, leftwin = leftwin(counts))
 }
 \arguments{
-\item{counts}{A tuplecounts object.}
+\item{counts}{A tuplecounts object or a matrix of counts with rows and columns labeled.}
+
+\item{leftwin}{The length of the left overhang of the Tmers of the counts object.}
 }
 \value{
 The mean density.

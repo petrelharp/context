@@ -11,6 +11,10 @@ selfname <- function (x) { names(x) <- x; return(x) }
 #' Use to open stdin/stdout or process substitution things correctly
 #'   from  http://stackoverflow.com/questions/15784373/process-substitution
 #'
+#' @param arg A text string: one of "-", "[/dev/]stdin", "[/dev/]stdout", or a file name (including a file descriptor, e.g. "/dev/fd3").
+#'
+#' @return A connection, from one of `stdout()`, `stdin()`, `fifo()`, or `file()`.
+#'
 #' @export
 openread <- function(arg) {
     if (arg %in% c("-", "/dev/stdin","stdin")) {
@@ -21,7 +25,7 @@ openread <- function(arg) {
        file(arg, open = "r")
     }
 }
-#' @describeIn openread
+#' @describeIn openread Open for writing.
 #' @export
 openwrite <- function(arg) {
     if (arg %in% c("-", "/dev/stdout","stdout")) {

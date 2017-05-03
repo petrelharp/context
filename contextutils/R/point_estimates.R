@@ -3,15 +3,19 @@
 #'
 #' Uses stringdist::stringdistmatrix.
 #'
-#' @param counts A tuplecounts object.
+#' @param counts A tuplecounts object or a matrix of counts with rows and columns labeled.
+#' @param leftwin The length of the left overhang of the Tmers of the counts object.
 #'
 #' @return The mean density.
 #'
 #' @export
-divergence <- function (counts, leftwin) {
+divergence <- function (counts, leftwin=leftwin(counts)) {
     require(stringdist)
     patlen <- nchar(colnames(counts)[1])
     nchanges <- stringdist::stringdistmatrix( substr(rownames(counts),leftwin+1,leftwin+patlen), colnames(counts), method="hamming" )
+    if (inherits(counts, "tuplecounts")) {
+        counts <- counts@counts
+    }
     return( sum(nchanges*counts)/(sum(counts)*patlen) )
 }
 

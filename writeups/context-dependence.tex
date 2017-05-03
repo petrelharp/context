@@ -522,6 +522,27 @@ and although the process at $i$ only depends on events within $\pm \ell$,
 these events may affect other sites in $Y$ going back a distance $2\ell$.
 
 
+%%%%%%%%
+\subsection{Model fit and model selection}
+
+The difference between observed and expected T-mer counts provide a good assessment of how and whether a model can be improved.
+These \emph{residual} counts are usually most usefully computed for T-mers shorter than those used to fit the model.
+For each T-mer $(x,y)$, write $O_{x,y}$ for the number of this T-mer observed in the data, 
+and $E_{x,y}$ for the number expected under the model.
+(The expected number is the number of occurrences of $x$ in the initial sequence 
+multiplied by the probability $p_{n,\ell,r}(t;x,y)$, where $n$ is the length of $x$,
+and $\ell$, $r$ are the appropriate overhangs.)
+If the T-mers were nonoverlapping, this would form a standard contingency table,
+and standard practice would be to divide the residuals by the square root of the expected counts
+and compare these to a standard Normal distribution.
+However, there are are $n$ possible such tables --
+so, we compute normalized residuals as
+\begin{align}
+    Z_{x,y} = \frac{ O_{x,y} - E_{x,y} }{ \sqrt{n E_{x,y}} },
+\end{align}
+which is equivalent to averaging the $z$-scores of the $n$ possible tables of nonoverlapping counts.
+These can then be compared to a standard Normal distribution.
+
 %%%%%%%%%%%
 \section{Computation}
 
@@ -677,7 +698,73 @@ works in some cases;
 in other cases the likelihood surface is still too peaked, underestimating the uncertainty.
 (but counting in nonoverlapping windows fixes the peakiness problem)
 
+%%%%%%%%%%%
+\subsection{Stepwise model selection}
 
+In exploratory application to real data, how does one decide when to stop adading mutational motifs?
+Perhaps the simplest method conceptually is to 
+(a) fit a simple model,
+(b) choose new motifs to add based on statistically significant residuals,
+(c) repeat until no residuals are statisically significant.
+To test this method,
+we simulated a single sequence of $10^6$ nucleotides
+for one units of time
+under the model
+    \begin{center}
+      \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }cc}
+        $x$  &    $y$  &  $m_{xy}$ & when $x \neq y \in \{\nA,\nC,\nG,\nT\}$  \\
+        \nC\nG     &  \nT\nG     &  $0.4$ & \\
+        \nC\nG     &  \nC\nA     &  $0.4$ & \\
+        \nT\nC\nC  &  \nT\nT\nC  &  $0.1$ & \\
+        \nA\nG\nG  &  \nA\nA\nG  &  $0.1$ &
+      \end{tabular} ,
+    \end{center}
+with $m_{AT}=m_{TA}=0.1$, $m_{CG}=m_{GC}=0.15$, $m_{AC}=m_{TG}=m_{AG}=m_{TC}=0.08$, and $m_{CA}=m_{GT}=m_{CT}=m_{GA}=0.12$.
+% Note the model is symmetric under reverse complementation.
+The resulting sequences differed at 28.5\% of the sites.
+We then fit an unconstrained model of single-nucleotide substitution using (5,1,1) T-mers
+(three sites at the base with an overhang of one on each side).
+The top and bottom of the table of (2,1,0) and (2,0,1) T-mer residuals of this model were as follows:
+    \begin{center}
+        XXX
+    \end{center}
+The situation clearly calls for addition of the CpG mutation tuple.
+After adding these patterns into the model and re-fitting,
+some length 2 residuals had statistically significant residuals,
+but none nearly so large as those seen in (3,1,1) T-mer residuals:
+    \begin{center}
+        XXX
+    \end{center}
+\ldots which again clearly call for adding the appropriate 3mer mutation tuples.
+After adding these in, no further (3,1,1) T-mer residuals achieved
+statistical significance after a Bonferroni correction;
+the final parameter values are shown in Table XXX;
+parameter estimates differ from the truth by less than X\%.
+
+\begin{table}
+  \begin{center}
+    \includegraphics[width=\textwidth]{writeup-plots/tasep_all-mcmc-runs}
+  \end{center}
+  \caption{ Results from iterative fitting to a $10^6$ sequence evolved to have 28.5\% sequence divergence
+    with the above mutational motifs.
+    \label{tab:cpg_results} }
+\end{table}
+
+
+%%%%%%%%%%%
+\subsection{Bayesian inference}
+
+The usage of fast sparse matrix methods described above make likelihood computation fast enough
+to use a Metropolis-Hasting-based Markov chain Monte Carlo method
+to sample from the posterior distribution on parameters.
+To test this,
+we evolved $10^6$ sites from the Ising model (described above) with $\lambda=0.15$, $\beta=0.3$, and $\gamma=0.15$
+for 1 unit of time.
+We then placed an Exponential prior with mean 1 on both transitions $+ \to -$ and $- \to +$
+(without constraining these to be equal)
+and half-Gaussian priors with mean 0 and scale 3 on both $\beta$ and $\gamma$.
+
+%%%%%%%%%%%
 \subsection{TASEP}
 
 Strings of length $10^5$ were evolved under TASEP for varying amounts of time,

@@ -20,8 +20,31 @@ predictcounts.context <- function (model, longwin=NULL, shortwin=NULL, leftwin=N
 #'
 #' Compute expected counts of paired patterns.
 #'
+#' @param longwin Length of the long end of the Tmer.
+#' @param shortwin Length of the short end of the Tmer.
+#' @param leftwin Length of the left overhang of the Tmer.
+#' @param initcounts Number of occurrences of each intial (`long`) pattern.
+#' @param mutrates Mutation rates optionally used to update `genmatrix`.
+#' @param selcoef Selection coefficients optionally used to update `genmatrix`.
+#' @param genmatrix The generator matrix used to predict counts (must correspond to a pattern length of `longwin`).
+#' @param projmatrix The projection matrix used to project from long to short patterns.
+#' @param params Other parameters optionally used to update `genmatrix`.
+#' @param tlen Length of time for evolution.
+#' 
+#' @return A tuplecounts object.
+#' 
 #' @export
-predictcounts <- function (longwin, shortwin, leftwin, initcounts, mutrates, selcoef, genmatrix, projmatrix, params=NULL, tlen=1 ) {
+predictcounts <- function (longwin, 
+                           shortwin, 
+                           leftwin, 
+                           initcounts, 
+                           mutrates, 
+                           selcoef, 
+                           genmatrix, 
+                           projmatrix, 
+                           params=NULL, 
+                           tlen=1 ) {
+    if (longwin != longwin(genmatrix)) { stop("Generator matrix does not have the requested longwin.") }
     rightwin <- longwin-shortwin-leftwin
     if (!missing(mutrates)||!missing(selcoef)||!is.null(params)) { genmatrix@x <- do.call( update_x, c( list(genmatrix,mutrates=mutrates,selcoef=selcoef), params ) ) }
     if (missing(projmatrix)) { projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, rightwin=rightwin, bases=genmatrix@bases ) }

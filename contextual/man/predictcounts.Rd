@@ -7,6 +7,30 @@
 predictcounts(longwin, shortwin, leftwin, initcounts, mutrates, selcoef,
   genmatrix, projmatrix, params = NULL, tlen = 1)
 }
+\arguments{
+\item{longwin}{Length of the long end of the Tmer.}
+
+\item{shortwin}{Length of the short end of the Tmer.}
+
+\item{leftwin}{Length of the left overhang of the Tmer.}
+
+\item{initcounts}{Number of occurrences of each intial (`long`) pattern.}
+
+\item{mutrates}{Mutation rates optionally used to update `genmatrix`.}
+
+\item{selcoef}{Selection coefficients optionally used to update `genmatrix`.}
+
+\item{genmatrix}{The generator matrix used to predict counts (must correspond to a pattern length of `longwin`).}
+
+\item{projmatrix}{The projection matrix used to project from long to short patterns.}
+
+\item{params}{Other parameters optionally used to update `genmatrix`.}
+
+\item{tlen}{Length of time for evolution.}
+}
+\value{
+A tuplecounts object.
+}
 \description{
 Compute expected counts of paired patterns.
 }
