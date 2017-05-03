@@ -55,7 +55,7 @@ computeresids <- function (model, pretty=TRUE, in_longwin=longwin(model), in_sho
                             resid=as.vector(counts)-as.vector(expected),
                             stringsAsFactors=FALSE
                         )
-        residframe$z <- residframe$resid/sqrt(as.vector(expected))
+        residframe$z <- residframe$resid/sqrt(as.vector(expected)*in_longwin)
         residframe <- residframe[order(residframe$z),]
     } else {
         # concise matrix

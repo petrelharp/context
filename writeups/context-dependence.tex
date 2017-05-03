@@ -723,22 +723,88 @@ with $m_{AT}=m_{TA}=0.1$, $m_{CG}=m_{GC}=0.15$, $m_{AC}=m_{TG}=m_{AG}=m_{TC}=0.0
 % Note the model is symmetric under reverse complementation.
 The resulting sequences differed at 28.5\% of the sites.
 We then fit an unconstrained model of single-nucleotide substitution using (5,1,1) T-mers
-(three sites at the base with an overhang of one on each side).
+(three sites at the base with an overhang of one on each side)
+using a constrained quasi-Newton method (``optim(.., method='L-BFGS-B')'' in R).
 The top and bottom of the table of (2,1,0) and (2,0,1) T-mer residuals of this model were as follows:
+% cpg-plus-epsilon/32140/base-model-fit-5-3-l1-resids.2.1.l0.tsv
+% cpg-plus-epsilon/32140/base-model-fit-5-3-l1-resids.2.1.l1.tsv
     \begin{center}
-        XXX
+        \begin{tabular}{ccrrrr}
+                $x$ & $y$ & observed &   expected &    residual &  $Z$ \\
+                \hline
+                \nC\nG  & \_\nC   & 100410   &  120303    & -19892.50   &	-40.55  \\
+                \nC\nA  & \_\nT   &  19884   &   28350    &  -8466.43   &	-35.55  \\
+                \nC\nT  & \_\nT   &  19998   &   28061    &  -8063.46   &	-34.03  \\
+                \nC\nC  & \_\nT   &  23673   &   28177    &  -4503.96   &	-18.97  \\
+                \nG\nG  & \_\nC   &  17742   &   19418    &  -1675.92   &	 -8.50  \\
+                \nC\nG  & \_\nG   &  18450   &   19478    &  -1028.34   &	 -5.21  \\
+                \nA\nG  & \_\nC   &  10968   &   11760    &   -791.73   &	 -5.16  \\
+                \nG\nG  & \_\nG   & 118805   &  120975    &  -2170.25   &    \\
+                \hline
+                \nA\nG  & \_\nT   &  17280   &   16515    &    765.20   &  4.21   \\
+                \nG\nT  & \_\nC   &  20490   &   19507    &    983.44   &  4.97   \\
+                \nG\nG  & \_\nT   &  20929   &   19278    &   1650.83   &  8.40   \\
+                \nC\nC  & \_\nC   & 124149   &  119880    &   4268.52   &  8.71   \\
+                \nG\nG  & \_\nA   &  30483   &   28288    &   2195.34   &  9.22   \\
+                \nC\nT  & \_\nC   & 126957   &  119389    &   7567.92   & 15.48   \\
+                \nC\nA  & \_\nC   & 128673   &  120619    &   8054.46   & 16.39   \\
+                \nC\nG  & \_\nT   &  49311   &   28276    &  21034.85   & 88.45   \\
+                \hline
+                \hline
+                \nC\nG  &  \nG\_  &  100803  &  120541  &  -19737.80  &  -40.19 \\
+                \nT\nG  &  \nA\_  &   20040  &   28179  &   -8139.45  &  -34.28 \\
+                \nG\nG  &  \nA\_  &   20985  &   28288  &   -7302.96  &  -30.70 \\
+                \nA\nG  &  \nA\_  &   22929  &   28399  &   -5469.73  &  -22.95 \\
+                \nC\nC  &  \nG\_  &   17805  &   19410  &   -1605.01  &   -8.14 \\
+                \nC\nT  &  \nG\_  &   10470  &   11684  &   -1214.31  &   -7.94 \\
+                \nC\nA  &  \nG\_  &   10839  &   11882  &   -1043.39  &   -6.76 \\
+                \nC\nG  &  \nC\_  &   18354  &   19348  &    -994.19  &   -5.05 \\
+                \hline
+                \nC\nT  &  \nA\_  &   17007  &   16078  &     929.33  &    5.18 \\
+                \nT\nC  &  \nG\_  &   20691  &   19509  &    1182.40  &    5.98 \\
+                \nC\nC  &  \nA\_  &   20640  &   19160  &    1480.44  &    7.56 \\
+                \nT\nC  &  \nT\_  &   30309  &   28320  &    1988.91  &    8.35 \\
+                \nA\nG  &  \nG\_  &  127191  &  121450  &    5740.76  &   11.64 \\
+                \nG\nG  &  \nG\_  &  127946  &  120977  &    6969.46  &   14.16 \\
+                \nT\nG  &  \nG\_  &  127539  &  120512  &    7026.52  &   14.31 \\
+                \nC\nG  &  \nA\_  &   49098  &   28186  &   20911.93  &   88.07 \\
+                \hline
+        \end{tabular}
     \end{center}
-The situation clearly calls for addition of the CpG mutation tuple.
+The situation clearly calls for addition of the CpG mutation motif.
 After adding these patterns into the model and re-fitting,
+% starting at the parameters inferred from the first run and a CpG rate of 0.0,
 some length 2 residuals had statistically significant residuals,
-but none nearly so large as those seen in (3,1,1) T-mer residuals:
+but none so large as those seen in (3,1,1) T-mer residuals, shown here:
     \begin{center}
-        XXX
+        \begin{tabular}{ccrrrr}
+                $x$ & $y$ & observed &   expected &    residual &  $Z$ \\
+                \hline
+                \nA\nG\nG  &  \_\nG\_  &  30024  &  32167  &  -2143.48  &  -6.90 \\
+                \nT\nC\nC  &  \_\nC\_  &  29910  &  31748  &  -1838.13  &  -5.95 \\
+                \nG\nG\nT  &  \_\nA\_  &   5064  &   5549  &   -484.61  &  -3.75 \\
+                \nT\nG\nC  &  \_\nA\_  &   4830  &   5172  &   -342.42  &  -2.74 \\
+                \nG\nG\nA  &  \_\nA\_  &   5115  &   5462  &   -346.97  &  -2.71 \\
+                \nC\nT\nT  &  \_\nG\_  &   2472  &   2717  &   -244.56  &  -2.70 \\
+                \nG\nC\nT  &  \_\nT\_  &   4863  &   5192  &   -328.56  &  -2.63 \\
+                \hline
+                \nA\nT\nG  &  \_\nG\_  &   3225  &   3028  &    196.78  &   2.06  \\
+                \nA\nC\nG  &  \_\nA\_  &   4830  &   4588  &    242.29  &   2.06  \\
+                \nT\nG\nT  &  \_\nC\_  &   5364  &   5105  &    258.74  &   2.09  \\
+                \nG\nA\nG  &  \_\nG\_  &   3285  &   3055  &    229.78  &   2.40  \\
+                \nT\nT\nG  &  \_\nC\_  &   2973  &   2752  &    220.59  &   2.42  \\
+                \nT\nC\nT  &  \_\nG\_  &   5421  &   5056  &    364.54  &   2.95  \\
+                \nT\nC\nC  &  \_\nT\_  &   7590  &   5500  &   2089.79  &  16.26  \\
+                \nA\nG\nG  &  \_\nA\_  &   7566  &   5263  &   2302.74  &  18.32  \\
+                \hline                                                     
+        \end{tabular}
     \end{center}
-\ldots which again clearly call for adding the appropriate 3mer mutation tuples.
-After adding these in, no further (3,1,1) T-mer residuals achieved
+\ldots which again clearly call for adding the mutation tuples $TCC \to TTC$ and $AGG \to AAG$.
+After adding these in, 
+% and initializing all parameters to 0.1 
+no further (3,1,1) T-mer residuals achieved
 statistical significance after a Bonferroni correction;
-the final parameter values are shown in Table XXX;
+the final parameter values are shown in Table \ref{tab:cpg_results};
 parameter estimates differ from the truth by less than X\%.
 
 \begin{table}
@@ -762,7 +828,18 @@ we evolved $10^6$ sites from the Ising model (described above) with $\lambda=0.1
 for 1 unit of time.
 We then placed an Exponential prior with mean 1 on both transitions $+ \to -$ and $- \to +$
 (without constraining these to be equal)
-and half-Gaussian priors with mean 0 and scale 3 on both $\beta$ and $\gamma$.
+and half-Gaussian priors with mean 0 and scale 3 on both $\beta$ and $\gamma$,
+and 
+We repeated this procedure separately on XX independently simulated sequences,
+and show in Figure \ref{fig:ising_coverage}
+the 95\% credible intervals for each parameter.
+
+\begin{figure}
+    \begin{center} 
+    \end{center} 
+    \caption{
+        \label{fig:ising_coverage}}
+\end{figure}
 
 %%%%%%%%%%%
 \subsection{TASEP}
