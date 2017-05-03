@@ -50,7 +50,8 @@ do
         MCMCID=$RANDOM
         Rscript ../scripts/mcmc-model.R -i $DIR/ising-fit-4-2-1.RData -c ising-model.json -b 1000 -j $MCMCID
         Rscript ../scripts/mcmc-model.R -i $DIR/ising-fit-5-3-1.RData -c ising-model.json -b 1000 -j $MCMCID
-        Rscript ../scripts/mcmc-model.R -i $DIR/ising-fit-6-2-2.RData -c ising-model.json -b 1000 -j $MCMCID
+        # too long
+        # Rscript ../scripts/mcmc-model.R -i $DIR/ising-fit-6-2-2.RData -c ising-model.json -b 1000 -j $MCMCID
 
         # gather results into json
         for RDATA in $DIR/ising-fit*.RData
