@@ -5,12 +5,12 @@
 \title{Convert Tuplecounts object to data frame
 Write a Tuplecounts object to file}
 \usage{
-write.counts(counts, file, ...)
+write.counts(x, filename, ...)
 }
 \arguments{
-\item{counts}{A tuplecounts object.}
+\item{x}{A tuplecounts object.}
 
-\item{file}{A filename.}
+\item{filename}{A filename.}
 
 \item{...}{Additional parameters passed to write.table().}
 }

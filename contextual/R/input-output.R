@@ -3,6 +3,12 @@
 #
 
 #' Read in the header configuration line(s) in a counts file.
+#'
+#' @param infile The file name.
+#'
+#' @return The parsed JSON header.
+#'
+#' @export
 read.config.counts <- function (infile) {
     count.paramstring <- scan(infile,what='char',nlines=1,sep="\n", quiet=TRUE)
     return( if (substr(count.paramstring,1,1)=="#") {
@@ -19,14 +25,22 @@ read.config.counts <- function (infile) {
 #' read.counts is not guarenteed to be idempotent.  This just uses `countframe()`
 #' to produce the data frame.
 #'
-#' @param counts A tuplecounts object.
-#' @param file A filename.
+#' @param x A tuplecounts object.
+#' @param filename A filename.
 #' @param ... Additional parameters passed to write.table().
 #'
 #' @export
-write.counts <- function (counts, file, ...) {
-    cf <- countframe(counts)
-    write.table(cf, file=file, ...)
+write.counts <- function (x, filename, ...) {
+    out <- if (grepl("gz$", filename)) { 
+        gzfile(filename, open="w") 
+    } else { 
+        file(filename, open="w") 
+    }
+    cf <- countframe(x)
+    config <- list( leftwin=leftwin(x) )
+    cat("# ", jsonlite::toJSON(config), "\n", file=out)
+    write.table(cf, file=out, append=TRUE, row.names=FALSE, ...)
+    close(out)
 }
 
 #' Read in a File of Counts 

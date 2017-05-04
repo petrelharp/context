@@ -6,6 +6,12 @@
 \usage{
 read.config.counts(infile)
 }
+\arguments{
+\item{infile}{The file name.}
+}
+\value{
+The parsed JSON header.
+}
 \description{
 Read in the header configuration line(s) in a counts file.
 }

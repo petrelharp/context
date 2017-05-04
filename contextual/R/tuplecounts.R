@@ -67,11 +67,11 @@ setMethod("countframe", signature=c(x="tuplecounts"), definition=function (x, in
             colnames(cf) <- c( rowtaxon(x), coltaxa(x), "count" )
         } else {
             # column indices of nonzero entries (one-based)
-            jj <- rep(1:ncol(counts@counts),times=diff(counts@counts@p))
-            cf <- data.frame(X=rownames(counts)[counts@counts@i+1L], stringsAsFactors=FALSE)  # zero-based
-            names(cf) <- rowtaxon(counts)
-            cf <- cbind( cf, colpatterns(counts)[jj,,drop=FALSE] )
-            cf$count <- counts@counts@x
+            jj <- rep(1:ncol(x@counts),times=diff(x@counts@p))
+            cf <- data.frame(X=rownames(x)[x@counts@i+1L], stringsAsFactors=FALSE)  # zero-based
+            names(cf) <- rowtaxon(x)
+            cf <- cbind( cf, colpatterns(x)[jj,,drop=FALSE] )
+            cf$count <- x@counts@x
             rownames(cf) <- NULL
         }
         return(cf)
