@@ -16,7 +16,7 @@ Rscript ../scripts/sim-seq.R -c $MODEL -t .01 -s 1000 -o $SIMFILE -m $SIMGENMAT
 
 echo "and count the Tmers"
 LONGWIN=5
-SHORTWIN=1
+SHORTWIN=2
 LEFTWIN=2
 GENMAT="$BASEDIR/genmatrix-${LONGWIN}.RData"
 

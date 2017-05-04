@@ -153,7 +153,7 @@ longpats <- getpatterns(2,config$bases)
 shortpats <- getpatterns(1,config$bases)
 projmatrix <- collapsepatmatrix( ipatterns=longpats, leftwin=1, fpatterns=shortpats )
 genmatrices <- lapply( config$.models, function (mm) {
-        makegenmatrix( mutpats=config[[mm]]$mutpats, selpats=config[[mm]]$selpats, patterns=longpats,
+        makegenmatrix( mutpats=config[[mm]]$mutpats, selpats=config[[mm]]$selpats, patterns=longpats, patlen=2,
                                boundary="none", bases=config$bases, fixfn=config[[mm]]$fixfn,
                                mutrates=config[[mm]]$mutrates, selcoef=config[[mm]]$selcoef )
     } )
@@ -244,7 +244,7 @@ shortpats <- getpatterns(1,config$bases)
 projmatrix <- collapsepatmatrix( ipatterns=longpats, leftwin=1, fpatterns=shortpats )
 big.projmatrix <- collapsepatmatrix( ipatterns=longpats, leftwin=0, fpatterns=longpats )
 genmatrices <- lapply( config$.models, function (mm) {
-        makegenmatrix( mutpats=config[[mm]]$mutpats, selpats=config[[mm]]$selpats, patterns=longpats,
+        makegenmatrix( mutpats=config[[mm]]$mutpats, selpats=config[[mm]]$selpats, patterns=longpats, patlen=2,
                                boundary="none", bases=config$bases, fixfn=config[[mm]]$fixfn,
                                mutrates=config[[mm]]$mutrates, selcoef=config[[mm]]$selcoef )
     } )
