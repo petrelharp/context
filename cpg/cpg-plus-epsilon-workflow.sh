@@ -105,8 +105,6 @@ DIR=$BASEDIR/32140
             ../scripts/compute-resids.R -i $FIT_A -o ${FIT_A%.RData}-resids.2.1.l0.tsv -w 2 -s 1 -l 0 --pretty 
             ../scripts/compute-resids.R -i $FIT_A -o ${FIT_A%.RData}-resids.3.1.l1.tsv -w 3 -s 1 -l 1 --pretty 
 
-            ## -------------
-
             # add in Harris - initial parameters copied from previous fit
             FIT_B=$(fitmodel $MODEL_B)
 
@@ -115,38 +113,15 @@ DIR=$BASEDIR/32140
             ../scripts/compute-resids.R -i $FIT_B -o ${FIT_B%.RData}-resids.2.1.l0.tsv -w 2 -s 1 -l 0 --pretty 
             ../scripts/compute-resids.R -i $FIT_B -o ${FIT_B%.RData}-resids.3.1.l1.tsv -w 3 -s 1 -l 1 --pretty 
 
+            ## -------------
 
-            # now with all 2mers
-            MODELNAME2="${MODEL2%.json}"
-            FITFILE2="$DIR/2mer-fit-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.RData";
-            Rscript ../scripts/fit-model.R -c $MODEL2 -t $TLEN -i "$DIR/sim-${LONGWIN}-root-${SHORTWIN}-tip-l${LEFTWIN}-shift0.counts" -m "$GMDIR/genmatrix-${LONGWIN}-${MODELNAME2}.RData" -o $FITFILE2;
-            Rscript ../scripts/gather-results.R --fit $FITFILE2 --sim $DIR/sim.RData --json > ${FITFILE2%RData}json;
 
-            # CLEAR FROM RESIDUALS: now with CpG
-            MODELNAME_A=${MODEL_A%.json}
-            FITFILE_A="$DIR/${MODELNAME_A}-fit-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.RData";
-            Rscript ../scripts/fit-model.R -c $MODEL_A -t $TLEN -i "$DIR/sim-${LONGWIN}-root-${SHORTWIN}-tip-l${LEFTWIN}-shift0.counts" -m "$GMDIR/genmatrix-${LONGWIN}-${MODELNAME_A}.RData" -o $FITFILE_A;
-            Rscript ../scripts/gather-results.R --fit $FITFILE_A --sim $DIR/sim.RData --json > ${FITFILE_A%RData}json;
-            ../scripts/compute-resids.R -i $FITFILE_A -o ${FITFILE_A%.RData}-resids.3.1.l1.tsv -w 3 -s 1 -l 1 --pretty 
+            # # now with all 2mers
+            # MODELNAME2="${MODEL2%.json}"
+            # FITFILE2="$DIR/2mer-fit-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.RData";
+            # Rscript ../scripts/fit-model.R -c $MODEL2 -t $TLEN -i "$DIR/sim-${LONGWIN}-root-${SHORTWIN}-tip-l${LEFTWIN}-shift0.counts" -m "$GMDIR/genmatrix-${LONGWIN}-${MODELNAME2}.RData" -o $FITFILE2;
+            # Rscript ../scripts/gather-results.R --fit $FITFILE2 --sim $DIR/sim.RData --json > ${FITFILE2%RData}json;
 
-            # AGAIN CLEAR FROM RESIDUALS
-            MODELNAME_B=${MODEL%.json}
-            FITFILE_B="$DIR/${MODELNAME_B}-fit-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.RData";
-            Rscript ../scripts/fit-model.R -c $MODEL -t $TLEN -i "$DIR/sim-${LONGWIN}-root-${SHORTWIN}-tip-l${LEFTWIN}-shift0.counts" -m "$GMDIR/genmatrix-${LONGWIN}-${MODELNAME_B}.RData" -o $FITFILE_B;
-            Rscript ../scripts/gather-results.R --fit $FITFILE_B --sim $DIR/sim.RData --json > ${FITFILE_B%RData}json;
-            ../scripts/compute-resids.R -i $FITFILE_B -o ${FITFILE_B%.RData}-resids.3.1.l1.tsv -w 3 -s 1 -l 1 --pretty 
-
-            # BUT LETS SEE IF ANYTHING ELSE IS SIGNIFICANT
-            MODELNAME_C="cpg-plus-1"
-            FITFILE_C="$DIR/${MODELNAME_C}-fit-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.RData";
-            Rscript ../scripts/fit-model.R -c $MODEL_C -t $TLEN -i "$DIR/sim-${LONGWIN}-root-${SHORTWIN}-tip-l${LEFTWIN}-shift0.counts" -m "$GMDIR/genmatrix-${LONGWIN}-${MODELNAME_C}.RData" -o $FITFILE_C;
-            Rscript ../scripts/gather-results.R --fit $FITFILE_C --sim $DIR/sim.RData --json > ${FITFILE_C%RData}json;
-
-            # HOW BOUT WITH JUST ONE SPURIOUS ADDITION?
-            MODELNAME_D="cpg-plus-2"
-            FITFILE_D="$DIR/${MODELNAME_D}-fit-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.RData";
-            Rscript ../scripts/fit-model.R -c $MODEL_D -t $TLEN -i "$DIR/sim-${LONGWIN}-root-${SHORTWIN}-tip-l${LEFTWIN}-shift0.counts" -m "$GMDIR/genmatrix-${LONGWIN}-${MODELNAME_D}.RData" -o $FITFILE_D;
-            Rscript ../scripts/gather-results.R --fit $FITFILE_D --sim $DIR/sim.RData --json > ${FITFILE_D%RData}json;
 
         # done;
 #     ) &

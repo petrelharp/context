@@ -709,17 +709,19 @@ Perhaps the simplest method conceptually is to
 To test this method,
 we simulated a single sequence of $10^6$ nucleotides
 for one units of time
-under the model
-    \begin{center}
-      \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }cc}
-        $x$  &    $y$  &  $m_{xy}$ & when $x \neq y \in \{\nA,\nC,\nG,\nT\}$  \\
-        \nC\nG     &  \nT\nG     &  $0.4$ & \\
-        \nC\nG     &  \nC\nA     &  $0.4$ & \\
-        \nT\nC\nC  &  \nT\nT\nC  &  $0.1$ & \\
-        \nA\nG\nG  &  \nA\nA\nG  &  $0.1$ &
-      \end{tabular} ,
-    \end{center}
-with $m_{AT}=m_{TA}=0.1$, $m_{CG}=m_{GC}=0.15$, $m_{AC}=m_{TG}=m_{AG}=m_{TC}=0.08$, and $m_{CA}=m_{GT}=m_{CT}=m_{GA}=0.12$.
+under the model given in Table \ref{tab:cpg_results},
+obtained by embellishing the basic CpG hypermutability
+with the longer mutational motif identified by \citet{harris}.
+%     \begin{center}
+%       \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }cc}
+%         $x$  &    $y$  &  $m_{xy}$ & when $x \neq y \in \{\nA,\nC,\nG,\nT\}$  \\
+%         \nC\nG     &  \nT\nG     &  $0.4$ & \\
+%         \nC\nG     &  \nC\nA     &  $0.4$ & \\
+%         \nT\nC\nC  &  \nT\nT\nC  &  $0.1$ & \\
+%         \nA\nG\nG  &  \nA\nA\nG  &  $0.1$ &
+%       \end{tabular} ,
+%     \end{center}
+% with $m_{AT}=m_{TA}=0.1$, $m_{CG}=m_{GC}=0.15$, $m_{AC}=m_{TG}=m_{AG}=m_{TC}=0.08$, and $m_{CA}=m_{GT}=m_{CT}=m_{GA}=0.12$.
 % Note the model is symmetric under reverse complementation.
 The resulting sequences differed at 28.5\% of the sites.
 We then fit an unconstrained model of single-nucleotide substitution using (5,1,1) T-mers
@@ -805,14 +807,45 @@ After adding these in,
 no further (3,1,1) T-mer residuals achieved
 statistical significance after a Bonferroni correction;
 the final parameter values are shown in Table \ref{tab:cpg_results};
-parameter estimates differ from the truth by less than X\%.
+parameter estimates differ from the truth by less than 3\% (mostly within 1\%).
+
+
+% df <- structure(list(
+%     sim = c(0.1, 0.1, 0.15, 0.15, 0.08, 0.08, 0.08, 0.08, 0.12, 0.12, 0.12, 0.12, 0.4, 0.1), 
+%     fit = c(0.0996, 0.0982, 0.1505, 0.1497, 0.0784, 0.0792, 0.0798, 0.0795, 0.1202, 0.1196, 0.1198, 0.1193, 0.3978, 0.1033)), 
+%     .Names = c("sim", "fit"), 
+%     row.names = c("A->T", "T->A", "C->G", "G->C", "A->C", "T->G", "A->G", "T->C", "C->A", "G->T", "C->T", "G->A", "CG->TG|CG->CA", "TCC->TTC|AGG->AAG"), 
+%     class = "data.frame")
 
 \begin{table}
   \begin{center}
-    \includegraphics[width=\textwidth]{writeup-plots/tasep_all-mcmc-runs}
+        \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }ll}
+          \hline
+            x & y & truth & fitted \\ 
+          \hline
+          \nA  &   \nT           & 0.10 & 0.0996 \\ 
+          \nT  &   \nA           & 0.10 & 0.0982 \\ 
+          \nC  &   \nG           & 0.15 & 0.1505 \\ 
+          \nG  &   \nC           & 0.15 & 0.1497 \\ 
+          \nA  &   \nC           & 0.08 & 0.0784 \\ 
+          \nT  &   \nG           & 0.08 & 0.0792 \\ 
+          \nA  &   \nG           & 0.08 & 0.0798 \\ 
+          \nT  &   \nC           & 0.08 & 0.0795 \\ 
+          \nC  &   \nA           & 0.12 & 0.1202 \\ 
+          \nG  &   \nT           & 0.12 & 0.1196 \\ 
+          \nC  &   \nT           & 0.12 & 0.1198 \\ 
+          \nG  &   \nA           & 0.12 & 0.1193 \\ 
+       \nC\nG  &  \nT\nG         & 0.40 & 0.3978 \\ 
+       \nC\nG  &  \nC\nA         & 0.40 & 0.3978 \\ 
+    \nT\nC\nC  &  \nT\nT\nC      & 0.10 & 0.1033 \\ 
+    \nA\nG\nG  &  \nA\nA\nG      & 0.10 & 0.1033 \\ 
+           \hline
+        \end{tabular}
   \end{center}
   \caption{ Results from iterative fitting to a $10^6$ sequence evolved to have 28.5\% sequence divergence
-    with the above mutational motifs.
+    with the above mutational motifs. The transitions $CG \to TG$ and $CG \to CA$ 
+    were constrained to be equal (DNA strand symmetry),
+    as were the transitions $TCC \to TTC$ and $AGG \to AAG$.
     \label{tab:cpg_results} }
 \end{table}
 
