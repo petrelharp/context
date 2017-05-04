@@ -37,6 +37,8 @@ Data notes
 Counting tuples
 ------
 
+In the files, `reference` is *human* and `derived` is *chimp*.
+
 *3 August 2015, plr*: 
 Syntax:
 ```

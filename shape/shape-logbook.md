@@ -4,6 +4,29 @@ Setup
 
 Make generator matrices, for 5, 7, 8, and 9 (doing the length-9 took about 26 hours):
 ```{.sh}
+
+makegenmat () {
+    LONGWIN=$1
+    MODEL=$2
+    Rscript ../make-genmat.R -c ${MODEL} -w ${LONGWIN} -o genmatrices/${MODEL%.json}-genmatrix-${LONGWIN}.RData"
+}
+
+for MODEL in base-model.json cpg-model.json
+do
+    for LONGWIN in 5 6 7 8 9
+    do
+        makegenmat $LONGWIN $MODEL
+    done
+done
+
+for MODEL in shape-model-MGW-no-CpG shape-model-all-variables-no-CpG
+do
+    for LONGWIN in 5 6 7
+    do
+        makegenmat $LONGWIN $MODEL
+    done
+done
+
 LONGWIN=8; MODEL="shape-model-MGW-no-CpG"; echo "cd $PWD; source ~/cmb/bin/R-setup-usc.sh; Rscript ../make-genmat.R -c ${MODEL}.json -w ${LONGWIN} -o genmatrices/${MODEL}-genmatrix-${LONGWIN}.RData" | qsub -q cmb -l nodes=1:dl165:ppn=24 -l walltime=120:00:00 -l mem=48000mb -l vmem=48000mb -l pmem=2000mb
 LONGWIN=8; MODEL="shape-model-all-variables-no-CpG"; echo "cd $PWD; source ~/cmb/bin/R-setup-usc.sh; Rscript ../make-genmat.R -c ${MODEL}.json -w ${LONGWIN} -o genmatrices/${MODEL}-genmatrix-${LONGWIN}.RData" | qsub -q cmb -l nodes=1:dl165:ppn=24 -l walltime=120:00:00 -l mem=48000mb -l vmem=48000mb -l pmem=2000mb
 LONGWIN=9; MODEL="shape-model-MGW-no-CpG"; echo "cd $PWD; source ~/cmb/bin/R-setup-usc.sh; Rscript ../make-genmat.R -c ${MODEL}.json -w ${LONGWIN} -o genmatrices/${MODEL}-genmatrix-${LONGWIN}.RData" | qsub -q cmb -l nodes=1:dl165:ppn=24 -l walltime=120:00:00 -l mem=48000mb -l vmem=48000mb -l pmem=2000mb
@@ -14,7 +37,7 @@ Look at the likelihood surface(s)
 =================================
 
 ```{.sh}
-for MODEL in shape-model-MGW-no-CpG shape-model-all-variables-no-CpG
+for MODEL in base-model.json cpg-model.json shape-model-MGW-no-CpG shape-model-all-variables-no-CpG
 do
     MODELFILE="${MODEL}.json"
     for TRIPLET in "5 5 0" "7 5 1" "8 6 1" "9 5 2"
@@ -39,7 +62,7 @@ QSUB="qsub -q cmb -l nodes=1:dl165:ppn=24 -l walltime=72:00:00 -l mem=48000mb -l
 
 for COUNTDIR in $(find RegulatoryFeature-regions-from-axt -mindepth 2 -type 'd' -name "*5-5-0")
 do
-    for MODEL in shape-model-MGW-no-CpG shape-model-all-variables-no-CpG
+    for MODEL in base-model.json cpg-model.json shape-model-MGW-no-CpG shape-model-all-variables-no-CpG
     do
         MODELFILE="${MODEL}.json"
         COUNTFILE="${COUNTDIR}/total.counts.gz"
