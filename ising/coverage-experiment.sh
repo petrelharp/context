@@ -53,20 +53,20 @@ do
         MCMCID=$RANDOM
         Rscript ../scripts/mcmc-model.R -i $DIR/ising-fit-4-2-1.RData -c ising-model.json -b $MCMCITER -l 1 -j $MCMCID
         # too long
-        Rscript ../scripts/mcmc-model.R -i $DIR/ising-fit-5-3-1.RData -c ising-model.json -b $MCMCITER -j $MCMCID
+        Rscript ../scripts/mcmc-model.R -i $DIR/ising-fit-5-3-1.RData -c ising-model.json -b $MCMCITER -l 1 -j $MCMCID
         # waaay too long
-        # Rscript ../scripts/mcmc-model.R -i $DIR/ising-fit-6-2-2.RData -c ising-model.json -b 1000 -j $MCMCID
+        # Rscript ../scripts/mcmc-model.R -i $DIR/ising-fit-6-2-2.RData -c ising-model.json -b $MCMCITER -l 1 -j $MCMCID
 
         # gather results into json
         for RDATA in $DIR/ising-fit*.RData
         do
-            ../scripts/gather-results.R --json -f $RDATA -s $DIR/ising.RData > ${RDATA%RData}.json
+            ../scripts/gather-results.R --json -f $RDATA -s $DIR/ising.RData > ${RDATA%RData}json
         done
 
     ) &
 done
 
-../scripts/collect-params-results.R $BASEDIR/*/ising-fit*.json > coverage_results.tsv
-
 wait;
+
+../scripts/collect-params-results.R $BASEDIR/*/ising-fit*.json > coverage_results.tsv
 
