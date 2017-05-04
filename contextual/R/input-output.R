@@ -2,12 +2,31 @@
 # input and output functions
 #
 
-
+#' Read in the header configuration line(s) in a counts file.
 read.config.counts <- function (infile) {
-    count.paramstring <- scan(infile,what='char',nlines=1,sep="\n")
+    count.paramstring <- scan(infile,what='char',nlines=1,sep="\n", quiet=TRUE)
     return( if (substr(count.paramstring,1,1)=="#") {
            jsonlite::fromJSON(gsub("^#*","",count.paramstring),simplifyMatrix=FALSE)
         } else { NULL } )
+}
+
+#' Convert Tuplecounts object to data frame
+
+
+#' Write a Tuplecounts object to file
+#'
+#' This doesn't record everything (e.g., bases), #' so using write.counts ->
+#' read.counts is not guarenteed to be idempotent.  This just uses `countframe()`
+#' to produce the data frame.
+#'
+#' @param counts A tuplecounts object.
+#' @param file A filename.
+#' @param ... Additional parameters passed to write.table().
+#'
+#' @export
+write.counts <- function (counts, file, ...) {
+    cf <- countframe(counts)
+    write.table(cf, file=file, ...)
 }
 
 #' Read in a File of Counts 
@@ -26,6 +45,13 @@ read.config.counts <- function (infile) {
 #'
 #' If leftwin is not specified it will be looked for *in json format* on the
 #' first line of the file after '#' ... mind the braces and quotes!
+#'
+#' @param infile File name.
+#' @param leftwin The T-mer's left overhang (default: read from leading configuration line).
+#' @param bases The alphabet (default: unique characters seen in first column).
+#' @param longpats Patterns indexing rows in the result (default: all n-mers).
+#' @param shortpats Patterns indexing columns in the result (default: all k-mers).
+#' @param skip Number of lines at the top to skip (default: the header).
 #'
 #' @return A tuplecounts object.
 #'

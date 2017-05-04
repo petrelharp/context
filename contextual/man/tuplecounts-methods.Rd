@@ -43,9 +43,9 @@ counts(x)
 
 \S4method{counts}{tuplecounts}(x)
 
-countframe(x)
+countframe(x, ...)
 
-\S4method{countframe}{tuplecounts}(x)
+\S4method{countframe}{tuplecounts}(x, include.zeros = FALSE)
 
 \S4method{dim}{tuplecounts}(x)
 
@@ -70,6 +70,11 @@ countframe(x)
 \S4method{rowSums}{tuplecounts}(x)
 
 \S4method{image}{tuplecounts}(x)
+}
+\arguments{
+\item{x}{A tuplecounts object.}
+
+\item{include.zeros}{Whether to include zero entries in the result.}
 }
 \description{
 This method repackages the counts in a more friendly-looking data frame

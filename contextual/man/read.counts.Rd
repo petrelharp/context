@@ -6,6 +6,19 @@
 \usage{
 read.counts(infile, leftwin, bases, longpats, shortpats, skip = 0)
 }
+\arguments{
+\item{infile}{File name.}
+
+\item{leftwin}{The T-mer's left overhang (default: read from leading configuration line).}
+
+\item{bases}{The alphabet (default: unique characters seen in first column).}
+
+\item{longpats}{Patterns indexing rows in the result (default: all n-mers).}
+
+\item{shortpats}{Patterns indexing columns in the result (default: all k-mers).}
+
+\item{skip}{Number of lines at the top to skip (default: the header).}
+}
 \value{
 A tuplecounts object.
 }

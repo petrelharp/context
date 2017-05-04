@@ -44,22 +44,36 @@ setGeneric("counts", function(x) { standardGeneric("counts") })
 #' @rdname tuplecounts-methods
 #' @aliases counts,tuplecounts-method
 setMethod("counts", signature=c(x="tuplecounts"), definition=function (x) { x@counts } )
-#'
+
 #' This method repackages the counts in a more friendly-looking data frame
 #'
 #' @name countframe
 #' @rdname tuplecounts-methods
 #' @exportMethod countframe
-setGeneric("countframe", function(x) { standardGeneric("countframe") })
+setGeneric("countframe", function(x,...) { standardGeneric("countframe") })
+
+#' @param x A tuplecounts object.
+#' @param include.zeros Whether to include zero entries in the result.
+#'
 #' @rdname tuplecounts-methods
 #' @aliases countframe,tuplecounts-method
-setMethod("countframe", signature=c(x="tuplecounts"), definition=function (x) {
-        cf <- cbind(
-                data.frame( rep.int(rownames(x@counts),ncol(x@counts)) ),
-                colpatterns(x)[ rep(1:nrow(colpatterns(x)),each=nrow(x@counts)), ],
-                as.numeric(x@counts)
-            )
-        colnames(cf) <- c( rowtaxon(x), coltaxa(x), "count" )
+setMethod("countframe", signature=c(x="tuplecounts"), definition=function (x, include.zeros=FALSE) {
+        if (include.zeros) {
+            cf <- cbind(
+                    data.frame( rep.int(rownames(x@counts),ncol(x@counts)) ),
+                    colpatterns(x)[ rep(1:nrow(colpatterns(x)),each=nrow(x@counts)), ],
+                    as.numeric(x@counts)
+                )
+            colnames(cf) <- c( rowtaxon(x), coltaxa(x), "count" )
+        } else {
+            # column indices of nonzero entries (one-based)
+            jj <- rep(1:ncol(counts@counts),times=diff(counts@counts@p))
+            cf <- data.frame(X=rownames(counts)[counts@counts@i+1L], stringsAsFactors=FALSE)  # zero-based
+            names(cf) <- rowtaxon(counts)
+            cf <- cbind( cf, colpatterns(counts)[jj,,drop=FALSE] )
+            cf$count <- counts@counts@x
+            rownames(cf) <- NULL
+        }
         return(cf)
     } )
 

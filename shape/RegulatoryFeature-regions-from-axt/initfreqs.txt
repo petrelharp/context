@@ -1,0 +1,8 @@
+overlap-knownGeneTx/enhancer 0.4251248
+noOverlap-knownGeneTx/enhancer 0.4341862
+overlap-knownGeneTx/open_chromatin_region 0.4578896
+noOverlap-knownGeneTx/open_chromatin_region 0.4445058
+overlap-knownGeneTx/CTCF_binding_site 0.4478951
+noOverlap-knownGeneTx/CTCF_binding_site 0.4449049
+overlap-knownGeneTx/promoter_flanking_region 0.4393010
+noOverlap-knownGeneTx/promoter_flanking_region 0.4404174
