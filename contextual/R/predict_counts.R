@@ -54,7 +54,7 @@ predictcounts <- function (longwin,
             leftwin=leftwin, 
             counts=Matrix(fullcounts), 
             bases=genmatrix@bases,
-            colpatterns=data.frame(short=colnames(fullcounts))
+            colpatterns=data.frame(short=colnames(fullcounts), stringsAsFactors=FALSE)
         ) )
 }
 
@@ -74,6 +74,8 @@ predictcounts <- function (longwin,
 #'    after division these will become noninteger.  There is not sufficient
 #'    information in a table of counts to fix this problem.
 #'
+#' projectcounts.tree differs only in that the projection is specified using a new `coltaxa`,
+#' rather than just left/short/long window lengths.
 #'
 #' @examples
 #' counts <- simcontext::counttrans(ipatterns=getpatterns(3,bases=c("X","O")), fpatterns=getpatterns(2,bases=c("X","O")), 
@@ -95,29 +97,17 @@ projectcounts <- function(counts,
     if ( max(0L,leftwin-new.leftwin) > (leftwin+shortwin)-(new.leftwin+new.shortwin)+min(0L,rightwin-new.rightwin) ) {
         stop("unreconcilable windows specified.")
     }
-    pcounts <- matrix(0,nrow=npatterns(new.longwin,counts@bases),ncol=npatterns(new.shortwin,counts@bases))
-    for (k in max(0L,leftwin-new.leftwin):((leftwin+shortwin)-(new.leftwin+new.shortwin)+min(0L,rightwin-new.rightwin))) {
-        lpmat <- collapsepatmatrix( ipatterns=rownames(counts), leftwin=k, rightwin=longwin-(k+new.longwin), bases=counts@bases )
-        rpmat <- collapsepatmatrix( ipatterns=colnames(counts), leftwin=k+new.leftwin-leftwin, rightwin=shortwin-(k+new.leftwin-leftwin+new.shortwin), bases=counts@bases )
-        pcounts <- pcounts + Matrix::t(lpmat) %*% counts %*% (rpmat)
-    }
-    dimnames(pcounts) <- list( colnames(lpmat), colnames(rpmat) )
-    if (overlapping) {
-        overcount <- sum( 
-                ( (0:(longwin-1))+new.longwin <= longwin ) &
-                ( (0:(longwin-1))+new.leftwin >= leftwin ) &
-                ( (0:(longwin-1))+new.leftwin+new.shortwin <= leftwin+shortwin ) )
-        pcounts <- ( pcounts/overcount )
-    }
-    new.colpatterns <- data.frame(colnames(pcounts))
+    new.colpatterns <- do.call( 
+            expand.grid, 
+            list(getpatterns(new.shortwin, bases=counts@bases),
+                    stringsAsFactors=FALSE)[c(rep(1,ncol(counts@colpatterns)),2)])
     colnames(new.colpatterns) <- colnames(counts@colpatterns)
-    return( new("tuplecounts", 
-            leftwin=new.leftwin, 
-            counts=Matrix(pcounts), 
-            bases=counts@bases, 
-            rowtaxon=counts@rowtaxon,
-            colpatterns=new.colpatterns
-        ) )
+    return( projectcounts.tree(
+            counts=counts,
+            new.colpatterns=new.colpatterns,
+            new.longwin=new.longwin,
+            new.leftwin=new.leftwin,
+            overlapping=overlapping) )
 }
 
 #' @describeIn projectcounts Project tree counts
@@ -130,11 +120,11 @@ projectcounts.tree <- function(
                           overlapping=TRUE ) {
     leftwin <- leftwin(counts)
     longwin <- longwin(counts)
-    shortwin <- max(nchar(unlist(new.colpatterns[1:2,])))
+    shortwin <- max(nchar(as.character(unlist(counts@colpatterns[1:2,]))))
     rightwin <- longwin-shortwin-leftwin
     colpatterns <- counts@colpatterns
     stopifnot(all( colnames(colpatterns)==colnames(new.colpatterns) ))
-    new.shortwin=nchar(new.colpatterns[1,1])
+    new.shortwin <- max(nchar(as.character(unlist(new.colpatterns[1:2,]))))
     new.rightwin <- new.longwin-new.shortwin-new.leftwin
     new.cps <- lapply(1:ncol(new.colpatterns), function (k) unique( new.colpatterns[,k] ))
     if ( max(0L,leftwin-new.leftwin) > (leftwin+shortwin)-(new.leftwin+new.shortwin)+min(0L,rightwin-new.rightwin) ) {

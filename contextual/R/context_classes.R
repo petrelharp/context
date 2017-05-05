@@ -133,7 +133,7 @@ setMethod("longwin", signature=c(x="contextTree"), definition=function(x) { long
 #' @rdname tuplecounts-methods
 #' @aliases shortwin,tuplecounts-method
 #' @export shortwin
-setMethod("shortwin", signature=c(x="tuplecounts"), definition=function(x) { unique(sapply(lapply(lapply(colpatterns(x),levels),"[",1),nchar)) } )
+setMethod("shortwin", signature=c(x="tuplecounts"), definition=function(x) { unique(sapply(lapply(lapply(colpatterns(x),"[",1),as.character),nchar)) } )
 #' @rdname context-methods
 #' @aliases shortwin,context-method
 #' @export shortwin

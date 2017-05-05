@@ -66,12 +66,15 @@ setMethod("countframe", signature=c(x="tuplecounts"), definition=function (x, in
                 )
             colnames(cf) <- c( rowtaxon(x), coltaxa(x), "count" )
         } else {
-            # column indices of nonzero entries (one-based)
-            jj <- rep(1:ncol(x@counts),times=diff(x@counts@p))
-            cf <- data.frame(X=rownames(x)[x@counts@i+1L], stringsAsFactors=FALSE)  # zero-based
+            # need column indices of nonzero entries (one-based) - but the class of @counts is not guarenteed
+            # jj <- rep(1:ncol(x@counts),times=diff(x@counts@p))
+            xC <- as(x@counts, "dgTMatrix")
+            cf <- data.frame(
+                    X=rownames(x)[xC@i+1L],  # zero-based 
+                    stringsAsFactors=FALSE)
             names(cf) <- rowtaxon(x)
-            cf <- cbind( cf, colpatterns(x)[jj,,drop=FALSE] )
-            cf$count <- x@counts@x
+            cf <- cbind( cf, colpatterns(x)[xC@j+1L,,drop=FALSE] ) # also zero-based
+            cf$count <- xC@x
             rownames(cf) <- NULL
         }
         return(cf)

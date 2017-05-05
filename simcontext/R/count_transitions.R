@@ -52,7 +52,7 @@ counttrans <- function (ipatterns, fpatterns,
                         cyclic=FALSE, 
                         bases=sort(unique(unlist(strsplit(ipatterns,""))))
                     ) {
-    patlen <- nchar(ipatterns[1])
+    patlen <- nchar(as.character(ipatterns[1]))
     seqlen <- nchar(initseq)
     stopifnot( seqlen == nchar(finalseq) )
     # cyclic-ize
@@ -75,7 +75,8 @@ counttrans <- function (ipatterns, fpatterns,
         }
     }
     counts <- lapply( counts, function (x) new("tuplecounts", counts=x, leftwin=leftwin, bases=bases, 
-                                               rowtaxon="long", colpatterns=data.frame(short=colnames(x))) )
+                                               rowtaxon="long", colpatterns=data.frame(short=colnames(x), 
+                                                                               stringsAsFactors=FALSE)) )
     if (shift==0) { counts <- counts[[1]] }
     return(counts)
 }
@@ -104,7 +105,7 @@ counttrans.tree <- function (
                     ) {
     stopifnot(rowtaxon %in% names(simseqs))
     stopifnot(all(colnames(colpatterns) %in% names(simseqs)))
-    patlen <- nchar(rowpatterns[1])
+    patlen <- nchar(as.character(rowpatterns[1]))
     rowseq <- simseqs[[rowtaxon]]$finalseq
     colseqs <- lapply( colnames(colpatterns), function (x) simseqs[[x]]$finalseq )
     seqlen <- nchar(rowseq)
@@ -157,7 +158,7 @@ counttrans.list <- function (lpatterns,
                              cyclic=FALSE, 
                              bases=sort(unique(unlist(strsplit(lpatterns[[1]],""))))
                              ) {
-    patlen <- max( sapply( lapply( lpatterns, "[", 1 ), nchar ) )
+    patlen <- max( sapply( lapply( lapply( lpatterns, "[", 1 ), as.character), nchar ) )
     seqlen <- unique( sapply(seqlist, nchar) )
     stopifnot(length(seqlen)==1)
     if (length(leftwin)<length(seqlist)) { shiftwin <- c(0,rep(leftwin,length.out=length(seqlist)-1)) } else { shiftwin <- leftwin }
@@ -185,7 +186,7 @@ counttrans.list <- function (lpatterns,
         for (j in rev(seq_along(ii)[-1])) { ii[j-1] <- ii[j-1] + ( ii[j] > npats[j] ) }
         ii[-1] <- 1 + ( (ii[-1]-1) %% npats[-1] )
     }
-    colpatterns <- do.call( expand.grid, lpatterns[-1] )
+    colpatterns <- do.call( expand.grid, c(lpatterns,list(stringsAsFactors=FALSE))[-1] )
     colnames(colpatterns) <- names(seqlist)[-1]
     counts <- lapply( counts, function (x) {
             dim(x) <- c(dim(x)[1],prod(dim(x)[-1]))

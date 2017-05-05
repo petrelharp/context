@@ -27,6 +27,10 @@ If the original counts were from overlapping windows, then this will overcount t
    after division these will become noninteger.  There is not sufficient
    information in a table of counts to fix this problem.
 }
+\details{
+projectcounts.tree differs only in that the projection is specified using a new `coltaxa`,
+rather than just left/short/long window lengths.
+}
 \section{Functions}{
 \itemize{
 \item \code{projectcounts.tree}: Project tree counts

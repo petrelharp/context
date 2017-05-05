@@ -88,9 +88,6 @@ context("Projecting tree pattern counts.")
 # config <- parse.models(treeify.config(config))
 # simseqs <- simseq.tree( seqlen=100, config=config)
 
-library(simcontext)
-library(contextual)
-
 simseqs <- list(
                 sp1=list( initseq=Biostrings::BString("XOOXXOXXXXXXOOXOXXXXXOOXOXXXOXXOOOOXOXXOXOOXXXOOOXOXOXXOOXXXOOXOOOOXOXXXXXOOXOXXXOXXXOOXOOOOXXOOXXOO"),
                            finalseq=Biostrings::BString("XXXXXOXOOOXXOOOXOXXOXOOXOXXOOOXOOOXOOOXOXOOXXOXOOXXXOOXXOXXXXOOOXXOOOOXXXXOOXOOXXOXXXXOXXOXOXXOOXOOO")),
