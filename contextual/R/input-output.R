@@ -37,7 +37,7 @@ write.counts <- function (x, filename, ...) {
         file(filename, open="w") 
     }
     cf <- countframe(x)
-    config <- list( leftwin=leftwin(x) )
+    config <- list( leftwin=leftwin(x), longwin=longwin(x), bases=x@bases, shortwin=shortwin(x) )
     cat("# ", jsonlite::toJSON(config), "\n", file=out)
     write.table(cf, file=out, append=TRUE, row.names=FALSE, ...)
     close(out)
@@ -353,8 +353,16 @@ parse.fixfn <- function (fixfn,fixfn.params) {
 #' Track down references in a config file.
 #'
 #' Follow pointers in config: if config[[x]] is a string, it refers to another entry.
-config.dereference <- function (config, x) {
-    sapply(x, function (xx) { n <- 1; while (n < 20 && is.character(config[[xx]]) & (length(config[[xx]])==1) ) { xx <- config[[xx]]; n<-n+1 }; xx } )
+#' 
+#' @param config A list.
+#' @param x A list of names of entries in `config`.
+#' @param max.length Maximum number of steps to go looking for the end.
+#'
+#' @return A list of names of the same length as `x` of the end of the trail.
+#'
+#' @export
+config.dereference <- function (config, x, max.length=20) {
+    sapply(x, function (xx) { n <- 1; while (n < max.length && is.character(config[[xx]]) & (length(config[[xx]])==1) ) { xx <- config[[xx]]; n<-n+1 }; if (n==max.length) { stop("Circular (or very long) references in config.") }; xx } )
 }
 
 #' Parse selpats.

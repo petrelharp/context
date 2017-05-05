@@ -108,11 +108,14 @@ projectcounts <- function(counts,
                 ( (0:(longwin-1))+new.leftwin+new.shortwin <= leftwin+shortwin ) )
         pcounts <- ( pcounts/overcount )
     }
+    new.colpatterns <- data.frame(colnames(pcounts))
+    colnames(new.colpatterns) <- colnames(counts@colpatterns)
     return( new("tuplecounts", 
             leftwin=new.leftwin, 
             counts=Matrix(pcounts), 
             bases=counts@bases, 
-            colpatterns=data.frame(short=colnames(pcounts))
+            rowtaxon=counts@rowtaxon,
+            colpatterns=new.colpatterns
         ) )
 }
 

@@ -144,6 +144,8 @@ peel.transmat.setup <- function (tree, rowtaxon, coltaxa, models, genmatrices, p
     root.node <- get.root(tree)
     row.node <- match( rowtaxon, nodenames(tree) )
     col.nodes <- match( coltaxa, nodenames(tree) )
+    if (is.na(row.node)) { stop(sprintf("Node %s not found in tree.", rowtaxon)) }
+    if (any(is.na(col.nodes))) { stop(sprintf("Nodes %s not found in tree.", paste(coltaxa[is.na(col.nodes)],collapse=" "))) }
     # reorder branch lengths to match terminal node
     tlens.ord <- match(seq_along(nodenames(tree)),tree$edge[,2])
     # long x short transition matrices

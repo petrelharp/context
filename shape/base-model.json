@@ -1,10 +1,11 @@
 {
-    "comment" : "Basic model on two-taxon tree.",
-    "tree" : [ "(human : 1.0, chimp : 1.0) root;" ],
+    "comment" : "Basic model on two-taxon tree. Reference=human, derived=chimp.",
+    "tree" : [ "(reference : 1.0, derived : 1.0) root;" ],
     "tlen.scale" : [ 0.01, 0.01 ],
     "bases" : [ "A", "C", "G", "T" ],
     "initfreqs" : [ 0.25, 0.25, 0.25, 0.25 ],
-	"human" : {
+    "initfreqs.scale" : [ 0.0, 0.0, 0.0, 0.0 ],
+	"reference" : {
 		"mutpats" : [
 			[ [ "A", "T" ] ],
 			[ [ "T", "A" ] ],
@@ -24,5 +25,5 @@
 		"mutrates.prior" : [ 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1 ],
         "genmatrix" : "genmatrices/base-model-genmatrix-%.RData"
 	},
-	"chimp" : "human"
+	"derived" : "reference"
 }

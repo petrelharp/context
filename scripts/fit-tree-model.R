@@ -43,7 +43,10 @@ config <- parse.models( treeify.config( read.config(opt$configfile) ) )
 counts.config <- read.config.counts(opt$infile)
 
 # find the right generator matrix files
-for (mm in config$.models) { config[[mm]]$genmatrix <- gsub("%",counts.config$longwin,config[[mm]]$genmatrix,fixed=TRUE) }
+for (mm in config$.models) { 
+    config[[mm]]$genmatrix <- file.path(dirname(opt$configfile), gsub("%",counts.config$longwin,config[[mm]]$genmatrix,fixed=TRUE)) 
+}
+
 
 # which models go with which edges
 models <- config.dereference( config, nodenames(config$tree) )

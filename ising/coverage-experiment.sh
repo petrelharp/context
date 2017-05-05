@@ -63,7 +63,7 @@ do
             ../scripts/gather-results.R --json -f $RDATA -s $DIR/ising.RData > ${RDATA%RData}json
         done
 
-    ) &
+    ) ##  NOT in parallel &
 done
 
 wait;

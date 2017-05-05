@@ -4,7 +4,17 @@
 \alias{config.dereference}
 \title{Track down references in a config file.}
 \usage{
-config.dereference(config, x)
+config.dereference(config, x, max.length = 20)
+}
+\arguments{
+\item{config}{A list.}
+
+\item{x}{A list of names of entries in `config`.}
+
+\item{max.length}{Maximum number of steps to go looking for the end.}
+}
+\value{
+A list of names of the same length as `x` of the end of the trail.
 }
 \description{
 Follow pointers in config: if config[[x]] is a string, it refers to another entry.
