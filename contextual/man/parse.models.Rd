@@ -6,13 +6,21 @@
 \usage{
 parse.models(config, do.fixfns = TRUE)
 }
+\arguments{
+\item{config}{A tree-based configuration list.}
+
+\item{do.fixfns}{Whether to look up fixfns?}
+}
 \value{
 A model configuration.
 }
 \description{
-Check that all models are specified,
- fill in defaults,
- turn fixfn into functions, etc.
+Check that all models are specified, fill in defaults, turn fixfn into
+functions, etc.
+}
+\details{
+In particular, this runs `fill.default.config` on each named model,
+and parses selpats into selpats, selfactors form.
 }
 \examples{
 
@@ -30,9 +38,11 @@ model_json <- '{
         "mutpats" : [ [ [ "XO", "OX" ] ] ],
         "mutrates" : [ 0.5 ]
     }, "sp3" : "sp2" } '
-config <- treeify.config(read.config(json=model_json))
-config <- parse.models(config)
+config <- parse.models(read.config(json=model_json))
 # note that default specified at top level has been copied over
 config$sp1$selpats
 
+}
+\seealso{
+read.config, config.dereference, fill.default.config, treeify.config
 }

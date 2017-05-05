@@ -63,9 +63,12 @@ stopifnot( all( sapply( genmatrices, function(gm) { all(rownames(gm)==longpats) 
 # read in counts
 counts <- read.counts(opt$infile, bases=config$bases, longpats=rownames(genmatrices[[1]]) )
 stopifnot( all( rownames(counts) == longpats ) )
+counts.0 <- projectcounts(counts, new.shortwin=shortwin(counts) - 1)
 
-projmatrix <- collapsepatmatrix( ipatterns=longpats, leftwin=leftwin(counts), shortwin=shortwin(counts), bases=genmatrices[[1]]@bases )
-projmatrix.0 <- collapsepatmatrix( ipatterns=longpats, leftwin=leftwin(counts), shortwin=shortwin(counts.0), bases=genmatrices[[1]]@bases )
+projmatrix <- collapsepatmatrix( ipatterns=longpats, leftwin=leftwin(counts), 
+                                shortwin=shortwin(counts), bases=genmatrices[[1]]@bases )
+projmatrix.0 <- collapsepatmatrix( ipatterns=longpats, leftwin=leftwin(counts), 
+                                  shortwin=shortwin(counts.0), bases=genmatrices[[1]]@bases )
 
 # parameters are ordered as: initfreqs, tlens, ( mutrates, selcoef, fixparams ) x genmatrices
 # this will parse a vector of params and give the ones requested

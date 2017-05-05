@@ -2,11 +2,15 @@
 % Please edit documentation in R/predict_counts.R
 \name{projectcounts}
 \alias{projectcounts}
+\alias{projectcounts.tree}
 \title{Compute Counts for Shorter Tmers.}
 \usage{
 projectcounts(counts, new.leftwin = leftwin(counts),
   new.shortwin = shortwin(counts), new.longwin = longwin(counts),
   overlapping = TRUE)
+
+projectcounts.tree(counts, new.colpatterns, new.longwin = longwin(counts),
+  new.leftwin = leftwin(counts), overlapping = TRUE)
 }
 \description{
 Valid ranges for parameters are
@@ -23,6 +27,11 @@ If the original counts were from overlapping windows, then this will overcount t
    after division these will become noninteger.  There is not sufficient
    information in a table of counts to fix this problem.
 }
+\section{Functions}{
+\itemize{
+\item \code{projectcounts.tree}: Project tree counts
+}}
+
 \examples{
 counts <- simcontext::counttrans(ipatterns=getpatterns(3,bases=c("X","O")), fpatterns=getpatterns(2,bases=c("X","O")), 
                         initseq="XOOXXXOXOXOXOOOXXO", finalseq="XOXOXOXOXXOXOOOXXO", leftwin=1)

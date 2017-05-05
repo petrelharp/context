@@ -4,11 +4,33 @@
 \alias{simseq.tree}
 \title{Simulate on a Tree}
 \usage{
-simseq.tree(seqlen, config, ...)
+simseq.tree(seqlen, config, initseq, ...)
+}
+\arguments{
+\item{seqlen}{The number of sites to simulate.}
+
+\item{config}{A list of configuration options (see below).}
+
+\item{initseq}{Optionally, a sequence for the root of the tree (otherwise, randomly generated).}
+
+\item{...}{Additional parameters passed to simseq().}
 }
 \value{
-A list of the simulated sequences in the same order as the tips,nodes of the tree
+A list of the simulated sequences in the same order as the tips, nodes of the tree
 }
 \description{
-Simulate on a Tree
+Runs simseq() on each branch of the tree, possibly with different models on each branch.
+}
+\details{
+The `config` is a named list containing:
+* `tree` : the tree (as in ape), with named nodes and edge lengths.
+* `bases` : the alphabet.
+* `initfreqs` : initial frequencies of the bases to draw initseq from (if not given).
+* one entry for each node in the tree except the root, named as the node,
+  which is a named list describing the mutational model on the branch above
+  that node - must have elements for each required argument to `simseq()`
+  except `tlen`, `seqlen`, and `initseq`, unless they are passed in `...`.
+}
+\seealso{
+contextual::treeify.config, contextual::fill.default.config, simseq
 }

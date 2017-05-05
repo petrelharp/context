@@ -223,6 +223,12 @@ fill.default.config <- function (config, defaults=NULL) {
 #' specified at all, a stick tree is inserted. Tips and nodes in the tree must be labeled,
 #' and branch lengths can be specified in the argument tlen.
 #'
+#' @param config A named list containing an element `tree`.
+#' @param tlen The length of time, if we're turning a simple model into a root-tip (stick) tree.
+#'
+#' @details Most of what this does is use ape::read.tree( ) to turn the Newick
+#' text into a tree object; or provides a tree if non is present.
+#'
 #' @return A model configuration (list).
 #'
 #' @examples
@@ -403,11 +409,18 @@ config.dereference <- function (config, x, max.length=20) {
 
 #' Parse models.
 #'
-#' Check that all models are specified,
-#'  fill in defaults,
-#'  turn fixfn into functions, etc.
+#' Check that all models are specified, fill in defaults, turn fixfn into
+#' functions, etc.
+#'
+#' @param config A tree-based configuration list.
+#' @param do.fixfns Whether to look up fixfns?
+#'
+#' @details In particular, this runs `fill.default.config` on each named model,
+#' and parses selpats into selpats, selfactors form. 
 #'
 #' @return A model configuration.
+#'
+#' @seealso read.config, config.dereference, fill.default.config, treeify.config
 #'
 #' @examples
 #'
@@ -425,13 +438,13 @@ config.dereference <- function (config, x, max.length=20) {
 #'         "mutpats" : [ [ [ "XO", "OX" ] ] ],
 #'         "mutrates" : [ 0.5 ]
 #'     }, "sp3" : "sp2" } '
-#' config <- treeify.config(read.config(json=model_json))
-#' config <- parse.models(config)
+#' config <- parse.models(read.config(json=model_json))
 #' # note that default specified at top level has been copied over
 #' config$sp1$selpats
 #'
 #' @export parse.models
 parse.models <- function (config,do.fixfns=TRUE) {
+    if (is.character(config$tree)) { config <- treeify.config(config) }
     # Edges are labeled by the node/tip below them:
     nodenames <- nodenames(config$tree)
     rootname <- rootname(config$tree)

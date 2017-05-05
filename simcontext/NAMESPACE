@@ -2,6 +2,7 @@
 
 export(counttrans)
 export(counttrans.list)
+export(counttrans.tree)
 export(print.simseq)
 export(rinitseq)
 export(show.simseq)

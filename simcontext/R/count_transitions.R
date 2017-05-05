@@ -80,6 +80,72 @@ counttrans <- function (ipatterns, fpatterns,
     return(counts)
 }
 
+#' Count transitions as the result of simulation on a tree.
+#'
+#' @param rowpatterns The patterns that index rows.
+#' @param rowtaxon The taxon counted in rows.
+#' @param colpatterns A data frame with column names equal to the tips counted in columns, and one row of patterns per row of the output.
+#' @param simseqs A named list of (initseq, finalseq) pairs; 'finalseq' is used.
+#'
+#' @seealso counttrans, tuplecounts
+#'
+#' @return A tuplecounts object.
+#'
+#' @export
+counttrans.tree <- function (
+                        rowpatterns, 
+                        rowtaxon, 
+                        colpatterns,
+                        simseqs, 
+                        leftwin=0, 
+                        shift=0, 
+                        cyclic=FALSE, 
+                        bases=sort(unique(unlist(strsplit(rowpatterns,""))))
+                    ) {
+    stopifnot(rowtaxon %in% names(simseqs))
+    stopifnot(all(colnames(colpatterns) %in% names(simseqs)))
+    patlen <- nchar(rowpatterns[1])
+    rowseq <- simseqs[[rowtaxon]]$finalseq
+    colseqs <- lapply( colnames(colpatterns), function (x) simseqs[[x]]$finalseq )
+    seqlen <- nchar(rowseq)
+    stopifnot( seqlen == nchar(rowseq) )
+    # cyclic-ize
+    if (cyclic) {
+        rowseq <- Biostrings::xscat( rowseq, Biostrings::subseq(rowseq,1,patlen-1) )
+        for (k in seq_along(colseqs)) {
+            colseqs[[k]] <- Biostrings::xscat( colseqs[[k]], Biostrings::subseq(colseqs[[k]],1,patlen-1) )
+        }
+    }
+    # Ok, count occurrences.  uses bioconductor stuff.
+    initmatches <- lapply( rowpatterns, Biostrings::matchPattern, rowseq )
+    finalmatches <- lapply( seq_along(colseqs), function (k) {
+                        lapply( colpatterns[,k], Biostrings::matchPattern, colseqs[[k]] )
+                    } )
+    cns <- apply(colpatterns, 1, paste, collapse='.')
+    counts <- lapply( 1:max(1,shift), function (k) Matrix::Matrix( 0, nrow=length(initmatches), ncol=nrow(colpatterns), dimnames=list(rowpatterns,cns) ) )
+    for (x in seq_along(initmatches))  {
+        for (y in seq_len(nrow(colpatterns))) {
+            xycounts <- Biostrings::start(initmatches[[x]])
+            for (k in 1:ncol(colpatterns)) {
+                xycounts <- intersect(xycounts, (-leftwin)+Biostrings::start(finalmatches[[k]][[y]]))
+            }
+            if (length(xycounts)>0) {
+                for (k in 0:max(0,shift-1)) {
+                    counts[[k+1]][x,y] <- sum( ( ( xycounts+k ) %% max(shift,1) ) == 0 )
+                }
+            }
+        }
+    }
+    counts <- lapply( counts, function (x) new("tuplecounts", 
+                                               counts=x, 
+                                               leftwin=leftwin, 
+                                               bases=bases, 
+                                               rowtaxon=rowtaxon, 
+                                               colpatterns=colpatterns) )
+    if (shift==0) { counts <- counts[[1]] }
+    return(counts)
+}
+
 
 #' @describeIn counttrans Count Transitions in a List of Sequences
 #' @export counttrans.list

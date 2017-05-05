@@ -173,18 +173,35 @@ simseq <- function (seqlen, tlen, mutpats, mutrates,
 
 #' Simulate on a Tree
 #'
-#' @return A list of the simulated sequences in the same order as the tips,nodes of the tree
+#' Runs simseq() on each branch of the tree, possibly with different models on each branch.
+#'
+#' @param seqlen The number of sites to simulate.
+#' @param config A list of configuration options (see below).
+#' @param initseq Optionally, a sequence for the root of the tree (otherwise, randomly generated).
+#' @param ... Additional parameters passed to simseq().
+#'
+#' @return A list of the simulated sequences in the same order as the tips, nodes of the tree
+#'
+#' @details The `config` is a named list containing:
+#' * `tree` : the tree (as in ape), with named nodes and edge lengths.
+#' * `bases` : the alphabet.
+#' * `initfreqs` : initial frequencies of the bases to draw initseq from (if not given).
+#' * one entry for each node in the tree except the root, named as the node,
+#'   which is a named list describing the mutational model on the branch above
+#'   that node - must have elements for each required argument to `simseq()`
+#'   except `tlen`, `seqlen`, and `initseq`, unless they are passed in `...`.
+#'
+#' @seealso contextual::treeify.config, contextual::fill.default.config, simseq
 #'
 #' @export
-simseq.tree <- function (seqlen,config,...) {
+simseq.tree <- function (seqlen, config, initseq, ...) {
     simseqs <- lapply(contextual::nodenames(config$tree),function(e)NULL)
     more.args <- list(...)
-    simseqs[[contextual::rootname(config$tree)]] <- if ("initseq" %in% names(more.args)) {
-        list(finalseq=more.args[["initseq"]])
-    } else {
-        list(finalseq=rinitseq(seqlen,config$bases,basefreqs=config$initfreqs))
-    }
-    more.args[["initseq"]] <- NULL # remove it now if it's there
+    simseqs[[contextual::rootname(config$tree)]] <- if (!missing(initseq)) {
+            list(finalseq=initseq)
+        } else {
+            list(finalseq=rinitseq(seqlen,config$bases,basefreqs=config$initfreqs))
+        }
     for (k in 1:nrow(config$tree$edge)) {
         # edge.pair is (from, to)
         edge.pair <- config$tree$edge[k,]

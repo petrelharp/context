@@ -6,6 +6,11 @@
 \usage{
 treeify.config(config, tlen = NULL)
 }
+\arguments{
+\item{config}{A named list containing an element `tree`.}
+
+\item{tlen}{The length of time, if we're turning a simple model into a root-tip (stick) tree.}
+}
 \value{
 A model configuration (list).
 }
@@ -14,6 +19,10 @@ Turn the text representation of a tree (in Newick) into a tree object (as
 from the ape package), and do associated error checks.  If no tree is
 specified at all, a stick tree is inserted. Tips and nodes in the tree must be labeled,
 and branch lengths can be specified in the argument tlen.
+}
+\details{
+Most of what this does is use ape::read.tree( ) to turn the Newick
+text into a tree object; or provides a tree if non is present.
 }
 \examples{
 

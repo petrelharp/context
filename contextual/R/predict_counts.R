@@ -120,6 +120,57 @@ projectcounts <- function(counts,
         ) )
 }
 
+#' @describeIn projectcounts Project tree counts
+#' @export
+projectcounts.tree <- function(
+                          counts, 
+                          new.colpatterns,
+                          new.longwin=longwin(counts),
+                          new.leftwin=leftwin(counts), 
+                          overlapping=TRUE ) {
+    leftwin <- leftwin(counts)
+    longwin <- longwin(counts)
+    shortwin <- max(nchar(unlist(new.colpatterns[1:2,])))
+    rightwin <- longwin-shortwin-leftwin
+    colpatterns <- counts@colpatterns
+    stopifnot(all( colnames(colpatterns)==colnames(new.colpatterns) ))
+    new.shortwin=nchar(new.colpatterns[1,1])
+    new.rightwin <- new.longwin-new.shortwin-new.leftwin
+    new.cps <- lapply(1:ncol(new.colpatterns), function (k) unique( new.colpatterns[,k] ))
+    if ( max(0L,leftwin-new.leftwin) > (leftwin+shortwin)-(new.leftwin+new.shortwin)+min(0L,rightwin-new.rightwin) ) {
+        stop("unreconcilable windows specified.")
+    }
+    pcounts <- matrix(0,nrow=npatterns(new.longwin,counts@bases),ncol=nrow(new.colpatterns))
+    for (k in max(0L,leftwin-new.leftwin):((leftwin+shortwin)-(new.leftwin+new.shortwin)+min(0L,rightwin-new.rightwin))) {
+        lpmat <- collapsepatmatrix( ipatterns=rownames(counts), leftwin=k, rightwin=longwin-(k+new.longwin), bases=counts@bases )
+        rpmat <- collapsepatmatrix( ipatterns=colpatterns[,1],
+                                    fpatterns=new.cps[[1]], 
+                                    leftwin=k+new.leftwin-leftwin)[,match(new.colpatterns[,1],new.cps[[1]])]
+        for (j in (1:ncol(new.colpatterns))[-1]) {
+            # times for AND
+            rpmat <- rpmat * collapsepatmatrix( ipatterns=colpatterns[,j],
+                                    fpatterns=new.cps[[j]], 
+                                    leftwin=k+new.leftwin-leftwin)[,match(new.colpatterns[,j],new.cps[[j]])]
+        }
+        pcounts <- pcounts + Matrix::t(lpmat) %*% counts %*% (rpmat)
+    }
+    dimnames(pcounts) <- list( colnames(lpmat), apply(new.colpatterns,1,paste,collapse=".") )
+    if (overlapping) {
+        overcount <- sum( 
+                ( (0:(longwin-1))+new.longwin <= longwin ) &
+                ( (0:(longwin-1))+new.leftwin >= leftwin ) &
+                ( (0:(longwin-1))+new.leftwin+new.shortwin <= leftwin+shortwin ) )
+        pcounts <- ( pcounts/overcount )
+    }
+    return( new("tuplecounts", 
+            leftwin=new.leftwin, 
+            counts=Matrix(pcounts), 
+            bases=counts@bases, 
+            rowtaxon=counts@rowtaxon,
+            colpatterns=new.colpatterns
+        ) )
+}
+
 #' Compute expected counts of paired patterns
 #'
 #' @export
