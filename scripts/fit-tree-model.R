@@ -65,6 +65,7 @@ counts <- read.counts(opt$infile, bases=config$bases, longpats=rownames(genmatri
 stopifnot( all( rownames(counts) == longpats ) )
 
 projmatrix <- collapsepatmatrix( ipatterns=longpats, leftwin=leftwin(counts), shortwin=shortwin(counts), bases=genmatrices[[1]]@bases )
+projmatrix.0 <- collapsepatmatrix( ipatterns=longpats, leftwin=leftwin(counts), shortwin=shortwin(counts.0), bases=genmatrices[[1]]@bases )
 
 # parameters are ordered as: initfreqs, tlens, ( mutrates, selcoef, fixparams ) x genmatrices
 # this will parse a vector of params and give the ones requested
@@ -151,7 +152,7 @@ ubs <- unlist( c( rep(1,length(config$bases)), rep(Inf,length(config$tree$edge.l
 
 stopifnot( all( initparams >= lbs ) && all( initparams <= ubs ) )
 
-likfun.time <- system.time( { baseval <- likfun(initparams) } )
+likfun.time <- system.time( { baseval <- likfun(initparams[use.par]) } )
 cat("Time to evaluate likelihood:\n")
 print(likfun.time)
 stopifnot( is.finite(baseval) )

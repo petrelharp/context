@@ -69,9 +69,10 @@ predictcounts <- function (longwin,
 #' If the original counts were from overlapping windows, then this will overcount the resulting patterns:
 #'    if you slide a window of length L in steps of size 1 then a subwindow of size W
 #'      will be seen in ( (L-W) ) big windows;
-#'    so we need to divide the counts by the factor 'overcount' below
-#'      ... but patterns at the boundary of the sequence will not be overcounted. 
-#'     Take the ceiling of the resulting counts to fix these.
+#'    so we divide the counts by the corresponding factor 
+#'      ... but patterns at the boundary of the sequence will not be overcounted;
+#'    after division these will become noninteger.  There is not sufficient
+#'    information in a table of counts to fix this problem.
 #'
 #'
 #' @examples
@@ -85,7 +86,7 @@ projectcounts <- function(counts,
                           new.leftwin=leftwin(counts), 
                           new.shortwin=shortwin(counts), 
                           new.longwin=longwin(counts), 
-                          overlapping=FALSE ) {
+                          overlapping=TRUE ) {
     leftwin <- leftwin(counts)
     longwin <- longwin(counts)
     shortwin <- shortwin(counts)
