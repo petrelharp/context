@@ -121,6 +121,8 @@ root.distrn <- get.root.distrn( initfreqs, initfreq.index )
 # create setup to efficiently re-compute below
 peel.setup <- peel.transmat( tree=config$tree, rowtaxon=rowtaxon(counts), coltaxa=coltaxa(counts), models=models, genmatrices=genmatrices, 
                             projmatrix=projmatrix, root.distrn=root.distrn, tlens=config$tree$edge.length, return.list=TRUE )
+peel.setup.0 <- peel.transmat( tree=config$tree, rowtaxon=rowtaxon(counts), coltaxa=coltaxa(counts), models=models, genmatrices=genmatrices, 
+                            projmatrix=projmatrix.0, root.distrn=root.distrn, tlens=config$tree$edge.length, return.list=TRUE )
 
 # reorder columns of counts to match the order we compute transmat in
 counts <- reorder.counts( counts, nodenames(config$tree)[peel.setup$col.order[[peel.setup$row.node]]] )
@@ -144,8 +146,11 @@ likfun <- function (sub.params){
     root.distrn <- get.root.distrn( initfreqs, initfreq.index )
     # Now, peel 
     transmat <- peel.transmat.compute( setup=peel.setup, models=models, genmatrices=genmatrices, root.distrn=root.distrn, tlens=tlens, return.list=FALSE )
+    transmat.0 <- peel.transmat.compute( setup=peel.setup.0, models=models, genmatrices=genmatrices, root.distrn=root.distrn, tlens=tlens, return.list=FALSE )
     # return POSITIVE log-likelihood
-    ans <- sum( counts@counts * log(transmat) )
+    num <- sum( counts@counts * log(transmat) )
+    den <- sum( counts.0@counts * log(transmat.0) )
+    ans <- num-den
     if (!is.finite(ans)) { print(paste("Warning: non-finite likelihood with params:",params)) }
     return(ans)
 }
@@ -190,10 +195,12 @@ assign("params",params,envir=likfun.env)
 assign(".param.map",.param.map,envir=likfun.env)
 assign(".param.info",.param.info,envir=likfun.env)
 assign("peel.setup",peel.setup,envir=likfun.env)
+assign("peel.setup.0",peel.setup.0,envir=likfun.env)
 assign("models",models,envir=likfun.env)
 assign("genmatrices",lapply(model@models,slot,"genmatrix"),envir=likfun.env)
 assign("initfreq.index",initfreq.index,envir=likfun.env)
 assign("counts",model@counts,envir=likfun.env)
+assign("counts.0",counts.0,envir=likfun.env)
 environment(model@likfun) <- likfun.env
 
 

@@ -1,19 +1,6 @@
 ###
 # genmatrix code
 
-check.context <- function (cont) {
-    return(
-        all( rownames(cont@genmatrix) == cont@headpats ) &
-        all( rownames(cont@projmatrix) == cont@headpats ) &
-        all( colnames(cont@projmatrix) == cont@tailpats ) &
-        all( nchar(cont@headpats) == cont@longwin ) &
-        all( nchar(cont@tailpats) + cont@leftwin <= cont@longwin ) &
-        all( dim(cont@counts) == dim(cont@projmatrix) ) &
-        ( length(cont@mutrates) == length(cont@genmatrix@mutpats) ) &
-        ( length(cont@selcoef) == length(cont@genmatrix@selpats) )
-    )
-}
-
 #' Generator Matrix Class (genmatrix)
 #'
 #' genmatrix extends the sparse matrix class, carrying along more information.
@@ -116,7 +103,7 @@ makegenmatrix <- function (
         selfactors=lapply(selpats,sapply,function(x)1), 
         boundary="none", ...) {
     if (!is.numeric(patlen)|(missing(patlen)&missing(patterns))) { stop("need patlen or patterns") }
-    if (missing(patlen)) { patlen <- nchar(patterns[1]) }
+    if (missing(patlen)) { patlen <- nchar(as.character(patterns[1])) }
     if ( (length(selpats)>0 && max(sapply(unlist(selpats),nchar))>patlen) | max(sapply(unlist(mutpats),nchar))>patlen ) { stop("some patterns longer than patlen") }
     # mutmats is a list of matrices, with one matrix for each of the mutpatls in mutpatll describing the induced mutation process on the specified patterns (see getmutmats function def'n)
     mutmats <- getmutmats(mutpats,patterns,boundary=boundary)

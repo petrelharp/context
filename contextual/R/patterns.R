@@ -102,11 +102,11 @@ selnames <- function (selpats,pretty=TRUE) {
 #' @export
 collapsepatmatrix <- function (ipatterns, 
                                leftwin, 
-                               shortwin=nchar(fpatterns[1]), 
-                               rightwin=nchar(ipatterns[1])-shortwin-leftwin, 
-                               fpatterns=getpatterns(nchar(ipatterns[1])-leftwin-rightwin,bases), 
+                               shortwin=nchar(as.character(fpatterns[1])), 
+                               rightwin=nchar(as.character(ipatterns[1]))-shortwin-leftwin, 
+                               fpatterns=getpatterns(nchar(as.character(ipatterns[1]))-leftwin-rightwin,bases), 
                                bases ) {
-    patlen <- nchar(ipatterns[1])
+    patlen <- nchar(as.character(ipatterns[1]))
     shortwin <- patlen - leftwin - rightwin
     stopifnot(shortwin>0)
     matchpats <- match( substr(ipatterns,leftwin+1L,leftwin+shortwin), fpatterns )
