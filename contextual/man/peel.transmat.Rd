@@ -6,22 +6,25 @@
 \alias{peel.transmat.compute}
 \title{Compute probabilities of all combinations, on a tree}
 \usage{
-peel.transmat(tree, rowtaxon, coltaxa, models, genmatrices, projmatrix,
+peel.transmat(tree, rowtaxon, coltaxa, modelnames, genmatrices, projmatrix,
   root.distrn, tlens = tree$edge.length, return.list = TRUE,
   debug = FALSE)
 
-peel.transmat.setup(tree, rowtaxon, coltaxa, models, genmatrices, projmatrix,
-  tlens = tree$edge.length, return.list = FALSE, debug = FALSE)
+peel.transmat.setup(tree, rowtaxon, coltaxa, modelnames, genmatrices,
+  projmatrix, tlens = tree$edge.length, return.list = FALSE,
+  debug = FALSE)
 
-peel.transmat.compute(setup, models, genmatrices, root.distrn, tlens,
-  debug = FALSE, return.list = TRUE)
+peel.transmat.compute(setup, genmatrices, root.distrn, tlens, debug = FALSE,
+  return.list = TRUE)
 }
 \arguments{
+\item{tree}{The tree.}
+
 \item{rowtaxon}{The name of a single tip, or the root - that gets the 'long' patterns}
 
 \item{coltaxa}{A vector of names of tips - these get 'short' patterns}
 
-\item{models}{A list of model names, in (tip,node) order}
+\item{modelnames}{A named character vector of model names, with one name for each node or tip of the tree.}
 
 \item{genmatrices}{A list of genmatrix'es whose names are model names}
 
@@ -31,9 +34,10 @@ peel.transmat.compute(setup, models, genmatrices, root.distrn, tlens,
 
 \item{tlens}{Lengths of the tree's branches.}
 
-\item{return.list}{Whether to return everything (dfault) or just the transition matrices}
+\item{return.list}{Whether to return everything (default) or just the transition matrices}
 
-\item{debug}{Whether to keep around some extra information useful for checking.}
+\item{debug}{Whether to keep around some extra information useful for
+checking - in particular, row and column names on the resulting matrices.}
 }
 \value{
 A list with the following components:
@@ -71,3 +75,19 @@ subsequent calls to peel.transmat.compute(), saving on recomputation.
 \item \code{peel.transmat.compute}: Compute transition matrices
 }}
 
+\examples{
+# Fast evolution on the branches going to tip3 and the ancestor of (tip1,tip2); but slow on those two branches:
+tree <- ape::read.tree(text="( (tip1 : 1.0, tip2 : 1.0) node1 : 0.5, tip3 : 1.5 ) root;")
+G1 <- makegenmatrix( patlen=3, mutpats=list(list(c("XO","OX")),list(c("OX","XO"))), mutrates=c(10,10),
+                selpats=list(), selfactors=list(), bases=c("X","O"), fixfn=function (...) { 1 } )
+G2 <- makegenmatrix( patlen=3, mutpats=list(list(c("XO","OX")),list(c("OX","XO"))), mutrates=c(0.1,0.1),
+                selpats=list(), selfactors=list(), bases=c("X","O"), fixfn=function (...) { 1 } )
+genmatrices <- list(fast=G1, slow=G2)
+projmatrix <- collapsepatmatrix(rownames(G1), leftwin=1, shortwin=1, bases=c("X","O"))
+transmat <- peel.transmat(tree, rowtaxon="tip1", coltaxa=c("tip2","tip3"), 
+                             modelnames=c(tip1="slow", tip2="slow", tip3="fast", node1="fast"), 
+                             genmatrices=genmatrices, projmatrix=projmatrix,
+                             root.distrn=rep(1/8,length=8), debug=TRUE, return.list=FALSE )
+sum(transmat) # equals 1
+
+}

@@ -13,6 +13,7 @@
 \alias{fixparams,contextTree-method}
 \alias{coef,contextTree-method}
 \alias{rowSums,contextTree-method}
+\alias{fitted,contextTree-method}
 \title{Methods for contextTree}
 \usage{
 \S4method{dimnames}{contextTree}(x)
@@ -36,6 +37,8 @@
 \S4method{coef}{contextTree}(object)
 
 \S4method{rowSums}{contextTree}(x)
+
+\S4method{fitted}{contextTree}(object, ...)
 }
 \description{
 Methods for contextTree

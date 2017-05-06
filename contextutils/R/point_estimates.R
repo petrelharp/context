@@ -9,7 +9,8 @@
 #' @return The mean density.
 #'
 #' @export
-divergence <- function (counts, leftwin=leftwin(counts)) {
+divergence <- function (counts, leftwin) {
+    if (missing(leftwin)) { leftwin <- =leftwin(counts) }
     require(stringdist)
     patlen <- nchar(colnames(counts)[1])
     nchanges <- stringdist::stringdistmatrix( substr(rownames(counts),leftwin+1,leftwin+patlen), colnames(counts), method="hamming" )

@@ -49,7 +49,7 @@ for (mm in config$.models) {
 
 
 # which models go with which edges
-models <- config.dereference( config, nodenames(config$tree) )
+modelnames <- config.dereference( config, nodenames(config$tree) )
 # load generator matrices
 genmatrices <- lapply( selfname(config$.models), function (mm) {
         if (!file.exists(config[[mm]]$genmatrix)) { stop(paste("Can't find file", config[[mm]]$genmatrix), ".") }
@@ -119,7 +119,7 @@ initfreqs <- initfreqs/sum(initfreqs)
 root.distrn <- get.root.distrn( initfreqs, initfreq.index )
 
 # create setup to efficiently re-compute below
-peel.setup <- peel.transmat( tree=config$tree, rowtaxon=rowtaxon(counts), coltaxa=coltaxa(counts), models=models, genmatrices=genmatrices, 
+peel.setup <- peel.transmat( tree=config$tree, rowtaxon=rowtaxon(counts), coltaxa=coltaxa(counts), modelnames=modelnames, genmatrices=genmatrices, 
                             projmatrix=projmatrix, root.distrn=root.distrn, tlens=config$tree$edge.length, return.list=TRUE )
 peel.setup.0 <- peel.transmat( tree=config$tree, rowtaxon=rowtaxon(counts), coltaxa=coltaxa(counts), models=models, genmatrices=genmatrices, 
                             projmatrix=projmatrix.0, root.distrn=root.distrn, tlens=config$tree$edge.length, return.list=TRUE )
@@ -184,6 +184,7 @@ model <- new( "contextTree",
                              params=.param.map(mname,"fixparams",optim.results$par)
                          )
                      } ),
+             modelnames=config$.models,
              results=optim.results,
              likfun=likfun,
              invocation=invocation
@@ -197,7 +198,7 @@ assign(".param.map",.param.map,envir=likfun.env)
 assign(".param.info",.param.info,envir=likfun.env)
 assign("peel.setup",peel.setup,envir=likfun.env)
 assign("peel.setup.0",peel.setup.0,envir=likfun.env)
-assign("models",models,envir=likfun.env)
+assign("modelnames",modelnames,envir=likfun.env)
 assign("genmatrices",lapply(model@models,slot,"genmatrix"),envir=likfun.env)
 assign("initfreq.index",initfreq.index,envir=likfun.env)
 assign("counts",model@counts,envir=likfun.env)

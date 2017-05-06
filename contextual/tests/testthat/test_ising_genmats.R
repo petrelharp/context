@@ -1,5 +1,4 @@
 library(contextual)
-library(testthat)
 
 context("Making generator matrices (for Ising model).")
 

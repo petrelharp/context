@@ -105,6 +105,7 @@ makegenmatrix <- function (
     if (!is.numeric(patlen)|(missing(patlen)&missing(patterns))) { stop("need patlen or patterns") }
     if (missing(patlen)) { patlen <- nchar(as.character(patterns[1])) }
     if ( (length(selpats)>0 && max(sapply(unlist(selpats),nchar))>patlen) | max(sapply(unlist(mutpats),nchar))>patlen ) { stop("some patterns longer than patlen") }
+    if (length(selpats)==0 && missing(fixfn)) { fixfn <- null.fixfn }
     # mutmats is a list of matrices, with one matrix for each of the mutpatls in mutpatll describing the induced mutation process on the specified patterns (see getmutmats function def'n)
     mutmats <- getmutmats(mutpats,patterns,boundary=boundary)
     # concatenate these matrices into one big matrix, allmutmats;

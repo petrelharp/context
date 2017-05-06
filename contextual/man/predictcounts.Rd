@@ -2,10 +2,14 @@
 % Please edit documentation in R/predict_counts.R
 \name{predictcounts}
 \alias{predictcounts}
+\alias{predictcounts.tree}
 \title{Predict Counts from a Model}
 \usage{
 predictcounts(longwin, shortwin, leftwin, initcounts, mutrates, selcoef,
   genmatrix, projmatrix, params = NULL, tlen = 1)
+
+predictcounts.tree(tree, config, modelnames, longwin, shortwin, leftwin,
+  rowtaxon, coltaxa, initcounts, genmatrices, projmatrix, initfreqs)
 }
 \arguments{
 \item{longwin}{Length of the long end of the Tmer.}
@@ -14,7 +18,8 @@ predictcounts(longwin, shortwin, leftwin, initcounts, mutrates, selcoef,
 
 \item{leftwin}{Length of the left overhang of the Tmer.}
 
-\item{initcounts}{Number of occurrences of each intial (`long`) pattern.}
+\item{initcounts}{Number of occurrences of each intial (`long`) pattern. 
+Set to NULL to average over all states (see details).}
 
 \item{mutrates}{Mutation rates optionally used to update `genmatrix`.}
 
@@ -22,15 +27,40 @@ predictcounts(longwin, shortwin, leftwin, initcounts, mutrates, selcoef,
 
 \item{genmatrix}{The generator matrix used to predict counts (must correspond to a pattern length of `longwin`).}
 
-\item{projmatrix}{The projection matrix used to project from long to short patterns.}
+\item{projmatrix}{The projection matrix used to project from long to short patterns (constructed if not supplied).}
 
 \item{params}{Other parameters optionally used to update `genmatrix`.}
 
 \item{tlen}{Length of time for evolution.}
+
+\item{tree}{The tree.}
+
+\item{config}{A named list of model configurations.}
+
+\item{modelnames}{A list of names of models named by nodes and tips on the tree.}
+
+\item{rowtaxon}{Which taxon to count long patterns in; indexed by rows of the result.}
+
+\item{coltaxa}{The taxa to count in the columns.}
+
+\item{genmatrices}{A named list of genmatrix objects, with names equal to the model names in `config`.}
+
+\item{initfreqs}{The initial frequences of the (long) patterns at the root.}
 }
 \value{
 A tuplecounts object.
 }
 \description{
-Compute expected counts of paired patterns.
+Compute expected counts of paired patterns, either given the state at the root or not.
 }
+\details{
+In a tree model, if `initcounts` is present the expected counts reported are 
+conditioned on the given number of counts at the `rowtaxon`.  If
+`initcounts` is of length 1, then expectations are given for that number of
+patterns, averaging over everything (including the state at the root).
+}
+\section{Functions}{
+\itemize{
+\item \code{predictcounts.tree}: Computed expected counts on a tree
+}}
+

@@ -4,10 +4,11 @@
 \alias{collapsepatmatrix}
 \title{Construct a Pattern-Substring Matrix}
 \usage{
-collapsepatmatrix(ipatterns, leftwin, shortwin = nchar(fpatterns[1]),
-  rightwin = nchar(ipatterns[1]) - shortwin - leftwin,
-  fpatterns = getpatterns(nchar(ipatterns[1]) - leftwin - rightwin, bases),
-  bases)
+collapsepatmatrix(ipatterns, leftwin,
+  shortwin = nchar(as.character(fpatterns[1])),
+  rightwin = nchar(as.character(ipatterns[1])) - shortwin - leftwin,
+  fpatterns = getpatterns(nchar(as.character(ipatterns[1])) - leftwin -
+  rightwin, bases), bases)
 }
 \arguments{
 \item{ipatterns}{Long patterns index the rows of the result.}

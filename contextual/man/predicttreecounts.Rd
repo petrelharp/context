@@ -2,11 +2,11 @@
 % Please edit documentation in R/predict_counts.R
 \name{predicttreecounts}
 \alias{predicttreecounts}
-\title{Compute expected counts of paired patterns}
+\title{Compute expected counts of paired patterns on a two-taxon tree.}
 \usage{
 predicttreecounts(shortwin, leftwin = 0, rightwin = 0, initcounts, mutrates,
   selcoef, tlens, genmatrix, projmatrix, initfreqs, patcomp, ...)
 }
 \description{
-Compute expected counts of paired patterns
+Compute expected counts of paired patterns on a two-taxon tree.
 }

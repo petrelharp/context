@@ -7,8 +7,23 @@
 computetransmatrix(genmatrix, projmatrix, tlen = 1, shape = 1,
   names = FALSE, transpose = FALSE, time = "fixed", ...)
 }
+\arguments{
+\item{genmatrix}{A square sparse matrix.}
+
+\item{projmatrix}{Another sparse matrix, with number of rows equal to number of rows of genmatrix.}
+
+\item{tlen}{The amount of time (or the scale, in the gamma distribution).}
+
+\item{shape}{The shape parameter in the gamma distribution.}
+
+\item{names}{Attach row and column names to the output?}
+
+\item{transpose}{Multiply exp(tlen*genmatrix) on the left by t(projmatrix)?}
+
+\item{time}{Either `fixed` or `gamma`.}
+}
 \description{
-Compute the product of exp(tlen*genmatrix) and projmatrix, either on the left or the right (as transpose is true or false)
-  either after a fixed time: exp(tlen*genmatrix)
-  or after a gamma-distributed time
+Compute the product of exp(tlen*genmatrix) and projmatrix, either on the
+left or the right (as `transpose` is TRUE or FALSE) either after a fixed time:
+exp(tlen*genmatrix) or after a gamma-distributed time
 }

@@ -12,24 +12,63 @@ predictcounts.context <- function (model, longwin=NULL, shortwin=NULL, leftwin=N
     if (!missing(genmatrix) && missing(projmatrix)) {
         projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, fpatterns=getpatterns(shortwin,genmatrix@bases) )
     }
-    predictcounts(longwin,shortwin,leftwin,initcounts,mutrates,selcoef,genmatrix,projmatrix,params,tlen)
+    predictcounts(longwin=longwin,
+                  shortwin=shortwin,
+                  leftwin=leftwin,
+                  initcounts=initcounts,
+                  mutrates=mutrates,
+                  selcoef=selcoef,
+                  genmatrix=genmatrix,
+                  projmatrix=projmatrix,
+                  params=params,
+                  tlen=tlen)
+}
+
+#' Predict counts for a 'contextTree' model
+predictcounts.contextTree <- function (
+                                   model, rowtaxon, coltaxa,
+                                   longwin=NULL, shortwin=NULL, leftwin=NULL, 
+                                   initcounts=rowSums(model), 
+                                   genmatrices=lapply(model@models, function (x) x@genmatrix),
+                                   projmatrix=model@models[[1]]@projmatrix, 
+                                   initfreqs=model@initfreqs,
+                                   params=model@params, tlen=1 ) {
+    # default values not cooperating with S4 methods:
+    if (is.null(longwin)) { longwin <- longwin(model) }
+    if (is.null(shortwin)) { shortwin <- shortwin(model) }
+    if (is.null(leftwin)) { leftwin <- leftwin(model) }
+    config <- lapply(model@models, function (x) { 
+                         list(mutrates=x@mutrates, selcoef=x@selcoef, params=x@params) 
+                       } )
+    predictcounts.tree(tree=model@tree, config=config, modelnames=model@modelnames, 
+                       longwin=longwin, shortwin=shortwin, leftwin=leftwin, 
+                       rowtaxon=rowtaxon, coltaxa=coltaxa,
+                       initcounts=initcounts, genmatrices=genmatrices,
+                       projmatrix=projmatrix, initfreqs=initfreqs)
+
 }
 
 
 #' Predict Counts from a Model
 #'
-#' Compute expected counts of paired patterns.
+#' Compute expected counts of paired patterns, either given the state at the root or not.
 #'
 #' @param longwin Length of the long end of the Tmer.
 #' @param shortwin Length of the short end of the Tmer.
 #' @param leftwin Length of the left overhang of the Tmer.
-#' @param initcounts Number of occurrences of each intial (`long`) pattern.
+#' @param initcounts Number of occurrences of each intial (`long`) pattern. 
+#'        Set to NULL to average over all states (see details).
 #' @param mutrates Mutation rates optionally used to update `genmatrix`.
 #' @param selcoef Selection coefficients optionally used to update `genmatrix`.
 #' @param genmatrix The generator matrix used to predict counts (must correspond to a pattern length of `longwin`).
-#' @param projmatrix The projection matrix used to project from long to short patterns.
+#' @param projmatrix The projection matrix used to project from long to short patterns (constructed if not supplied).
 #' @param params Other parameters optionally used to update `genmatrix`.
 #' @param tlen Length of time for evolution.
+#' 
+#' @details In a tree model, if `initcounts` is present the expected counts reported are 
+#' conditioned on the given number of counts at the `rowtaxon`.  If
+#' `initcounts` is of length 1, then expectations are given for that number of
+#' patterns, averaging over everything (including the state at the root).
 #' 
 #' @return A tuplecounts object.
 #' 
@@ -161,10 +200,21 @@ projectcounts.tree <- function(
         ) )
 }
 
-#' Compute expected counts of paired patterns
+#' Compute expected counts of paired patterns on a two-taxon tree.
 #'
 #' @export
-predicttreecounts <- function (shortwin, leftwin=0, rightwin=0, initcounts, mutrates, selcoef, tlens, genmatrix, projmatrix, initfreqs, patcomp, ... ) {
+predicttreecounts <- function (shortwin, 
+                               leftwin=0, 
+                               rightwin=0, 
+                               initcounts, 
+                               mutrates, 
+                               selcoef, 
+                               tlens, 
+                               genmatrix, 
+                               projmatrix, 
+                               initfreqs, 
+                               patcomp, 
+                               ... ) {
     longwin <- leftwin+shortwin+rightwin
     if (missing(genmatrix)) { genmatrix <- makegenmatrix(patlen=leftwin+shortwin+rightwin,...) }
     if (missing(projmatrix)) { projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, rightwin=rightwin ) }
@@ -181,4 +231,63 @@ predicttreecounts <- function (shortwin, leftwin=0, rightwin=0, initcounts, mutr
     return( fullcounts )
 }
 
-
+#' @param tree The tree.
+#' @param config A named list of model configurations.
+#' @param modelnames A list of names of models named by nodes and tips on the tree.
+#' @param rowtaxon Which taxon to count long patterns in; indexed by rows of the result.
+#' @param coltaxa The taxa to count in the columns.
+#' @param genmatrices A named list of genmatrix objects, with names equal to the model names in `config`.
+#' @param initfreqs The initial frequences of the (long) patterns at the root.
+#'
+#' @describeIn predictcounts Computed expected counts on a tree
+#' @export
+predictcounts.tree <- function (tree,
+                                config,
+                                modelnames,
+                                longwin,
+                                shortwin,
+                                leftwin, 
+                                rowtaxon,
+                                coltaxa,
+                                initcounts, 
+                                genmatrices, 
+                                projmatrix, 
+                                initfreqs
+                                ) {
+    if (any(sapply(genmatrices,longwin)!=longwin)) { stop("Generator matrices do not have the requested longwin.") }
+    bases <- genmatrices[[1]]@bases
+    longpats <- rownames(genmatrices[[1]])
+    # put the parameters in to the genmatrices
+    for (mod in names(genmatrices)) {
+        genmatrices[[mod]]@x <- do.call( update_x, 
+                                        c( list( G=genmatrices[[mod]],
+                                             mutrates=config[[modelnames[[mod]]]]$mutrates,
+                                             selcoef=config[[modelnames[[mod]]]]$selcoef), 
+                                           as.list(config[[modelnames[[mod]]]]$params) ) )
+    }
+    # calculate the distribution at the root
+    initfreq.index  <- product.index( longpats=longpats, bases=bases ) # which base is at each position in each pattern
+    root.distrn <- get.root.distrn( initfreqs, initfreq.index )
+    if (missing(projmatrix)) { 
+        projmatrix <- collapsepatmatrix(ipatterns=longpats, leftwin=leftwin, 
+                                        rightwin=longwin-shortwin-leftwin, bases=bases) 
+    }
+    # calculate the transition matrix
+    transmatrix <- peel.transmat( tree=tree, rowtaxon=rowtaxon, coltaxa=coltaxa, modelnames=modelnames, 
+                                  genmatrices=genmatrices, projmatrix=projmatrix, 
+                                  root.distrn=root.distrn, debug=TRUE, return.list=FALSE )
+    if (length(initcounts)>1) {
+        transmatrix <- (initcounts/rowSums(transmatrix)) * transmatrix
+    } else {
+        transmatrix <- initcounts * transmatrix
+    }
+    colpatterns <- data.frame(do.call(rbind, strsplit(colnames(transmatrix), ",")), 
+                              stringsAsFactors=FALSE)
+    colnames(colpatterns) <- coltaxa
+    return( new("tuplecounts", 
+            leftwin=leftwin, 
+            counts=Matrix(transmatrix), 
+            bases=bases,
+            colpatterns=colpatterns
+        ) )
+}

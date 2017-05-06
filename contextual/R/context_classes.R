@@ -56,7 +56,8 @@ setClass("contextTree", representation(
                        counts="tuplecounts",
                        tree="phylo",  # as in 'ape'
                        initfreqs="numeric",
-                       models="list",  # list of 'contextModel's
+                       models="list",  # named list of 'contextModel's
+                       modelnames="character", # list of model names named by tip, node names of tree
                        likfun="function",
                        results="list",
                        invocation="character"
@@ -256,6 +257,12 @@ setMethod("rowSums", signature=c(x="contextTree"), definition=function (x) { Mat
 #' @aliases fitted,context-method
 #' @export fitted
 setMethod("fitted", signature=c(object="context"), definition=function (object,...) { predictcounts.context(object,...) } )
+#' @rdname contextTree-methods
+#' @aliases fitted,contextTree-method
+#' @export fitted
+setMethod("fitted", signature=c(object="contextTree"), definition=function (object,...) { 
+              predictcounts.contextTree(object, ...)
+        } )
 #' @rdname context-methods
 #' @aliases residuals,context-method
 #' @export residuals

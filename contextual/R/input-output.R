@@ -364,7 +364,8 @@ parse.fixfn <- function (fixfn,fixfn.params) {
 #' @param x A list of names of entries in `config`.
 #' @param max.length Maximum number of steps to go looking for the end.
 #'
-#' @return A list of names of the same length as `x` of the end of the trail.
+#' @return A list of names of the same length as `x` of the end of the trail,
+#' whose names are given by `x`.
 #'
 #' @export
 config.dereference <- function (config, x, max.length=20) {

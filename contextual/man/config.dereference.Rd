@@ -14,7 +14,8 @@ config.dereference(config, x, max.length = 20)
 \item{max.length}{Maximum number of steps to go looking for the end.}
 }
 \value{
-A list of names of the same length as `x` of the end of the trail.
+A list of names of the same length as `x` of the end of the trail,
+whose names are given by `x`.
 }
 \description{
 Follow pointers in config: if config[[x]] is a string, it refers to another entry.
