@@ -1,7 +1,7 @@
 {
-    "comment" : "Basic model on two-taxon tree. Reference=human, derived=chimp.",
-    "tree" : [ "(reference : 1.0, derived : 1.0) root;" ],
-    "tlen.scale" : [ 0.01, 0.01 ],
+    "comment" : "Basic model on two-taxon tree. Reference=human, derived=chimp. Mean divergence is about 1%.",
+    "tree" : [ "(reference : 0.01, derived : 0.01) root;" ],
+    "tlen.scale" : [ 0.0001, 0.0001 ],
     "bases" : [ "A", "C", "G", "T" ],
     "initfreqs" : [ 0.25, 0.25, 0.25, 0.25 ],
     "initfreqs.scale" : [ 0.0, 0.0, 0.0, 0.0 ],
@@ -20,9 +20,9 @@
 			[ [ "C", "T" ] ],
 			[ [ "G", "A" ] ]
 		],
-		"mutrates" : [ 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1 ],
-		"mutrates.scale" : [ 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01 ],
-		"mutrates.prior" : [ 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1 ],
+		"mutrates" : [ 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4 ],
+		"mutrates.scale" : [ 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1 ],
+		"mutrates.prior" : [ 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 ],
         "genmatrix" : "genmatrices/base-model-genmatrix-%.RData"
 	},
 	"derived" : "reference"

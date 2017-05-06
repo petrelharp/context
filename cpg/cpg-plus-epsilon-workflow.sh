@@ -24,14 +24,6 @@ MODEL_A="$BASEDIR/cpg-only.json"
 # note this is structurally the same as TRUE_MODEL
 MODEL_B="$BASEDIR/cpg-and-harris.json"
 
-## --------
-
-MODEL2="$BASEDIR/base-plus-2mers.json"
-MODEL3="$BASEDIR/base-plus-3mers.json"
-
-MODEL_C="cpg-plus-epsilon/cpg-plus-1.json"
-MODEL_D="cpg-plus-epsilon/cpg-plus-2.json"
-
 SUBDIR="simseqs/cpg-plus"
 TLEN=1.0
 
@@ -112,15 +104,6 @@ DIR=$BASEDIR/32140
             ../scripts/compute-resids.R -i $FIT_B -o ${FIT_B%.RData}-resids.2.1.l1.tsv -w 2 -s 1 -l 1 --pretty 
             ../scripts/compute-resids.R -i $FIT_B -o ${FIT_B%.RData}-resids.2.1.l0.tsv -w 2 -s 1 -l 0 --pretty 
             ../scripts/compute-resids.R -i $FIT_B -o ${FIT_B%.RData}-resids.3.1.l1.tsv -w 3 -s 1 -l 1 --pretty 
-
-            ## -------------
-
-
-            # # now with all 2mers
-            # MODELNAME2="${MODEL2%.json}"
-            # FITFILE2="$DIR/2mer-fit-${LONGWIN}-${SHORTWIN}-l${LEFTWIN}.RData";
-            # Rscript ../scripts/fit-model.R -c $MODEL2 -t $TLEN -i "$DIR/sim-${LONGWIN}-root-${SHORTWIN}-tip-l${LEFTWIN}-shift0.counts" -m "$GMDIR/genmatrix-${LONGWIN}-${MODELNAME2}.RData" -o $FITFILE2;
-            # Rscript ../scripts/gather-results.R --fit $FITFILE2 --sim $DIR/sim.RData --json > ${FITFILE2%RData}json;
 
 
         # done;
