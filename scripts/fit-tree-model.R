@@ -171,6 +171,11 @@ optim.results <- optim( par=initparams[use.par], fn=likfun, method="L-BFGS-B", l
 fit.tree <- config$tree
 config$tree$edge.length <- .param.map(type="tlen",params=optim.results$par)
 
+# put back in parameters not optimized over into results
+optim.par <- initparams
+optim.par[use.par] <- optim.results$par
+optim.results$par <- optim.par
+
 model <- new( "contextTree",
              counts=counts,
              tree=fit.tree,
@@ -193,6 +198,7 @@ model <- new( "contextTree",
          )
 
 # set this up so that we can call likfun again in the future, directly
+# ... except it DOESN'T WORK; do it better
 likfun.env <- new.env()
 assign("use.par",use.par,envir=likfun.env)
 assign("params",params,envir=likfun.env)

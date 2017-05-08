@@ -177,7 +177,7 @@ model <- new( "context",
 # set this up so that we can call likfun again in the future, directly
 likfun.env <- new.env()
 assign("use.par",use.par,envir=likfun.env)
-assign("params",params,envir=likfun.env)
+assign("params",optim.results$par,envir=likfun.env)
 assign("genmatrix",model@genmatrix,envir=likfun.env)
 assign("projmatrix",model@projmatrix,envir=likfun.env)
 assign("counts",model@counts,envir=likfun.env)

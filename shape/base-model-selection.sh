@@ -58,14 +58,14 @@ LONGWIN=4
 TMER="4-2-1"
 for d in $DIRS; do for t in $TYPES; do 
     FITFILE=$d/$t/$TMER/base-model-fit.RData
-    if ! [ -e $FITFILE ]
-    then
+    # if ! [ -e $FITFILE ]
+    # then
         ../scripts/fit-tree-model.R -i $d/$t/$TMER/total.counts.gz -c $d/$t/base-model.json -o $FITFILE
-    else
+    # else
         ../scripts/compute-resids.R -i $FITFILE -o ${FITFILE%.RData}-resids.2.1.l1.tsv -w 2 -s 1 -l 1 --pretty 
         ../scripts/compute-resids.R -i $FITFILE -o ${FITFILE%.RData}-resids.2.1.l0.tsv -w 2 -s 1 -l 0 --pretty 
         ../scripts/compute-resids.R -i $FITFILE -o ${FITFILE%.RData}-resids.3.1.l1.tsv -w 3 -s 1 -l 1 --pretty 
-    fi
+    # fi
 done; done
 
 
