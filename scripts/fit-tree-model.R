@@ -176,15 +176,17 @@ model <- new( "contextTree",
              tree=fit.tree,
              initfreqs=.param.map(type="initfreqs",params=optim.results$par),
              models=lapply( config$.models, function (mname) {
+                         # remove prepended model names from names
+                         nn <- function (x) { names(x) <- gsub(paste0("^",mname,"."),"",names(x)); x }
                          new( "contextModel",
                              genmatrix=genmatrices[[mname]],
                              projmatrix=projmatrix,
-                             mutrates=.param.map(mname,"mutrates",optim.results$par),
-                             selcoef=.param.map(mname,"selcoef",optim.results$par),
-                             params=.param.map(mname,"fixparams",optim.results$par)
+                             mutrates=nn(.param.map(mname,"mutrates",optim.results$par)),
+                             selcoef=nn(.param.map(mname,"selcoef",optim.results$par)),
+                             params=nn(.param.map(mname,"fixparams",optim.results$par))
                          )
                      } ),
-             modelnames=config$.models,
+             modelnames=modelnames,
              results=optim.results,
              likfun=likfun,
              invocation=invocation

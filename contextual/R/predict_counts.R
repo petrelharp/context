@@ -27,8 +27,8 @@ predictcounts.context <- function (model, longwin=NULL, shortwin=NULL, leftwin=N
 #' Predict counts for a 'contextTree' model
 predictcounts.contextTree <- function (
                                    model, 
-                                   rowtaxon=rowtaxon(model@counts), 
-                                   coltaxa=coltaxa(model@counts),
+                                   rowtaxon=model@counts@rowtaxon, 
+                                   coltaxa=colnames(model@counts@colpatterns),
                                    longwin=NULL, shortwin=NULL, leftwin=NULL, 
                                    initcounts=rowSums(model), 
                                    genmatrices=lapply(model@models, function (x) x@genmatrix),
@@ -144,7 +144,7 @@ projectcounts <- function(counts,
     shortwin <- shortwin(counts)
     rightwin <- longwin-shortwin-leftwin
     new.rightwin <- new.longwin-new.shortwin-new.leftwin
-    if ( max(0L,leftwin-new.leftwin) > (leftwin+shortwin)-(new.leftwin+new.shortwin)+min(0L,rightwin-new.rightwin) ) {
+    if ( new.shortwin <= 0 || max(0L,leftwin-new.leftwin) > (leftwin+shortwin)-(new.leftwin+new.shortwin)+min(0L,rightwin-new.rightwin) ) {
         stop("unreconcilable windows specified.")
     }
     new.colpatterns <- do.call( 

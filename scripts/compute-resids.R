@@ -46,13 +46,19 @@ if (is.null(opt$countfile)) {
     counts <- read.counts(opt$countfile)
 }
 
-residframe <- computeresids (model,
-    pretty            = opt$pretty,
-    in_longwin        = opt$longwin,
-    in_shortwin       = opt$shortwin,
-    in_leftwin        = opt$leftwin,
-    counts            = counts,
-    genmatrixfile     = opt$genmatrixfile)
+if (!is.null(opt$gmfile)) {
+    load(opt$gmfile)
+}
+
+residframe <- do.call( computeresids, c(list(model,
+                            pretty=opt$pretty,
+                            in_longwin=opt$longwin,
+                            in_shortwin=opt$shortwin,
+                            in_leftwin=opt$leftwin,
+                            counts=counts),
+                            if (exists("genmatrix") && inherits(model,"context")) { 
+                                list(genmatrix=genmatrix) 
+                            } else {NULL} ))
 
 options(scipen=10)
 write.table(file=opt$outfile, x=format(residframe,digits=3), sep='\t', quote=FALSE, row.names=TRUE )
