@@ -61,6 +61,7 @@ for d in $DIRS; do for t in $TYPES; do
     if ! [ -e $FITFILE ]
     then
         ../scripts/fit-tree-model.R -i $d/$t/$TMER/total.counts.gz -c $d/$t/base-model.json -o $FITFILE
+        ../scripts/gather-results.R --json -f $FITFILE > ${FITFILE%RData}json
     else
         ../scripts/compute-resids.R -i $FITFILE -o ${FITFILE%.RData}-resids.2.1.l1.tsv -w 2 -s 1 -l 1 --pretty 
         ../scripts/compute-resids.R -i $FITFILE -o ${FITFILE%.RData}-resids.2.1.l0.tsv -w 2 -s 1 -l 0 --pretty 
@@ -84,6 +85,9 @@ done; done)
     tail -n 5 $d/$t/$TMER/base-model-fit-resids.3.1.l1.tsv | awk '{print $2"\t."$3".\t"$7}';
 done; done)
 
+# look at all the results
+../scripts/collect-params-results.R $(for d in $DIRS; do for t in $TYPES; do find $d/$t -name "*fit.json"; done; done)  > 
+
 ## Revised model
 # get the correct base frequencies in there:
 MODELFILE="base-model-plus-cpg.json"
@@ -96,5 +100,3 @@ for d in $DIRS; do for t in $TYPES; do
     T=0$(bc -l <<< "scale=4; (1-$CG)/2.0")
     cat models/$MODELFILE | sed -e 's_genmatrices_../../../genmatrices_' | sed -e "s/0.25, 0.25, 0.25, 0.25/$A, $C, $G, $T/" > $d/$t/$MODELFILE; 
 done; done
-
-

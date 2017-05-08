@@ -168,13 +168,14 @@ stopifnot( is.finite(baseval) )
 
 optim.results <- optim( par=initparams[use.par], fn=likfun, method="L-BFGS-B", lower=lbs[use.par], upper=ubs[use.par], control=list(fnscale=(-1)*abs(baseval), parscale=parscale[use.par], maxit=opt$maxit) )
 
-fit.tree <- config$tree
-config$tree$edge.length <- .param.map(type="tlen",params=optim.results$par)
-
 # put back in parameters not optimized over into results
 optim.par <- initparams
 optim.par[use.par] <- optim.results$par
 optim.results$par <- optim.par
+
+# and into the tree
+fit.tree <- config$tree
+config$tree$edge.length <- .param.map(type="tlen",params=optim.par)
 
 model <- new( "contextTree",
              counts=counts,
