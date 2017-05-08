@@ -33,7 +33,7 @@ jsondata <- lapply( json.files, function (jf) {
                     pq <- unlist( x$posterior.quantiles )
                     y <- as.data.frame(c(y, pq), check.names=FALSE)
                 }
-                return(c( list(file=jf), y))
+                return(c( list(file=jf, ctime=format(file.info(jf)$ctime, "%Y-%m-%d_%H-%M-%S")), y))
             } )
 
 thenames <- unique(unlist(lapply(jsondata,names)))
