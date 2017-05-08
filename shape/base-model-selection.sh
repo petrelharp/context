@@ -68,4 +68,33 @@ for d in $DIRS; do for t in $TYPES; do
     fi
 done; done
 
+# clearly, need to add CpG
+(for d in $DIRS; do for t in $TYPES; do 
+    echo $d $t; 
+    head -n 5 $d/$t/$TMER/base-model-fit-resids.2.1.l0.tsv | awk '{print $2"\t."$3"\t"$7}';
+    tail -n 5 $d/$t/$TMER/base-model-fit-resids.2.1.l0.tsv | awk '{print $2"\t."$3"\t"$7}';
+    echo   "...."
+    head -n 5 $d/$t/$TMER/base-model-fit-resids.2.1.l1.tsv | awk '{print $2"\t"$3".\t"$7}';
+    tail -n 5 $d/$t/$TMER/base-model-fit-resids.2.1.l1.tsv | awk '{print $2"\t"$3".\t"$7}';
+done; done)
+
+# ... and that's the main thing
+(for d in $DIRS; do for t in $TYPES; do 
+    echo $d $t; 
+    tail -n 5 $d/$t/$TMER/base-model-fit-resids.3.1.l1.tsv | awk '{print $2"\t."$3".\t"$7}';
+done; done)
+
+## Revised model
+# get the correct base frequencies in there:
+MODELFILE="base-model-plus-cpg.json"
+for d in $DIRS; do for t in $TYPES; do 
+    CG=$(grep "$(basename $d)/$t" RegulatoryFeature-regions-from-axt/initfreqs.txt | cut -f 2 -d ' ')
+    # JSON needs leading 0.'s ...
+    A=0$(bc -l <<< "scale=4; (1-$CG)/2.0")
+    C=0$(bc -l <<< "scale=4; $CG/2.0")
+    G=0$(bc -l <<< "scale=4; $CG/2.0")
+    T=0$(bc -l <<< "scale=4; (1-$CG)/2.0")
+    cat models/$MODELFILE | sed -e 's_genmatrices_../../../genmatrices_' | sed -e "s/0.25, 0.25, 0.25, 0.25/$A, $C, $G, $T/" > $d/$t/$MODELFILE; 
+done; done
+
 

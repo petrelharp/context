@@ -21,10 +21,13 @@ jsondata <- lapply( json.files, function (jf) {
                     message(sprintf("Reading %s.\n",jf))
                     stop(cond)
                 } )
-                simc <- paste('sim',names(x[['sim.coef']]),sep=':')
-                fitc <- paste('fit',names(x[['fit.coef']]),sep=':')
+                simc <- if (length(x[['sim.coef']])>0) { paste('sim',names(x[['sim.coef']]),sep=':') } else { character(0) }
+                fitc <- if (length(x[['fit.coef']])>0) { paste('fit',names(x[['fit.coef']]),sep=':') } else { character(0) }
                 those <- setdiff(names(x),c('sim.coef','fit.coef','posterior.quantiles'))
-                y <- do.call(cbind,lapply(x[c('sim.coef','fit.coef',those)],adf))
+                the.names <- character(0)
+                if (length(x[['sim.coef']])>0) { the.names <- c('sim.coef') }
+                the.names <- c(the.names, c('fit.coef', those))
+                y <- do.call(cbind,lapply(x[the.names],adf))
                 names(y) <- c( simc, fitc, unlist( lapply( x[those], names ) ) )
                 if (!is.null(x$posterior.quantiles)) {
                     for (k in seq_along(x$posterior.quantiles)) {
