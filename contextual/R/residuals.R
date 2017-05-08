@@ -10,24 +10,14 @@
 #' @param in_shortwin The `short` window length of Tmers to compute residuals for.
 #' @param in_leftwin The left overhang of Tmers to compute residuals for.
 #' @param counts A tuplecounts object - can be supplied to compute residuals for longer Tmers than the model was fit with.
-#' @param genmatrixfile The name of a file where a genmatrix is stored (if `model` doesn't carry an appropriate one).
-#' @param ... Additional arguments to be passed to `projectcounts()`.
+#' @param ... Additional arguments to be passed to `fitted()`.
 #'
 #' @return If `pretty` is TRUE, returns a data frame with columns `inpat` (the head of the Tmer), `outpat` (the tail of the Tmer), 
 #' `observed`, `expected`, `resid` (observed minus expected), and `z` (residual divided by square root of expected).
 #' Otherwise, returns a matrix of the same dimensions as `counts` with rows and columns labeled by the head and tail Tmer patterns.
 #'
 #' @export
-computeresids <- function (model, pretty=TRUE, in_longwin=longwin(model), in_shortwin=shortwin(model), in_leftwin=leftwin(model), counts=NULL, genmatrixfile=NULL, ...) {
-    # pull in defaults for things if they are not specified
-    # load generator matrix, if needed
-    if (!is.null(genmatrixfile)) {
-        stopifnot(file.exists(genmatrixfile))
-        load(genmatrixfile)  # provides 'genmatrix'
-    } else {
-        genmatrix <- model@genmatrix
-    }
-
+computeresids <- function (model, pretty=TRUE, in_longwin=longwin(model), in_shortwin=shortwin(model), in_leftwin=leftwin(model), counts=NULL, ...) {
     # get counts
     if (is.null(counts) && ( in_longwin > longwin(model) || in_shortwin > shortwin(model) ) ) {
         stop("If window lengths are longer than fitted model, then need to supply counts.")
@@ -39,11 +29,11 @@ computeresids <- function (model, pretty=TRUE, in_longwin=longwin(model), in_sho
         counts <- model@counts
     }
 
-    expected <- fitted( model, longwin=longwin(model), shortwin=shortwin(model), leftwin=leftwin(model), initcounts=Matrix::rowSums(counts), genmatrix=genmatrix )
+    expected <- fitted( model, longwin=longwin(model), shortwin=shortwin(model), leftwin=leftwin(model), ... )
 
     if ( (in_longwin < longwin(counts)) || (in_shortwin < shortwin(counts)) ) {
-        counts <- projectcounts( counts, in_leftwin, in_shortwin, in_longwin, ...)
-        expected <- projectcounts( expected, in_leftwin, in_shortwin, in_longwin, ...)
+        counts <- projectcounts( counts, in_leftwin, in_shortwin, in_longwin )
+        expected <- projectcounts( expected, in_leftwin, in_shortwin, in_longwin )
     }
 
     if (pretty) {

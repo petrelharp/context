@@ -6,7 +6,7 @@
 \usage{
 computeresids(model, pretty = TRUE, in_longwin = longwin(model),
   in_shortwin = shortwin(model), in_leftwin = leftwin(model),
-  counts = NULL, genmatrixfile = NULL, ...)
+  counts = NULL, ...)
 }
 \arguments{
 \item{model}{An object inheriting from `context` or `contextTree` having a `fitted` method.}
@@ -21,9 +21,7 @@ computeresids(model, pretty = TRUE, in_longwin = longwin(model),
 
 \item{counts}{A tuplecounts object - can be supplied to compute residuals for longer Tmers than the model was fit with.}
 
-\item{genmatrixfile}{The name of a file where a genmatrix is stored (if `model` doesn't carry an appropriate one).}
-
-\item{...}{Additional arguments to be passed to `projectcounts()`.}
+\item{...}{Additional arguments to be passed to `fitted()`.}
 }
 \value{
 If `pretty` is TRUE, returns a data frame with columns `inpat` (the head of the Tmer), `outpat` (the tail of the Tmer), 

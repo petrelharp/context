@@ -26,7 +26,9 @@ predictcounts.context <- function (model, longwin=NULL, shortwin=NULL, leftwin=N
 
 #' Predict counts for a 'contextTree' model
 predictcounts.contextTree <- function (
-                                   model, rowtaxon, coltaxa,
+                                   model, 
+                                   rowtaxon=rowtaxon(model@counts), 
+                                   coltaxa=coltaxa(model@counts),
                                    longwin=NULL, shortwin=NULL, leftwin=NULL, 
                                    initcounts=rowSums(model), 
                                    genmatrices=lapply(model@models, function (x) x@genmatrix),
@@ -97,14 +99,15 @@ predictcounts <- function (longwin,
         ) )
 }
 
-#' Compute Counts for Shorter Tmers.
+#' Compute Counts for Shorter Tmers from longer ones.
 #'
-#'   Valid ranges for parameters are
+#' Valid ranges for parameters are
 #'    (l-lc)^+ <= k < (l+w)-(lc+wc)+(r-rc)^-
-#'   where 
-#'       l = leftwin, lc = new.leftwin
+#' where 
+#'       l = leftwin,  lc = new.leftwin
 #'       w = shortwin, wc = new.shortwin
 #'       r = rightwin, rc = new.rightwin
+#'
 #' If the original counts were from overlapping windows, then this will overcount the resulting patterns:
 #'    if you slide a window of length L in steps of size 1 then a subwindow of size W
 #'      will be seen in ( (L-W) ) big windows;
@@ -115,6 +118,14 @@ predictcounts <- function (longwin,
 #'
 #' projectcounts.tree differs only in that the projection is specified using a new `coltaxa`,
 #' rather than just left/short/long window lengths.
+#'
+#' @param counts A tuplecounts object.
+#' @param new.leftwin The left overhang of the new T-mer.
+#' @param new.shortwin The short end of the new T-mer.
+#' @param new.longwin The long end of the new T-mer.
+#' @param overlapping Are the original counts of overlapping T-mers?
+#'
+#' @return A new tuplecounts object.
 #'
 #' @examples
 #' counts <- simcontext::counttrans(ipatterns=getpatterns(3,bases=c("X","O")), fpatterns=getpatterns(2,bases=c("X","O")), 
@@ -149,6 +160,8 @@ projectcounts <- function(counts,
             overlapping=overlapping) )
 }
 
+#' @param new.colpatterns Patterns counted in columns of the new tuplecounts object.
+#' 
 #' @describeIn projectcounts Project tree counts
 #' @export
 projectcounts.tree <- function(

@@ -4,8 +4,9 @@
 \alias{predictcounts.contextTree}
 \title{Predict counts for a 'contextTree' model}
 \usage{
-predictcounts.contextTree(model, rowtaxon, coltaxa, longwin = NULL,
-  shortwin = NULL, leftwin = NULL, initcounts = rowSums(model),
+predictcounts.contextTree(model, rowtaxon = rowtaxon(model@counts),
+  coltaxa = coltaxa(model@counts), longwin = NULL, shortwin = NULL,
+  leftwin = NULL, initcounts = rowSums(model),
   genmatrices = lapply(model@models, function(x) x@genmatrix),
   projmatrix = model@models[[1]]@projmatrix, initfreqs = model@initfreqs,
   params = model@params, tlen = 1)
