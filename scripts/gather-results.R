@@ -85,7 +85,7 @@ if (class(model)=="context" || class(model)=="contextMCMC") {
                             convergence=model@results$convergence
                             ),
                     posterior.quantiles = quantiles
-                    ), auto_unbox=TRUE, pretty=TRUE )
+                    ), auto_unbox=TRUE, pretty=TRUE, digits=8 )
     cat( paste(json,"\n"), file=outfile )
     flush(outfile)
 # }

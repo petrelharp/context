@@ -156,8 +156,20 @@ likfun <- function (sub.params){
     return(ans)
 }
 
-lbs <- unlist( c( rep(1e-6,length(config$bases)), rep(1e-6,length(config$tree$edge.length)), lapply( genmatrices, function (gm) { c( rep(1e-6,nmuts(gm)), rep(-5,nsel(gm)), rep(-Inf,length(fixparams(gm))) ) } ) ) )
-ubs <- unlist( c( rep(1,length(config$bases)), rep(Inf,length(config$tree$edge.length)), lapply( genmatrices, function (gm) { c( rep(2,nmuts(gm)), rep(5,nsel(gm)), rep(Inf,length(fixparams(gm))) ) } ) ) )
+lbs <- unlist( c( 
+                rep(1e-6,length(config$bases)), 
+                rep(1e-6,length(config$tree$edge.length)), 
+                lapply( genmatrices, function (gm) { c( 
+                                rep(1e-6,nmuts(gm)), 
+                                rep(-5,nsel(gm)), 
+                                rep(-Inf,length(fixparams(gm))) ) } ) ) )
+ubs <- unlist( c( 
+                rep(1,length(config$bases)), 
+                rep(Inf,length(config$tree$edge.length)), 
+                lapply( genmatrices, function (gm) { c( 
+                                rep(10,nmuts(gm)), 
+                                rep(5,nsel(gm)), 
+                                rep(Inf,length(fixparams(gm))) ) } ) ) )
 
 stopifnot( all( initparams >= lbs ) && all( initparams <= ubs ) )
 

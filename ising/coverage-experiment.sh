@@ -47,7 +47,7 @@ do
         # fit the model;
         Rscript ../scripts/fit-model.R -c $MODEL -i $DIR/ising-4-root-2-tip-l1-shift0.counts -t $TLEN -m genmatrices/genmatrix-4-complete.RData -o $DIR/ising-fit-4-2-1.RData;
         Rscript ../scripts/fit-model.R -c $MODEL -i $DIR/ising-5-root-3-tip-l1-shift0.counts -t $TLEN -m genmatrices/genmatrix-5-complete.RData -o $DIR/ising-fit-5-3-1.RData;
-        # Rscript ../scripts/fit-model.R -c $MODEL -i $DIR/ising-6-root-2-tip-l2-shift0.counts -t $TLEN -m genmatrices/genmatrix-6-complete.RData -o $DIR/ising-fit-6-2-2.RData;
+        Rscript ../scripts/fit-model.R -c $MODEL -i $DIR/ising-6-root-2-tip-l2-shift0.counts -t $TLEN -m genmatrices/genmatrix-6-complete.RData -o $DIR/ising-fit-6-2-2.RData;
 
         # and mcmc
         MCMCID=$RANDOM
@@ -55,7 +55,7 @@ do
         # too long
         Rscript ../scripts/mcmc-model.R -i $DIR/ising-fit-5-3-1.RData -c ising-model.json -b $MCMCITER -l 1 -j $MCMCID
         # waaay too long
-        # Rscript ../scripts/mcmc-model.R -i $DIR/ising-fit-6-2-2.RData -c ising-model.json -b $MCMCITER -l 1 -j $MCMCID
+        Rscript ../scripts/mcmc-model.R -i $DIR/ising-fit-6-2-2.RData -c ising-model.json -b $MCMCITER -l 1 -j $MCMCID
 
         # gather results into json
         for RDATA in $DIR/ising-fit*.RData
@@ -68,7 +68,7 @@ done
 
 wait;
 
-../scripts/collect-params-results.R $BASEDIR/*/ising-fit*.json > coverage_results.tsv
+../scripts/collect-params-results.R $(ls -t $BASEDIR/*/ising-fit*.json) > coverage_results.tsv
 
 PLOTSCRIPT="
 res <- read.table('coverage_results.tsv', header=TRUE, check.names=FALSE)
@@ -119,4 +119,4 @@ xtable::xtable(
 )
 
 "
-echo "$PLOTSCRIPT" | littler
+# echo "$PLOTSCRIPT" | littler
