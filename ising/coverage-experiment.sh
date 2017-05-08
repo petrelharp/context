@@ -70,3 +70,47 @@ wait;
 
 ../scripts/collect-params-results.R $BASEDIR/*/ising-fit*.json > coverage_results.tsv
 
+PLOTSCRIPT="
+res <- read.table('coverage_results.tsv', header=TRUE, check.names=FALSE)
+res <- res[grepl('mcmc', res[['file']]),]
+
+paramnames <- c('O->X', 'X->O', 'OX|XO', 'X')
+true.cols <- match(paste0('sim:', paramnames), colnames(res))
+est.cols <- match(paste0('q50%.', paramnames), colnames(res))
+q.cols <- outer(c('q2.5%', 'q25%', 'q75%', 'q97.5%'), paramnames, 
+                function(x,y) { match(paste(x,y,sep='.'), colnames(res)) } )
+
+xoffset <- 0
+xshift <- nrow(res)/5
+plot(0, type='n', 
+      xlim=c(0, length(paramnames)*nrow(res) + (length(paramnames)-1)*xshift),
+      ylim=c(0.85,1.15), xaxt='n',
+      xlab='', ylab='parameter value')
+abline(h=1, col='red')
+for (k in seq_along(paramnames)) {
+    xord <- order(res[['longwin']],res[,est.cols[k]])
+    axis(1, at=xoffset+(nrow(res)+xshift)/2, labels=paramnames[k], tick=FALSE)
+    segments(x0=xoffset+(1:nrow(res)), 
+             y0=res[xord,q.cols[1,k]]/res[xord,true.cols[k]], 
+             y1=res[xord,q.cols[4,k]]/res[xord,true.cols[k]],
+             col='grey')
+    segments(x0=xoffset+(1:nrow(res)), 
+             y0=res[xord,q.cols[2,k]]/res[xord,true.cols[k]], 
+             y1=res[xord,q.cols[3,k]]/res[xord,true.cols[k]],
+             col='red', lwd=2)
+    # segments(x0=xoffset, x1=xoffset+nrow(res),
+    #          y0=unique(res[xord,true.cols[k]]), 
+    #          col='red')
+    points(x=xoffset+(1:nrow(res)), y=res[xord,est.cols[k]]/res[xord,true.cols[k]], pch=20)
+    xoffset <- xoffset + nrow(res) + xshift
+    abline(v=xoffset - xshift/2, lty=2)
+}
+
+sapply( paramnames, function (pn) {
+    k <- match(pn, paramnames)
+    ut <- (res[['longwin']] == 4)
+    c('95%'=1 - mean((res[ut,q.cols[1,k]] > res[ut,true.cols[k]]) | (res[ut,q.cols[4,k]] < res[ut,true.cols[k]])),
+      '50%'=1 - mean((res[ut,q.cols[2,k]] > res[ut,true.cols[k]]) | (res[ut,q.cols[3,k]] < res[ut,true.cols[k]])))
+} )
+
+"
