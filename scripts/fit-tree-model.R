@@ -121,7 +121,7 @@ root.distrn <- get.root.distrn( initfreqs, initfreq.index )
 # create setup to efficiently re-compute below
 peel.setup <- peel.transmat( tree=config$tree, rowtaxon=rowtaxon(counts), coltaxa=coltaxa(counts), modelnames=modelnames, genmatrices=genmatrices, 
                             projmatrix=projmatrix, root.distrn=root.distrn, tlens=config$tree$edge.length, return.list=TRUE )
-peel.setup.0 <- peel.transmat( tree=config$tree, rowtaxon=rowtaxon(counts), coltaxa=coltaxa(counts), models=models, genmatrices=genmatrices, 
+peel.setup.0 <- peel.transmat( tree=config$tree, rowtaxon=rowtaxon(counts), coltaxa=coltaxa(counts), modelnames=modelnames, genmatrices=genmatrices, 
                             projmatrix=projmatrix.0, root.distrn=root.distrn, tlens=config$tree$edge.length, return.list=TRUE )
 
 # reorder columns of counts to match the order we compute transmat in
@@ -146,8 +146,8 @@ likfun <- function (sub.params){
     initfreqs <- initfreqs/sum(initfreqs)
     root.distrn <- get.root.distrn( initfreqs, initfreq.index )
     # Now, peel 
-    transmat <- peel.transmat.compute( setup=peel.setup, models=models, genmatrices=genmatrices, root.distrn=root.distrn, tlens=tlens, return.list=FALSE )
-    transmat.0 <- peel.transmat.compute( setup=peel.setup.0, models=models, genmatrices=genmatrices, root.distrn=root.distrn, tlens=tlens, return.list=FALSE )
+    transmat <- peel.transmat.compute( setup=peel.setup, genmatrices=genmatrices, root.distrn=root.distrn, tlens=tlens, return.list=FALSE )
+    transmat.0 <- peel.transmat.compute( setup=peel.setup.0, genmatrices=genmatrices, root.distrn=root.distrn, tlens=tlens, return.list=FALSE )
     # return POSITIVE log-likelihood
     num <- sum( counts@counts * log(transmat) )
     den <- sum( counts.0@counts * log(transmat.0) )
