@@ -4,7 +4,7 @@
 \alias{divergence}
 \title{Mean Density of Nucleotide Differences}
 \usage{
-divergence(counts, leftwin = leftwin(counts))
+divergence(counts, leftwin)
 }
 \arguments{
 \item{counts}{A tuplecounts object or a matrix of counts with rows and columns labeled.}

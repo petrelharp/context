@@ -86,11 +86,14 @@ done; done)
 done; done)
 
 # look at all the results
-../scripts/collect-params-results.R $(for d in $DIRS; do for t in $TYPES; do find $d/$t -name "*fit.json"; done; done)  > 
+../scripts/collect-params-results.R $(for d in $DIRS; do for t in $TYPES; do find $d/$t -name "*fit.json"; done; done)  > model-selection-results.tsv
 
-## Revised model
+######################################
+## Revised model with CG->*
+
 # get the correct base frequencies in there:
 MODELFILE="base-model-plus-cpg.json"
+MODELNAME=${MODELFILE%.json}
 for d in $DIRS; do for t in $TYPES; do 
     CG=$(grep "$(basename $d)/$t" RegulatoryFeature-regions-from-axt/initfreqs.txt | cut -f 2 -d ' ')
     # JSON needs leading 0.'s ...
@@ -100,3 +103,23 @@ for d in $DIRS; do for t in $TYPES; do
     T=0$(bc -l <<< "scale=4; (1-$CG)/2.0")
     cat models/$MODELFILE | sed -e 's_genmatrices_../../../genmatrices_' | sed -e "s/0.25, 0.25, 0.25, 0.25/$A, $C, $G, $T/" > $d/$t/$MODELFILE; 
 done; done
+
+# create genmatrix
+LONGWIN=4
+../scripts/make-genmat.R -c models/$MODELFILE -w $LONGWIN -o genmatrices/${MODELNAME}-model-genmatrix-${LONGWIN}.RData
+
+# fit model
+TMER="4-2-1"
+for d in $DIRS; do for t in $TYPES; do 
+    FITFILE=$d/$t/$TMER/${MODELFILE}-fit.RData
+    if ! [ -e $FITFILE ]
+    then
+        ../scripts/fit-tree-model.R -i $d/$t/$TMER/total.counts.gz -c $d/$t/$MODELFILE -o $FITFILE
+        ../scripts/gather-results.R --json -f $FITFILE > ${FITFILE%RData}json
+    else
+        ../scripts/compute-resids.R -i $FITFILE -o ${FITFILE%.RData}-resids.2.1.l1.tsv -w 2 -s 1 -l 1 --pretty 
+        ../scripts/compute-resids.R -i $FITFILE -o ${FITFILE%.RData}-resids.2.1.l0.tsv -w 2 -s 1 -l 0 --pretty 
+        ../scripts/compute-resids.R -i $FITFILE -o ${FITFILE%.RData}-resids.3.1.l1.tsv -w 3 -s 1 -l 1 --pretty 
+    fi
+done; done
+
