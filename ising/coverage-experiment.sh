@@ -68,7 +68,7 @@ done
 
 wait;
 
-Rscript ../scripts/collect-params-results.R $(ls -t $BASEDIR/*/ising-fit*.json) > coverage_results.tsv
+Rscript ../scripts/collect-params-results.R $(ls -t $BASEDIR/*/ising-fit*.json) | tail -n +2 >> coverage_results.tsv
 
 PLOTSCRIPT="
 res <- read.table('coverage_results.tsv', header=TRUE, check.names=FALSE)
