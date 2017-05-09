@@ -60,7 +60,7 @@ do
         # gather results into json
         for RDATA in $DIR/ising-fit*.RData
         do
-            ../scripts/gather-results.R --json -f $RDATA -s $DIR/ising.RData > ${RDATA%RData}json
+            Rscript ../scripts/gather-results.R --json -f $RDATA -s $DIR/ising.RData > ${RDATA%RData}json
         done
 
     ) ##  NOT in parallel &
@@ -68,7 +68,7 @@ done
 
 wait;
 
-../scripts/collect-params-results.R $(ls -t $BASEDIR/*/ising-fit*.json) > coverage_results.tsv
+Rscript ../scripts/collect-params-results.R $(ls -t $BASEDIR/*/ising-fit*.json) > coverage_results.tsv
 
 PLOTSCRIPT="
 res <- read.table('coverage_results.tsv', header=TRUE, check.names=FALSE)
