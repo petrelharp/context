@@ -90,6 +90,7 @@ done; done)
 
 ######################################
 ## Revised model with CG->*
+## including making base model strand-symmetric and setting rates to near inferred (on first pass)
 
 # get the correct base frequencies in there:
 MODELFILE="base-model-plus-cpg.json"
@@ -111,15 +112,25 @@ LONGWIN=4
 # fit model
 TMER="4-2-1"
 for d in $DIRS; do for t in $TYPES; do 
-    FITFILE=$d/$t/$TMER/${MODELFILE}-fit.RData
+    FITFILE=$d/$t/$TMER/${MODELNAME}-fit.RData
     if ! [ -e $FITFILE ]
     then
         ../scripts/fit-tree-model.R -i $d/$t/$TMER/total.counts.gz -c $d/$t/$MODELFILE -o $FITFILE
         ../scripts/gather-results.R --json -f $FITFILE > ${FITFILE%RData}json
-    else
         ../scripts/compute-resids.R -i $FITFILE -o ${FITFILE%.RData}-resids.2.1.l1.tsv -w 2 -s 1 -l 1 --pretty 
         ../scripts/compute-resids.R -i $FITFILE -o ${FITFILE%.RData}-resids.2.1.l0.tsv -w 2 -s 1 -l 0 --pretty 
         ../scripts/compute-resids.R -i $FITFILE -o ${FITFILE%.RData}-resids.3.1.l1.tsv -w 3 -s 1 -l 1 --pretty 
     fi
 done; done
+
+# clearly, need to add CpG
+(for d in $DIRS; do for t in $TYPES; do 
+    echo $d $t; 
+    head -n 5 $d/$t/$TMER/${MODELNAME}-fit-resids.2.1.l0.tsv | awk '{print $2"\t."$3"\t"$7}';
+    tail -n 5 $d/$t/$TMER/${MODELNAME}-fit-resids.2.1.l0.tsv | awk '{print $2"\t."$3"\t"$7}';
+    echo   "...."
+    head -n 5 $d/$t/$TMER/${MODELNAME}-fit-resids.2.1.l1.tsv | awk '{print $2"\t"$3".\t"$7}';
+    tail -n 5 $d/$t/$TMER/${MODELNAME}-fit-resids.2.1.l1.tsv | awk '{print $2"\t"$3".\t"$7}';
+done; done)
+
 

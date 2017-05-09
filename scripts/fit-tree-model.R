@@ -174,12 +174,11 @@ optim.par[use.par] <- optim.results$par
 optim.results$par <- optim.par
 
 # and into the tree
-fit.tree <- config$tree
 config$tree$edge.length <- .param.map(type="tlen",params=optim.par)
 
 model <- new( "contextTree",
              counts=counts,
-             tree=fit.tree,
+             tree=config$tree,
              initfreqs=.param.map(type="initfreqs",params=optim.results$par),
              models=lapply( config$.models, function (mname) {
                          # remove prepended model names from names
