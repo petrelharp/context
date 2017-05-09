@@ -186,7 +186,7 @@ optim.par[use.par] <- optim.results$par
 optim.results$par <- optim.par
 
 # and into the tree
-config$tree$edge.length <- .param.map(type="tlen",params=optim.par)
+config$tree$edge.length <- .param.map(type="tlens",params=optim.par)
 
 model <- new( "contextTree",
              counts=counts,
