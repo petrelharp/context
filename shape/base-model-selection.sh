@@ -21,6 +21,8 @@ modelsetup () {
 modelsetup base-model.json
 
 # for fitting models, later
+MAXIT=500
+
 fitmodel () {
     MODELFILE=$1
     TMER=$2
@@ -28,12 +30,12 @@ fitmodel () {
         FITFILE=$d/$t/$TMER/${MODELFILE%.json}-fit.RData
         if ! [ -e $FITFILE ]
         then
-            ../scripts/fit-tree-model.R -i $d/$t/$TMER/total.counts.gz -c $d/$t/$MODELFILE -o $FITFILE
-            ../scripts/gather-results.R --json -f $FITFILE > ${FITFILE%RData}json
-            ../scripts/compute-resids.R -i $FITFILE -o ${FITFILE%.RData}-resids.2.1.l1.tsv -w 2 -s 1 -l 1 --pretty 
-            ../scripts/compute-resids.R -i $FITFILE -o ${FITFILE%.RData}-resids.2.1.l0.tsv -w 2 -s 1 -l 0 --pretty 
-            ../scripts/compute-resids.R -i $FITFILE -o ${FITFILE%.RData}-resids.3.1.l1.tsv -w 3 -s 1 -l 1 --pretty 
+            ../scripts/fit-tree-model.R -i $d/$t/$TMER/total.counts.gz -c $d/$t/$MODELFILE -o $FITFILE -x $MAXIT
         fi
+        ../scripts/gather-results.R --json -f $FITFILE > ${FITFILE%RData}json
+        ../scripts/compute-resids.R -i $FITFILE -o ${FITFILE%.RData}-resids.2.1.l1.tsv -w 2 -s 1 -l 1 --pretty 
+        ../scripts/compute-resids.R -i $FITFILE -o ${FITFILE%.RData}-resids.2.1.l0.tsv -w 2 -s 1 -l 0 --pretty 
+        ../scripts/compute-resids.R -i $FITFILE -o ${FITFILE%.RData}-resids.3.1.l1.tsv -w 3 -s 1 -l 1 --pretty 
         echo $FITFILE
     done; done
 }
@@ -154,6 +156,14 @@ FITFILES=$(fitmodel $MODELFILE $TMER)
     head -n 5 $d/$t/$TMER/${MODELNAME}-fit-resids.2.1.l1.tsv | awk '{print $2"\t"$3".\t"$7}';
     tail -n 5 $d/$t/$TMER/${MODELNAME}-fit-resids.2.1.l1.tsv | awk '{print $2"\t"$3".\t"$7}';
 fi; done; done)
+
+(for d in $DIRS; do for t in $TYPES; do if [ -e $d/$t/$TMER/${MODELNAME}-fit-resids.3.1.l1.tsv ]; then
+    echo $d $t; 
+    head -n 10 $d/$t/$TMER/${MODELNAME}-fit-resids.3.1.l1.tsv | awk '{print $2"\t."$3".\t"$7}';
+    tail -n 10 $d/$t/$TMER/${MODELNAME}-fit-resids.3.1.l1.tsv | awk '{print $2"\t."$3".\t"$7}';
+fi; done; done)
+
+
 
 
 

@@ -26,7 +26,7 @@ while [ $START -le $NCOL ]
 do
     END=$((START+$N))
     cut $* -f $START-$END $FILE | column -t
-    START=$((START+$N))
+    START=$((START+$N+1))
     echo ""
     echo "..........................................................."
     echo ""

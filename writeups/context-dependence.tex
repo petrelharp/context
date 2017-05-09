@@ -867,9 +867,30 @@ We repeated this procedure separately on 60 independently simulated sequences,
 and show the resulting credible intervals in Figure \ref{fig:ising_coverage}.
 Poseterior medians are within half a percent of the truth for $+ \to -$ and $- \to +$ (corresponding to $\lambda$)
 and the temperature ($\beta$), but showed around 2\% error for the magnetic field $\gamma$.
-Credible intervals were somewhat too narrow, as the true value fell within 95\% credible intervals
-for between 55\% and 90\% of the simulations;
-which is likely due to remaining nonindependence at the window sizes used.
+As seen in Table \ref{tab:ising_coverage}, 
+credible intervals were somewhat too narrow for shorter T-mers,
+but $(6,2,2)$ T-mers were long enough with sufficient overhang to produce well-calibrated posteriors.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrr}
+  \hline
+    & (4,1,1) & (5,1,1) & (6,2,2) \\ 
+  \hline
+  $\lambda_-$ & 0.61 & 0.63 & 0.96 \\ 
+  $\lambda_+$ & 0.87 & 0.86 & 0.85 \\ 
+  $\beta$     & 0.76 & 0.81 & 0.94 \\ 
+  $\gamma$    & 0.69 & 0.76 & 0.85 \\ 
+   \hline
+\end{tabular}
+    \caption{
+        Posterior coverage of the four parameters of the dynamic Ising model at four different T-mer sizes.
+        Shown are the proportion of runs in which the true value fell within the 95\% credible interval,
+        for T-mers of length 4, 5, and 6 with overhangs of length 1, 1, and 2 respectively.
+        The total number of runs was 54 for $(6,2,2)$ T-mers and 114 for the others.
+        \label{tab:ising_coverage}
+    }
+\end{table}
 
 \begin{figure}
     \begin{center} 
@@ -877,9 +898,10 @@ which is likely due to remaining nonindependence at the window sizes used.
     \end{center} 
     \caption{
         Credible intervals for the four parameters of the dynamic Ising model,
-        relative to the true value,
-        from 60 MCMC runs on independently simulated sequences of $10^6$ bases
+        calculated using $(6,2,2)$ T-mers,
+        from 54 MCMC runs on independently simulated sequences of $10^6$ bases
         differing at around 18.6\% of the sites.
+        Shown are relative intervals, obtained by dividing by the true value.
         \label{fig:ising_coverage}}
 \end{figure}
 
