@@ -1,4 +1,4 @@
-#!/usr/bin/Rscript
+#!/usr/bin/env Rscript
 library(optparse)
 
 usage <- "Gather and summarize results of analysis into a single .RData file.

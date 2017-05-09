@@ -1,4 +1,4 @@
-#!/usr/bin/Rscript
+#!/usr/bin/env Rscript
 library(methods)
 library(optparse)
 library(pander)
