@@ -24,7 +24,7 @@
 			[ "C","G" ]
 		],
 		"selcoef" : [ 0.001 ],
-		"selcoef.scale" : [ 0.001 ],
+		"selcoef.scale" : [ 0.0001 ],
 		"fixfn" : "popgen.fixfn",
 		"fixfn.params" : { "Ne" : 1000 },
 		"fixfn.params.scale" : { "Ne" : 50 },
