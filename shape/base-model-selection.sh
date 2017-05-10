@@ -165,10 +165,13 @@ fi; done; done)
 
 
 ##########################
-## Turns out that runs can get trapped in a bad-likelihood situation of having the 'derived' branch
-## much longer than the 'reference' branch, with mutation rates going down to compensate.
-## Introduced the "-fixed-tlens' models to account for this, especially as in cases where this didn't happen,
-## branches were almost identical.
+# Turns out that things run off into a situation of having the 'derived' branch
+# much longer than the 'reference' branch, with mutation rates going down to
+# compensate.  Strangely, this has much better likelihood. Introduced the
+# "-fixed-tlens' models to account for this, especially as in cases where this
+# didn't happen, branches were almost identical.
+
+## GC-bias is not substantially bettering the likelihood.
 
 
 #################################
