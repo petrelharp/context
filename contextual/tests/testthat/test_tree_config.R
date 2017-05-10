@@ -64,7 +64,7 @@ another_big_tree <- '
 }
 '
 
-config <- parse.models( treeify.config( read.config(json=another_big_tree) ) )
+config <- parse.models( treeify.config( read.config(json=another_big_tree, quiet=TRUE) ) )
 
 clades <- c("an1","an2","sp1","sp2","sp3","sp4")
 names(clades) <- clades

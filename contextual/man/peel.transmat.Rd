@@ -8,14 +8,14 @@
 \usage{
 peel.transmat(tree, rowtaxon, coltaxa, modelnames, genmatrices, projmatrix,
   root.distrn, tlens = tree$edge.length, return.list = TRUE,
-  debug = FALSE)
+  normalize = TRUE, debug = FALSE)
 
 peel.transmat.setup(tree, rowtaxon, coltaxa, modelnames, genmatrices,
   projmatrix, tlens = tree$edge.length, return.list = FALSE,
   debug = FALSE)
 
 peel.transmat.compute(setup, genmatrices, root.distrn, tlens, debug = FALSE,
-  return.list = TRUE)
+  return.list = TRUE, normalize = TRUE)
 }
 \arguments{
 \item{tree}{The tree.}
@@ -35,6 +35,9 @@ peel.transmat.compute(setup, genmatrices, root.distrn, tlens, debug = FALSE,
 \item{tlens}{Lengths of the tree's branches.}
 
 \item{return.list}{Whether to return everything (default) or just the transition matrices}
+
+\item{normalize}{Whether transition matrices on the path from the rowtaxon to the root
+are conditional on the observed row pattern (see details).}
 
 \item{debug}{Whether to keep around some extra information useful for
 checking - in particular, row and column names on the resulting matrices.}
@@ -67,6 +70,11 @@ Compute probabilities of all combinations, on a tree
 \details{
 If `return.list` is TRUE (the default), the output can be used as `setup` to
 subsequent calls to peel.transmat.compute(), saving on recomputation.
+
+If `normalize` is FALSE then transition matrices *on the path from rowtaxon to the root*
+give the *joint* probability of the row and column patterns.  This is not usually what
+we want, because without conditioning on the longer end of the T-mer the probabilities
+are not correct.
 }
 \section{Functions}{
 \itemize{
@@ -88,6 +96,14 @@ transmat <- peel.transmat(tree, rowtaxon="tip1", coltaxa=c("tip2","tip3"),
                              modelnames=c(tip1="slow", tip2="slow", tip3="fast", node1="fast"), 
                              genmatrices=genmatrices, projmatrix=projmatrix,
                              root.distrn=rep(1/8,length=8), debug=TRUE, return.list=FALSE )
-sum(transmat) # equals 1
+range(rowSums(transmat)) # all equal 1
+
+# unconditioned
+raw.transmat <- peel.transmat(tree, rowtaxon="tip1", coltaxa=c("tip2","tip3"), 
+                             modelnames=c(tip1="slow", tip2="slow", tip3="fast", node1="fast"), 
+                             genmatrices=genmatrices, projmatrix=projmatrix,
+                             root.distrn=rep(1/8,length=8), debug=TRUE, return.list=FALSE,
+                             normalize=FALSE )
+sum(raw.transmat) # equals 1
 
 }

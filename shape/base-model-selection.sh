@@ -5,6 +5,7 @@ TYPES="CTCF_binding_site  enhancer  open_chromatin_region  promoter_flanking_reg
 
 ## Base model:
 # get the correct base frequencies in there:
+# NOTE: there is NO difference in base frequencies between the two taxa
 
 modelsetup () {
     for d in $DIRS; do for t in $TYPES; do 
@@ -100,9 +101,6 @@ done; done)
     tail -n 5 $d/$t/$TMER/base-model-fit-resids.3.1.l1.tsv | awk '{print $2"\t."$3".\t"$7}';
 done; done)
 
-# look at all the results
-../scripts/collect-params-results.R $(for d in $DIRS; do for t in $TYPES; do find $d/$t -name "*fit.json"; done; done)  > model-selection-results.tsv
-
 
 ######################################
 ## Revised model with CG->*
@@ -166,4 +164,15 @@ fi; done; done)
 
 
 
+##########################
+## Turns out that runs can get trapped in a bad-likelihood situation of having the 'derived' branch
+## much longer than the 'reference' branch, with mutation rates going down to compensate.
+## Introduced the "-fixed-tlens' models to account for this, especially as in cases where this didn't happen,
+## branches were almost identical.
 
+
+#################################
+### collect results
+
+# look at all the results
+../scripts/collect-params-results.R RegulatoryFeature-regions-from-axt/**/*fit.json | column -t > model-selection-results.tsv

@@ -14,7 +14,7 @@ model_json <- '
     "mutrates.scale" : [ 0.1 ]
 }
 '
-model_config <- read.config(json=model_json)
+model_config <- read.config(json=model_json, quiet=TRUE)
 
 
 expect_list_equal <- function (x,y) {
@@ -80,7 +80,7 @@ tree_model_json <- '
     }
 }
 '
-tree_model_config <- read.config(json=tree_model_json)
+tree_model_config <- read.config(json=tree_model_json, quiet=TRUE)
 
 expect_list_equal( tree_model_config,
                     list(tree = "(sp1 : 0.8, sp2 : 1.2) root;", 
@@ -137,7 +137,7 @@ model_json <- '
 }
 '
 
-model_config <- read.config(json=model_json)
+model_config <- read.config(json=model_json, quiet=TRUE)
 
 expect_list_equal( model_config,
                     list(bases = c("X", "O"), 

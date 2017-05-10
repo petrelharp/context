@@ -237,11 +237,12 @@ predicttreecounts <- function (shortwin,
     patfreqs <- initfreqs[patcomp]
     dim(patfreqs) <- dim(patcomp)
     patfreqs <- apply( patfreqs, 1, prod )
-    updownbranch <- getupdowntrans( genmatrix, projmatrix, mutrates=mutrates, selcoef=selcoef, initfreqs=patfreqs, tlens=tlens )
-    if (missing(initcounts)) { initcounts <- 1 }
-    fullcounts <- initcounts * updownbranch
-    dimnames(fullcounts) <- dimnames( projmatrix )
-    return( fullcounts )
+    transmat <- getupdowntrans( genmatrix, projmatrix, mutrates=mutrates, selcoef=selcoef, initfreqs=patfreqs, tlens=tlens )
+    if (!missing(initcounts)) { 
+        transmat <- initcounts * transmat
+    }
+    dimnames(transmat) <- dimnames( projmatrix )
+    return( transmat )
 }
 
 #' @param tree The tree.
@@ -288,7 +289,7 @@ predictcounts.tree <- function (tree,
     # calculate the transition matrix
     transmatrix <- peel.transmat( tree=tree, rowtaxon=rowtaxon, coltaxa=coltaxa, modelnames=modelnames, 
                                   genmatrices=genmatrices, projmatrix=projmatrix, 
-                                  root.distrn=root.distrn, debug=TRUE, return.list=FALSE )
+                                  root.distrn=root.distrn, debug=TRUE, return.list=FALSE, normalize=FALSE )
     if (length(initcounts)>1) {
         transmatrix <- (initcounts/rowSums(transmatrix)) * transmatrix
     } else {
