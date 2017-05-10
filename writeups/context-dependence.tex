@@ -887,7 +887,7 @@ but $(6,2,2)$ T-mers were long enough with sufficient overhang to produce well-c
         Posterior coverage of the four parameters of the dynamic Ising model at four different T-mer sizes.
         Shown are the proportion of runs in which the true value fell within the 95\% credible interval,
         for T-mers of length 4, 5, and 6 with overhangs of length 1, 1, and 2 respectively.
-        The total number of runs was 54 for $(6,2,2)$ T-mers and 114 for the others.
+        The total number of runs was 61 for $(6,2,2)$ T-mers and 121 for the others.
         \label{tab:ising_coverage}
     }
 \end{table}
@@ -899,7 +899,7 @@ but $(6,2,2)$ T-mers were long enough with sufficient overhang to produce well-c
     \caption{
         Credible intervals for the four parameters of the dynamic Ising model,
         calculated using $(6,2,2)$ T-mers,
-        from 54 MCMC runs on independently simulated sequences of $10^6$ bases
+        from 61 MCMC runs on independently simulated sequences of $10^6$ bases
         differing at around 18.6\% of the sites.
         Shown are relative intervals, obtained by dividing by the true value.
         \label{fig:ising_coverage}}
@@ -1100,6 +1100,25 @@ Erick, Jessica, Graham, Yaniv, Sergey, Simon, Matt, Rasmus
 \bibliography{context-dependence}
 
 \appendix
+
+\section{Supplementary figures}
+
+\begin{figure}
+    \begin{center} 
+        \includegraphics{writeup-plots/coverage_results_all}
+    \end{center} 
+    \caption{
+        As in \ref{fig:ising_coverage}:
+        Credible intervals for the four parameters of the dynamic Ising model,
+        from MCMC runs on independently simulated sequences of $10^6$ bases
+        differing at around 18.6\% of the sites.
+        Shown are relative intervals, obtained by dividing by the true value.
+        The three groups are left to right, credible intervals obtained from $(4,2,1)$, $(5,3,1)$, and $(6,2,2)$ T-mers:
+        note that only the longest $(6,2,2)$ T-mers provide well-calibrated coverage (Table \ref{tab:ising_coverage})
+        and do not show bias.
+        \label{fig:all_ising_coverage}}
+\end{figure}
+
 
 %%%%
 \section{Proof of the approximation}

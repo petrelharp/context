@@ -86,49 +86,45 @@ coverages <- tapply( 1:nrow(all.res), all.res[['longwin']], function (kk) { res 
         c('95%'=1 - mean((res[ut,q.cols[1,k]] > res[ut,true.cols[k]]) | (res[ut,q.cols[4,k]] < res[ut,true.cols[k]])),
           '50%'=1 - mean((res[ut,q.cols[2,k]] > res[ut,true.cols[k]]) | (res[ut,q.cols[3,k]] < res[ut,true.cols[k]])))
       } ) } )
+
 xtable::xtable(as.data.frame(lapply(coverages,function(x)x['95%',])))
 
-res <- all.res[all.res[['longwin']]==6,]
+plottypes <- list( '_all'=unique(all.res[['longwin']]), c(6))
+for (k in seq_along(plottypes)) {
+    res <- all.res[all.res[['longwin']] %in% plottypes[[k]],]
 
-pdf(file='../writeups/writeup-plots/coverage_results.pdf', width=5.5, height=3, pointsize=10)
-xoffset <- 0
-xshift <- nrow(res)/5
-par(mar=c(2,4,1,1)+.1)
-plot(0, type='n', 
-      xlim=c(0, length(paramnames)*nrow(res) + (length(paramnames)-1)*xshift),
-      ylim=c(0.85,1.15), xaxt='n',
-      xlab='', ylab='relative parameter value')
-abline(h=1, col='red', lty=1)
-for (k in seq_along(paramnames)) {
-    if (k>1) abline(v=xoffset - xshift/2, lty=2)
-    xord <- order(res[['longwin']],res[,est.cols[k]])
-    axis(1, at=xoffset+(nrow(res)+xshift)/2, 
-         labels=paramlabels[k], 
-         mgp=c(3,0.2,0), tick=FALSE)
-    segments(x0=xoffset+(1:nrow(res)), 
-             y0=res[xord,q.cols[1,k]]/res[xord,true.cols[k]], 
-             y1=res[xord,q.cols[4,k]]/res[xord,true.cols[k]],
-             col='grey', lwd=0.5)
-    segments(x0=xoffset+(1:nrow(res)), 
-             y0=res[xord,q.cols[2,k]]/res[xord,true.cols[k]], 
-             y1=res[xord,q.cols[3,k]]/res[xord,true.cols[k]],
-             col='black', lwd=1)
-#     points(x=xoffset+(1:nrow(res)), y=res[xord,est.cols[k]]/res[xord,true.cols[k]], 
-#             cex=0.5, pch=20)
-    xoffset <- xoffset + nrow(res) + xshift
-    abline(v=xoffset - xshift/2, lty=2)
+    pdf(file=sprintf('../writeups/writeup-plots/coverage_results%s.pdf', names(plottypes)[k]),
+        width=5.5, height=3, pointsize=10)
+    xoffset <- 0
+    xshift <- nrow(res)/5
+    par(mar=c(2,4,1,1)+.1)
+    plot(0, type='n', 
+          xlim=c(0, length(paramnames)*nrow(res) + (length(paramnames)-1)*xshift),
+          ylim=c(0.85,1.15), xaxt='n',
+          xlab='', ylab='relative parameter value')
+    abline(h=1, col='red', lty=1)
+    for (k in seq_along(paramnames)) {
+        if (k>1) abline(v=xoffset - xshift/2, lty=2)
+        xord <- order(res[['longwin']],res[,est.cols[k]])
+        axis(1, at=xoffset+(nrow(res)+xshift)/2, 
+             labels=paramlabels[k], 
+             mgp=c(3,0.2,0), tick=FALSE)
+        segments(x0=xoffset+(1:nrow(res)), 
+                 y0=res[xord,q.cols[1,k]]/res[xord,true.cols[k]], 
+                 y1=res[xord,q.cols[4,k]]/res[xord,true.cols[k]],
+                 col='grey', lwd=0.5)
+        segments(x0=xoffset+(1:nrow(res)), 
+                 y0=res[xord,q.cols[2,k]]/res[xord,true.cols[k]], 
+                 y1=res[xord,q.cols[3,k]]/res[xord,true.cols[k]],
+                 col='black', lwd=1)
+    #     points(x=xoffset+(1:nrow(res)), y=res[xord,est.cols[k]]/res[xord,true.cols[k]], 
+    #             cex=0.5, pch=20)
+        xoffset <- xoffset + nrow(res) + xshift
+        abline(v=xoffset - xshift/2, lty=2)
+    }
+    abline(h=1, col='red', lty=3)
+    dev.off()
 }
-abline(h=1, col='red', lty=3)
-dev.off()
-
-xtable::xtable(
-    sapply( paramnames, function (pn) {
-        k <- match(pn, paramnames)
-        ut <- TRUE
-        c('95%'=1 - mean((res[ut,q.cols[1,k]] > res[ut,true.cols[k]]) | (res[ut,q.cols[4,k]] < res[ut,true.cols[k]])),
-          '50%'=1 - mean((res[ut,q.cols[2,k]] > res[ut,true.cols[k]]) | (res[ut,q.cols[3,k]] < res[ut,true.cols[k]])))
-    } )
-)
 
 "
 # echo "$PLOTSCRIPT" | littler
