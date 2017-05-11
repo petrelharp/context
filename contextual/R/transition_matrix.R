@@ -129,7 +129,9 @@ cherry.transmats <- function (m1,m2,do.names=FALSE) {
 #' If `normalize` is FALSE then transition matrices *on the path from rowtaxon to the root*
 #' give the *joint* probability of the row and column patterns.  This is not usually what
 #' we want, because without conditioning on the longer end of the T-mer the probabilities
-#' are not correct.
+#' are not correct.  However, note that in computing the conditional probability of the sequences
+#' given the rowtaxon sequence, either can be used (the answer will be the same).
+#'
 #'
 #' @examples
 #' # Fast evolution on the branches going to tip3 and the ancestor of (tip1,tip2); but slow on those two branches:

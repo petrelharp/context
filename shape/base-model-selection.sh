@@ -178,4 +178,6 @@ fi; done; done)
 ### collect results
 
 # look at all the results
-../scripts/collect-params-results.R RegulatoryFeature-regions-from-axt/**/*fit.json | column -t > model-selection-results.tsv
+../scripts/collect-params-results.R RegulatoryFeature-regions-from-axt/**/*fit.json > model-selection-results.tsv
+
+paste <(cat model-selection-results.tsv | cut -f 1 | sed -e 's_.*/__') <( cat model-selection-results.tsv | cut -f 4,21,22-25) | column -t

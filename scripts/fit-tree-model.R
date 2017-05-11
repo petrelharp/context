@@ -66,9 +66,9 @@ stopifnot( all( rownames(counts) == longpats ) )
 counts.0 <- projectcounts(counts, new.shortwin=shortwin(counts) - 1)
 
 projmatrix <- collapsepatmatrix( ipatterns=longpats, leftwin=leftwin(counts), 
-                                shortwin=shortwin(counts), bases=genmatrices[[1]]@bases )
+                                shortwin=shortwin(counts), bases=counts@bases )
 projmatrix.0 <- collapsepatmatrix( ipatterns=longpats, leftwin=leftwin(counts), 
-                                  shortwin=shortwin(counts.0), bases=genmatrices[[1]]@bases )
+                                  shortwin=shortwin(counts.0), bases=counts@bases )
 
 # parameters are ordered as: initfreqs, tlens, ( mutrates, selcoef, fixparams ) x genmatrices
 # this will parse a vector of params and give the ones requested
@@ -119,10 +119,12 @@ initfreqs <- initfreqs/sum(initfreqs)
 root.distrn <- get.root.distrn( initfreqs, initfreq.index )
 
 # create setup to efficiently re-compute below
+# note that normalize=FALSE can be used -- the answer is the same whether normalize=TRUE or FALSE
+#  and this skips the row normalization step.
 peel.setup <- peel.transmat( tree=config$tree, rowtaxon=rowtaxon(counts), coltaxa=coltaxa(counts), modelnames=modelnames, genmatrices=genmatrices, 
-                            projmatrix=projmatrix, root.distrn=root.distrn, tlens=config$tree$edge.length, return.list=TRUE )
+                            projmatrix=projmatrix, root.distrn=root.distrn, tlens=config$tree$edge.length, return.list=TRUE, normalize=FALSE )
 peel.setup.0 <- peel.transmat( tree=config$tree, rowtaxon=rowtaxon(counts), coltaxa=coltaxa(counts), modelnames=modelnames, genmatrices=genmatrices, 
-                            projmatrix=projmatrix.0, root.distrn=root.distrn, tlens=config$tree$edge.length, return.list=TRUE )
+                            projmatrix=projmatrix.0, root.distrn=root.distrn, tlens=config$tree$edge.length, return.list=TRUE, normalize=FALSE )
 
 # reorder columns of counts to match the order we compute transmat in
 counts <- reorder.counts( counts, nodenames(config$tree)[peel.setup$col.order[[peel.setup$row.node]]] )
@@ -146,8 +148,8 @@ likfun <- function (sub.params){
     initfreqs <- initfreqs/sum(initfreqs)
     root.distrn <- get.root.distrn( initfreqs, initfreq.index )
     # Now, peel 
-    transmat <- peel.transmat.compute( setup=peel.setup, genmatrices=genmatrices, root.distrn=root.distrn, tlens=tlens, return.list=FALSE )
-    transmat.0 <- peel.transmat.compute( setup=peel.setup.0, genmatrices=genmatrices, root.distrn=root.distrn, tlens=tlens, return.list=FALSE )
+    transmat <- peel.transmat.compute( setup=peel.setup, genmatrices=genmatrices, root.distrn=root.distrn, tlens=tlens, return.list=FALSE, normalize=FALSE )
+    transmat.0 <- peel.transmat.compute( setup=peel.setup.0, genmatrices=genmatrices, root.distrn=root.distrn, tlens=tlens, return.list=FALSE, normalize=FALSE )
     # return POSITIVE log-likelihood
     num <- sum( counts@counts * log(transmat) )
     den <- sum( counts.0@counts * log(transmat.0) )
