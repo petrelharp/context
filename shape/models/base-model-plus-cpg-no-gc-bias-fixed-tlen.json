@@ -1,0 +1,26 @@
+{
+    "comment" : "Basic strand-symmetric model and CG hypermutability on two-taxon tree; no GC bias. Reference=human, derived=chimp. Mean divergence is about 1%.",
+    "tree" : [ "(reference : 0.001, derived : 0.001) root;" ],
+    "tlen.scale" : [ 0.0, 0.0 ],
+    "bases" : [ "A", "C", "G", "T" ],
+    "initfreqs" : [ 0.25, 0.25, 0.25, 0.25 ],
+    "initfreqs.scale" : [ 0.0, 0.0, 0.0, 0.0 ],
+	"reference" : {
+		"mutpats" : [
+			[ [ "A", "T" ], [ "T", "A" ] ],
+			[ [ "C", "G" ], [ "G", "C" ] ],
+			[ [ "A", "C" ], [ "T", "G" ] ],
+			[ [ "A", "G" ], [ "T", "C" ] ],
+			[ [ "C", "A" ], [ "G", "T" ] ],
+			[ [ "C", "T" ], [ "G", "A" ] ],
+            [ [ "CG", "CA" ], [ "CG", "TG" ] ],
+            [ [ "CG", "CT" ], [ "CG", "AG" ] ],
+            [ [ "CG", "CC" ], [ "CG", "GG" ] ]
+		],
+		"mutrates" : [ 0.7, 1.3, 0.27, 1.0, 4.0, 4.0, 0.1, 0.1, 0.1 ],
+		"mutrates.scale" : [ 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05 ],
+		"mutrates.prior" : [ 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 ],
+        "genmatrix" : "genmatrices/base-model-plus-cpg-no-gc-bias-fixed-tlen-genmatrix-%.RData"
+	},
+	"derived" : "reference"
+}

@@ -1,27 +1,25 @@
 {
-    "comment" : "Model with MGW and CpG, on two-taxon tree.",
-    "tree" : [ "(human : 1.0, chimp : 1.0) root;" ],
-    "tlen.scale" : [ 0.01, 0.01 ],
+    "comment" : "Model with MGW and CpG, on two-taxon tree. Reference=human, derived=chimp. Mean divergence is about 1%.",
+    "tree" : [ "(reference : 0.001, derived : 0.001) root;" ],
+    "tlen.scale" : [ 0.0, 0.0 ],
     "bases" : [ "A", "C", "G", "T" ],
     "initfreqs" : [ 0.25, 0.25, 0.25, 0.25 ],
-    "human" : {
-        "mutpats" : [
-            [ [ "A", "T" ] ],
-            [ [ "T", "A" ] ],
-            [ [ "C", "G" ] ],
-            [ [ "G", "C" ] ],
-            [ [ "A", "C" ] ],
-            [ [ "T", "G" ] ],
-            [ [ "A", "G" ] ],
-            [ [ "T", "C" ] ],
-            [ [ "C", "A" ] ],
-            [ [ "G", "T" ] ],
-            [ [ "C", "T" ] ],
-            [ [ "G", "A" ] ],
-            [ [ "CG", "TG" ], [ "CG", "CA" ] ]
-        ],
-        "mutrates" : [ 0.01, 0.01, 0.015, 0.015, 0.008, 0.008, 0.008, 0.008, 0.012, 0.012, 0.012, 0.012, 0.04 ],
-        "mutrates.scale" : [ 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001 ],
+    "initfreqs.scale" : [ 0.0, 0.0, 0.0, 0.0 ],
+    "reference" : {
+		"mutpats" : [
+			[ [ "A", "T" ], [ "T", "A" ] ],
+			[ [ "C", "G" ], [ "G", "C" ] ],
+			[ [ "A", "C" ], [ "T", "G" ] ],
+			[ [ "A", "G" ], [ "T", "C" ] ],
+			[ [ "C", "A" ], [ "G", "T" ] ],
+			[ [ "C", "T" ], [ "G", "A" ] ],
+            [ [ "CG", "CA" ], [ "CG", "TG" ] ],
+            [ [ "CG", "CT" ], [ "CG", "AG" ] ],
+            [ [ "CG", "CC" ], [ "CG", "GG" ] ]
+		],
+		"mutrates" : [ 0.7, 1.3, 0.27, 1.0, 4.0, 4.0, 0.1, 0.1, 0.1 ],
+		"mutrates.scale" : [ 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05 ],
+		"mutrates.prior" : [ 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 ],
         "selpats" : 
     {
         "MGW": {
@@ -3099,15 +3097,14 @@
             ]
         }
     },
-        "selcoef" : [ 0.0001 ],
-        "selcoef.scale" : [ 0.00001 ],
+        "selcoef" : [ 0.001 ],
+        "selcoef.scale" : [ 0.0001 ],
         "fixfn" : "shape.fixfn",
         "fixfn.params" : { "Ne" : 10000.0 },
         "fixfn.params.scale" : { "Ne" : 0.0 },
-        "mutrates.prior" : [ 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1 ],
-        "selcoef.prior" : [ 0.001 ],
+        "selcoef.prior" : [ 0.1 ],
         "fixfn.params.prior" : [ 1000 ],
         "genmatrix" : "genmatrices/shape-model-MGW-genmatrix-%.RData"
     },
-    "chimp" : "human"
+    "derived" : "reference"
 }
