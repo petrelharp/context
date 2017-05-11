@@ -71,6 +71,12 @@ if (is.null(prior.config$fixfn.params.prior)) {
 }
 prior.config <- fill.default.config( prior.config )
 
+if (length(prior.config$mutrates) != length(model@mutrates) 
+        || length(prior.config$selcoef) != length(model@selcoef) 
+        || length(prior.config$fixfn.params) != length(model@params) ) {
+    stop(sprintf("Configuration in %s does not match that in already-fit model of %s .", opt$configfile, opt$infile))
+}
+
 # scale tuning parameters
 if (FALSE) {  # this leads to trouble
     if (is.null(prior.config$mutrates.scale)) {
