@@ -34,7 +34,7 @@ TLEN=1.0
 
 MODEL=$BASEDIR/$MODELFILE
 echo "Copying configuration, updated to $MODEL "
-cat $MODELFILE | sed -e "s/\"selcoef\" : [ 1.0 ]/\"selcoef\" : [ $BETA ]/" > $MODEL
+cat $MODELFILE | sed -e "s/\"selcoef\" : \[[ 0-9.]*\]/\"selcoef\" : [ $BETA ]/" > $MODEL
 
 # number of MCMC batches of length 100 each
 MCMCITER=10000
@@ -72,7 +72,7 @@ done
 
 wait;
 
-Rscript ../scripts/collect-params-results.R $(ls -t $BASEDIR/*/ising-fit*.json) | tail -n +2 >> beta-experiment_results.tsv
+Rscript ../scripts/collect-params-results.R $(ls -t $BASEDIR/*/*/ising-fit*.json) > beta-experiment_results.tsv
 
 PLOTSCRIPT="
 all.res <- read.table('beta-experiment_results.tsv', header=TRUE, check.names=FALSE)
