@@ -260,13 +260,13 @@ where $n(x,p_i)$ is the number of times the pattern $p_i$ occurs in $x$.
 
 
 
-\begin{example}[1-D Ising model with Glauber dynamics]
+\begin{example}[Gibbs sampling of the Ising model]
     In the Ising model, each site is labeled as either ``up'' or ``down'' ($+1$ or $-1$ respectively),
     imagined as magnetic dipoles,
     and the energy associated with a given state $x$ is $E(x) = - \frac{1}{2} \beta \sum_i x_i x_{i+1} - \frac{1}{2} \gamma \sum_i x_i$.
     Here $\beta$ represents inverse temperature, and $\gamma$ represents the strength of the magnetic field (here scaled by temperature).
     The associated stationary distribution on configurations is proportional to $\exp(-E(x))$.
-    The following dynamics preserve the stationary distribution:
+    The following process, also known as ``Glauber dynamics'', preserves the stationary distribution:
     each site, independently at rate $\lambda$,
     forgets its spin,
     and reconfigures to a state chosen with probability proportional to the stationary probability of the resulting configuration:
@@ -776,6 +776,7 @@ some length 2 residuals had statistically significant residuals,
 but none so large as those seen in (3,1,1) T-mer residuals, shown here:
     \begin{center}
         \begin{tabular}{ccrrrr}
+            \hline
                 $x$ & $y$ & observed &   expected &    residual &  $Z$ \\
                 \hline
                 \nA\nG\nG  &  \_\nG\_  &  30024  &  32167  &  -2143.48  &  -6.90 \\
@@ -817,7 +818,7 @@ parameter estimates differ from the truth by less than 3\% (mostly within 1\%).
   \begin{center}
         \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }ll}
           \hline
-            x & y & truth & fitted \\ 
+            x & y & truth & MLE \\ 
           \hline
           \nA  &   \nT           & 0.10 & 0.0996 \\ 
           \nT  &   \nA           & 0.10 & 0.0982 \\ 
@@ -906,196 +907,100 @@ but $(6,2,2)$ T-mers were long enough with sufficient overhang to produce well-c
 \end{figure}
 
 
-%%%%%%%%%%%
-\subsection{TASEP}
-
-Strings of length $10^5$ were evolved under TASEP for varying amounts of time,
-and pattern occurrences counted.
-Running 10,000 MCMC iterations with window sizes of $\ell=w=3$ (total length 9) on these takes around 40 minutes.
-Apparently, the patterns used were not sufficiently independent in this case,
-as the posterior is too sharp.
-
-Here's a short example sequence with $\lambda=1$:
-\begin{center}
- \setlength{\tabcolsep}{0pt}
-\begin{tabular}{cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc}
-X&X&X&O&O&X&O&O&O&O&X&O&X&O&X&X&O&O&X&O&O&X&O&X&X&X&O&X&O&O&O&X&X&O&X&O&O&O&X&X&O&O&O&X&O&O&O&O&X&O&X&X&O&X&X&O&O&X&O&O \\
-$\centerdot$&O&X&O&X&O&O&O&X&$\centerdot$&O&X&O&O&X&X&X&o&x&$\centerdot$&o&O&X&x&x&O&X&O&X&o&o&O&X&X&$\centerdot$&$\centerdot$&o&o&O&X&X&o&$\centerdot$&O&X&$\centerdot$&o&o&$\centerdot$&$\centerdot$&O&X&X&x&O&X&o&O&X&$\centerdot$
-\end{tabular}
-\end{center}
-here particles are X's, moving to the right; and spaces are O's;
-in the second line,
-$\centerdot$ is a position that has not considered a change; lowercase letters are positions that considered a change but did not;
-and upper case are positions that did change.
-
-\begin{figure}
-  \begin{center}
-    \includegraphics[width=\textwidth]{writeup-plots/tasep_all-mcmc-runs}
-  \end{center}
-  \caption{ Results from MCMC estimates for six different data sets of the parameter in TASEP (mutation rate multiplied by time).
-  Vertical line shows the true value.
-  }
-\end{figure}
-
-
-\subsection{Ising model}
-
-Strings of length $10^6$ were evolved under Glauber dynamics on the Ising model with varying parameters,
-and pattern occurrences counted.
-As for TASEP, running 10,000 MCMC iterations with window sizes of $\ell=w=3$ (total length 9) on these takes around 40 minutes.
-In this case, the true parameter values have good distribution within the estimated posterior distributions.
-
-Here is an example, with all parameters equal to 1, for $t=.5$:
-\begin{center}
- \setlength{\tabcolsep}{0pt}
-\begin{tabular}{cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc}
-X&X&O&X&X&O&O&X&O&X&O&X&X&O&O&X&O&O&O&O&X&X&X&O&X&O&X&O&X&O&O&O&X&X&O&X&X&X&X&X&O&X&O&X&O&X&X&X&X&O&O&X&X&X&X&X&X&O&O&O \\
-x&x&o&x&X&X&O&x&o&x&$\centerdot$&x&x&O&X&X&$\centerdot$&O&X&O&X&x&x&o&x&o&x&o&x&O&X&O&$\centerdot$&$\centerdot$&O&O&X&X&O&X&X&X&o&x&o&$\centerdot$&X&O&X&o&o&x&X&X&X&O&X&o&$\centerdot$&$\centerdot$
-\end{tabular}
-\end{center}
-The notation is as above; except that the entire matched pattern involved in a change is uppercase:
-to simulate, we look in windows of size 3; so if XOO changes to XXO, the whole thing is uppercase, not just the middle X.
-
-\begin{figure}
-  \begin{center}
-    \includegraphics{writeup-plots/selsims-2013-05-28-17-12-0275615-traces}
-  \end{center}
-  \caption{
-  MCMC traces of the parameters in the Ising model across 100,000 iterations.
-  The units of $\lambda$ are in mean number of changes per site.
-  Vertical line shows the true value.
-  }
-\end{figure}
-
-\begin{figure}
-  \begin{center}
-    \includegraphics[width=\textwidth,page=1]{writeup-plots/ising_all-mcmc-runs}
-  \end{center}
-  \caption{ Results from MCMC estimates of the time-scaled mutation rate parameter $\lambda t$,
-  in ten different simulated datasets under the Ising model.
-  Vertical line shows the true value.
-  }
-\end{figure}
-
-\begin{figure}
-  \begin{center}
-    \includegraphics[width=\textwidth,page=2]{writeup-plots/ising_all-mcmc-runs}
-  \end{center}
-  \caption{ Results from MCMC estimates of the inverse temperature $\beta$ in the Ising model.
-  Vertical line shows the true value.
-  }
-\end{figure}
-
-\begin{figure}
-  \begin{center}
-    \includegraphics[width=\textwidth,page=3]{writeup-plots/ising_all-mcmc-runs}
-  \end{center}
-  \caption{ Results from MCMC estimates of the magnetization parameter $\beta$ in the Ising model.
-  Vertical line shows the true value.
-  }
-\end{figure}
-
-%%%
-\subsection{CpG mutation, on a tree}
-
-Nucleotide sequences of length $10^6$ were simulated down two (unequal) branches of a tree,
-with all single-base substitution rates $m_{xy}$ set equal (varying from a total of .01 to .1 across the tree)
-and an additional CpG rate $\gamma$ set to either 0 or three times the single-base rate.
-Analysis was done with $\ell=2$ and $w=1$ (a five-to-one window).
-
-The state at the root of the tree was independently chosen bases with equal frequencies,
-and these frequencies at the root were added as parameters to the model (with a Dirichlet prior).
-
-Here is a short example, with all parameters equal to 1, with each branch of the tree having length $0.1$:
-\begin{center}
- \setlength{\tabcolsep}{0pt}
-\begin{tabular}{cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc}
-T&G&G&A&G&A&G&G&T&C&T&G&C&C&A&T&A&G&A&C&G&G&G&C&G&C&C&G&C&C&T&A&G&G&A&G&C&C&G&C&G&T&T&T&T&G&C&G&T&G&G&T&G&T&T&G&T&G&G&C \\
-$\centerdot$&$\centerdot$&g&C&G&a&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&T&A&C&A&$\centerdot$&$\centerdot$&$\centerdot$&T&A&T&$\centerdot$&$\centerdot$&$\centerdot$&T&G&c&C&C&A&C&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&G&G&G&t&A&T&$\centerdot$&$\centerdot$&G&A&g&C&G&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&t&T&G&A \\
-$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&A&T&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&T&T&G&T&$\centerdot$&$\centerdot$&G&A&T&$\centerdot$&$\centerdot$&$\centerdot$&G&G&c&t&A&A&G&C&$\centerdot$&$\centerdot$&$\centerdot$&G&T&G&A&t&t&t&g&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&G&A&$\centerdot$&$\centerdot$&$\centerdot$&$\centerdot$&A&C
-\end{tabular}
-\end{center}
-Top is ancestral sequence (``unobserved''); bottom two are at the tips.
-
-The point estimates are good,
-as are the MCMC estimates,
-but there seems to be mixing trouble having to do with the root frequencies.
-
-\begin{figure}
-  \begin{center}
-    \includegraphics{writeup-plots/selsims-2013-06-03-13-17-0790276-initfreqs}
-  \end{center}
-  \caption{
-  MCMC traces across 660,000 iterations of the frequencies at the root of the (two-taxon) tree in the CpG model.
-  Vertical line shows the true value.
-  }
-\end{figure}
-
-\begin{figure}
-  \begin{center}
-    \includegraphics{writeup-plots/selsims-2013-06-03-13-17-0790276-mutrates}
-  \end{center}
-  \caption{
-  MCMC traces across 660,000 iterations of several mutation rate parameters in the CpG model.
-  Units are in mean number of substitutions per base across the entire tree.
-  Vertical line shows the true value.
-  }
-\end{figure}
-
-%%%%%%%%
-\section{Power sims}
-
-Assess power and accuracy in the Ising model, by running replicates at these parameters:
-
-\begin{tabular}{|rlllrrr|}
-  \hline
-  seqlen   &  $\lambda t$   &  $\beta$  &  $\gamma$  &  $w$ &  $\ell$   & \# reps \\
-  \hline
-  $10^4$    &   .2  &   1   &   .5  &   3   &   3   &   10  \\
-  $10^3$    &   .2  &   1   &   .5  &   3   &   3   &   10  \\
-  $10^2$    &   .2  &   1   &   .5  &   3   &   3   &   10  \\
-  \hline
-  $10^4$    &   .4  &   1   &   .5  &   3   &   3   &   10  \\
-  $10^4$    &   .1  &   1   &   .5  &   3   &   3   &   10  \\
-  $10^4$    &   .05  &   1   &   .5  &   3   &   3   &   10  \\
-  \hline
-  $10^4$    &   .2  &   1   &   0  &   3   &   3   &   10  \\
-  \hline
-  $10^4$    &   .2  &   1   &   .5  &   3   &   2   &   10  \\
-  $10^4$    &   .2  &   1   &   .5  &   3   &   1   &   10  \\
-  $10^4$    &   .2  &   1   &   .5  &   3   &   0   &   10  \\
-  \hline
-\end{tabular}
-
 
 %%%%%%%%%%%%%%%%%%%%
 \section{Discussion}
 
+This paper presents a tractable, provably correct method
+for doing statistical inference using observations of a particle model
+in which probabilities of change are determined only by nearby sites.
+Such models appear in many fields, for instance,
+as the dynamic counterparts to Markov random fields;
+many spin glass models;
+and models of DNA sequence evolution.
 
-\begin{itemize}
+The methods described here provide a way to efficiently calculate full likelihoods,
+which in many circumstances provide the optimal basis for inference \citep{neymanpearson},
+fast enough to allow Bayesian inference from Monte Carlo sampling.
+The method is fast thanks to its dependence only only local neighborhoods
+(so the time does not scale with sequence length once T-mer abundances are counted)
+and its reliance on sparse matrices whose structure can be precomputed and cached.
+It avoids approximations made by previous methods thanks to the use of T-mers
+and explict quantification of the necessary length of the ``arms'' of the T-mers.
+We first discuss possible uses of the method,
+followed by challenges (and possible solutions).
 
-  \item estimating freq spectrum [Hernandez]
+\paragraph{Other applications}
+One class of applications stems from \emph{inference of process} --
+where the numerical values of various mutation rates are directly of interest.
+For instance, CpG hypermutability depends on the \nC\nG pair being methylated,
+an epigenetic modification that has important consequences for gene regulation;
+therefore, inference of CpG mutation rates in ancient taxa provides an indirect estimate
+of methylation status in extinct organisms.
+Similarly, many mutational motifs are thought to be caused by particular enzymes;
+inference of relative rates of these motifs
+may provide clues as to the activity and evolution of those enzymes.
+Furthermore, iterative model building by examining residual motif counts
+could provide a powerful way to discover unknown processes
+whose action had been obscured by other sources of noise.
 
-  \item probabilistic ancestral states for common ancestor of e.g. humans 4N generations ago [Siepel] -- would widely used for primates
+In other applications, reconstruction of an unknown sequence may of interest.
+For instance, training data might be used to estimate parameters of a noisy transmission line,
+facilitating the later reconstruction of noisily transmitted signals.
+Alternatively, multiple observations of independently transmitted copies of a single sequence
+(e.g., down a phylogenetic tree)
+might be used to estimate the process, and from this infer the original (ancestral) sequence
+(or sample from its posterior distribution).
 
-  \item ancestral CpG
+\paragraph{Limitations}
+The model presented assumes that the same process occurs at every location along the sequence,
+and that the length of the sequnce does not change (no indels).
+Neither of these assumptions are likely to be true for any data set of DNA sequence;
+however, both assumptions are also made the state of the art in phylogenetics.
+Some relaxation of the assumptions is possible -- like in phylogenetics \citep{ratemixtures},
+we can easily allow heterogeneity between sites by scaling rates by an overall gamma-distributed random factor.
+Short deletions might be accomodated by introducing a ``gap'' letter to the alphabet,
+but insertions may be problematic.
 
-  \item ancient DNA
 
-  \item noisy image transmission denoising: first learn model; then reduce redundancy
+\paragraph{Computation}
+The main factor that determines computation time
+is the lengths of the T-mers used for inference,
+since all computations scale with the number of possible patterns at the long end of the T-mer.
+Although the model is efficent enough to deal with fairly long T-mers,
+this exponential growth puts hard constraints on the application of the method.
+The length of T-mers required to accurately compute the likelihood in most models grows at most linearly
+with the mean density of substitution between the initial and final sequence.
+This does not in practice greatly increase the length of required T-mer 
+since substitution densities approaching 100\% are unlikely to be usable in practice
+especially if how the sequences align with each other is unknown.
+A more serious determining factor of T-mer length is the degree of dependency in the model itself.
+For instance, inserting the 13-base pair motif selected against by meiotic drive in primates \citep{myers2010drive}
+would require T-mers of width at least 25, and hence vectors of length $4^25 \approx 1.13 \times 10^15$.
 
-  \item root distribution and confounding/mixing
 
-  \item shrinkage prior on highly parameterized model
+\paragraph{Modeling}
+Careful building of complex models in this framework may take care,
+but no more than in any other class of models (e.g., multivariate linear regression).
+It is easy to specify nonidentifiable models -- 
+for instance, all 2mer mutation motifs include the 1mer motifs.
+The large number of possible mutation motifs also makes multiple testing an issue;
+an unguided approach might include all possible motifs but place a shrinkage prior on their values \citep{shrinkage,horseshoe}.
+The converse approach of adding motifs that are overrepresented in the residuals
+may be quicker, but entails some degree of arbitrariness in choosing the motifs to add (and in which order).
+Finally, inference on trees may be difficult unless the root placement and distribution are strongly constrained:
+otherwise, initial investigations suggest the likelihood surface is often strongly ridged --
+for instance, increasing the abundance of \nG nucleotides at the root while also increasing the mutation rate away from \nG
+can achieve roughly the same result.
+However, in phylogenetic applications outgroups can be used to constrain these quantities.
 
-  \item Show that taking no context ($\ell=0$) can be positively misleading in some context.
-
-  \item How to identify motifs in the residuals?
-
-\end{itemize}
 
 \subsection{Acknowledgements}
-Erick, Jessica, Graham, Yaniv, Sergey, Simon, Matt, Rasmus
+The initial impetus for this project came from Matt Dean; 
+along the way substantial encouragement and useful suggestions were provided by
+Erick Matsen, Simon Tavar\'e, Rasmus Nielsen, Graham Coop, Yaniv Brandvain, and Sergey Nuzhdin.
+In particular, Erick Matsen helped improve the code and suggested the name ``T-mer''.
+Many thanks are also due Jessica Crisci for curating the human-chimp data.
 
 \bibliography{context-dependence}
 
