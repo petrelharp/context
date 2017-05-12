@@ -29,7 +29,7 @@ do
 done
 
 # this takes ~700 secs to simulate
-SEQLEN=100
+SEQLEN=1000000
 TLEN=1.0
 
 MODEL=$BASEDIR/$MODELFILE
@@ -37,7 +37,7 @@ echo "Copying configuration, updated to $MODEL "
 cat $MODELFILE | sed -e "s/\"selcoef\" : [ 1.0 ]/\"selcoef\" : [ $BETA ]/" > $MODEL
 
 # number of MCMC batches of length 100 each
-MCMCITER=10
+MCMCITER=10000
 
 NRUNS=1
 

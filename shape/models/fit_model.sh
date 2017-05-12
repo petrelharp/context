@@ -4,7 +4,7 @@ set -eu
 
 if [ $# -lt 4 ]
 then
-    echo "Usage: $0 (modlefile) (longwin) (shortwin) (leftwin)"
+    echo "Usage: $0 (modelfile) (longwin) (shortwin) (leftwin)"
     exit 0
 fi
 
@@ -27,6 +27,7 @@ TMER="${LONGWIN}-${SHORTWIN}-${LEFTWIN}"
 
 modelsetup () {
     for d in $DIRS; do for t in $TYPES; do 
+        echo "... $d/$t/$1"
         CG=$(grep "$(basename $d)/$t" RegulatoryFeature-regions-from-axt/initfreqs.txt | cut -f 2 -d ' ')
         # JSON needs leading 0.'s ...
         A=0$(bc -l <<< "scale=4; (1-$CG)/2.0")
@@ -37,6 +38,7 @@ modelsetup () {
     done; done
 }
 
+echo "Copying over models $MODELFILE to subdirectories..."
 modelsetup $MODELFILE
 
 collapse () {
@@ -45,13 +47,26 @@ collapse () {
     Rscript -e "dir=\"$DIR\"" -e "$COLLAPSE"
 }
 
+echo "Building count files."
 for d in $DIRS; do for t in $TYPES; do 
     if ! [ -e $d/$t/total.counts.gz ]
     then
-        collapse $d/$t
+        echo " ... $d/$t/total.counts.gz"
+        collapse $d/$t &  # in parallel
+    else
+        echo " ... already exists: $d/$t/total.counts.gz"
     fi
 done; done
 
+wait
+
+# create genmatrix
+GENMATFILE="genmatrices/${MODELNAME}-model-genmatrix-${LONGWIN}.RData"
+if [ ! -e $GENMATFILE ]
+then
+    echo "Making generator matrix $GENMATFILE ..."
+    ../scripts/make-genmat.R -c models/$MODELFILE -w $LONGWIN -o $GENMATFILE
+fi
 
 # for fitting models, later
 fitmodel () {
@@ -59,6 +74,7 @@ fitmodel () {
     TMER=$2
     for d in $DIRS; do for t in $TYPES; do 
         ( FITFILE=$d/$t/$TMER/${MODELFILE%.json}-fit.RData
+        echo "... $FITFILE"
         if ! [ -e $FITFILE ]
         then
             echo "";
@@ -73,17 +89,13 @@ fitmodel () {
     wait
 }
 
-# create genmatrix
-GENMATFILE="genmatrices/${MODELNAME}-model-genmatrix-${LONGWIN}.RData"
-if [ ! -e $GENMATFILE ]
-then
-    ../scripts/make-genmat.R -c models/$MODELFILE -w $LONGWIN -o $GENMATFILE
-fi
-
-
 # fit model
+echo "Fitting models to $TMER ..."
 FITFILES=$(fitmodel $MODELFILE $TMER)
+wait
 
+echo "The residuals:"
+echo "--------------"
 (for d in $DIRS; do for t in $TYPES; do if [ -e $d/$t/$TMER/${MODELNAME}-fit-resids.2.1.l0.tsv ]; then
     echo $d $t; 
     head -n 5 $d/$t/$TMER/${MODELNAME}-fit-resids.2.1.l0.tsv | awk '{print $2"\t."$3"\t"$7}';
