@@ -169,7 +169,7 @@ ubs <- unlist( c(
                 rep(1,length(config$bases)), 
                 rep(Inf,length(config$tree$edge.length)), 
                 lapply( genmatrices, function (gm) { c( 
-                                rep(10,nmuts(gm)), 
+                                rep(Inf,nmuts(gm)), 
                                 rep(5,nsel(gm)), 
                                 rep(Inf,length(fixparams(gm))) ) } ) ) )
 

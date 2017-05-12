@@ -15,12 +15,13 @@ library(jsonlite)
 adf <- function (z, znames=names(z)) { for (k in znames) { if (length(z[[k]])==0) { z[[k]] <- NA } }; as.data.frame(z, check.names=FALSE) }
 
 jsondata <- lapply( json.files, function (jf) {
-                tryCatch( {
-                    x <- fromJSON(jf)            
+                x <- tryCatch( {
+                    fromJSON(jf)            
                 }, error=function (cond) { 
-                    message(sprintf("Reading %s.\n",jf))
-                    stop(cond)
+                    message(sprintf("Can't read from %s.\n",jf))
+                    return(NULL)
                 } )
+                if (is.null(x)) { return(NULL) }
                 simc <- if (length(x[['sim.coef']])>0) { paste('sim',names(x[['sim.coef']]),sep=':') } else { character(0) }
                 fitc <- if (length(x[['fit.coef']])>0) { paste('fit',names(x[['fit.coef']]),sep=':') } else { character(0) }
                 those <- setdiff(names(x),c('sim.coef','fit.coef','posterior.quantiles'))
@@ -38,6 +39,7 @@ jsondata <- lapply( json.files, function (jf) {
                 }
                 return(c( list(file=jf, ctime=format(file.info(jf)$ctime, "%Y-%m-%d_%H-%M-%S")), y))
             } )
+jsondata <- jsondata[sapply(jsondata,length)>0]
 
 thenames <- unique(unlist(lapply(jsondata,names)))
 
