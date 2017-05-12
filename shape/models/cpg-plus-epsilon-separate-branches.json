@@ -1,0 +1,40 @@
+{
+    "comment" : "Strand-symmetric, with CG hypermutability and more on two-taxon tree. Reference=human, derived=chimp.",
+    "tree" : [ "(reference : 0.001, derived : 0.001) root;" ],
+    "tlen.scale" : [ 0.0, 0.0 ],
+    "bases" : [ "A", "C", "G", "T" ],
+    "initfreqs" : [ 0.25, 0.25, 0.25, 0.25 ],
+    "initfreqs.scale" : [ 0.0, 0.0, 0.0, 0.0 ],
+	"reference" : {
+		"mutpats" : [
+			[ [ "A", "T" ], [ "T", "A" ] ],
+			[ [ "C", "G" ], [ "G", "C" ] ],
+			[ [ "A", "C" ], [ "T", "G" ] ],
+			[ [ "A", "G" ], [ "T", "C" ] ],
+			[ [ "C", "A" ], [ "G", "T" ] ],
+			[ [ "C", "T" ], [ "G", "A" ] ],
+            [ [ "CG", "CA" ], [ "CG", "TG" ] ],
+            [ [ "TCC", "TTC" ], [ "AGG", "AAG" ] ]
+		],
+		"mutrates" : [ 0.7, 1.3, 0.27, 1.0, 4.0, 4.0, 0.1, 0.1 ],
+		"mutrates.scale" : [ 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05 ],
+		"mutrates.prior" : [ 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 ],
+        "genmatrix" : "genmatrices/cpg-plus-epsilon-separate-branches-genmatrix-%.RData"
+	},
+	"derived" : {
+		"mutpats" : [
+			[ [ "A", "T" ], [ "T", "A" ] ],
+			[ [ "C", "G" ], [ "G", "C" ] ],
+			[ [ "A", "C" ], [ "T", "G" ] ],
+			[ [ "A", "G" ], [ "T", "C" ] ],
+			[ [ "C", "A" ], [ "G", "T" ] ],
+			[ [ "C", "T" ], [ "G", "A" ] ],
+            [ [ "CG", "CA" ], [ "CG", "TG" ] ],
+            [ [ "TCC", "TTC" ], [ "AGG", "AAG" ] ]
+		],
+		"mutrates" : [ 0.7, 1.3, 0.27, 1.0, 4.0, 4.0, 0.1, 0.1 ],
+		"mutrates.scale" : [ 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05 ],
+		"mutrates.prior" : [ 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 ],
+        "genmatrix" : "genmatrices/cpg-plus-epsilon-separate-branches-genmatrix-%.RData"
+	},
+}
