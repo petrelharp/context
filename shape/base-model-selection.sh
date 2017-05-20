@@ -41,6 +41,27 @@ fitmodel () {
     done; done
 }
 
+getresids () {
+    LONGWIN=$1
+    SHORTWIN=$2
+    LEFTWIN=$3
+    for d in $DIRS; do for t in $TYPES; do 
+        for FITFILE in $d/$t/*/*-fit.RData;
+        do
+            if [ $# -gt 3 ]
+            then
+                COUNTTMER=$4
+                COUNTFILE=$d/$t/${COUNTTMER}/total.counts.gz
+                COUNTARG="-c $COUNTFILE"
+            else
+                COUNTARG=""
+            fi
+            ../scripts/compute-resids.R -i $FITFILE -o ${FITFILE%.RData}-resids.${LONGWIN}.${SHORTWIN}.l${LEFTWIN}.tsv -w ${LONGWIN} -s ${SHORTWIN} -l ${LEFTWIN} --pretty $COUNTARG
+            echo $FITFILE
+        done
+    done; done
+}
+
 # collapse down to 6-3-2
 collapse () {
     DIR=$1
@@ -181,3 +202,7 @@ fi; done; done)
 ../scripts/collect-params-results.R RegulatoryFeature-regions-from-axt/**/*fit.json > model-selection-results.tsv
 
 paste <(cat model-selection-results.tsv | cut -f 1 | sed -e 's_.*/__') <( cat model-selection-results.tsv | cut -f 4,21,22-25) | column -t
+
+# look at all the bottom/top 1-1-0 resids:
+(for x in RegulatoryFeature-regions-from-axt/**/*resids.1.1.l0.tsv; do y=$(basename $x | sed -e 's/-resids.*//'); z=$(head -n 2 $x | tail -n 1); echo $y $z; done) | column -t
+(for x in RegulatoryFeature-regions-from-axt/**/*resids.1.1.l0.tsv; do y=$(basename $x | sed -e 's/-resids.*//'); z=$(tail -n 1 $x); echo $y $z; done) | column -t

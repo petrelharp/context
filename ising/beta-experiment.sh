@@ -78,8 +78,8 @@ PLOTSCRIPT="
 all.res <- read.table('beta-experiment_results.tsv', header=TRUE, check.names=FALSE)
 all.res <- all.res[grepl('mcmc', all.res[['file']]),]
 
-paramnames <- c('O->X', 'X->O', 'OX|XO', 'X')
-paramlabels <- c(expression(lambda['+']), expression(lambda['-']), expression(beta), expression(gamma))
+paramnames <- c('O->X|X->O', 'OX|XO')
+paramlabels <- c(expression(lambda), expression(beta))
 true.cols <- match(paste0('sim:', paramnames), colnames(all.res))
 est.cols <- match(paste0('q50%.', paramnames), colnames(all.res))
 q.cols <- outer(c('q2.5%', 'q25%', 'q75%', 'q97.5%'), paramnames, 
@@ -95,12 +95,20 @@ coverages <- tapply( 1:nrow(all.res), all.res[['longwin']], function (kk) { res 
 
 xtable::xtable(as.data.frame(lapply(coverages,function(x)x['95%',])))
 
-plottypes <- list( '_all'=unique(all.res[['longwin']]), c(6))
-for (k in seq_along(plottypes)) {
-    res <- all.res[all.res[['longwin']] %in% plottypes[[k]],]
+    beta <- res[,'sim:OX|XO']
+    bvals <- sort(unique(beta))
+    res <- all.res[match(bvals,beta),]
 
-    pdf(file=sprintf('../writeups/writeup-plots/coverage_results%s.pdf', names(plottypes)[k]),
-        width=5.5, height=3, pointsize=10)
+    pdf(file='beta-results.pdf', width=8, height=4, pointsize=10)
+layout(t(1:2))
+matplot(bvals, res[,c('q2.5%.OX|XO','q25%.OX|XO','q50%.OX|XO','q75%.OX|XO','q97.5%.OX|XO')]-bvals, xlab=expression(beta), ylab='error', type='l')
+abline(v=1)
+matplot(bvals, res[,c('q2.5%.OX|XO','q25%.OX|XO','q50%.OX|XO','q75%.OX|XO','q97.5%.OX|XO')]-bvals, ylim=c(-.1,.1), xlim=c(0,2), xlab=expression(beta), ylab='error', type='l')
+abline(v=1)
+dev.off()
+
+#     pdf(file=sprintf('../writeups/writeup-plots/beta_results.pdf'),
+#         width=5.5, height=3, pointsize=10)
     xoffset <- 0
     xshift <- nrow(res)/5
     par(mar=c(2,4,1,1)+.1)
@@ -111,7 +119,7 @@ for (k in seq_along(plottypes)) {
     abline(h=1, col='red', lty=1)
     for (k in seq_along(paramnames)) {
         if (k>1) abline(v=xoffset - xshift/2, lty=2)
-        xord <- order(res[['longwin']],res[,est.cols[k]])
+        xord <- order(res[['sim:OX|XO']],res[,est.cols[k]])
         axis(1, at=xoffset+(nrow(res)+xshift)/2, 
              labels=paramlabels[k], 
              mgp=c(3,0.2,0), tick=FALSE)
@@ -129,8 +137,7 @@ for (k in seq_along(plottypes)) {
         abline(v=xoffset - xshift/2, lty=2)
     }
     abline(h=1, col='red', lty=3)
-    dev.off()
-}
+#     dev.off()
 
 "
 # echo "$PLOTSCRIPT" | littler

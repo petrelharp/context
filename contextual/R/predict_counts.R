@@ -145,7 +145,7 @@ projectcounts <- function(counts,
     rightwin <- longwin-shortwin-leftwin
     new.rightwin <- new.longwin-new.shortwin-new.leftwin
     if ( new.shortwin <= 0 || max(0L,leftwin-new.leftwin) > (leftwin+shortwin)-(new.leftwin+new.shortwin)+min(0L,rightwin-new.rightwin) ) {
-        stop("unreconcilable windows specified.")
+        stop(sprintf("unreconcilable windows specified: %d,%d,%d to %d,%d,%d.", longwin, shortwin, leftwin, new.longwin, new.shortwin, new.leftwin))
     }
     new.colpatterns <- do.call( 
             expand.grid, 
