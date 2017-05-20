@@ -65,7 +65,8 @@ getresids () {
 # collapse down to 6-3-2
 collapse () {
     DIR=$1
-    COLLAPSE=" library(contextual); f <- file.path(dir, \"7-5-1/total.counts.gz\"); g <- file.path(dirname(dirname(f)), \"6-3-2\", \"total.counts.gz\"); c <- read.counts(f, leftwin=1); d <- projectcounts(c, new.leftwin=2, new.shortwin=3, new.longwin=6); dir.create(dirname(g), recursive=TRUE, showWarnings=FALSE); write.counts(d, file=g); "
+    # note leftwin must match input counts here
+    COLLAPSE=" library(contextual); f <- file.path(dir, \"9-5-2/total.counts.gz\"); g <- file.path(dirname(dirname(f)), \"6-3-2\", \"total.counts.gz\"); c <- read.counts(f, leftwin=2); d <- projectcounts(c, new.leftwin=2, new.shortwin=3, new.longwin=6); dir.create(dirname(g), recursive=TRUE, showWarnings=FALSE); write.counts(d, file=g); "
     Rscript -e "dir=\"$DIR\"" -e "$COLLAPSE"
 }
 
@@ -193,6 +194,15 @@ fi; done; done)
 # didn't happen, branches were almost identical.
 
 ## GC-bias is not substantially bettering the likelihood.
+
+
+## Moved stuff over to fit_model.sh:
+
+../scripts/cluster/submit-8-jobs.sh models/fit_model.sh cpg-plus-epsilon-separate-branches.json 6 3 2
+../scripts/cluster/submit-8-jobs.sh models/fit_model.sh cpg-plus-epsilon-separate-branches.json 7 5 1
+../scripts/cluster/submit-8-jobs.sh models/fit_model.sh shape-model-CpG-only-MGW.json 7 5 1
+../scripts/cluster/submit-8-jobs.sh models/fit_model.sh shape-model-CpG-only-random-values.json 7 5 1
+
 
 
 #################################

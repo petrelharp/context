@@ -1,7 +1,7 @@
 {
     "comment" : "Basic strand-symmetric model and CG hypermutability on two-taxon tree. Reference=human, derived=chimp. Mean divergence is about 1%.",
     "tree" : [ "(reference : 0.001, derived : 0.001) root;" ],
-    "tlen.scale" : [ 0.0, 0.0001 ],
+    "tlen.scale" : [ 0.0, 0.0 ],
     "bases" : [ "A", "C", "G", "T" ],
     "initfreqs" : [ 0.25, 0.25, 0.25, 0.25 ],
     "initfreqs.scale" : [ 0.0, 0.0, 0.0, 0.0 ],
