@@ -20,19 +20,48 @@ config <- parse.models(list(
 
 # nontree
 
+# to generate data:
+#     library(simcontext)
+#     sim <- do.call(simseq, c(list(seqlen=1000, tlen=0.1), config[['sp1']]))
+#     simcounts <- counttrans(ipatterns=getpatterns(2,bases=config$bases), 
+#                             fpatterns=getpatterns(2,bases=config$bases), simseqs=sim)
+#     dput(simcounts)
+#     simcounts_long <- counttrans(ipatterns=getpatterns(3,bases=config$bases), 
+#                             fpatterns=getpatterns(3,bases=config$bases), simseqs=sim)
+#     dput(simcounts_long)
+
 counts <- new("tuplecounts", leftwin = 0, 
-              counts = new("dgCMatrix", 
-                           i = c(0L, 1L, 2L, 3L, 0L, 1L, 2L, 3L, 0L, 1L, 2L, 3L, 0L, 1L, 2L, 3L), 
-                           p = c(0L, 4L, 8L, 12L, 16L), Dim = c(4L, 4L), 
-                           Dimnames = list(c("XX", "OX", "XO", "OO"), c("XX", "OX", "XO", "OO")), 
-                           x = c(210, 59, 50, 16, 24, 141, 13, 41, 21, 11, 153, 35, 4, 35, 30, 156), 
-                           factors = list()), 
+              counts = new("dgCMatrix"
+                            , i = c(0L, 0L, 1L, 0L, 2L, 0L, 1L, 2L, 3L)
+                            , p = c(0L, 1L, 3L, 5L, 9L)
+                            , Dim = c(4L, 4L)
+                            , Dimnames = list(c("XX", "OX", "XO", "OO"), c("XX", "OX", "XO", "OO"))
+                            , x = c(41, 61, 99, 65, 95, 96, 153, 156, 233)
+                            , factors = list()),
               bases = c("O", "X"), rowtaxon = "long", 
               colpatterns = structure(list(short = structure(c(4L, 2L, 3L, 1L), 
                                                              .Label = c("OO", "OX", "XO", "XX"), 
                                                              class = "factor")), 
                                       .Names = "short", row.names = c(NA, -4L), class = "data.frame"))
 
+counts_long <- new("tuplecounts"
+        , leftwin = 0
+        , counts = new("dgCMatrix"
+        , i = c(0L, 0L, 1L, 0L, 2L, 0L, 1L, 2L, 3L, 0L, 4L, 0L, 1L, 4L, 5L, 
+    0L, 2L, 4L, 6L, 0L, 1L, 2L, 3L, 4L, 5L, 6L, 7L)
+        , p = c(0L, 1L, 3L, 5L, 9L, 11L, 15L, 19L, 27L)
+        , Dim = c(8L, 8L)
+        , Dimnames = list(c("XXX", "OXX", "XOX", "OOX", "XXO", "OXO", "XOO", "OOO"
+    ), c("XXX", "OXX", "XOX", "OOX", "XXO", "OXO", "XOO", "OOO"))
+        , x = c(12, 8, 21, 15, 24, 17, 29, 29, 46, 11, 18, 26, 28, 27, 50, 
+    20, 27, 30, 44, 28, 48, 57, 69, 50, 76, 70, 118)
+        , factors = list()
+    )
+        , bases = c("O", "X")
+        , rowtaxon = "long"
+        , colpatterns = structure(list(short = c("XXX", "OXX", "XOX", "OOX", "XXO", "OXO", 
+    "XOO", "OOO")), .Names = "short", row.names = c(NA, -8L), class = "data.frame")
+    )
 
 G <- do.call(makegenmatrix, c(list(patlen=2), config$sp1))
 projmatrix <- collapsepatmatrix(ipatterns=getpatterns(2,config$bases),
@@ -50,23 +79,27 @@ model <- new("context",
                invocation=""
             )
 
-pred <- fitted(model)
+pred <- fitted(model, tlen=1)
 
 test_that("Predicted counts are sensible.", {
               expect_equal(sum(pred@counts), sum(model@counts@counts))
               expect_true(all(pred@counts[,"X"]<1.0))
         } )
 
+##
 context("Now predict 3-1-1 counts from a 2-1-0 model."
+
 longer_G <- do.call(makegenmatrix, c(list(patlen=3), config$sp1))
 longer_projmatrix <- collapsepatmatrix(ipatterns=getpatterns(3,config$bases),
                                 leftwin=1, shortwin=1, rightwin=1, bases=config$bases)
-long_pred <- fitted(model, longwin=3, shortwin=1, leftwin=1, genmatrix=longer_G, projmatrix=longer_projmatrix)
+long_pred <- fitted(model, longwin=3, shortwin=1, leftwin=1, 
+                    initcounts=rowSums(counts_long),
+                    genmatrix=longer_G, projmatrix=longer_projmatrix)
 
 test_that("Predicting longer counts also sensible.", {
               expect_equal(dim(long_pred), c(2^3, 2))
-              expect_equal(sum(long_pred@counts), sum(model@counts@counts))
-              expect_equal(projectcounts(long_pred, new.leftwin=0, new.longwin=2), pred)
+              expect_equal(sum(long_pred@counts), sum(model@counts@counts)-1)
+              expect_equivalent(projectcounts(long_pred, new.leftwin=0, new.longwin=2)@counts, pred@counts)
         } )
 
 

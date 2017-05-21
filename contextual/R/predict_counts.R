@@ -12,6 +12,9 @@ predictcounts.context <- function (model, longwin=NULL, shortwin=NULL, leftwin=N
     if (!missing(genmatrix) && missing(projmatrix)) {
         projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, fpatterns=getpatterns(shortwin,genmatrix@bases) )
     }
+    if (longwin > longwin(model) && ( !missing(initcounts) || !missing(genmatrix) || !missing(projmatrix)) ) {
+        stop("If predicting longer counts than the model was fit under, must provide genmatrix, initcounts, and projmatrix.")
+    }
     predictcounts(longwin=longwin,
                   shortwin=shortwin,
                   leftwin=leftwin,

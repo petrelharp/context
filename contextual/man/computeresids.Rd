@@ -4,20 +4,20 @@
 \alias{computeresids}
 \title{Compute Residuals}
 \usage{
-computeresids(model, pretty = TRUE, in_longwin = longwin(model),
-  in_shortwin = shortwin(model), in_leftwin = leftwin(model),
-  counts = NULL, ...)
+computeresids(model, pretty = TRUE, longwin = longwin(model),
+  shortwin = shortwin(model), leftwin = leftwin(model), counts = NULL,
+  ...)
 }
 \arguments{
 \item{model}{An object inheriting from `context` or `contextTree` having a `fitted` method.}
 
 \item{pretty}{Whether to return results in a data frame sorted by z-score (otherwise, returns a matrix of the same form as `counts`).}
 
-\item{in_longwin}{The `long` window length of Tmers to compute residuals for.}
+\item{longwin}{The `long` window length of Tmers to compute residuals for.}
 
-\item{in_shortwin}{The `short` window length of Tmers to compute residuals for.}
+\item{shortwin}{The `short` window length of Tmers to compute residuals for.}
 
-\item{in_leftwin}{The left overhang of Tmers to compute residuals for.}
+\item{leftwin}{The left overhang of Tmers to compute residuals for.}
 
 \item{counts}{A tuplecounts object - can be supplied to compute residuals for longer Tmers than the model was fit with.}
 
