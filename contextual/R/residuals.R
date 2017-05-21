@@ -25,7 +25,7 @@ computeresids <- function (model, pretty=TRUE,
                            ...) {
     # get counts
     if (is.null(counts) && ( longwin > longwin(model) || shortwin > shortwin(model) ) ) {
-        stop("If window lengths are longer than fitted model, then need to supply counts, genmatrix, and projmatrix.")
+        stop("If window lengths are longer than fitted model, then need to supply counts and genmatrix.")
     } else if (!is.null(counts)) {
         if ( ( longwin > longwin(counts) || shortwin > shortwin(counts) ) ) {
             stop("Supplied counts use a window that is too short.")

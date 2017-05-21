@@ -9,11 +9,11 @@ predictcounts.context <- function (model, longwin=NULL, shortwin=NULL, leftwin=N
     if (is.null(longwin)) { longwin <- longwin(model) }
     if (is.null(shortwin)) { shortwin <- shortwin(model) }
     if (is.null(leftwin)) { leftwin <- leftwin(model) }
-    if (!missing(genmatrix) && missing(projmatrix)) {
-        projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, fpatterns=getpatterns(shortwin,genmatrix@bases) )
+    if (longwin > longwin(model) && ( missing(initcounts) || missing(genmatrix) )) {
+        stop("If predicting longer counts than the model was fit under, must provide genmatrix, and initcounts.")
     }
-    if (longwin > longwin(model) && ( !missing(initcounts) || !missing(genmatrix) || !missing(projmatrix)) ) {
-        stop("If predicting longer counts than the model was fit under, must provide genmatrix, initcounts, and projmatrix.")
+    if (missing(projmatrix) && ( longwin != longwin(model) || shortwin != shortwin(model) || leftwin != leftwin(model))) {
+        projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, fpatterns=getpatterns(shortwin,genmatrix@bases) )
     }
     predictcounts(longwin=longwin,
                   shortwin=shortwin,
@@ -42,6 +42,12 @@ predictcounts.contextTree <- function (
     if (is.null(longwin)) { longwin <- longwin(model) }
     if (is.null(shortwin)) { shortwin <- shortwin(model) }
     if (is.null(leftwin)) { leftwin <- leftwin(model) }
+    if (longwin > longwin(model) && ( missing(initcounts) || missing(genmatrices) )) {
+        stop("If predicting longer counts than the model was fit under, must provide genmatrices, and initcounts.")
+    }
+    if (missing(projmatrix) && ( longwin != longwin(model) || shortwin != shortwin(model) || leftwin != leftwin(model))) {
+        projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, fpatterns=getpatterns(shortwin,genmatrix@bases) )
+    }
     config <- lapply(model@models, function (x) { 
                          list(mutrates=x@mutrates, selcoef=x@selcoef, params=x@params) 
                        } )
