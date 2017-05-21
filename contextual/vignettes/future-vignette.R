@@ -120,9 +120,9 @@ fit.model <- new( "context",
 
 residframe <- computeresids (fit.model,
         pretty            = TRUE,
-        in_longwin        = opt$longwin,
-        in_shortwin       = opt$shortwin,
-        in_leftwin        = opt$leftwin,
+        longwin           = opt$longwin,
+        shortwin          = opt$shortwin,
+        leftwin           = opt$leftwin,
         counts            = counts,
         genmatrixfile     = opt$genmatrixfile
     )

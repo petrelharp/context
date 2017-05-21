@@ -6,9 +6,9 @@
 #'
 #' @param model An object inheriting from `context` or `contextTree` having a `fitted` method.
 #' @param pretty Whether to return results in a data frame sorted by z-score (otherwise, returns a matrix of the same form as `counts`).
-#' @param in_longwin The `long` window length of Tmers to compute residuals for.
-#' @param in_shortwin The `short` window length of Tmers to compute residuals for.
-#' @param in_leftwin The left overhang of Tmers to compute residuals for.
+#' @param longwin The `long` window length of Tmers to compute residuals for.
+#' @param shortwin The `short` window length of Tmers to compute residuals for.
+#' @param leftwin The left overhang of Tmers to compute residuals for.
 #' @param counts A tuplecounts object - can be supplied to compute residuals for longer Tmers than the model was fit with.
 #' @param ... Additional arguments to be passed to `fitted()`.
 #'
@@ -17,23 +17,28 @@
 #' Otherwise, returns a matrix of the same dimensions as `counts` with rows and columns labeled by the head and tail Tmer patterns.
 #'
 #' @export
-computeresids <- function (model, pretty=TRUE, in_longwin=longwin(model), in_shortwin=shortwin(model), in_leftwin=leftwin(model), counts=NULL, ...) {
+computeresids <- function (model, pretty=TRUE, 
+                           longwin=longwin(model), 
+                           shortwin=shortwin(model), 
+                           leftwin=leftwin(model), 
+                           counts=NULL, 
+                           ...) {
     # get counts
-    if (is.null(counts) && ( in_longwin > longwin(model) || in_shortwin > shortwin(model) ) ) {
-        stop("If window lengths are longer than fitted model, then need to supply counts.")
+    if (is.null(counts) && ( longwin > longwin(model) || shortwin > shortwin(model) ) ) {
+        stop("If window lengths are longer than fitted model, then need to supply counts, genmatrix, and projmatrix.")
     } else if (!is.null(counts)) {
-        if ( ( in_longwin > longwin(counts) || in_shortwin > shortwin(counts) ) ) {
+        if ( ( longwin > longwin(counts) || shortwin > shortwin(counts) ) ) {
             stop("Supplied counts use a window that is too short.")
         }
     } else {
         counts <- model@counts
     }
 
-    expected <- fitted( model, longwin=longwin(model), shortwin=shortwin(model), leftwin=leftwin(model), ... )
+    expected <- fitted( model, longwin=longwin, shortwin=shortwin, leftwin=leftwin, ... )
 
-    if ( (in_longwin < longwin(counts)) || (in_shortwin < shortwin(counts)) ) {
-        counts <- projectcounts( counts, in_leftwin, in_shortwin, in_longwin )
-        expected <- projectcounts( expected, in_leftwin, in_shortwin, in_longwin )
+    if ( (longwin < longwin(counts)) || (shortwin < shortwin(counts)) ) {
+        counts <- projectcounts( counts, leftwin, shortwin, longwin )
+        # expected <- projectcounts( expected, leftwin, shortwin, longwin )
     }
 
     if (pretty) {
@@ -45,7 +50,7 @@ computeresids <- function (model, pretty=TRUE, in_longwin=longwin(model), in_sho
                             resid=as.vector(counts)-as.vector(expected),
                             stringsAsFactors=FALSE
                         )
-        residframe$z <- residframe$resid/sqrt(as.vector(expected)*in_longwin)
+        residframe$z <- residframe$resid/sqrt(as.vector(expected)*longwin)
         residframe <- residframe[order(residframe$z),]
     } else {
         # concise matrix

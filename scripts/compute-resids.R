@@ -52,9 +52,9 @@ if (!is.null(opt$gmfile)) {
 
 residframe <- do.call( computeresids, c(list(model,
                             pretty=opt$pretty,
-                            in_longwin=opt$longwin,
-                            in_shortwin=opt$shortwin,
-                            in_leftwin=opt$leftwin,
+                            longwin=opt$longwin,
+                            shortwin=opt$shortwin,
+                            leftwin=opt$leftwin,
                             counts=counts),
                             if (exists("genmatrix") && inherits(model,"context")) { 
                                 list(genmatrix=genmatrix) 

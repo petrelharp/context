@@ -57,6 +57,18 @@ test_that("Predicted counts are sensible.", {
               expect_true(all(pred@counts[,"X"]<1.0))
         } )
 
+context("Now predict 3-1-1 counts from a 2-1-0 model."
+longer_G <- do.call(makegenmatrix, c(list(patlen=3), config$sp1))
+longer_projmatrix <- collapsepatmatrix(ipatterns=getpatterns(3,config$bases),
+                                leftwin=1, shortwin=1, rightwin=1, bases=config$bases)
+long_pred <- fitted(model, longwin=3, shortwin=1, leftwin=1, genmatrix=longer_G, projmatrix=longer_projmatrix)
+
+test_that("Predicting longer counts also sensible.", {
+              expect_equal(dim(long_pred), c(2^3, 2))
+              expect_equal(sum(long_pred@counts), sum(model@counts@counts))
+              expect_equal(projectcounts(long_pred, new.leftwin=0, new.longwin=2), pred)
+        } )
+
 
 # tree
 

@@ -86,6 +86,7 @@ predictcounts <- function (longwin,
                            params=NULL, 
                            tlen=1 ) {
     if (longwin != longwin(genmatrix)) { stop("Generator matrix does not have the requested longwin.") }
+    if (length(initcounts) != nrow(genmatrix)) { stop("initcounts not of the correct length.") }
     rightwin <- longwin-shortwin-leftwin
     if (!missing(mutrates)||!missing(selcoef)||!is.null(params)) { genmatrix@x <- do.call( update_x, c( list(genmatrix,mutrates=mutrates,selcoef=selcoef), params ) ) }
     if (missing(projmatrix)) { projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, rightwin=rightwin, bases=genmatrix@bases ) }
