@@ -65,13 +65,16 @@ if (!is.null(opt$config) && (opt$longwin > longwin(model) || opt$shortwin > shor
     # which models go with which edges
     modelnames <- config.dereference( config, nodenames(config$tree) )
     # also will need initcounts
+    initcounts <- rowSums(counts)
+    cat("Initcounts:", paste(head(initcounts), collapse=" "), "\n")
+    cat("Getting genmatrices from ", paste(sapply(config$.models, function (mm) config[mm]$genmatrix), collapse=", "), "\n")
     more.args <- list(genmatrices = lapply( selfname(config$.models), function (mm) {
                             if (!file.exists(config[[mm]]$genmatrix)) { stop(paste("Can't find file", config[[mm]]$genmatrix), ".") }
                             load( config[[mm]]$genmatrix )
                             check.genmatrix( config[[mm]], genmatrix )
                             return(genmatrix)
                         } ),
-                     initcounts <- rowSums(counts) )
+                     initcounts = initcounts )
 } else if (exists("genmatrix") && inherits(model,"context")) {
     more.args <- list(genmatrix=genmatrix)
 } else {

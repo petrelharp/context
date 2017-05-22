@@ -46,7 +46,7 @@ predictcounts.contextTree <- function (
         stop("If predicting longer counts than the model was fit under, must provide genmatrices, and initcounts.")
     }
     if (missing(projmatrix) && ( longwin != longwin(model) || shortwin != shortwin(model) || leftwin != leftwin(model))) {
-        projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin, fpatterns=getpatterns(shortwin,genmatrix@bases) )
+        projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrices[[1]]), leftwin=leftwin, fpatterns=getpatterns(shortwin,genmatrices[[1]]@bases) )
     }
     config <- lapply(model@models, function (x) { 
                          list(mutrates=x@mutrates, selcoef=x@selcoef, params=x@params) 
