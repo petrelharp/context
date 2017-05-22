@@ -66,8 +66,8 @@ if (!is.null(opt$config) && (opt$longwin > longwin(model) || opt$shortwin > shor
     modelnames <- config.dereference( config, nodenames(config$tree) )
     # also will need initcounts
     initcounts <- rowSums(counts)
-    cat("Initcounts:", paste(head(initcounts), collapse=" "), "\n")
-    cat("Getting genmatrices from ", paste(sapply(config$.models, function (mm) config[mm]$genmatrix), collapse=", "), "\n")
+    # cat("Initcounts:", paste(head(initcounts), collapse=" "), "\n")
+    # cat("Getting genmatrices from ", paste(sapply(config$.models, function (mm) config[mm]$genmatrix), collapse=", "), "\n")
     more.args <- list(genmatrices = lapply( selfname(config$.models), function (mm) {
                             if (!file.exists(config[[mm]]$genmatrix)) { stop(paste("Can't find file", config[[mm]]$genmatrix), ".") }
                             load( config[[mm]]$genmatrix )
@@ -90,3 +90,5 @@ residframe <- do.call( computeresids, c(list(model,
 
 options(scipen=10)
 write.table(file=opt$outfile, x=format(residframe,digits=3), sep='\t', quote=FALSE, row.names=TRUE )
+
+# cat("Done: written to ", opt$outfile, "\n")
