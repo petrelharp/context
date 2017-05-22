@@ -57,10 +57,10 @@ if (!is.null(opt$config) && (opt$longwin > longwin(model) || opt$shortwin > shor
         stop("If longer window than the fitted model is desired, must supply counts and genmatrix or config file.")
     }
     # Will need longer generator matrices:
-    config <- parse.models( treeify.config( read.config(opt$configfile) ) )
+    config <- parse.models( treeify.config( read.config(opt$config) ) )
     # find the right generator matrix files
     for (mm in config$.models) { 
-        config[[mm]]$genmatrix <- file.path(dirname(opt$configfile), gsub("%",opt$longwin,config[[mm]]$genmatrix,fixed=TRUE)) 
+        config[[mm]]$genmatrix <- file.path(dirname(opt$config), gsub("%",opt$longwin,config[[mm]]$genmatrix,fixed=TRUE)) 
     }
     # which models go with which edges
     modelnames <- config.dereference( config, nodenames(config$tree) )
