@@ -45,6 +45,7 @@ if (is.null(opt$countfile)) {
     counts <- NULL
 } else {
     counts <- read.counts(opt$countfile)
+    counts <- projectcounts(counts, new.longwin=opt$longwin, new.shortwin=opt$shortwin, new.leftwin=opt$leftwin)
 }
 
 if (!is.null(opt$gmfile)) {
@@ -52,7 +53,10 @@ if (!is.null(opt$gmfile)) {
 }
 
 if (!is.null(opt$config) && (opt$longwin > longwin(model) || opt$shortwin > shortwin(model))) {
-    # will need longer generator matrices
+    if (is.null(opt$countfile)) {
+        stop("If longer window than the fitted model is desired, must supply counts and genmatrix or config file.")
+    }
+    # Will need longer generator matrices:
     config <- parse.models( treeify.config( read.config(opt$configfile) ) )
     # find the right generator matrix files
     for (mm in config$.models) { 
@@ -60,13 +64,14 @@ if (!is.null(opt$config) && (opt$longwin > longwin(model) || opt$shortwin > shor
     }
     # which models go with which edges
     modelnames <- config.dereference( config, nodenames(config$tree) )
-    # load generator matrices
-    more.args <- list( genmatrices = lapply( selfname(config$.models), function (mm) {
-            if (!file.exists(config[[mm]]$genmatrix)) { stop(paste("Can't find file", config[[mm]]$genmatrix), ".") }
-            load( config[[mm]]$genmatrix )
-            check.genmatrix( config[[mm]], genmatrix )
-            return(genmatrix)
-        } ) )
+    # also will need initcounts
+    more.args <- list(genmatrices = lapply( selfname(config$.models), function (mm) {
+                            if (!file.exists(config[[mm]]$genmatrix)) { stop(paste("Can't find file", config[[mm]]$genmatrix), ".") }
+                            load( config[[mm]]$genmatrix )
+                            check.genmatrix( config[[mm]], genmatrix )
+                            return(genmatrix)
+                        } ),
+                     initcounts <- rowSums(counts) )
 } else if (exists("genmatrix") && inherits(model,"context")) {
     more.args <- list(genmatrix=genmatrix)
 } else {
