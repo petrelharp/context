@@ -50,9 +50,12 @@ getresids () {
         do
             if [ $# -gt 3 ]
             then
+                # longer Tmers
                 COUNTTMER=$4
                 COUNTFILE=$d/$t/${COUNTTMER}/total.counts.gz
-                COUNTARG="-c $COUNTFILE"
+                FITFILENAME=$(basename $FITFILE)
+                MODELFILE=$(dirname $(dirname $FITFILE))/${FITFILENAME%-fit.RData}.json
+                COUNTARG="--countfile $COUNTFILE --config $MODELFILE"
             else
                 COUNTARG=""
             fi

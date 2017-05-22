@@ -14,6 +14,7 @@ option_list <- list(
         make_option( c("-l","--leftwin"), type="integer", help="Size of offset of short window from the left. [default: as in model]"),
         make_option( c("-p","--pretty"), type="logical", action="store_true", default=FALSE, help="Compute z-score and organize residuals by these?"),
         make_option( c("-m","--gmfile"), type="character", help="File with precomputed generator matrix."),
+        make_option( c("-g","--config"), type="character", help="Configuration file (used to find longer generator matrices if needed)."),
         make_option( c("-c","--countfile"), type="character", help="Input file with tuple counts, tab-separated, with header 'reference', 'derived', 'count'. (only necessary if longwin is longer than used to fit model)")
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
@@ -50,15 +51,34 @@ if (!is.null(opt$gmfile)) {
     load(opt$gmfile)
 }
 
+if (!is.null(opt$config) && (opt$longwin > longwin(model) || opt$shortwin > shortwin(model))) {
+    # will need longer generator matrices
+    config <- parse.models( treeify.config( read.config(opt$configfile) ) )
+    # find the right generator matrix files
+    for (mm in config$.models) { 
+        config[[mm]]$genmatrix <- file.path(dirname(opt$configfile), gsub("%",opt$longwin,config[[mm]]$genmatrix,fixed=TRUE)) 
+    }
+    # which models go with which edges
+    modelnames <- config.dereference( config, nodenames(config$tree) )
+    # load generator matrices
+    more.args <- list( genmatrices = lapply( selfname(config$.models), function (mm) {
+            if (!file.exists(config[[mm]]$genmatrix)) { stop(paste("Can't find file", config[[mm]]$genmatrix), ".") }
+            load( config[[mm]]$genmatrix )
+            check.genmatrix( config[[mm]], genmatrix )
+            return(genmatrix)
+        } ) )
+} else if (exists("genmatrix") && inherits(model,"context")) {
+    more.args <- list(genmatrix=genmatrix)
+} else {
+    more.args <- NULL
+}
+
 residframe <- do.call( computeresids, c(list(model,
                             pretty=opt$pretty,
                             longwin=opt$longwin,
                             shortwin=opt$shortwin,
                             leftwin=opt$leftwin,
-                            counts=counts),
-                            if (exists("genmatrix") && inherits(model,"context")) { 
-                                list(genmatrix=genmatrix) 
-                            } else {NULL} ))
+                            counts=counts), more.args) )
 
 options(scipen=10)
 write.table(file=opt$outfile, x=format(residframe,digits=3), sep='\t', quote=FALSE, row.names=TRUE )
