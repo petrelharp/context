@@ -39,7 +39,7 @@ listresids <- function (counts, expected, file, trim=20, leftwin=(nchar(rownames
     longwin <- nchar(rownames(counts)[1])
     resids$inpat <- with(resids, paste( tolower(substr(inpat,1,leftwin)), substr(inpat,leftwin+1,longwin-leftwin), tolower(substr(inpat,longwin-leftwin+1,longwin)), sep='' ) )
     resids$outpat <- paste(resids$outpat)
-    resids$z <- resids$resid/sqrt(as.vector(expected))
+    resids$z <- resids$resid/sqrt(nchar(resids$inpat[1])*as.vector(expected))
     if (is.numeric(trim)) { resids <- subset( resids, is.numeric(resids$z) & (abs(resids$z) > trim) ) }
     resids <- resids[order(resids$z),]
     if (!missing(file)) {
@@ -74,8 +74,13 @@ clusterresids <- function (resids, npats=300, nclusts=12, top=TRUE, return.list=
     motifs <- lapply( 1:nclusts, function (k) 
                      print.motif(names(sclust)[sclust==k],print=FALSE,weights=resids$z[sclust==k]^2, ...) )
     # cat( c("", paste(do.call( paste, c( motifs, list(sep="   ") ) ),"\n") ) )
+    combined_z <- tapply(1:nrow(resids), sclust, function (k) {
+                           observed <- sum(resids[k,"observed"])
+                           expected <- sum(resids[k,"expected"])
+                           return( (observed-expected)/sqrt(nchar(resids$inpat[1])*expected) )
+                     } )
     out <- data.frame(motif=unlist(motifs), 
-                      z=sqrt(tapply(resids$z^2, sclust, sum)),
+                      z=combined_z,
                       npats=as.vector(table(sclust)))
     out <- out[order(out$z, decreasing=TRUE),]
     if (return.list) {
