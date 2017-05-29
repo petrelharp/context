@@ -1,3 +1,27 @@
+rev.string <- function (x) { sapply(lapply(strsplit(x,''), rev), paste, collapse='') }
+
+#' Collapse reverse complements in residual table
+#'
+#' @param resids A residual table, with inpat, outpat, observed, expected, resid, and z columns.
+#'
+#' @export
+reverse.complement.resids <- function (resids) {
+    rc <- resids
+    rc$inpat <- chartr(rev.string(rc$inpat), old="ACGT", new="TGCA")
+    rc$outpat <- chartr(rev.string(rc$outpat), old="ACGT", new="TGCA")
+    x <- paste0(resids$inpat, resids$outpat)
+    y <- paste0(rc$inpat, rc$outpat)
+    rc.k <- match(y,x)
+    rc <- rc[rc.k,]
+    nonself <- (x!=y)
+    resids$observed <- resids$observed + rc$observed
+    resids$observed[!nonself] <- resids$observed[!nonself]/2
+    resids$expected <- resids$expected + rc$expected
+    resids$expected[!nonself] <- resids$expected[!nonself]/2
+    resids$resid <- resids$observed - resids$expected
+    resids$z <- resids$resid/sqrt(nchar(resids$inpat[1])*resids$expected)
+    return(resids[rc.k >= seq_along(rc.k),])
+}
 
 #' List residuals in order
 #'
@@ -26,24 +50,49 @@ listresids <- function (counts, expected, file, trim=20, leftwin=(nchar(rownames
     }
 }
 
+#' Look for motifs in residuals
+#'
+#' For the top and bottom sets of `npats` residuals, does the following:
+#'  - pastes 'long' and 'short' sequences together
+#'  - finds the matrix of hamming distances between these
+#'  - uses hclust to cluster the results
+#'  - uses hclust to cluster the results
+#'
+#' @param resids A table of residuals containing 'inpat', 'outpat' and a 'z' score.
+#' @param npats The number of top patterns to look for motifs in.
+#' @param nclusts The number of clusters to report (using hclust).
+#' @param top Whether to do those with large positive z scores? Otherwise, negative.
+#' @param return.list Whether to output the full list of patterns in each motif.
+#' @param ... Additional arguments passed to print.motif.
+#'
 #' @export
-clusterresids <- function (resids,npats=300,nclusts=12) {
-    # look for motifs in resids (as above)
-    invisible( lapply( c(+1,-1), function (sign) {
-            resids$z <- resids$z * sign
-            trim <- quantile((resids$z[is.finite(resids$z)]),1-npats/sum(is.finite(resids$z)))
-            resids <- subset(resids, is.finite(z) & z>trim )
-            longwin <- nchar(resids$inpat[1])
-            shortwin <- nchar(resids$outpat[1])
-            pats <- paste(resids$inpat,resids$outpat,sep="")
-            # 10 secs for 3000x3000
-            sdists <- stringdistmatrix(pats,pats,method="hamming")
-            rownames(sdists) <- colnames(sdists) <- paste(resids$inpat,resids$outpat,sep="|")
-            sclust <- cutree( hclust(as.dist(sdists)), k=nclusts )
-            motifs <- lapply( 1:nclusts, function (k) print.motif(names(sclust)[sclust==k],print=FALSE,weights=sqrt(resids$z[sclust==k])) )
-            cat( c("", paste(do.call( paste, c( motifs, list(sep="   ") ) ),"\n") ) )
-            return(motifs)
-        } ) )
+clusterresids <- function (resids, npats=300, nclusts=12, top=TRUE, return.list=FALSE, ...) {
+    if (!top) { resids$z <- (-1)*resids$z }
+    trim <- quantile((resids$z[is.finite(resids$z)]),1-npats/sum(is.finite(resids$z)))
+    resids <- subset(resids, is.finite(z) & z>trim )
+    sclust <- do_clusterresids(resids$inpat, resids$outpat, nclusts=nclusts)
+    motifs <- lapply( 1:nclusts, function (k) 
+                     print.motif(names(sclust)[sclust==k],print=FALSE,weights=resids$z[sclust==k]^2, ...) )
+    # cat( c("", paste(do.call( paste, c( motifs, list(sep="   ") ) ),"\n") ) )
+    out <- data.frame(motif=unlist(motifs), 
+                      z=sqrt(tapply(resids$z^2, sclust, sum)),
+                      npats=as.vector(table(sclust)))
+    out <- out[order(out$z, decreasing=TRUE),]
+    if (return.list) {
+        out <- list( summary=out, patterns=lapply(1:nclusts, function(k) names(sclust)[sclust==k]) )
+    }
+    return(out)
+}
+
+do_clusterresids <- function (inpat, outpat, nclusts) {
+    longwin <- nchar(inpat[1])
+    shortwin <- nchar(outpat[1])
+    pats <- paste(inpat,outpat,sep="")
+    # 10 secs for 3000x3000
+    sdists <- stringdist::stringdistmatrix(pats,pats,method="hamming")
+    rownames(sdists) <- colnames(sdists) <- paste(inpat,outpat,sep="|")
+    sclust <- cutree( hclust(as.dist(sdists)), k=nclusts )
+    return(sclust)
 }
 
 
@@ -56,6 +105,11 @@ table.weighted <- function(x,weights=rep(1,length(x))) {
     return( tx * tapply(weights,x,sum,na.rm=TRUE) )
 }
 
+#' Print motifs
+#'
+#' If not 'long', then positions with a base with total weight above 75% of the total are upper-case,
+#' between 50% and 75% are lower-case, otherwise are '.'.
+#'
 #' @export
 print.motif <- function (pats,weights=1,n=24,print=TRUE,long=FALSE) {
     pats <- do.call( rbind, strsplit(pats,"") )
@@ -72,7 +126,7 @@ print.motif <- function (pats,weights=1,n=24,print=TRUE,long=FALSE) {
                                    if (max(x)>.75*sum(x)) {
                                        (toupper(names(x)[themax]))
                                    } else if (max(x)>.5*sum(x)) {
-                                       (toupper(names(x)[themax]))
+                                       (tolower(names(x)[themax]))
                                    } else { "." }
                                )
         } ), collapse='' )

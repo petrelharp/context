@@ -78,8 +78,16 @@ for d in $DIRS; do for t in $TYPES; do
 done; done
 
 # create genmatrix
-LONGWIN=6
-../scripts/make-genmat.R -c base-model.json -w $LONGWIN -o genmatrices/base-model-genmatrix-${LONGWIN}.RData
+LONGWIN=5
+for MODELFILE in models/*json
+do
+    MODELNAME=$(basename ${MODELFILE%.json})
+    GENMATFILE=genmatrices/${MODELNAME}-genmatrix-${LONGWIN}.RData
+    if [ ! -e $GENMATFILE ]
+    then
+        ../scripts/make-genmat.R -c $MODELFILE -w $LONGWIN -o $GENMATFILE
+    fi
+done
 
 
 # fit model
@@ -207,7 +215,6 @@ fi; done; done)
 ../scripts/cluster/submit-8-jobs.sh models/fit_model.sh shape-model-CpG-only-random-values.json 7 5 1
 
 
-
 #################################
 ### collect results
 
@@ -219,3 +226,9 @@ paste <(cat model-selection-results.tsv | cut -f 1 | sed -e 's_.*/__') <( cat mo
 # look at all the bottom/top 1-1-0 resids:
 (for x in RegulatoryFeature-regions-from-axt/**/*resids.1.1.l0.tsv; do y=$(basename $x | sed -e 's/-resids.*//'); z=$(head -n 2 $x | tail -n 1); echo $y $z; done) | column -t
 (for x in RegulatoryFeature-regions-from-axt/**/*resids.1.1.l0.tsv; do y=$(basename $x | sed -e 's/-resids.*//'); z=$(tail -n 1 $x); echo $y $z; done) | column -t
+
+# look at all the top 4-2-1 resids:
+(for x in RegulatoryFeature-regions-from-axt/**/*resids.4.2.l1.tsv; do y=$(basename $x | sed -e 's/-resids.*//'); z=$(head -n 2 $x | tail -n 3); echo $y $z; done) | column -t
+(for x in RegulatoryFeature-regions-from-axt/**/*resids.4.2.l1.tsv; do y=$(basename $x | sed -e 's/-resids.*//'); z=$(tail -n 3 $x); echo $y $z; done) | column -t
+
+grep "CTAT\tTG" RegulatoryFeature-regions-from-axt/**/*resids.4.2.l1.tsv
