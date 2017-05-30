@@ -234,4 +234,10 @@ paste <(cat model-selection-results.tsv | cut -f 1 | sed -e 's_.*/__') <( cat mo
 (for x in RegulatoryFeature-regions-from-axt/**/*resids.4.2.l1.tsv; do y=$(basename $x | sed -e 's/-resids.*//'); z=$(head -n 2 $x | tail -n 3); echo $y $z; done) | column -t
 (for x in RegulatoryFeature-regions-from-axt/**/*resids.4.2.l1.tsv; do y=$(basename $x | sed -e 's/-resids.*//'); z=$(tail -n 3 $x); echo $y $z; done) | column -t
 
-grep "CTAT\tTG" RegulatoryFeature-regions-from-axt/**/*resids.4.2.l1.tsv
+
+showresids () {
+    LONGWIN=$1; SHORTWIN=$2; LEFTWIN=$3; NPATS=${4:-1}
+    # look at all the top 4-2-1 resids:
+    (for x in RegulatoryFeature-regions-from-axt/**/*resids.${LONGWIN}.${SHORTWIN}.l${LEFTWIN}.tsv; do y=$(basename $x | sed -e 's/-resids.*//'); z=$(head -n $((NPATS+1)) $x | tail -n +2); echo $y $z; done) | column -t
+    (for x in RegulatoryFeature-regions-from-axt/**/*resids.${LONGWIN}.${SHORTWIN}.l${LEFTWIN}.tsv; do y=$(basename $x | sed -e 's/-resids.*//'); z=$(tail -n $NPATS $x); echo $y $z; done) | column -t
+}
