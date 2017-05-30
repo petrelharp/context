@@ -278,7 +278,9 @@ predictcounts.tree <- function (tree,
                                 projmatrix, 
                                 initfreqs
                                 ) {
-    if (any(sapply(genmatrices,longwin)!=longwin)) { stop("Generator matrices do not have the requested longwin.") }
+    if (any(sapply(genmatrices,longwin)<longwin)) { 
+        stop("Generator matrices do not have sufficiently long longwin.") 
+    }
     bases <- genmatrices[[1]]@bases
     longpats <- rownames(genmatrices[[1]])
     # put the parameters in to the genmatrices
@@ -299,7 +301,8 @@ predictcounts.tree <- function (tree,
     # calculate the transition matrix
     transmatrix <- peel.transmat( tree=tree, rowtaxon=rowtaxon, coltaxa=coltaxa, modelnames=modelnames, 
                                   genmatrices=genmatrices, projmatrix=projmatrix, 
-                                  root.distrn=root.distrn, debug=TRUE, return.list=FALSE, normalize=FALSE )
+                                  root.distrn=root.distrn, debug=TRUE, return.list=FALSE, 
+                                  normalize=FALSE )
     if (length(initcounts)>1) {
         transmatrix <- (initcounts/rowSums(transmatrix)) * transmatrix
     } else {
@@ -308,10 +311,11 @@ predictcounts.tree <- function (tree,
     colpatterns <- data.frame(do.call(rbind, strsplit(colnames(transmatrix), ",")), 
                               stringsAsFactors=FALSE)
     colnames(colpatterns) <- coltaxa
-    return( new("tuplecounts", 
+    out <- new("tuplecounts", 
             leftwin=leftwin, 
             counts=Matrix(transmatrix), 
             bases=bases,
             colpatterns=colpatterns
-        ) )
+          )
+    return(projectcounts(out, new.longwin=longwin, new.leftwin=leftwin, new.shortwin=shortwin))
 }

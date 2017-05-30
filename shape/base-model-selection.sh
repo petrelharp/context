@@ -82,10 +82,9 @@ LONGWIN=5
 for MODELFILE in models/*json
 do
     MODELNAME=$(basename ${MODELFILE%.json})
-    GENMATFILE=genmatrices/${MODELNAME}-genmatrix-${LONGWIN}.RData
     if [ ! -e $GENMATFILE ]
     then
-        ../scripts/make-genmat.R -c $MODELFILE -w $LONGWIN -o $GENMATFILE
+        ../scripts/make-genmat.R -c $MODELFILE -w $LONGWIN -o genmatrices/
     fi
 done
 
@@ -213,6 +212,10 @@ fi; done; done)
 ../scripts/cluster/submit-8-jobs.sh models/fit_model.sh cpg-plus-epsilon-separate-branches.json 7 5 1
 ../scripts/cluster/submit-8-jobs.sh models/fit_model.sh shape-model-CpG-only-MGW.json 7 5 1
 ../scripts/cluster/submit-8-jobs.sh models/fit_model.sh shape-model-CpG-only-random-values.json 7 5 1
+
+../scripts/cluster/submit-8-jobs.sh models/fit_model.sh models/base-model-plus-cpg-and-CPD.json 4 2 1
+../scripts/cluster/submit-8-jobs.sh models/fit_model.sh models/base-model-plus-cpg-and-CPD.json 6 3 2
+../scripts/cluster/submit-8-jobs.sh models/fit_model.sh models/base-model-plus-cpg-and-CPD.json 7 3 2
 
 
 #################################
