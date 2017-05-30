@@ -48,19 +48,23 @@ getresids () {
     for d in $DIRS; do for t in $TYPES; do 
         for FITFILE in $d/$t/*/*-fit.RData;
         do
-            if [ $# -gt 3 ]
+            OUTFILE=${FITFILE%.RData}-resids.${LONGWIN}.${SHORTWIN}.l${LEFTWIN}.tsv
+            if ! [ -e $OUTFILE ]
             then
-                # longer Tmers
-                COUNTTMER=$4
-                COUNTFILE=$d/$t/${COUNTTMER}/total.counts.gz
-                FITFILENAME=$(basename $FITFILE)
-                MODELFILE=$(dirname $(dirname $FITFILE))/${FITFILENAME%-fit.RData}.json
-                COUNTARG="--countfile $COUNTFILE --config $MODELFILE"
-            else
-                COUNTARG=""
+                if [ $# -gt 3 ]
+                then
+                    # longer Tmers
+                    COUNTTMER=$4
+                    COUNTFILE=$d/$t/${COUNTTMER}/total.counts.gz
+                    FITFILENAME=$(basename $FITFILE)
+                    MODELFILE=$(dirname $(dirname $FITFILE))/${FITFILENAME%-fit.RData}.json
+                    COUNTARG="--countfile $COUNTFILE --config $MODELFILE"
+                else
+                    COUNTARG=""
+                fi
+                ../scripts/compute-resids.R -i $FITFILE -o ${FITFILE%.RData}-resids.${LONGWIN}.${SHORTWIN}.l${LEFTWIN}.tsv -w ${LONGWIN} -s ${SHORTWIN} -l ${LEFTWIN} --pretty $COUNTARG
+                echo $OUTFILE
             fi
-            ../scripts/compute-resids.R -i $FITFILE -o ${FITFILE%.RData}-resids.${LONGWIN}.${SHORTWIN}.l${LEFTWIN}.tsv -w ${LONGWIN} -s ${SHORTWIN} -l ${LEFTWIN} --pretty $COUNTARG
-            echo $FITFILE
         done
     done; done
 }
