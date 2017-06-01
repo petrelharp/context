@@ -26,12 +26,27 @@ loaded <- load(opt$modelfile)  # provides 'model'
 stopifnot("model" %in% loaded)
 stopifnot(inherits(model, "contextTree"))
 
+dirlist <- function (a) { da <- dirname(a); if (da == a) { if (a=="/") { NULL } else { a } } else { c( dirlist(da), basename(a) ) } }
+relpath <- function (a,b) {
+    # returns relative path from location of a to b
+    if (file.exists(a) && !dir.exists(a)) { a <- dirname(a) }
+    aa <- dirlist(normalizePath(a))
+    bb <- dirlist(normalizePath(b))
+    k <- 0
+    while (k < length(aa) && k < length(bb) && aa[k+1] == bb[k+1]) { k = k + 1 }
+    do.call(file.path, c(list("..")[rep(1,length(aa)-k)], as.list(bb[-(1:k)])))
+}
+
 # read in config file
 raw.config <- fromJSON(opt$configfile, 
                        simplifyMatrix = FALSE, 
                        simplifyDataFrame = FALSE)
 config.pointers <- config.dereference(raw.config, names(model@models))
 config <- treeify.config(read.config(opt$configfile))
+
+stopifnot(all(config$tree$tip.label == model@tree$tip.label))
+stopifnot(all(config$tree$node.label == model@tree$node.label))
+raw.config$tree <- write.tree(model@tree)
 
 for (k in seq_along(model@models)) {
     modelname <- names(model@models)[k]
@@ -48,9 +63,9 @@ for (k in seq_along(model@models)) {
     if (length(raw.config[[put_here]]$fixfn.params)>0) {
         raw.config[[put_here]]$fixfn.params <- model@models[[1]]@params
     }
-    stopifnot(all(config$tree$tip.label == model@tree$tip.label))
-    stopifnot(all(config$tree$node.label == model@tree$node.label))
-    raw.config$tree <- write.tree(model@tree)
+    # would be better to do this by relative paths
+    raw.config[[put_here]]$genmatrix <- file.path(relpath(opt$outfile, normalizePath(file.path(dirname(opt$configfile),dirname(raw.config[[put_here]]$genmatrix)))), basename(raw.config[[put_here]]$genmatrix))
+
 }
 
 cat(toJSON(raw.config, pretty=TRUE), file=opt$outfile)
