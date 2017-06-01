@@ -45,8 +45,9 @@ getresids () {
     LONGWIN=$1
     SHORTWIN=$2
     LEFTWIN=$3
+    MODEL=${4:-}
     for d in $DIRS; do for t in $TYPES; do 
-        for FITFILE in $d/$t/*/*-fit.RData;
+        for FITFILE in $d/$t/*/${MODEL}*-fit.RData;
         do
             OUTFILE=${FITFILE%.RData}-resids.${LONGWIN}.${SHORTWIN}.l${LEFTWIN}.tsv
             if ! [ -e $OUTFILE ]
@@ -220,7 +221,6 @@ fi; done; done)
 ../scripts/cluster/submit-8-jobs.sh models/fit_model.sh models/base-model-plus-cpg-and-CPD.json 4 2 1
 ../scripts/cluster/submit-8-jobs.sh models/fit_model.sh models/base-model-plus-cpg-and-CPD.json 6 3 2
 ../scripts/cluster/submit-8-jobs.sh models/fit_model.sh models/base-model-plus-cpg-and-CPD.json 7 3 2
-
 
 #################################
 ### collect results
