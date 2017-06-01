@@ -46,12 +46,13 @@ collapse () {
 
 echo "Building count files."
 for d in $DIRS; do for t in $TYPES; do 
-    if ! [ -e $d/$t/total.counts.gz ]
+    COUNTFILE=$d/$t/$TMER/total.counts.gz
+    if ! [ -e $COUNTFILE ]
     then
-        echo " ... $d/$t/total.counts.gz"
+        echo " ... $COUNTFILE"
         collapse $d/$t &  # in parallel
     else
-        echo " ... already exists: $d/$t/total.counts.gz"
+        echo " ... already exists: $COUNTFILE"
     fi
 done; done
 
