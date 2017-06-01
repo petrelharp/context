@@ -15,7 +15,7 @@ option_list <- list(
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
 if (is.null(opt$modelfile) || is.null(opt$configfile) || is.null(opt$outfile)) { stop("No input files.  Run\n  update-config.R -h\n for help.\n") }
-if (!file.exists(opt$modelfile)) { stop("Could not find model file.") }
+if (!file.exists(opt$modelfile)) { stop("Could not find model file `", opt$modelfile, "`.") }
 if (!file.exists(opt$configfile) ) { stop("Could not find config file `", opt$configfile, "`.") }
 
 library(contextual)
