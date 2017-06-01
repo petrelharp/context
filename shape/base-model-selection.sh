@@ -70,16 +70,19 @@ getresids () {
     done; done
 }
 
-# collapse down to 6-3-2
+# collapse down 
 collapse () {
     DIR=$1
+    LONGWIN=$2
+    SHORTWIN=$3
+    LEFTWIN=$4
     # note leftwin must match input counts here
     COLLAPSE=" library(contextual); f <- file.path(dir, \"9-5-2/total.counts.gz\"); g <- file.path(dirname(dirname(f)), \"6-3-2\", \"total.counts.gz\"); c <- read.counts(f, leftwin=2); d <- projectcounts(c, new.leftwin=2, new.shortwin=3, new.longwin=6); dir.create(dirname(g), recursive=TRUE, showWarnings=FALSE); write.counts(d, file=g); "
     Rscript -e "dir=\"$DIR\"" -e "$COLLAPSE"
 }
 
 for d in $DIRS; do for t in $TYPES; do 
-    collapse $d/$t
+    collapse $d/$t 6 3 2
 done; done
 
 # create genmatrix
