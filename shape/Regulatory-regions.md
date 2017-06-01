@@ -51,9 +51,11 @@ I have genmatrices for lengths 5, 7, 8, and 9, so,
 to count paired tuples in each .axt file:
 ```{#sh}
 COUNTSCRIPT="/home/peter/projects/context/tuple-counting/count-tuples.sh"
-for dir in RegulatoryFeature-regions-from-axt/noOverlap-knownGeneTx RegulatoryFeature-regions-from-axt/overlap-knownGeneTx;
+for dir in noOverlap-knownGeneTx overlap-knownGeneTx;
 do
     # leftwin+shortwin+rightwin
+    # 0+2+0 = 2
+    ( LW=2; SW=2; LT=0; RT=$(($LW - $SW - $LT)); OUTDIR=${dir}-${LW}-${SW}-${LT}; mkdir -p $OUTDIR; if [ ! -e $OUTDIR/count-tuples.log ]; then ${COUNTSCRIPT} $dir $OUTDIR $LW $LT $RT &> $OUTDIR/count-tuples.log; fi; ) &
     # 0+5+0 = 5
     ( LW=5; SW=5; LT=0; RT=$(($LW - $SW - $LT)); OUTDIR=${dir}-${LW}-${SW}-${LT}; mkdir -p $OUTDIR; if [ ! -e $OUTDIR/count-tuples.log ]; then ${COUNTSCRIPT} $dir $OUTDIR $LW $LT $RT &> $OUTDIR/count-tuples.log; fi; ) &
     # 1+5+1 = 7
