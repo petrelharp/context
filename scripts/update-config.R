@@ -53,4 +53,4 @@ for (k in seq_along(model@models)) {
     raw.config$tree <- write.tree(model@tree)
 }
 
-cat(toJSON(raw.config, pretty=TRUE), file=config$outfile)
+cat(toJSON(raw.config, pretty=TRUE), file=opt$outfile)
