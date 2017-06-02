@@ -44,5 +44,12 @@ jsondata <- jsondata[sapply(jsondata,length)>0]
 thenames <- unique(unlist(lapply(jsondata,names)))
 
 all.data <- do.call( rbind, lapply(jsondata, function (x) adf(x, thenames) ))
+all.data$file <- as.character(all.data$file)
+all.data$model <- gsub("-fit.json", "", basename(all.data$file))
+all.data$overlap <- grepl("overlap-knownGene", all.data$file)
+all.data$type <- basename(dirname(dirname(all.data$file)))
+all.data$fixed_branches <- (all.data[["fit:tlen.reference"]] == 0.001) & (all.data[["fit:tlen.derived"]] == 0.001)
+all.data$shared_params <- is.na(all.data[["fit:derived.A->T|T->A"]])
+all.data <- all.data[order(all.data$overlap, all.data$type, all.data$loglik),]
 
 write.table( all.data, row.names=FALSE, sep='\t', file=stdout() )

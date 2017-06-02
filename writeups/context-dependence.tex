@@ -20,6 +20,9 @@
 \newcommand{\nC}{\mbox{C}}
 \newcommand{\nG}{\mbox{G}}
 \newcommand{\nT}{\mbox{T}}
+\newcommand{\nW}{\mbox{W}}
+\newcommand{\nR}{\mbox{R}}
+\newcommand{\nY}{\mbox{Y}}
 \newcommand{\join}{\oplus}  % matches
 \newcommand{\st}{\colon}  % such that
 \newcommand{\var}{\mathop{\mbox{var}}}
@@ -681,6 +684,84 @@ but on larger trees it seems likely that we'd want to restrict to combinations w
 The algorithm for a general tree is written out in Appendix \ref{ss:peeling_algorithm}.
 
 
+%%%%%%%%%%%
+\subsection{Homonid data}
+
+We also applied the model to human--chimpanzee divergence data, 
+restricting the comparison to putative regulatory sequences,
+avoiding the additional constraints of coding sequences.
+To do this, we extracted regions in the human (hg38)--chimpanzee (panTro4) alignment \citep[from the UCSC Genome Browser][]{pantroalign}
+according to four types of regulatory feature in the Ensembl Regulatory Build \citep[release 81][]{ensebml}:
+``CTCF binding site'', ``enhancer'', ``open chromatin region'', and ``promoter flanking region''.
+These were furthermore divided into regions that either did or did not overlap a transcription start or end site of a known gene
+from the hg38 Annotations Database \citep{hg_annotationsdb}.
+We then counted Tmers of appropriate length in each of the eight resulting sets of aligned regions, omitting any Tmers that included gaps or repeat-masked positions,
+and fit models separately to each of the eight data sets.
+
+We constructed models from three, nested, sets of mutation motifs.
+All models are strand-symmetric.
+\begin{itemize}
+    \item[(basic)] 
+        Single-base changes, with separate rates for transitions ($\mu_v$),
+        \nA$\leftrightarrow$\nT ($\mu_{A}T$), \nC$\leftrightarrow$\nG ($\mu_{CG}$),
+        and other transversions ($\mu_{r}$):
+          \begin{center}
+            \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }c|c@{\quad$\to$\quad}c@{\quad at rate\quad }c|c@{\quad$\to$\quad}c@{\quad at rate\quad }c}
+                \nT  &   \nA   &  $\mu_{AT}$ & \nA  &   \nG   &  $\mu_{r}$ & \nA  &   \nG   &  $\mu_{v}$ \\
+                \nA  &   \nT   &  $\mu_{AT}$ & \nG  &   \nA   &  $\mu_{r}$ & \nG  &   \nA   &  $\mu_{v}$ \\
+                \nC  &   \nG   &  $\mu_{CG}$ & \nC  &   \nT   &  $\mu_{r}$ & \nT  &   \nC   &  $\mu_{v}$ \\
+                \nG  &   \nC   &  $\mu_{CG}$ & \nT  &   \nC   &  $\mu_{r}$ & \nC  &   \nT   &  $\mu_{v}$ \\
+            \end{tabular}
+          \end{center}
+
+      \item[(CpG)] In addition to the above, an addition CpG rate:
+          \begin{center}
+            \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }c}
+                CG  &   TG   &  $\nu_{CpG}$ \\
+                CG  &   CA   &  $\nu_{CpG}$ \\
+            \end{tabular}
+          \end{center}
+
+      \item[(repair)] In addition to the above, a collection of motifs associated with known biochemical causes
+          curated from the literature:
+          deamination due to repair of UV-induced pyramidine dimers ((\nT/\nC)\nC $\to$ (\nT/\nC)\nT and \nC\nC$\to$\nT\nT, \citet{uv_damage});
+          an interaction between CpG and pyramidine dimers (\nT\nC\nG$\to$\nT\nT\nG and \nC\nC\nG$\to$\nC\nT\nG, \citet{cpg_review});
+          repair of guanine adducts at CpG sites (\nC\nG$\to$\nC\nT, \citet{tobacco});
+          deamination by AID (\nW\nR\nC\nY$\to$\nW\nR\nT\nY, \nW is \nA or \nT; \nR is \nA or \nG; \nY is \nT or \nC, \citet{AID});
+          deamination by members of the APOBEC family (\nT\nC\nW$\to$\nT\nT\nW or \nT\nC\nW$\to$\nT\nG\nW, \citet{APOBEC});
+          and repair by error-prone polymerases pol $\eta$ (\nW\nA$\to$\nW\nG, \citet{pol_eta});
+          and pol $\iota$ (\nA\nA$\to$\nG\nT and \nA\nA$\to$\nA\nG \citet{pol_iota}):
+          \begin{center}
+            \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }c|c@{\quad$\to$\quad}c@{\quad at rate\quad }c|c@{\quad$\to$\quad}c@{\quad at rate\quad }c}
+                \nT\nC     &   \nT\nT      &  $\mu_{UV1}$ & \nA  &   \nG   &  $\mu_{r}$ & \nA  &   \nG   &  $\mu_{v}$ \\
+                \nG\nA     &   \nA\nA      &  $\mu_{UV1}$ & \nA  &   \nG   &  $\mu_{r}$ & \nA  &   \nG   &  $\mu_{v}$ \\
+                \nC\nC     &   \nC\nT      &  $\mu_{UV2}$ & \nA  &   \nG   &  $\mu_{r}$ & \nA  &   \nG   &  $\mu_{v}$ \\
+                \nG\nG     &   \nA\nG      &  $\mu_{UV2}$ & \nA  &   \nG   &  $\mu_{r}$ & \nA  &   \nG   &  $\mu_{v}$ \\
+                \nC\nC     &   \nT\nT      &  $\mu_{UV3}$ & \nA  &   \nG   &  $\mu_{r}$ & \nA  &   \nG   &  $\mu_{v}$ \\
+                \nG\nG     &   \nA\nA      &  $\mu_{UV3}$ & \nA  &   \nG   &  $\mu_{r}$ & \nA  &   \nG   &  $\mu_{v}$ \\
+                \nT\nC\nG  &   \nT\nT\nG   &  $\mu_{mUV}$ & \nA  &   \nG   &  $\mu_{r}$ & \nA  &   \nG   &  $\mu_{v}$ \\
+                \nC\nC\nG  &   \nC\nT\nG   &  $\mu_{mUV}$ & \nA  &   \nG   &  $\mu_{r}$ & \nA  &   \nG   &  $\mu_{v}$ \\
+                \nC\nG\nA  &   \nC\nA\nA   &  $\mu_{mUV}$ & \nA  &   \nG   &  $\mu_{r}$ & \nA  &   \nG   &  $\mu_{v}$ \\
+                \nC\nG\nG  &   \nC\nA\nG   &  $\mu_{mUV}$ & \nA  &   \nG   &  $\mu_{r}$ & \nA  &   \nG   &  $\mu_{v}$ \\
+            \end{tabular}
+          \end{center}
+
+% [ [ "TC", "TT" ], [ "GA", "AA" ] ], UV1
+% [ [ "CC", "CT" ], [ "GG", "AG" ] ], UV2
+% [ [ "CC", "TT" ], [ "GG", "AA" ] ], UV3
+% [ [ "TCG", "TTG" ], [ "CCG", "CTG" ], [ "CGA", "CAA" ], [ "CGG", "CAG" ] ], mUV
+% [ [ "CG", "CT" ], [ "CG", "AG" ] ],
+% [ [ "AACT", "AATT" ], [ "AACC", "AATC" ], [ "AGCT", "AGTT" ], [ "AGCC", "AGTC" ], [ "TACT", "TATT" ], [ "TACC", "TATC" ], [ "TGCT", "TGTT" ], [ "TGCC", "TGTC" ],
+%   [ "AGTT", "AATT" ], [ "GGTT", "GATT" ], [ "AGCT", "AACT" ], [ "GGCT", "GACT" ], [ "AGTA", "AATA" ], [ "GGTA", "GATA" ], [ "AGCA", "AACA" ], [ "GGCA", "GACA" ] ],
+% [ [ "TCA", "TTA" ], [ "TCT", "TTT" ], [ "TCA", "TGA" ], [ "TCT", "TGT" ],
+%   [ "TGA", "TAA" ], [ "AGA", "AAA" ], [ "TGA", "TCA" ], [ "AGA", "ACA" ] ],
+% [ [ "TA", "TG" ], [ "TA", "CA" ] ],
+% [ [ "AA", "GT" ], [ "TT", "AC" ] ],
+% [ [ "AA", "AG" ], [ "CT", "TT" ] ]
+
+\end{itemize}
+
+
 %%%%%%%
 \section{Results}
 
@@ -905,6 +986,12 @@ but $(6,2,2)$ T-mers were long enough with sufficient overhang to produce well-c
         Shown are relative intervals, obtained by dividing by the true value.
         \label{fig:ising_coverage}}
 \end{figure}
+
+
+%%%%%%%%%%%
+\subsection{Hominid mutation spectrum}
+
+We also applied the method to changes between the human and chimpanzee reference sequences.
 
 
 
