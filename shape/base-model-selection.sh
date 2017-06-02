@@ -245,6 +245,12 @@ paste <(cat model-selection-results.tsv | cut -f 1 | sed -e 's_.*/__') <( cat mo
 showresids () {
     LONGWIN=$1; SHORTWIN=$2; LEFTWIN=$3; MODEL=$4; NPATS=${5:-1}
     # look at all the top resids:
-    ( for x in RegulatoryFeature-regions-from-axt/**/$MODEL*resids.${LONGWIN}.${SHORTWIN}.l${LEFTWIN}.tsv; do y=$(basename $x | sed -e 's/-resids.*//'); z=$(head -n $((NPATS+1)) $x | tail -n +2); echo $y $z; done;
-    for x in RegulatoryFeature-regions-from-axt/**/$MODEL*resids.${LONGWIN}.${SHORTWIN}.l${LEFTWIN}.tsv; do y=$(basename $x | sed -e 's/-resids.*//'); z=$(tail -n $NPATS $x); echo $y $z; done) | column -t
+    ( for x in RegulatoryFeature-regions-from-axt/**/$MODEL-fit-resids.${LONGWIN}.${SHORTWIN}.l${LEFTWIN}.tsv; do y=$(basename $x | sed -e 's/-resids.*//'); z=$(head -n $((NPATS+1)) $x | tail -n +2); echo $y $z; done;
+    for x in RegulatoryFeature-regions-from-axt/**/$MODEL-fit-resids.${LONGWIN}.${SHORTWIN}.l${LEFTWIN}.tsv; do y=$(basename $x | sed -e 's/-resids.*//'); z=$(tail -n $NPATS $x); echo $y $z; done) | column -t
 }
+
+## Visualization:
+# happens in view_model_results.R --
+# -- conclusion: consistent across runs; 
+# variation between regulatory types mostly smaller than variation due to model choice
+# except maybe for CpG
