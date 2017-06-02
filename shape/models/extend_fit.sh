@@ -30,19 +30,24 @@ for d in $DIRS; do for t in $TYPES; do
     THIS_MODELFILE=$d/$t/${MODELNAME}.json
     TMER_MODELFILE=$d/$t/$TMER/${MODELNAME}.json
     echo "Updating $THIS_MODELFILE to $TMER_MODELFILE from $FITFILE"
-    ../scripts/update-config.R -m $FITFILE -c $THIS_MODELFILE -o $TMER_MODELFILE
+    if [ -e $FITFILE -a -e $THIS_MODELFILE ]
+    then
+        ../scripts/update-config.R -m $FITFILE -c $THIS_MODELFILE -o $TMER_MODELFILE
 
-    OLD_FITFILE=$d/$t/$TMER/${MODELNAME}-fit_${DATE}.RData
-    echo "Moving $FITFILE to $OLD_FITFILE"
-    mv $FITFILE $OLD_FITFILE
+        OLD_FITFILE=$d/$t/$TMER/${MODELNAME}-fit_${DATE}.RData
+        echo "Moving $FITFILE to $OLD_FITFILE"
+        cp -p $FITFILE $OLD_FITFILE
 
-    ( echo "Fitting!";
-      ../scripts/fit-tree-model.R -i $d/$t/$TMER/total.counts.gz -c $TMER_MODELFILE -o $FITFILE -x $MAXIT
-      ../scripts/gather-results.R --json -f $FITFILE > ${FITFILE%RData}json
-      ../scripts/compute-resids.R -i $FITFILE -o ${FITFILE%.RData}-resids.2.1.l1.tsv -w 2 -s 1 -l 1 --pretty 
-      ../scripts/compute-resids.R -i $FITFILE -o ${FITFILE%.RData}-resids.2.1.l0.tsv -w 2 -s 1 -l 0 --pretty 
-      ../scripts/compute-resids.R -i $FITFILE -o ${FITFILE%.RData}-resids.3.1.l1.tsv -w 3 -s 1 -l 1 --pretty 
-    echo $FITFILE ) &
+        ( echo "Fitting!";
+          ../scripts/fit-tree-model.R -i $d/$t/$TMER/total.counts.gz -c $TMER_MODELFILE -o $FITFILE -x $MAXIT
+          ../scripts/gather-results.R --json -f $FITFILE > ${FITFILE%RData}json
+          ../scripts/compute-resids.R -i $FITFILE -o ${FITFILE%.RData}-resids.2.1.l1.tsv -w 2 -s 1 -l 1 --pretty 
+          ../scripts/compute-resids.R -i $FITFILE -o ${FITFILE%.RData}-resids.2.1.l0.tsv -w 2 -s 1 -l 0 --pretty 
+          ../scripts/compute-resids.R -i $FITFILE -o ${FITFILE%.RData}-resids.3.1.l1.tsv -w 3 -s 1 -l 1 --pretty 
+        echo $FITFILE ) &
+    else
+        echo "Can't find files $FITFILE or $THIS_MODELFILE"
+    fi
 done; done
 wait
 
