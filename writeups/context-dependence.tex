@@ -104,8 +104,22 @@ and other processes such as biased gene conversion \citep{duret2009biased}.
 Indeed, molecular studies have demonstrated that the spectrum of new mutations in humans
 is highly context dependent \citep{schaibley2013influence}
 and that multinucleotide substitutions are relatively common \citep{schrider2011pervasive,terekhanova2013prevalence,harris2013errorprone}.
+In humans, the molecular processes underlying mutations are best studied in contexts of intense somatic mutation:
+cancer and the hypervariable regions that generate immune system diversity \citep{evolution_within},
+which provide quite different cellular contexts but share commonalities due to shared molecular machinery.
+In general, substitution rates depend on sequence context due to the interaction of a great many factors including:
+(a) likelihood of DNA damage or errors in cell division (e.g., UV damage \citep{UV} or non-homologous end joining \citep{NHEJ});
+(b) activity levels and structural properties of the enzymes responsible for repair (e.g., base excision repar \citep{BER} and Y-family polymerases \citep{polymerase_review});
+and (c) any functional effects of an error (e.g., lethal mutations will not be seen in a population census).
 (We are concerned with effects that are \emph{homogeneous} across the sequence,
 so do not consider further the many constraints on protein-coding sequence \citep[reviewed in][]{thorne2007protein}.)
+Some of these effects -- particularly, activity levels of different enzymes in the germline --
+will likely vary over evolutionary time,
+and so comparisons between widely separated species will identify time-averaged mutation rates.
+Recent studies have used nonnegative matrix factorization to identify sets of mutational patterns
+co-occurring in comparisons (a) between different cancer types \citep{cancer_scan} and (b) between different human populations \citep{harris,matthieson},
+to disentangle distinct signals presumably coming from the action of distinct sources of mutation.
+
 
 However, phylogenetic and population genetic methods usually ignore such dependencies
 in the interest of computational efficiency and lack of understanding of the underlying process,
@@ -685,7 +699,7 @@ The algorithm for a general tree is written out in Appendix \ref{ss:peeling_algo
 
 
 %%%%%%%%%%%
-\subsection{Homonid data}
+\subsection{Hominid data}
 
 We also applied the model to human--chimpanzee divergence data, 
 restricting the comparison to putative regulatory sequences,
@@ -724,25 +738,31 @@ All models are strand-symmetric.
 
       \item[(repair)] In addition to the above, a collection of motifs associated with known biochemical causes
           curated from the literature:
-          deamination due to repair of UV-induced pyramidine dimers ((\nT/\nC)\nC $\to$ (\nT/\nC)\nT and \nC\nC$\to$\nT\nT, \citet{uv_damage});
-          an interaction between CpG and pyramidine dimers (\nT\nC\nG$\to$\nT\nT\nG and \nC\nC\nG$\to$\nC\nT\nG, \citet{cpg_review});
-          repair of guanine adducts at CpG sites (\nC\nG$\to$\nC\nT, \citet{tobacco});
-          deamination by AID (\nW\nR\nC\nY$\to$\nW\nR\nT\nY, \nW is \nA or \nT; \nR is \nA or \nG; \nY is \nT or \nC, \citet{AID});
-          deamination by members of the APOBEC family (\nT\nC\nW$\to$\nT\nT\nW or \nT\nC\nW$\to$\nT\nG\nW, \citet{APOBEC});
-          and repair by error-prone polymerases pol $\eta$ (\nW\nA$\to$\nW\nG, \citet{pol_eta});
-          and pol $\iota$ (\nA\nA$\to$\nG\nT and \nA\nA$\to$\nA\nG \citet{pol_iota}):
+          deamination due to repair of UV-induced pyramidine dimers ($\mu_{UV}$: (\nT/\nC)\nC $\to$ (\nT/\nC)\nT and \nC\nC$\to$\nT\nT, \citet{uv_damage});
+          an interaction between CpG and pyramidine dimers ($\mu_{mUV}$: \nT\nC\nG$\to$\nT\nT\nG and \nC\nC\nG$\to$\nC\nT\nG, \citet{cpg_review});
+          repair of guanine adducts at CpG sites ($\mu_g$: \nC\nG$\to$\nC\nT, \citet{tobacco});
+          deamination by AID ($\mu_{AID}$: \nW\nR\nC\nY$\to$\nW\nR\nT\nY, \nW is \nA or \nT; \nR is \nA or \nG; \nY is \nT or \nC, \citet{AID});
+          deamination by members of the APOBEC family ($\mu_{APOBEC}$: \nT\nC\nW$\to$\nT\nT\nW or \nT\nC\nW$\to$\nT\nG\nW, \citet{APOBEC});
+          and repair by error-prone polymerases pol $\eta$ ($\mu_\eta$: \nT\nA$\to$\nT\nG, \citet{pol_eta});
+          and pol $\iota$ ($\mu_{\iota}$: \nA\nA$\to$\nG\nT and \nA\nA$\to$\nA\nG \citet{pol_iota}):
           \begin{center}
             \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }c|c@{\quad$\to$\quad}c@{\quad at rate\quad }c|c@{\quad$\to$\quad}c@{\quad at rate\quad }c}
-                \nT\nC     &   \nT\nT      &  $\mu_{UV1}$ & \nA  &   \nG   &  $\mu_{r}$ & \nA  &   \nG   &  $\mu_{v}$ \\
-                \nG\nA     &   \nA\nA      &  $\mu_{UV1}$ & \nA  &   \nG   &  $\mu_{r}$ & \nA  &   \nG   &  $\mu_{v}$ \\
-                \nC\nC     &   \nC\nT      &  $\mu_{UV2}$ & \nA  &   \nG   &  $\mu_{r}$ & \nA  &   \nG   &  $\mu_{v}$ \\
-                \nG\nG     &   \nA\nG      &  $\mu_{UV2}$ & \nA  &   \nG   &  $\mu_{r}$ & \nA  &   \nG   &  $\mu_{v}$ \\
-                \nC\nC     &   \nT\nT      &  $\mu_{UV3}$ & \nA  &   \nG   &  $\mu_{r}$ & \nA  &   \nG   &  $\mu_{v}$ \\
-                \nG\nG     &   \nA\nA      &  $\mu_{UV3}$ & \nA  &   \nG   &  $\mu_{r}$ & \nA  &   \nG   &  $\mu_{v}$ \\
-                \nT\nC\nG  &   \nT\nT\nG   &  $\mu_{mUV}$ & \nA  &   \nG   &  $\mu_{r}$ & \nA  &   \nG   &  $\mu_{v}$ \\
-                \nC\nC\nG  &   \nC\nT\nG   &  $\mu_{mUV}$ & \nA  &   \nG   &  $\mu_{r}$ & \nA  &   \nG   &  $\mu_{v}$ \\
-                \nC\nG\nA  &   \nC\nA\nA   &  $\mu_{mUV}$ & \nA  &   \nG   &  $\mu_{r}$ & \nA  &   \nG   &  $\mu_{v}$ \\
-                \nC\nG\nG  &   \nC\nA\nG   &  $\mu_{mUV}$ & \nA  &   \nG   &  $\mu_{r}$ & \nA  &   \nG   &  $\mu_{v}$ \\
+                \nT\nC     &   \nT\nT      &  $\mu_{UV1}$    & \nC\nG     &   \nC\nT      &  $\mu_{g}$      & \nA\nA\nC\nT  &   \nA\nA\nT\nT   &  $\mu_{AID}$ \\
+                \nG\nA     &   \nA\nA      &  $\mu_{UV1}$    & \nC\nG     &   \nA\nG      &  $\mu_{g}$      & \nA\nA\nC\nC  &   \nA\nA\nT\nC   &  $\mu_{AID}$ \\
+                \nC\nC     &   \nC\nT      &  $\mu_{UV2}$    & \nT\nC\nA  &   \nT\nT\nA   &  $\mu_{APOBEC}$ & \nA\nG\nC\nT  &   \nA\nG\nT\nT   &  $\mu_{AID}$ \\
+                \nG\nG     &   \nA\nG      &  $\mu_{UV2}$    & \nT\nC\nT  &   \nT\nT\nT   &  $\mu_{APOBEC}$ & \nA\nG\nC\nC  &   \nA\nG\nT\nC   &  $\mu_{AID}$ \\
+                \nC\nC     &   \nT\nT      &  $\mu_{UV3}$    & \nT\nC\nA  &   \nT\nG\nA   &  $\mu_{APOBEC}$ & \nA\nA\nC\nT  &   \nA\nA\nT\nT   &  $\mu_{AID}$ \\
+                \nG\nG     &   \nA\nA      &  $\mu_{UV3}$    & \nT\nC\nT  &   \nT\nG\nT   &  $\mu_{APOBEC}$ & \nA\nA\nC\nC  &   \nA\nA\nT\nC   &  $\mu_{AID}$ \\
+                \nT\nC\nG  &   \nT\nT\nG   &  $\mu_{mUV}$    & \nT\nG\nA  &   \nT\nA\nA   &  $\mu_{APOBEC}$ & \nA\nG\nC\nT  &   \nA\nG\nT\nT   &  $\mu_{AID}$ \\
+                \nC\nC\nG  &   \nC\nT\nG   &  $\mu_{mUV}$    & \nA\nG\nA  &   \nA\nA\nA   &  $\mu_{APOBEC}$ & \nA\nG\nC\nC  &   \nA\nG\nT\nC   &  $\mu_{AID}$ \\
+                \nC\nG\nA  &   \nC\nA\nA   &  $\mu_{mUV}$    & \nT\nG\nA  &   \nT\nC\nA   &  $\mu_{APOBEC}$ & \nT\nA\nC\nT  &   \nT\nA\nT\nT   &  $\mu_{AID}$ \\
+                \nC\nG\nG  &   \nC\nA\nG   &  $\mu_{mUV}$    & \nA\nC\nA  &   \nA\nC\nA   &  $\mu_{APOBEC}$ & \nT\nA\nC\nC  &   \nT\nA\nT\nC   &  $\mu_{AID}$ \\
+                \nT\nA     &   \nT\nG      &  $\mu_{\eta}$   & \nA\nA    &    \nA\nG      &  $\mu_{\iota1}$ & \nT\nG\nC\nT  &   \nT\nG\nT\nT   &  $\mu_{AID}$ \\
+                \nT\nA     &   \nC\nA      &  $\mu_{\eta}$   & \nT\nT    &    \nC\nT      &  $\mu_{\iota1}$ & \nT\nG\nC\nC  &   \nT\nG\nT\nC   &  $\mu_{AID}$ \\
+                \nA\nA     &   \nG\nT      &  $\mu_{\iota2}$ &           &                &                 & \nT\nA\nC\nT  &   \nT\nA\nT\nT   &  $\mu_{AID}$ \\
+                \nT\nT     &   \nA\nC      &  $\mu_{\iota2}$ &           &                &                 & \nT\nA\nC\nC  &   \nT\nA\nT\nC   &  $\mu_{AID}$ \\
+                           &               &                 &           &                &                 & \nT\nG\nC\nT  &   \nT\nG\nT\nT   &  $\mu_{AID}$ \\
+                           &               &                 &           &                &                 & \nT\nG\nC\nC  &   \nT\nG\nT\nC   &  $\mu_{AID}$ \\
             \end{tabular}
           \end{center}
 
@@ -1080,6 +1100,14 @@ otherwise, initial investigations suggest the likelihood surface is often strong
 for instance, increasing the abundance of \nG nucleotides at the root while also increasing the mutation rate away from \nG
 can achieve roughly the same result.
 However, in phylogenetic applications outgroups can be used to constrain these quantities.
+
+In the genomic context,
+if we knew the specific mutational spectrum of each possible repair or copying pathways,
+then this framework could be used to rigorously estimate their average usages and impacts.
+Despite substantial progress over the past 15 years \citep{polymerase_reviews},
+this is still far from known.
+A promising alternative would be to use the distinct signatures obtained by dimension reduction techniques as in
+\citet{cancer_scan}, \citep{matthieson} or \citep{pritchard} as a proxy for unknown but distinct pathways.
 
 
 \subsection{Acknowledgements}

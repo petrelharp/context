@@ -130,7 +130,7 @@ peel.setup.0 <- peel.transmat( tree=config$tree, rowtaxon=rowtaxon(counts), colt
 counts <- reorder.counts( counts, nodenames(config$tree)[peel.setup$col.order[[peel.setup$row.node]]] )
 counts.0 <- reorder.counts( counts.0, nodenames(config$tree)[peel.setup.0$col.order[[peel.setup.0$row.node]]] )
 
-# Compute (quasi)-likelihood function using all counts -- multinomial as described in eqn:comp_like.
+# Compute likelihood function using all counts
 likfun <- function (sub.params){
     params[use.par] <- sub.params
     # params are: initfreqs, tlens, ( mutrates, selcoef, fixparams ) x genmatrices

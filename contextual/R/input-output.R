@@ -144,7 +144,7 @@ read.config <- function (configfile,quiet=FALSE,json) {
     return(config)
 }
 
-#' Check a configuration has obvious errors.
+#' Check for obvious errors in a configuration.
 #'
 #' @param config A configuration.
 #'
