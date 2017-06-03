@@ -2,7 +2,7 @@
 % Please edit documentation in R/input-output.R
 \name{check.config}
 \alias{check.config}
-\title{Check a configuration has obvious errors.}
+\title{Check for obvious errors in a configuration.}
 \usage{
 check.config(config)
 }
@@ -13,5 +13,5 @@ check.config(config)
 TRUE or FALSE
 }
 \description{
-Check a configuration has obvious errors.
+Check for obvious errors in a configuration.
 }

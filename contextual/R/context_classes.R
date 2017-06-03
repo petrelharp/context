@@ -234,7 +234,7 @@ setMethod("coef", signature=c(object="contextModel"), definition=function (objec
 setMethod("coef", signature=c(object="contextTree"), definition=function (object) { 
             tlens <- object@tree$edge.length
             names(tlens) <- paste("tlen",edge.labels(object@tree),sep='.')
-            c( tlens, do.call( c, lapply( object@models, coef ) ) ) 
+            c( object@initfreqs, tlens, do.call( c, lapply( object@models, coef ) ) ) 
         } )
 #' @rdname tuplecounts-methods
 #' @aliases rowSums,tuplecounts-method
