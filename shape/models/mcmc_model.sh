@@ -12,9 +12,7 @@ MODELFILE=$1
 LONGWIN=$2
 SHORTWIN=$3
 LEFTWIN=$4
-
-NBATCH=1000
-# NBATCH=40000
+NBATCH=$5
 
 DIRS="RegulatoryFeature-regions-from-axt/noOverlap-knownGeneTx RegulatoryFeature-regions-from-axt/overlap-knownGeneTx"
 TYPES="CTCF_binding_site  enhancer  open_chromatin_region  promoter_flanking_region"
@@ -23,6 +21,19 @@ TYPES="CTCF_binding_site  enhancer  open_chromatin_region  promoter_flanking_reg
 MODELNAME=$(basename ${MODELFILE%.json})
 
 TMER="${LONGWIN}-${SHORTWIN}-${LEFTWIN}"
+
+echo "Copying over models $MODELFILE to subdirectories..."
+for d in $DIRS; do for t in $TYPES; do 
+    echo "... $d/$t/$MODELFILE"
+    CG=$(grep "$(basename $d)/$t" RegulatoryFeature-regions-from-axt/initfreqs.txt | cut -f 2 -d ' ')
+    # JSON needs leading 0.'s ...
+    A=0$(bc -l <<< "scale=4; (1-$CG)/2.0")
+    C=0$(bc -l <<< "scale=4; $CG/2.0")
+    G=0$(bc -l <<< "scale=4; $CG/2.0")
+    T=0$(bc -l <<< "scale=4; (1-$CG)/2.0")
+    cat $MODELFILE | sed -e 's_genmatrices_../../../genmatrices_' | sed -e "s/0.25, 0.25, 0.25, 0.25/$A, $C, $G, $T/" > $d/$t/${MODELNAME}.json; 
+done; done
+
 
 for d in $DIRS; do for t in $TYPES; do 
 

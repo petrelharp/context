@@ -19,7 +19,6 @@ option_list <- list(
         make_option( c("-o","--outfile"), type="character", help="File to save results to.  [default: base of infile + 'mcmc' + jobid + .RData]"),
         make_option( c("-u","--basedir"), type="character", default=NULL, help="Directory to put output in. [default: same as infile]"),
         make_option( c("-c","--configfile"), type="character", help="JSON config file giving prior parameters."),
-        make_option( c("-t","--tlen"), type="numeric", default=1, help="Guess at time quantity to scale initial values of mutation parameters by. [default=%default]"),
         make_option( c("-s","--scalefac"), type="numeric", default=.05, help="Multiply the scale factors in the config file by this much for the MCMC steps. [default=%default]"),
         make_option( c("-b","--nbatches"), type="integer", default=100, help="Number of MCMC batches to run for (results will be means of each batch). [default=%default]"),
         make_option( c("-l","--blen"), type="integer", default=1, help="Length of each MCMC batch. [default=%default]"),
@@ -63,9 +62,9 @@ for (model_name in names(model@models)) {
     if (! (model_name %in% names(prior.config))) {
         stop(model_name, "not in config.")
     }
-    if (length(prior.config[[model_name]]$mutrates) != length(model@models[[model_name]]$mutrates) 
-            || length(prior.config[[model_name]]$selcoef) != length(model@models[[model_name]]$selcoef) 
-            || length(prior.config[[model_name]]$fixfn.params) != length(model@models[[model_name]]$params) ) {
+    if (length(prior.config[[model_name]]$mutrates) != length(model@models[[model_name]]@mutrates) 
+            || length(prior.config[[model_name]]$selcoef) != length(model@models[[model_name]]@selcoef) 
+            || length(prior.config[[model_name]]$fixfn.params) != length(model@models[[model_name]]@params) ) {
         stop(sprintf("Configuration in %s does not match that in already-fit model of %s .", opt$configfile, opt$infile))
     }
 }
@@ -231,4 +230,6 @@ model@invocation <- invocation
 
 
 save(model, file=opt$outfile)
+
+cat(sprintf("Done! Output to %s", opt$outfile))
 

@@ -62,7 +62,20 @@ if (class(model)=="context" || class(model)=="contextMCMC") {
                 } ) ) )
         # mr_compare$simulated <- sim.params
     }
-    quantiles <- NULL
+    # add on posterior quantiles
+    if (!is.null(model@results$batch)) {
+        quantiles <- lapply( c("q2.5%"=0.025, "q25%"=0.25, "q50%"=0.5, "q75%"=0.75, "q97.5%"=0.975), 
+            function (q) {
+                out <- rep(NA, length(coef(model)))
+                for (k in 1:sum(model@results$use.par)) {
+                    j <- which(model@results$use.par)[k]
+                    out[j] <- quantile(model@results$batch[,k],q)
+                }
+                return(out)
+            } )
+    } else {
+        quantiles <- NULL
+    }
 } else { 
     stop(paste("unrecognized object:", class(model))) 
 }
