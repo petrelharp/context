@@ -64,23 +64,6 @@ setClass("contextTree", representation(
                    )
          )
 
-#' The results of a contextual MCMC on a tree
-#'
-#' @name contextTreeMCMC-class
-#' @rdname contextTreeMCMC-class
-#' @exportClass contextTreeMCMC
-setClass("contextTreeMCMC", 
-        representation(
-                       mutrates.prior.mean="numeric",
-                       mutrates.prior.sd="numeric",
-                       selcoef.prior.mean="numeric",
-                       selcoef.prior.sd="numeric",
-                       fixfn.params.prior.mean="numeric"
-                       fixfn.params.prior.sd="numeric"
-                   ),
-             contains="contextTree"
-         )
-
 #' @rdname context-methods
 #' @aliases dimnames,context-method
 #' @export dimnames
