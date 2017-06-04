@@ -22,42 +22,7 @@ all.info$cex <- all.results$longwin/4
 all.info$pch <- 1 + all.info$overlap
 all.info$model.color <- rainbow(nlevels(all.info$model))[as.numeric(all.info$model)]
 
-mutrate.names <- c(
-        "A<->T" = "A->T|T->A",
-        "A<->C" = "A->C|T->G|C->A|G->T",
-        "A<->G" = "A->G|T->C|C->T|G->A",
-        "C<->G" = "C->G|G->C",
-        "A->C" = "A->C|T->G",
-        "A->G" = "A->G|T->C",
-        "C->A" = "C->A|G->T",
-        "C->T" = "C->T|G->A",
-        "CpG" = "CG->CA|CG->TG",
-        "CpG+UV" = "TCG->TTG|CCG->CTG|CGA->CAA|CGG->CAG",
-        "AID short" = "AC->AT|GC->GT|GT->AT|GC->AC",
-        "AID WRCY" = "AACT->AATT|AACC->AATC|AGCT->AGTT|AGCC->AGTC|TACT->TATT|TACC->TATC|TGCT->TGTT|TGCC->TGTC|AGTT->AATT|GGTT->GATT|AGCT->AACT|GGCT->GACT|AGTA->AATA|GGTA->GATA|AGCA->AACA|GGCA->GACA",
-        "APOBEC" = "TCA->TTA|TCT->TTT|TCA->TGA|TCT->TGT|TGA->TAA|AGA->AAA|TGA->TCA|AGA->ACA",
-        "iota double" = "AA->GT|TT->AC",
-        "iota single" = "AA->AG|CT->TT",
-        "eta" = "TA->TG|TA->CA",
-        "CG->CT" = "CG->CT|CG->AG",
-        "CG->TG" = "CG->TG|CG->CA",
-        "AA->TT" = "AA->TT|TT->AA",
-        "GT->AT" = "GT->AT|AC->AT",
-        "TC->TT" = "TC->TT|GA->AA",
-        "CC->CT" = "CC->CT|GG->AG",
-        "CC->TT" = "CC->TT|GG->AA",
-        "TT->TX" = "TT->TA|AA->TA|TT->TC|AA->GA|TT->TG|AA->CA|TT->AT|AA->AT|TT->CT|AA->AG|TT->GT|AA->AC",
-        "CC->CX" = "CC->CA|GG->TG|CC->CT|GG->AG|CC->CG|GG->CG|CC->AC|GG->GT|CC->TC|GG->GA|CC->GC|GG->GC",
-        "CT->CX" = "CT->CA|AG->TG|CT->CC|AG->GG|CT->CG|AG->CG|TC->AC|GA->GT|TC->CC|GA->GG|TC->GC|GA->GC",
-        "TT->XX" = "TT->AA|AA->TT|TT->AC|AA->GT|TT->AG|AA->CT|TT->CA|AA->TG|TT->CC|AA->GG|TT->CG|AA->CG|TT->GA|AA->TC|TT->GC|AA->GC|TT->GG|AA->CC",
-        "CC->XX" = "CC->AA|GG->TT|CC->AT|GG->AT|CC->AG|GG->CT|CC->TA|GG->TA|CC->TT|GG->AA|CC->TG|GG->CA|CC->GA|GG->TC|CC->GT|GG->AC|CC->GG|GG->CC",
-        "CT->XX" = "CT->AA|AG->TT|CT->AC|AG->GT|CT->AG|AG->CT|CT->TA|AG->TA|CT->TC|AG->GA|CT->TG|AG->CA|CT->GA|AG->TC|CT->GC|AG->GC|CT->GG|AG->CC",
-        "TC->XX" = "TC->AA|GA->TT|TC->AT|GA->AT|TC->AG|GA->CT|TC->CA|GA->TG|TC->CT|GA->AG|TC->CG|GA->CG|TC->GA|GA->TC|TC->GT|GA->AC|TC->GG|GA->CC",
-        "CT->CC" = "CG->CC|CG->GG",
-        "TCC->TTC" = "TCC->TTC|AGG->AAG",
-        "AT->GT" = "AT->GT",
-        "GG->AG" = "GG->AG"
-        )
+source("models/mutrate_names.R")
 
 mutrate.cols <- grepl("->", names(all.results))
 mutrates.branch <- all.results[,mutrate.cols]
@@ -67,7 +32,7 @@ mutrates.info$reference <- grepl("^reference", mutrates.info$param)
 mutrates.info$mutpat <- gsub("[^.]*\\.", "", mutrates.info$param)
 mutrates.info$name <- factor(names(mutrate.names)[match(mutrates.info$mutpat, mutrate.names)], levels=names(mutrate.names))
 
-lapply(mutrate.names, function (x) { match(paste0("fit:", c("reference", "derived"), ".", x), names(all.results)) } )
+# lapply(mutrate.names, function (x) { match(paste0("fit:", c("reference", "derived"), ".", x), names(all.results)) } )
 
 mutrates <- do.call(cbind, lapply(mutrate.names, function (x) {
         mcols <- intersect(paste0("fit:", c("reference", "derived"), ".", x), names(all.results))
@@ -82,7 +47,7 @@ mutrates <- do.call(cbind, lapply(mutrate.names, function (x) {
 
 # call out those without single-base rates
 singlerates <- unique(unlist(list(c("A<->T","C<->G", "A->C", "A->G", "C->A", "C->T"), c("A<->T", "A<->C", "A<->G", "C<->G"))))
-singlewierd <- (rowSums(mutrates[,z]==1e-6, na.rm=TRUE) > 0)
+singlewierd <- (rowSums(mutrates[,singlerates]==1e-6, na.rm=TRUE) > 0)
 
 
 plot_fun <- function (colorvec, colors, labels, subset=TRUE) {

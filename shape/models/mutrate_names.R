@@ -14,7 +14,7 @@ mutrate.names <- c(
         "AID WRCY" = "AACT->AATT|AACC->AATC|AGCT->AGTT|AGCC->AGTC|TACT->TATT|TACC->TATC|TGCT->TGTT|TGCC->TGTC|AGTT->AATT|GGTT->GATT|AGCT->AACT|GGCT->GACT|AGTA->AATA|GGTA->GATA|AGCA->AACA|GGCA->GACA",
         "APOBEC" = "TCA->TTA|TCT->TTT|TCA->TGA|TCT->TGT|TGA->TAA|AGA->AAA|TGA->TCA|AGA->ACA",
         "iota double" = "AA->GT|TT->AC",
-        "iota single" = "AA->AG|CT->TT",
+        "iota single" = "AA->AG|TT->CT",
         "eta" = "TA->TG|TA->CA",
         "CG->CT" = "CG->CT|CG->AG",
         "AA->TT" = "AA->TT|TT->AA",

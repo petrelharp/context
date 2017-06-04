@@ -1,18 +1,25 @@
 library(contextual)
 
+modelname <- "biochem-v4"
 mcmcs <- list.files("RegulatoryFeature-regions-from-axt/", 
-            "biochem-v3-fit-mcmc.*RData", recursive=TRUE, full.names=TRUE)
+            paste0(modelname,"-fit-mcmc.*RData"), recursive=TRUE, full.names=TRUE)
 
 source("models/mutrate_names.R") # provides mutrate.names
 
 mcmcs <- mcmcs[sapply(mcmcs, function (mcfile) { load(mcfile); (dim(model@results[["batch"]])[1]>1000) } )]
-load(mcmcs[1])
-mnames <- names(mutrate.names)[match(gsub(".*[.]","",names(coef(model))[model@results$use.par]), mutrate.names)]
 
-png(file="models/biochem-v3.mcmc_traces/biochem-v3.mcmc_traces_%d.png", 
+# check all the same
+all.mnames <- lapply(mcmcs, function (mcfile) { load(mcfile);
+                     gsub(".*[.]","",names(coef(model))[model@results$use.par]) } )
+for (k in seq_along(all.mnames)[-1]) { stopifnot(all(all.mnames[[k]]==all.mnames[[1]])) }
+
+dir.create(file.path("models",paste0(modelname,"_mcmc_traces")), recursive=TRUE, showWarnings=FALSE)
+png(file=file.path("models", paste0(modelname,"_mcmc_traces"), "mcmc_trace_%d.png"), 
     width=11*300, height=8*300, res=300, type='cairo')
 for (mcfile in mcmcs) {
     load(mcfile)
+    mnames <- names(mutrate.names)[match(gsub(".*[.]","",names(coef(model))[model@results$use.par]), 
+                                         mutrate.names)]
     {
         layout(matrix(c(1,2,3,3), nrow=2), width=c(4,1))
         par(mar=c(0,3,3,1)+.1)
@@ -37,7 +44,7 @@ mcnames <- gsub("noOverlap", "nongene", gsub("overlap", "gene", gsub("-knownGene
 
 typecols <- RColorBrewer::brewer.pal("Paired", n=8)[c(1,3,5,7,2,4,6,8)]
 
-pdf(file="models/biochem-v3_mcmc_posteriors.pdf", width=6.5, height=4, pointsize=10)
+pdf(file=sprintf("models/%s_mcmc_posteriors.pdf",modelname), width=6.5, height=4, pointsize=10)
 par(mar=c(8, 3, 1, 1)+.1)
 plot(atvecs, boxes[3,], col=typecols[colvec], pch=20, ylim=range(boxes),
     xaxt='n', xlab='', ylab='parameter value')
@@ -50,7 +57,7 @@ legend("topright", pch=20, col=typecols[seq_along(mcnames)], legend=mcnames)
 dev.off()
 
 # zoomed
-pdf(file="models/biochem-v3_mcmc_posteriors_zoomed.pdf", width=6.5, height=4, pointsize=10)
+pdf(file=sprintf("models/%s_mcmc_posteriors_zoomed.pdf",modelname), width=6.5, height=4, pointsize=10)
 plot(atvecs, boxes[3,], col=typecols[colvec], pch=20, ylim=c(-1.2,1.8),
     xaxt='n', xlab='', ylab='parameter value')
 axis(1, at=(seq_along(mnames)-1)*(8+xspace) + mean(seq_along(mcmcs)), labels=mnames, las=3)
