@@ -255,18 +255,4 @@ showresids () {
 # variation between regulatory types mostly smaller than variation due to model choice
 # except maybe for CpG
 
-# MCMC
-
-
-read -r -d '' MCMCPLOT << EOM
-library(contextual)
-mcmcs <- list.files("RegulatoryFeature-regions-from-axt/", 
-            "biochem-v3-fit-mcmc.*RData", recursive=TRUE, full.names=TRUE)
-pdf(file="mcmc_traces.pdf", width=11,height=8)
-for (mcfile in mcmcs) {
-    load(mcfile)
-
-}
-dev.off()
-
-MCMCPLOT
+# mcmc results in view_mcmc_results.R

@@ -62,10 +62,18 @@ for (model_name in names(model@models)) {
     if (! (model_name %in% names(prior.config))) {
         stop(model_name, "not in config.")
     }
-    if (length(prior.config[[model_name]]$mutrates) != length(model@models[[model_name]]@mutrates) 
-            || length(prior.config[[model_name]]$selcoef) != length(model@models[[model_name]]@selcoef) 
-            || length(prior.config[[model_name]]$fixfn.params) != length(model@models[[model_name]]@params) ) {
+    if ( length(prior.config[[model_name]]$mutrates) != length(model@models[[model_name]]@mutrates) 
+         || length(prior.config[[model_name]]$selcoef) != length(model@models[[model_name]]@selcoef) 
+         || length(prior.config[[model_name]]$fixfn.params) != length(model@models[[model_name]]@params) ) {
         stop(sprintf("Configuration in %s does not match that in already-fit model of %s .", opt$configfile, opt$infile))
+    }
+    if ( length(prior.config[[model_name]]$mutrates.prior.mean) != length(model@models[[model_name]]@mutrates) 
+         || length(prior.config[[model_name]]$mutrates.prior.sd) != length(model@models[[model_name]]@mutrates) 
+         || length(prior.config[[model_name]]$selcoef.prior.mean) != length(model@models[[model_name]]@selcoef) 
+         || length(prior.config[[model_name]]$selcoef.prior.sd) != length(model@models[[model_name]]@selcoef) 
+         || length(prior.config[[model_name]]$fixfn.params.prior.mean) != length(model@models[[model_name]]@params)
+         || length(prior.config[[model_name]]$fixfn.params.prior.sd) != length(model@models[[model_name]]@params) ) {
+        stop(sprintf("Configuration in %s does not have prior mean and SDs specified.", opt$configfile))
     }
 }
 
