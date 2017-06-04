@@ -73,17 +73,18 @@ fitmodel () {
     for d in $DIRS; do for t in $TYPES; do 
         ( FITFILE=$d/$t/$TMER/${MODELNAME}-fit.RData
         echo "... $FITFILE"
-        if ! [ -e $FITFILE ]
+        if [ -e $FITFILE ]
         then
-            echo "Fitting!";
-            ../scripts/fit-tree-model.R -i $d/$t/$TMER/total.counts.gz -c $d/$t/${MODELNAME}.json -o $FITFILE -x $MAXIT
-            ../scripts/gather-results.R --json -f $FITFILE > ${FITFILE%RData}json
-            ../scripts/compute-resids.R -i $FITFILE -o ${FITFILE%.RData}-resids.2.1.l1.tsv -w 2 -s 1 -l 1 --pretty 
-            ../scripts/compute-resids.R -i $FITFILE -o ${FITFILE%.RData}-resids.2.1.l0.tsv -w 2 -s 1 -l 0 --pretty 
-            ../scripts/compute-resids.R -i $FITFILE -o ${FITFILE%.RData}-resids.3.1.l1.tsv -w 3 -s 1 -l 1 --pretty 
-        else
-            echo "Fit already exists!";
+            OLD_FITFILE=${FITFILE%.RData}_$(date +%d-%m-%Y-%H-%M-%S).RData
+            echo "Fit already exists! Moving $FITFILE to $OLD_FITFILE";
+            mv $FITFILE $OLD_FITFILE
         fi
+        echo "Fitting!";
+        ../scripts/fit-tree-model.R -i $d/$t/$TMER/total.counts.gz -c $d/$t/${MODELNAME}.json -o $FITFILE -x $MAXIT
+        ../scripts/gather-results.R --json -f $FITFILE > ${FITFILE%RData}json
+        ../scripts/compute-resids.R -i $FITFILE -o ${FITFILE%.RData}-resids.2.1.l1.tsv -w 2 -s 1 -l 1 --pretty 
+        ../scripts/compute-resids.R -i $FITFILE -o ${FITFILE%.RData}-resids.2.1.l0.tsv -w 2 -s 1 -l 0 --pretty 
+        ../scripts/compute-resids.R -i $FITFILE -o ${FITFILE%.RData}-resids.3.1.l1.tsv -w 3 -s 1 -l 1 --pretty 
         echo $FITFILE ) &
     done; done
     wait
