@@ -36,7 +36,6 @@ done; done
 
 
 for d in $DIRS; do for t in $TYPES; do 
-
     FITFILE=$d/$t/$TMER/${MODELNAME}-fit.RData
     THIS_MODELFILE=$d/$t/${MODELNAME}.json
     if [ -e $FITFILE -a -e $THIS_MODELFILE ]
