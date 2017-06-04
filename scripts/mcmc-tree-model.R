@@ -22,7 +22,7 @@ option_list <- list(
         make_option( c("-s","--scalefac"), type="numeric", default=.05, help="Multiply the scale factors in the config file by this much for the MCMC steps. [default=%default]"),
         make_option( c("-b","--nbatches"), type="integer", default=100, help="Number of MCMC batches to run for (results will be means of each batch). [default=%default]"),
         make_option( c("-l","--blen"), type="integer", default=1, help="Length of each MCMC batch. [default=%default]"),
-        make_option( c("-n","--nonnegative"), type="logical", default=FALSE, help="Constrain mutation rates to be nonnegative? [default=%default]"),
+        make_option( c("-n","--nonnegative"), action="store_true", default=FALSE, help="Constrain mutation rates to be nonnegative? [default=%default]"),
         make_option( c("-j","--jobid"), type="character", default=formatC(1e6*runif(1),width=6,format="d",flag="0"), help="Unique job id. [default random]")
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
