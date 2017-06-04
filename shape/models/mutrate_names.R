@@ -15,6 +15,7 @@ mutrate.names <- c(
         "APOBEC" = "TCA->TTA|TCT->TTT|TCA->TGA|TCT->TGT|TGA->TAA|AGA->AAA|TGA->TCA|AGA->ACA",
         "iota double" = "AA->GT|TT->AC",
         "iota single" = "AA->AG|TT->CT",
+        "iota backwards" = "AA->AG|CT->TT",
         "eta" = "TA->TG|TA->CA",
         "CG->CT" = "CG->CT|CG->AG",
         "AA->TT" = "AA->TT|TT->AA",
