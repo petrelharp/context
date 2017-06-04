@@ -4,11 +4,13 @@ mcmcs <- list.files("RegulatoryFeature-regions-from-axt/",
             "biochem-v3-fit-mcmc.*RData", recursive=TRUE, full.names=TRUE)
 
 source("models/mutrate_names.R") # provides mutrate.names
-mnames <- names(mutrate.names)[match(gsub(".*[.]","",names(coef(model))[model@results$use.par]), mutrate.names)]
 
 mcmcs <- mcmcs[sapply(mcmcs, function (mcfile) { load(mcfile); (dim(model@results[["batch"]])[1]>1000) } )]
+load(mcmcs[1])
+mnames <- names(mutrate.names)[match(gsub(".*[.]","",names(coef(model))[model@results$use.par]), mutrate.names)]
 
-pdf(file="models/biochem-v3.mcmc_traces.pdf", width=11,height=8)
+png(file="models/biochem-v3.mcmc_traces/biochem-v3.mcmc_traces_%d.png", 
+    width=11*300, height=8*300, res=300, type='cairo')
 for (mcfile in mcmcs) {
     load(mcfile)
     {

@@ -708,7 +708,9 @@ To do this, we extracted regions in the human (hg38)--chimpanzee (panTro4) align
 according to four types of regulatory feature in the Ensembl Regulatory Build \citep[release 81][]{ensebml}:
 ``CTCF binding site'', ``enhancer'', ``open chromatin region'', and ``promoter flanking region''.
 These were furthermore divided into regions that either did or did not overlap a transcription start or end site of a known gene
-from the hg38 Annotations Database \citep{hg_annotationsdb}.
+from the hg38 Annotations Database \citep{hg_annotationsdb}
+and filtered for length:
+aligned regions below either 3000bp (promoter flanking regions) or 1000bp (all other types).
 We then counted Tmers of appropriate length in each of the eight resulting sets of aligned regions, omitting any Tmers that included gaps or repeat-masked positions,
 and fit models separately to each of the eight data sets.
 
