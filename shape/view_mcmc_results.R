@@ -37,7 +37,7 @@ mcnames <- gsub("noOverlap", "nongene", gsub("overlap", "gene", gsub("-knownGene
 
 typecols <- RColorBrewer::brewer.pal("Paired", n=8)[c(1,3,5,7,2,4,6,8)]
 
-pdf(file="models/biochem-v3.mcmc_posteriors.pdf", width=11, height=8)
+pdf(file="models/biochem-v3_mcmc_posteriors.pdf", width=6.5, height=4, pointsize=10)
 par(mar=c(8, 3, 1, 1)+.1)
 plot(atvecs, boxes[3,], col=typecols[colvec], pch=20, ylim=range(boxes),
     xaxt='n', xlab='', ylab='parameter value')
@@ -50,7 +50,7 @@ legend("topright", pch=20, col=typecols[seq_along(mcnames)], legend=mcnames)
 dev.off()
 
 # zoomed
-pdf(file="models/biochem-v3.mcmc_posteriors_zoomed.pdf", width=11, height=8)
+pdf(file="models/biochem-v3_mcmc_posteriors_zoomed.pdf", width=6.5, height=4, pointsize=10)
 plot(atvecs, boxes[3,], col=typecols[colvec], pch=20, ylim=c(-1.2,1.8),
     xaxt='n', xlab='', ylab='parameter value')
 axis(1, at=(seq_along(mnames)-1)*(8+xspace) + mean(seq_along(mcmcs)), labels=mnames, las=3)

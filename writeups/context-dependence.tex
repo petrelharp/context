@@ -33,6 +33,8 @@
 \newcommand{\alike}{\widetilde{\like}}
 \newcommand{\aloglike}{\widetilde{\loglike}}
 
+\newcommand{\APOBEC}{\text{\tiny APOBEC}}
+\newcommand{\AID}{\text{\tiny AID}}
 
 \theoremstyle{plain}
 \newtheorem{theorem}{Theorem}
@@ -744,29 +746,29 @@ All models are strand-symmetric.
           an interaction between CpG and pyramidine dimers ($\mu_{mUV}$: \nT\nC\nG$\to$\nT\nT\nG and \nC\nC\nG$\to$\nC\nT\nG, \citet{cpg_review});
           repair of guanine adducts at CpG sites ($\mu_g$: \nC\nG$\to$\nC\nT, \citet{tobacco});
           deamination by AID ($\mu_{AID}$: \nW\nR\nC\nY$\to$\nW\nR\nT\nY, \nW is \nA or \nT; \nR is \nA or \nG; \nY is \nT or \nC, \citet{AID});
-          deamination by members of the APOBEC family ($\mu_{APOBEC}$: \nT\nC\nW$\to$\nT\nT\nW or \nT\nC\nW$\to$\nT\nG\nW, \citet{APOBEC});
+          deamination by members of the APOBEC family ($\mu_{\APOBEC}$: \nT\nC\nW$\to$\nT\nT\nW or \nT\nC\nW$\to$\nT\nG\nW, \citet{APOBEC});
           and repair by error-prone polymerases pol $\eta$ ($\mu_\eta$: \nT\nA$\to$\nT\nG, \citet{pol_eta});
           and pol $\iota$ ($\mu_{\iota}$: \nA\nA$\to$\nG\nT and \nA\nA$\to$\nA\nG \citet{pol_iota}):
-          \begin{center}
-            \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }c|c@{\quad$\to$\quad}c@{\quad at rate\quad }c|c@{\quad$\to$\quad}c@{\quad at rate\quad }c}
-                \nT\nC     &   \nT\nT      &  $\mu_{UV1}$    & \nC\nG     &   \nC\nT      &  $\mu_{g}$      & \nA\nA\nC\nT  &   \nA\nA\nT\nT   &  $\mu_{AID}$ \\
-                \nG\nA     &   \nA\nA      &  $\mu_{UV1}$    & \nC\nG     &   \nA\nG      &  $\mu_{g}$      & \nA\nA\nC\nC  &   \nA\nA\nT\nC   &  $\mu_{AID}$ \\
-                \nC\nC     &   \nC\nT      &  $\mu_{UV2}$    & \nT\nC\nA  &   \nT\nT\nA   &  $\mu_{APOBEC}$ & \nA\nG\nC\nT  &   \nA\nG\nT\nT   &  $\mu_{AID}$ \\
-                \nG\nG     &   \nA\nG      &  $\mu_{UV2}$    & \nT\nC\nT  &   \nT\nT\nT   &  $\mu_{APOBEC}$ & \nA\nG\nC\nC  &   \nA\nG\nT\nC   &  $\mu_{AID}$ \\
-                \nC\nC     &   \nT\nT      &  $\mu_{UV3}$    & \nT\nC\nA  &   \nT\nG\nA   &  $\mu_{APOBEC}$ & \nA\nA\nC\nT  &   \nA\nA\nT\nT   &  $\mu_{AID}$ \\
-                \nG\nG     &   \nA\nA      &  $\mu_{UV3}$    & \nT\nC\nT  &   \nT\nG\nT   &  $\mu_{APOBEC}$ & \nA\nA\nC\nC  &   \nA\nA\nT\nC   &  $\mu_{AID}$ \\
-                \nT\nC\nG  &   \nT\nT\nG   &  $\mu_{mUV}$    & \nT\nG\nA  &   \nT\nA\nA   &  $\mu_{APOBEC}$ & \nA\nG\nC\nT  &   \nA\nG\nT\nT   &  $\mu_{AID}$ \\
-                \nC\nC\nG  &   \nC\nT\nG   &  $\mu_{mUV}$    & \nA\nG\nA  &   \nA\nA\nA   &  $\mu_{APOBEC}$ & \nA\nG\nC\nC  &   \nA\nG\nT\nC   &  $\mu_{AID}$ \\
-                \nC\nG\nA  &   \nC\nA\nA   &  $\mu_{mUV}$    & \nT\nG\nA  &   \nT\nC\nA   &  $\mu_{APOBEC}$ & \nT\nA\nC\nT  &   \nT\nA\nT\nT   &  $\mu_{AID}$ \\
-                \nC\nG\nG  &   \nC\nA\nG   &  $\mu_{mUV}$    & \nA\nC\nA  &   \nA\nC\nA   &  $\mu_{APOBEC}$ & \nT\nA\nC\nC  &   \nT\nA\nT\nC   &  $\mu_{AID}$ \\
-                \nT\nA     &   \nT\nG      &  $\mu_{\eta}$   & \nA\nA    &    \nA\nG      &  $\mu_{\iota1}$ & \nT\nG\nC\nT  &   \nT\nG\nT\nT   &  $\mu_{AID}$ \\
-                \nT\nA     &   \nC\nA      &  $\mu_{\eta}$   & \nT\nT    &    \nC\nT      &  $\mu_{\iota1}$ & \nT\nG\nC\nC  &   \nT\nG\nT\nC   &  $\mu_{AID}$ \\
-                \nA\nA     &   \nG\nT      &  $\mu_{\iota2}$ &           &                &                 & \nT\nA\nC\nT  &   \nT\nA\nT\nT   &  $\mu_{AID}$ \\
-                \nT\nT     &   \nA\nC      &  $\mu_{\iota2}$ &           &                &                 & \nT\nA\nC\nC  &   \nT\nA\nT\nC   &  $\mu_{AID}$ \\
-                           &               &                 &           &                &                 & \nT\nG\nC\nT  &   \nT\nG\nT\nT   &  $\mu_{AID}$ \\
-                           &               &                 &           &                &                 & \nT\nG\nC\nC  &   \nT\nG\nT\nC   &  $\mu_{AID}$ \\
-            \end{tabular}
-          \end{center}
+
+          \noindent
+      \begin{center}
+          \begin{tabular}{c@{\;\;$\to$\;\;}c@{\;\; {\small at rate}\;\; }c|c@{\;\;$\to$\;\;}c@{\;\; {\small at rate}\;\; }c|c@{\;\;$\to$\;\;}c@{\;\; {\small at rate}\;\; }c}
+            \nT\nC     &   \nT\nT      &  $\mu_{UV1}$    & \nC\nG       &   \nC\nT       &  $\mu_{g}$       & \nA\nA\nC\nT  &   \nA\nA\nT\nT   &  $\mu_{\AID}$ \\
+            \nG\nA     &   \nA\nA      &  $\mu_{UV1}$    & \nC\nG       &   \nA\nG       &  $\mu_{g}$       & \nA\nA\nC\nC  &   \nA\nA\nT\nC   &  $\mu_{\AID}$ \\
+            \nC\nC     &   \nC\nT      &  $\mu_{UV2}$    & \nT\nC\nA    &   \nT\nT\nA    &  $\mu_{\APOBEC}$ & \nA\nG\nC\nT  &   \nA\nG\nT\nT   &  $\mu_{\AID}$ \\
+            \nG\nG     &   \nA\nG      &  $\mu_{UV2}$    & \nT\nC\nT    &   \nT\nT\nT    &  $\mu_{\APOBEC}$ & \nA\nG\nC\nC  &   \nA\nG\nT\nC   &  $\mu_{\AID}$ \\
+            \nC\nC     &   \nT\nT      &  $\mu_{UV3}$    & \nT\nC\nA    &   \nT\nG\nA    &  $\mu_{\APOBEC}$ & \nA\nA\nC\nT  &   \nA\nA\nT\nT   &  $\mu_{\AID}$ \\
+            \nG\nG     &   \nA\nA      &  $\mu_{UV3}$    & \nT\nC\nT    &   \nT\nG\nT    &  $\mu_{\APOBEC}$ & \nA\nA\nC\nC  &   \nA\nA\nT\nC   &  $\mu_{\AID}$ \\
+            \nT\nC\nG  &   \nT\nT\nG   &  $\mu_{mUV}$    & \nT\nG\nA    &   \nT\nA\nA    &  $\mu_{\APOBEC}$ & \nA\nG\nC\nT  &   \nA\nG\nT\nT   &  $\mu_{\AID}$ \\
+            \nC\nC\nG  &   \nC\nT\nG   &  $\mu_{mUV}$    & \nA\nG\nA    &   \nA\nA\nA    &  $\mu_{\APOBEC}$ & \nA\nG\nC\nC  &   \nA\nG\nT\nC   &  $\mu_{\AID}$ \\
+            \nC\nG\nA  &   \nC\nA\nA   &  $\mu_{mUV}$    & \nT\nG\nA    &   \nT\nC\nA    &  $\mu_{\APOBEC}$ & \nT\nA\nC\nT  &   \nT\nA\nT\nT   &  $\mu_{\AID}$ \\
+            \nC\nG\nG  &   \nC\nA\nG   &  $\mu_{mUV}$    & \nA\nC\nA    &   \nA\nC\nA    &  $\mu_{\APOBEC}$ & \nT\nA\nC\nC  &   \nT\nA\nT\nC   &  $\mu_{\AID}$ \\
+            \nT\nA     &   \nT\nG      &  $\mu_{\eta}$   & \nA\nA       &    \nA\nG      &  $\mu_{\iota1}$  & \nT\nG\nC\nT  &   \nT\nG\nT\nT   &  $\mu_{\AID}$ \\
+            \nT\nA     &   \nC\nA      &  $\mu_{\eta}$   & \nT\nT       &    \nC\nT      &  $\mu_{\iota1}$  & \nT\nG\nC\nC  &   \nT\nG\nT\nC   &  $\mu_{\AID}$ \\
+            \nA\nA     &   \nG\nT      &  $\mu_{\iota2}$ & \nT\nG\nC\nT &  \nT\nG\nT\nT  &  $\mu_{\AID}$    & \nT\nA\nC\nT  &   \nT\nA\nT\nT   &  $\mu_{\AID}$ \\
+            \nT\nT     &   \nA\nC      &  $\mu_{\iota2}$ & \nT\nG\nC\nC &  \nT\nG\nT\nC  &  $\mu_{\AID}$    & \nT\nA\nC\nC  &   \nT\nA\nT\nC   &  $\mu_{\AID}$ 
+        \end{tabular}
+      \end{center}
 
 % [ [ "TC", "TT" ], [ "GA", "AA" ] ], UV1
 % [ [ "CC", "CT" ], [ "GG", "AG" ] ], UV2
@@ -1016,6 +1018,22 @@ but $(6,2,2)$ T-mers were long enough with sufficient overhang to produce well-c
 We also applied the method to changes between the human and chimpanzee reference sequences.
 
 
+\begin{figure}
+    \begin{center} 
+        \includegraphics[width=\textwidth]{writeup-plots/biochem_mcmc_posteriors}
+    \end{center} 
+    \caption{
+        Estimated average mutation rates
+        for the motifs of Table \ref{tab:hominid_model}
+        since the common ancestor of humans and chimpanzee.
+        Rates are scaled so that the mean time to common ancestor is 0.001 units --
+        if we take this to be 6 million years \citep{scally2012insights}
+        then rates are in units of mutations per 6,000 years.
+        Shown are posterior medians (points) and 95\% credible intervals (lines, which are quite small in all cases).
+        Figure \ref{sfig:biochem_results_zoom} shows the smaller rates in more detail.
+        \label{fig:biochem_results}}
+\end{figure}
+
 
 %%%%%%%%%%%%%%%%%%%%
 \section{Discussion}
@@ -1139,6 +1157,23 @@ Many thanks are also due Jessica Crisci for curating the human-chimp data.
         note that only the longest $(6,2,2)$ T-mers provide well-calibrated coverage (Table \ref{tab:ising_coverage})
         and do not show bias.
         \label{fig:all_ising_coverage}}
+\end{figure}
+
+\begin{figure}
+    \begin{center} 
+        \includegraphics[width=\textwidth]{writeup-plots/biochem_mcmc_posteriors_zoomed}
+    \end{center} 
+    \caption{
+        As in Figure \ref{sfig:biochem_results}, but with reduce vertical axis range
+        to see in more detail:
+        estimated average mutation rates
+        for the motifs of Table \ref{tab:hominid_model}
+        since the common ancestor of humans and chimpanzee.
+        Rates are scaled so that the mean time to common ancestor is 0.001 units --
+        if we take this to be 6 million years \citep{scally2012insights}
+        then rates are in units of mutations per 6,000 years.
+        Shown are posterior medians (points) and 95\% credible intervals (lines, which are quite small in all cases).
+        \label{fig:biochem_results_zoom}}
 \end{figure}
 
 
