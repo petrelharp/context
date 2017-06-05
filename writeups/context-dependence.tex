@@ -20,9 +20,10 @@
 \newcommand{\nC}{\mbox{C}}
 \newcommand{\nG}{\mbox{G}}
 \newcommand{\nT}{\mbox{T}}
-\newcommand{\nW}{\mbox{W}}
-\newcommand{\nR}{\mbox{R}}
-\newcommand{\nY}{\mbox{Y}}
+\newcommand{\nS}{\mbox{S}} % C or G
+\newcommand{\nW}{\mbox{W}} % A or T
+\newcommand{\nR}{\mbox{R}} % purine, A or G
+\newcommand{\nY}{\mbox{Y}} % pyramidine, C or T
 \newcommand{\join}{\oplus}  % matches
 \newcommand{\st}{\colon}  % such that
 \newcommand{\var}{\mathop{\mbox{var}}}
@@ -102,15 +103,15 @@ it is well-known that certain short nucleotide sequences
 are in many organisms much more, or less, abundant than expected by chance \citep{burge1992underrepresentation},
 due to the combined effects of context dependence of the nucleotide mutation process,
 selective constraints on the function of the sequence,
-and other processes such as biased gene conversion \citep{duret2009biased}.
+and other processes such as biased gene conversion \citep{duret2009biased,arbeithuber2015crossovers}.
 Indeed, molecular studies have demonstrated that the spectrum of new mutations in humans
 is highly context dependent \citep{schaibley2013influence}
 and that multinucleotide substitutions are relatively common \citep{schrider2011pervasive,terekhanova2013prevalence,harris2013errorprone}.
 In humans, the molecular processes underlying mutations are best studied in contexts of intense somatic mutation:
-cancer and the hypervariable regions that generate immune system diversity \citep{evolution_within},
+cancer and the hypervariable regions that generate immune system diversity \citep{cobey2015evolution,},
 which provide quite different cellular contexts but share commonalities due to shared molecular machinery.
 In general, substitution rates depend on sequence context due to the interaction of a great many factors including:
-(a) likelihood of DNA damage or errors in cell division (e.g., UV damage \citep{UV} or non-homologous end joining \citep{NHEJ});
+(a) likelihood of DNA damage or errors in cell division (e.g., UV damage \citep{goodman2002errorprone} or crossing over in meiosis \citep{arbeithuber2015crossovers});
 (b) activity levels and structural properties of the enzymes responsible for repair (e.g., base excision repar \citep{BER} and Y-family polymerases \citep{polymerase_review});
 and (c) any functional effects of an error (e.g., lethal mutations will not be seen in a population census).
 (We are concerned with effects that are \emph{homogeneous} across the sequence,
@@ -740,64 +741,54 @@ All models are strand-symmetric.
             \end{tabular}
           \end{center}
 
-      \item[(repair)] In addition to the above, a collection of motifs associated with known biochemical causes
-          curated from the literature:
-          deamination due to repair of UV-induced pyramidine dimers ($\mu_{UV}$: (\nT/\nC)\nC $\to$ (\nT/\nC)\nT and \nC\nC$\to$\nT\nT, \citet{uv_damage});
-          an interaction between CpG and pyramidine dimers ($\mu_{mUV}$: \nT\nC\nG$\to$\nT\nT\nG and \nC\nC\nG$\to$\nC\nT\nG, \citet{cpg_review});
-          repair of guanine adducts at CpG sites ($\mu_g$: \nC\nG$\to$\nC\nT, \citet{tobacco});
-          deamination by AID ($\mu_{AID}$: \nW\nR\nC\nY$\to$\nW\nR\nT\nY, \nW is \nA or \nT; \nR is \nA or \nG; \nY is \nT or \nC, \citet{AID});
-          deamination by members of the APOBEC family ($\mu_{\APOBEC}$: \nT\nC\nW$\to$\nT\nT\nW or \nT\nC\nW$\to$\nT\nG\nW, \citet{APOBEC});
-          and repair by error-prone polymerases pol $\eta$ ($\mu_\eta$: \nT\nA$\to$\nT\nG, \citet{pol_eta});
-          and pol $\iota$ ($\mu_{\iota}$: \nA\nA$\to$\nG\nT and \nA\nA$\to$\nA\nG \citet{pol_iota}):
-
+      \item[(repair)] In addition to the above, we included a collection of mutation motifs associated with known DNA lesion/repair pathways
+          curated from the literature \citep[reviewed in][]{sale2012yfamily,goodman2013translesion,roberts2014hypermutation,cobey2015evolution,goodman2002errorprone}:
+          deamination due to repair of UV-induced pyramidine dimers \citep[$\mu_{UV}$][]{sale2012yfamily,sinha2002uvinduced};
+          repair of guanine adducts at CpG sites \citet[$\mu_g$][]{pfeifer2006mutagenesis};
+          deamination by AID \citep[$\mu_{AID}$][]{teng2007immunoglobulin,kasar2015wholegenome};
+          deamination by members of the APOBEC family \citep[$\mu_\APOBEC$][]{alexandrov2013deciphering};
+          and repair by error-prone polymerases pol $\eta$ \citep[$\mu_\eta$][]{alexandrov2013deciphering};
+          and pol $\iota$ \citep[$\mu_{\iota}$][]{roberts2014hypermutation,maul2016polymerase}.
+          These are denoted here using ambiguity codes 
+          \nR{}: \nA{} or \nG{},
+          \nY{}: \nC{} or \nT{},
+          \nW{}: \nA{} or \nT{}, and
+          \nS{}: \nC{} or \nG{};
+          so for instance 
+          ``\nT\nC\nW$\to$\nT\nT\nW'' 
+          means that both 
+          \nT\nC\nA$\to$\nT\nT\nA
+          and
+          \nT\nC\nT$\to$\nT\nT\nT
+          share the same mutation rate.
           \noindent
       \begin{center}
-          \begin{tabular}{c@{\;\;$\to$\;\;}c@{\;\; {\small at rate}\;\; }c|c@{\;\;$\to$\;\;}c@{\;\; {\small at rate}\;\; }c|c@{\;\;$\to$\;\;}c@{\;\; {\small at rate}\;\; }c}
-            \nT\nC     &   \nT\nT      &  $\mu_{UV1}$    & \nC\nG       &   \nC\nT       &  $\mu_{g}$       & \nA\nA\nC\nT  &   \nA\nA\nT\nT   &  $\mu_{\AID}$ \\
-            \nG\nA     &   \nA\nA      &  $\mu_{UV1}$    & \nC\nG       &   \nA\nG       &  $\mu_{g}$       & \nA\nA\nC\nC  &   \nA\nA\nT\nC   &  $\mu_{\AID}$ \\
-            \nC\nC     &   \nC\nT      &  $\mu_{UV2}$    & \nT\nC\nA    &   \nT\nT\nA    &  $\mu_{\APOBEC}$ & \nA\nG\nC\nT  &   \nA\nG\nT\nT   &  $\mu_{\AID}$ \\
-            \nG\nG     &   \nA\nG      &  $\mu_{UV2}$    & \nT\nC\nT    &   \nT\nT\nT    &  $\mu_{\APOBEC}$ & \nA\nG\nC\nC  &   \nA\nG\nT\nC   &  $\mu_{\AID}$ \\
-            \nC\nC     &   \nT\nT      &  $\mu_{UV3}$    & \nT\nC\nA    &   \nT\nG\nA    &  $\mu_{\APOBEC}$ & \nA\nA\nC\nT  &   \nA\nA\nT\nT   &  $\mu_{\AID}$ \\
-            \nG\nG     &   \nA\nA      &  $\mu_{UV3}$    & \nT\nC\nT    &   \nT\nG\nT    &  $\mu_{\APOBEC}$ & \nA\nA\nC\nC  &   \nA\nA\nT\nC   &  $\mu_{\AID}$ \\
-            \nT\nC\nG  &   \nT\nT\nG   &  $\mu_{mUV}$    & \nT\nG\nA    &   \nT\nA\nA    &  $\mu_{\APOBEC}$ & \nA\nG\nC\nT  &   \nA\nG\nT\nT   &  $\mu_{\AID}$ \\
-            \nC\nC\nG  &   \nC\nT\nG   &  $\mu_{mUV}$    & \nA\nG\nA    &   \nA\nA\nA    &  $\mu_{\APOBEC}$ & \nA\nG\nC\nC  &   \nA\nG\nT\nC   &  $\mu_{\AID}$ \\
-            \nC\nG\nA  &   \nC\nA\nA   &  $\mu_{mUV}$    & \nT\nG\nA    &   \nT\nC\nA    &  $\mu_{\APOBEC}$ & \nT\nA\nC\nT  &   \nT\nA\nT\nT   &  $\mu_{\AID}$ \\
-            \nC\nG\nG  &   \nC\nA\nG   &  $\mu_{mUV}$    & \nA\nC\nA    &   \nA\nC\nA    &  $\mu_{\APOBEC}$ & \nT\nA\nC\nC  &   \nT\nA\nT\nC   &  $\mu_{\AID}$ \\
-            \nT\nA     &   \nT\nG      &  $\mu_{\eta}$   & \nA\nA       &    \nA\nG      &  $\mu_{\iota1}$  & \nT\nG\nC\nT  &   \nT\nG\nT\nT   &  $\mu_{\AID}$ \\
-            \nT\nA     &   \nC\nA      &  $\mu_{\eta}$   & \nT\nT       &    \nC\nT      &  $\mu_{\iota1}$  & \nT\nG\nC\nC  &   \nT\nG\nT\nC   &  $\mu_{\AID}$ \\
-            \nA\nA     &   \nG\nT      &  $\mu_{\iota2}$ & \nT\nG\nC\nT &  \nT\nG\nT\nT  &  $\mu_{\AID}$    & \nT\nA\nC\nT  &   \nT\nA\nT\nT   &  $\mu_{\AID}$ \\
-            \nT\nT     &   \nA\nC      &  $\mu_{\iota2}$ & \nT\nG\nC\nC &  \nT\nG\nT\nC  &  $\mu_{\AID}$    & \nT\nA\nC\nC  &   \nT\nA\nT\nC   &  $\mu_{\AID}$ 
+          \begin{tabular}{c@{\;\;$\to$\;\;}c@{\;\; {\small at rate}\;\; }c|c@{\;\;$\to$\;\;}c@{\;\; {\small at rate}\;\; }c}
+            \nC\nG     &   \nC\nT      &  $\mu_{g}$      & \nA\nA       &   \nA\nG       &  $\mu_{\iota1}$   \\
+            \nC\nG     &   \nA\nG      &  $\mu_{g}$      & \nT\nT       &   \nC\nT       &  $\mu_{\iota1}$   \\
+            \nT\nC     &   \nT\nT      &  $\mu_{UV}$     & \nA\nA       &   \nG\nT       &  $\mu_{\iota2}$   \\
+            \nG\nA     &   \nA\nA      &  $\mu_{UV}$     & \nT\nT       &   \nA\nC       &  $\mu_{\iota2}$   \\
+            \nC\nC     &   \nC\nT      &  $\mu_{UV}$     & \nT\nC\nW    &   \nT\nT\nW    &  $\mu_{\APOBEC}$  \\
+            \nG\nG     &   \nA\nG      &  $\mu_{UV}$     & \nT\nC\nW    &   \nT\nG\nW    &  $\mu_{\APOBEC}$  \\
+            \nC\nC     &   \nT\nT      &  $\mu_{UVd}$    & \nS\nG\nA    &   \nS\nA\nA    &  $\mu_{\APOBEC}$  \\
+            \nG\nG     &   \nA\nA      &  $\mu_{UVd}$    & \nS\nG\nA    &   \nS\nC\nA    &  $\mu_{\APOBEC}$  \\
+            \nT\nA     &   \nT\nG      &  $\mu_{\eta}$   & \nW\nR\nC\nY &  \nW\nR\nT\nY  &  $\mu_{\AID}$     \\
+            \nT\nA     &   \nC\nA      &  $\mu_{\eta}$   & \nR\nG\nY\nS &  \nR\nA\nY\nS  &  $\mu_{\AID}$     
         \end{tabular}
       \end{center}
 
-% [ [ "TC", "TT" ], [ "GA", "AA" ] ], UV1
-% [ [ "CC", "CT" ], [ "GG", "AG" ] ], UV2
-% [ [ "CC", "TT" ], [ "GG", "AA" ] ], UV3
-% [ [ "TCG", "TTG" ], [ "CCG", "CTG" ], [ "CGA", "CAA" ], [ "CGG", "CAG" ] ], mUV
-% [ [ "CG", "CT" ], [ "CG", "AG" ] ],
-% [ [ "AACT", "AATT" ], [ "AACC", "AATC" ], [ "AGCT", "AGTT" ], [ "AGCC", "AGTC" ], [ "TACT", "TATT" ], [ "TACC", "TATC" ], [ "TGCT", "TGTT" ], [ "TGCC", "TGTC" ],
-%   [ "AGTT", "AATT" ], [ "GGTT", "GATT" ], [ "AGCT", "AACT" ], [ "GGCT", "GACT" ], [ "AGTA", "AATA" ], [ "GGTA", "GATA" ], [ "AGCA", "AACA" ], [ "GGCA", "GACA" ] ],
-% [ [ "TCA", "TTA" ], [ "TCT", "TTT" ], [ "TCA", "TGA" ], [ "TCT", "TGT" ],
-%   [ "TGA", "TAA" ], [ "AGA", "AAA" ], [ "TGA", "TCA" ], [ "AGA", "ACA" ] ],
-% [ [ "TA", "TG" ], [ "TA", "CA" ] ],
-% [ [ "AA", "GT" ], [ "TT", "AC" ] ],
-% [ [ "AA", "AG" ], [ "CT", "TT" ] ]
-
 \end{itemize}
+
+The mutational motifs included above are far from complete 
+-- context-specific affinities and error rates \textit{in vivo} 
+are not known for most DNA repair pathways --
+but neither do they exhaust the hypotheses available in the literature.
+For instance, many enzymes act more than once locally when they act,
+such as AID \citep{senavirathne2015activationinduced} or error-prone polymerases involved in repair \citep{maul2016polymerase}.
 
 
 %%%%%%%
 \section{Results}
-
-\textbf{To-do:} 
-
-3. Analyze human data with shape model, Bayesian.
-
-The method works well to find point estimates of the parameters.
-Obtaining posterior density estimates using the approximation likelihood function on a subset of patterns
-works in some cases;
-in other cases the likelihood surface is still too peaked, underestimating the uncertainty.
-(but counting in nonoverlapping windows fixes the peakiness problem)
 
 %%%%%%%%%%%
 \subsection{Stepwise model selection}
@@ -1027,13 +1018,20 @@ We also applied the method to changes between the human and chimpanzee reference
         for the motifs of Table \ref{tab:hominid_model}
         since the common ancestor of humans and chimpanzee.
         Rates are scaled so that the mean time to common ancestor is 0.001 units --
-        if we take this to be 6 million years \citep{scally2012insights}
+        if we take this to be 6 million years \citep{scally2012insights,langergraber2012generation}
         then rates are in units of mutations per 6,000 years.
         Shown are posterior medians (points) and 95\% credible intervals (lines, which are quite small in all cases).
         Figure \ref{sfig:biochem_results_zoom} shows the smaller rates in more detail.
         \label{fig:biochem_results}}
 \end{figure}
 
+It may seem tenous to look for mutational signatures associated with cancer in the germline,
+or absurd that UV damage could play a significant role.
+This is in part due to the ``streetlight effect'' --
+we can't look for signatures that are not characterized --
+but it is also reasonable that shared repair machinery might induce similar context-dependent errors.
+More likely sources of error in the germline include the effects of recombination 
+\citep{arbeithuber2015crossovers,myers2010drive}.
 
 %%%%%%%%%%%%%%%%%%%%
 \section{Discussion}
@@ -1722,5 +1720,25 @@ Here is a reformulation of the CpG and Ising models without using a potential.
 
 \end{example}
 
+
+\subsection{Longer models}
+      \begin{center}
+          \begin{tabular}{c@{\;\;$\to$\;\;}c@{\;\; {\small at rate}\;\; }c|c@{\;\;$\to$\;\;}c@{\;\; {\small at rate}\;\; }c|c@{\;\;$\to$\;\;}c@{\;\; {\small at rate}\;\; }c}
+            \nT\nC     &   \nT\nT      &  $\mu_{UV1}$    & \nC\nG       &   \nC\nT       &  $\mu_{g}$       & \nA\nA\nC\nT  &   \nA\nA\nT\nT   &  $\mu_{\AID}$ \\
+            \nG\nA     &   \nA\nA      &  $\mu_{UV1}$    & \nC\nG       &   \nA\nG       &  $\mu_{g}$       & \nA\nA\nC\nC  &   \nA\nA\nT\nC   &  $\mu_{\AID}$ \\
+            \nC\nC     &   \nC\nT      &  $\mu_{UV2}$    & \nT\nC\nA    &   \nT\nT\nA    &  $\mu_{\APOBEC}$ & \nA\nG\nC\nT  &   \nA\nG\nT\nT   &  $\mu_{\AID}$ \\
+            \nG\nG     &   \nA\nG      &  $\mu_{UV2}$    & \nT\nC\nT    &   \nT\nT\nT    &  $\mu_{\APOBEC}$ & \nA\nG\nC\nC  &   \nA\nG\nT\nC   &  $\mu_{\AID}$ \\
+            \nC\nC     &   \nT\nT      &  $\mu_{UV3}$    & \nT\nC\nA    &   \nT\nG\nA    &  $\mu_{\APOBEC}$ & \nA\nA\nC\nT  &   \nA\nA\nT\nT   &  $\mu_{\AID}$ \\
+            \nG\nG     &   \nA\nA      &  $\mu_{UV3}$    & \nT\nC\nT    &   \nT\nG\nT    &  $\mu_{\APOBEC}$ & \nA\nA\nC\nC  &   \nA\nA\nT\nC   &  $\mu_{\AID}$ \\
+            \nT\nC\nG  &   \nT\nT\nG   &  $\mu_{mUV}$    & \nT\nG\nA    &   \nT\nA\nA    &  $\mu_{\APOBEC}$ & \nA\nG\nC\nT  &   \nA\nG\nT\nT   &  $\mu_{\AID}$ \\
+            \nC\nC\nG  &   \nC\nT\nG   &  $\mu_{mUV}$    & \nA\nG\nA    &   \nA\nA\nA    &  $\mu_{\APOBEC}$ & \nA\nG\nC\nC  &   \nA\nG\nT\nC   &  $\mu_{\AID}$ \\
+            \nC\nG\nA  &   \nC\nA\nA   &  $\mu_{mUV}$    & \nT\nG\nA    &   \nT\nC\nA    &  $\mu_{\APOBEC}$ & \nT\nA\nC\nT  &   \nT\nA\nT\nT   &  $\mu_{\AID}$ \\
+            \nC\nG\nG  &   \nC\nA\nG   &  $\mu_{mUV}$    & \nA\nC\nA    &   \nA\nC\nA    &  $\mu_{\APOBEC}$ & \nT\nA\nC\nC  &   \nT\nA\nT\nC   &  $\mu_{\AID}$ \\
+            \nT\nA     &   \nT\nG      &  $\mu_{\eta}$   & \nA\nA       &    \nA\nG      &  $\mu_{\iota1}$  & \nT\nG\nC\nT  &   \nT\nG\nT\nT   &  $\mu_{\AID}$ \\
+            \nT\nA     &   \nC\nA      &  $\mu_{\eta}$   & \nT\nT       &    \nC\nT      &  $\mu_{\iota1}$  & \nT\nG\nC\nC  &   \nT\nG\nT\nC   &  $\mu_{\AID}$ \\
+            \nA\nA     &   \nG\nT      &  $\mu_{\iota2}$ & \nT\nG\nC\nT &  \nT\nG\nT\nT  &  $\mu_{\AID}$    & \nT\nA\nC\nT  &   \nT\nA\nT\nT   &  $\mu_{\AID}$ \\
+            \nT\nT     &   \nA\nC      &  $\mu_{\iota2}$ & \nT\nG\nC\nC &  \nT\nG\nT\nC  &  $\mu_{\AID}$    & \nT\nA\nC\nC  &   \nT\nA\nT\nC   &  $\mu_{\AID}$ 
+        \end{tabular}
+      \end{center}
 
 \end{document}

@@ -55,6 +55,10 @@ Other notes:
 - "uracil DNA glycosylase (UNG), a base-excision repair enzyme that removes uracil from DNA."
 - "The mainstream model for SHM holds that base excision repair (BER) broadens the range of mutations at C:G basepairs, and mismatch repair (MMR) extends the mutation process to A:T basepairs"
 
+# arbeithuber2015crossovers: https://www.ncbi.nlm.nih.gov/pubmed/25646453
+
+- "Observed de novo mutations changed strong (S) CG into weak (W) TA base pairs and they all occurred mainly at CpG sites. As it is shown that GC base pairs are preferentially transferred during crossover, the authors suggested that GC-biased gene conversion (gBGC) is the dominant force shaping the nucleotide composition at hotspots and potentially in other recombination products, which might explain the high GC content associated with recombination. It is possible that gBGC is an adaptation to reduce the opposing mutational load of recombination, knowing that mutation favors weak over strong nucleotides. "
+
 
 # matthieson and reich:
 
