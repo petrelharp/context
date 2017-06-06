@@ -108,19 +108,21 @@ Indeed, molecular studies have demonstrated that the spectrum of new mutations i
 is highly context dependent \citep{schaibley2013influence}
 and that multinucleotide substitutions are relatively common \citep{schrider2011pervasive,terekhanova2013prevalence,harris2013errorprone}.
 In humans, the molecular processes underlying mutations are best studied in contexts of intense somatic mutation:
-cancer and the hypervariable regions that generate immune system diversity \citep{cobey2015evolution,},
+cancer and the hypervariable regions that generate immune system diversity \citep{cobey2015evolution},
 which provide quite different cellular contexts but share commonalities due to shared molecular machinery.
 In general, substitution rates depend on sequence context due to the interaction of a great many factors including:
 (a) likelihood of DNA damage or errors in cell division (e.g., UV damage \citep{goodman2002errorprone} or crossing over in meiosis \citep{arbeithuber2015crossovers});
-(b) activity levels and structural properties of the enzymes responsible for repair (e.g., base excision repar \citep{BER} and Y-family polymerases \citep{polymerase_review});
+(b) activity levels and structural properties of the enzymes responsible for repair 
+(e.g., Y-family polymerases \citep{goodman2013translesion,sale2012yfamily});
 and (c) any functional effects of an error (e.g., lethal mutations will not be seen in a population census).
 (We are concerned with effects that are \emph{homogeneous} across the sequence,
 so do not consider further the many constraints on protein-coding sequence \citep[reviewed in][]{thorne2007protein}.)
 Some of these effects -- particularly, activity levels of different enzymes in the germline --
 will likely vary over evolutionary time,
 and so comparisons between widely separated species will identify time-averaged mutation rates.
-Recent studies have used nonnegative matrix factorization to identify sets of mutational patterns
-co-occurring in comparisons (a) between different cancer types \citep{cancer_scan} and (b) between different human populations \citep{harris,matthieson},
+Recent studies have used a variety of exploratory techniques to identify sets of mutational patterns
+co-occurring in comparisons (a) between different cancer types \citep{alexandrov2013signatures,shiraishi2015simple} and 
+(b) between different human populations \citep{harris2015evidence,harris2016rapid,mathieson2017differences},
 to disentangle distinct signals presumably coming from the action of distinct sources of mutation.
 
 
@@ -252,13 +254,13 @@ where $n(x,p_i)$ is the number of times the pattern $p_i$ occurs in $x$.
     % Although this means there are many possible parameterizations,
     % note that the model is identifiable, not overparameterized.
 
-    Counteracting this trend towards increased G/C is GC-biased gene conversion \citep{gcbiased},
+    Counteracting this trend towards increased G/C is GC-biased gene conversion \citep{glemin2015quantification},
     which is effectively a selective pressure against G or C bases.
     We model the evolution of a \emph{single} sequence, not a population of sequences,
     imagining this sequence to be the consensus sequence of the population.
     A new mutation with an effect $s$ on fitness that occurs
     in a population of effective size $N$ becomes ubiquitous, rather than dying out,
-    with probability approximately $(1-\exp(-2 s))/(1-\exp(-2 s N))$ \citep{fixation_prob}.
+    with probability approximately $(1-\exp(-2 s))/(1-\exp(-2 s N))$ \citep{kimura1962probability}.
     If the mutation occurs at rate $\mu$ per individual, the total rate it occurs at in the population is $\mu N$.
     GC-biased gene conversion effectively means that sequences with more G/Cs are selected against.
     This is incorporated as follows: set
@@ -707,11 +709,11 @@ The algorithm for a general tree is written out in Appendix \ref{ss:peeling_algo
 We also applied the model to human--chimpanzee divergence data, 
 restricting the comparison to putative regulatory sequences,
 avoiding the additional constraints of coding sequences.
-To do this, we extracted regions in the human (hg38)--chimpanzee (panTro4) alignment \citep[from the UCSC Genome Browser][]{pantroalign}
-according to four types of regulatory feature in the Ensembl Regulatory Build \citep[release 81][]{ensebml}:
+To do this, we extracted regions in the human (hg38)--chimpanzee (panTro4) alignment % \citep[from the UCSC Genome Browser][]{pantroalign}
+according to four types of regulatory feature in the Ensembl Regulatory Build \citep[release 81][]{zerbino2015ensembl}:
 ``CTCF binding site'', ``enhancer'', ``open chromatin region'', and ``promoter flanking region''.
 These were furthermore divided into regions that either did or did not overlap a transcription start or end site of a known gene
-from the hg38 Annotations Database \citep{hg_annotationsdb}
+from the hg38 Annotations Database \citep{kent2002human}
 and filtered for length:
 aligned regions below either 3000bp (promoter flanking regions) or 1000bp (all other types).
 We then counted Tmers of appropriate length in each of the eight resulting sets of aligned regions, omitting any Tmers that included gaps or repeat-masked positions,
@@ -800,10 +802,10 @@ Perhaps the simplest method conceptually is to
 (c) repeat until no residuals are statisically significant.
 To test this method,
 we simulated a single sequence of $10^6$ nucleotides
-for one units of time
+for one unit of time
 under the model given in Table \ref{tab:cpg_results},
 obtained by embellishing the basic CpG hypermutability
-with the longer mutational motif identified by \citet{harris}.
+with the longer mutational motif identified by \citet{harris2015evidence}.
 %     \begin{center}
 %       \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }cc}
 %         $x$  &    $y$  &  $m_{xy}$ & when $x \neq y \in \{\nA,\nC,\nG,\nT\}$  \\
@@ -958,7 +960,7 @@ We then placed an Exponential prior with mean 1 on both transitions $+ \to -$ an
 (without constraining these to be equal)
 and half-Gaussian priors with mean 0 and scale 3 on both $\beta$ and $\gamma$,
 counted $(5,3,1)$ T-mers,
-and used the mcmc package \citep{mcmcR} to run a random walk sampler for 10,000 steps
+and used the mcmc package \citep{geyer2017mcmc} to run a random walk sampler for 10,000 steps
 (judged sufficient by examination of diagnostic plots).
 We repeated this procedure separately on 60 independently simulated sequences,
 and show the resulting credible intervals in Figure \ref{fig:ising_coverage}.
@@ -1045,7 +1047,7 @@ many spin glass models;
 and models of DNA sequence evolution.
 
 The methods described here provide a way to efficiently calculate full likelihoods,
-which in many circumstances provide the optimal basis for inference \citep{neymanpearson},
+which in many circumstances provide the optimal basis for inference \citep{neyman1933problem},
 fast enough to allow Bayesian inference from Monte Carlo sampling.
 The method is fast thanks to its dependence only only local neighborhoods
 (so the time does not scale with sequence length once T-mer abundances are counted)
@@ -1082,8 +1084,8 @@ The model presented assumes that the same process occurs at every location along
 and that the length of the sequnce does not change (no indels).
 Neither of these assumptions are likely to be true for any data set of DNA sequence;
 however, both assumptions are also made the state of the art in phylogenetics.
-Some relaxation of the assumptions is possible -- like in phylogenetics \citep{ratemixtures},
-we can easily allow heterogeneity between sites by scaling rates by an overall gamma-distributed random factor.
+Some relaxation of the assumptions is possible -- for instnace, 
+we can easily allow heterogeneity between sites by scaling rates by an overall gamma-distributed random factor \citep{yang1994maximum}.
 Short deletions might be accomodated by introducing a ``gap'' letter to the alphabet,
 but insertions may be problematic.
 
@@ -1110,7 +1112,7 @@ but no more than in any other class of models (e.g., multivariate linear regress
 It is easy to specify nonidentifiable models -- 
 for instance, all 2mer mutation motifs include the 1mer motifs.
 The large number of possible mutation motifs also makes multiple testing an issue;
-an unguided approach might include all possible motifs but place a shrinkage prior on their values \citep{shrinkage,horseshoe}.
+an unguided approach might include all possible motifs but place a shrinkage prior on their values \citep{bhadra2015horseshoe}.
 The converse approach of adding motifs that are overrepresented in the residuals
 may be quicker, but entails some degree of arbitrariness in choosing the motifs to add (and in which order).
 Finally, inference on trees may be difficult unless the root placement and distribution are strongly constrained:
@@ -1122,10 +1124,12 @@ However, in phylogenetic applications outgroups can be used to constrain these q
 In the genomic context,
 if we knew the specific mutational spectrum of each possible repair or copying pathways,
 then this framework could be used to rigorously estimate their average usages and impacts.
-Despite substantial progress over the past 15 years \citep{polymerase_reviews},
+Despite substantial progress over the past two decades \citep{goodman2013translesion,sale2012yfamily},
 this is still far from known.
 A promising alternative would be to use the distinct signatures obtained by dimension reduction techniques as in
-\citet{cancer_scan}, \citep{matthieson} or \citep{pritchard} as a proxy for unknown but distinct pathways.
+\citet{alexandrov2013signatures}, \citep{mathieson2017differences} or \citep{shiraishi2015simple} as a proxy for unknown but distinct pathways.
+
+More things to do: cancer; include gaps; more taxa; leading/lagging strand...
 
 
 \subsection{Acknowledgements}
