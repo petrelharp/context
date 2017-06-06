@@ -1023,7 +1023,8 @@ We also applied the method to changes between the human and chimpanzee reference
         if we take this to be 6 million years \citep{scally2012insights,langergraber2012generation}
         then rates are in units of mutations per 6,000 years.
         Shown are posterior medians (points) and 95\% credible intervals (lines, which are quite small in all cases).
-        Figure \ref{sfig:biochem_results_zoom} shows the smaller rates in more detail.
+        Figure \ref{sfig:biochem_results_zoom} shows the smaller rates in more detail,
+        and figure \ref{sfig:biochem_results_relative} shows the rates between categories relative to each other.
         \label{fig:biochem_results}}
 \end{figure}
 
@@ -1166,7 +1167,7 @@ Many thanks are also due Jessica Crisci for curating the human-chimp data.
         \includegraphics[width=\textwidth]{writeup-plots/biochem_mcmc_posteriors_zoomed}
     \end{center} 
     \caption{
-        As in Figure \ref{sfig:biochem_results}, but with reduce vertical axis range
+        As in Figure \ref{fig:biochem_results}, but with reduce vertical axis range
         to see in more detail:
         estimated average mutation rates
         for the motifs of Table \ref{tab:hominid_model}
@@ -1175,7 +1176,18 @@ Many thanks are also due Jessica Crisci for curating the human-chimp data.
         if we take this to be 6 million years \citep{scally2012insights}
         then rates are in units of mutations per 6,000 years.
         Shown are posterior medians (points) and 95\% credible intervals (lines, which are quite small in all cases).
-        \label{fig:biochem_results_zoom}}
+        \label{sfig:biochem_results_zoom}}
+\end{figure}
+
+\begin{figure}
+    \begin{center} 
+        \includegraphics[width=\textwidth]{writeup-plots/biochem_mcmc_posteriors_relative}
+    \end{center} 
+    \caption{
+        As in Figures \ref{fig:biochem_results} and \ref{sfig:biochem_results_zoom}, 
+        but where each rate is divided by the mean rate across all eight categories
+        (as well as the 95\% credible interval endpoints).
+        \label{sfig:biochem_results_relative}}
 \end{figure}
 
 
