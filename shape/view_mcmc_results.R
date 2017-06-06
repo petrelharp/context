@@ -1,6 +1,6 @@
 library(contextual)
 
-for (modelname in c("biochem-v4", "biochem-v3")) {
+for (modelname in c("biochem-v5", "biochem-v4", "biochem-v3")) {
     mcmcs <- list.files("RegulatoryFeature-regions-from-axt/", 
                 paste0(modelname,"-fit-mcmc.*RData"), recursive=TRUE, full.names=TRUE)
 
