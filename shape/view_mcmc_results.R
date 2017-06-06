@@ -45,6 +45,8 @@ for (modelname in c("biochem-v5", "biochem-v4", "biochem-v3")) {
 
             xspace <- 4
             boxes <- do.call(cbind, lapply(lapply(these_mcmcs, function (mcfile) { load(mcfile); boxplot(as.data.frame(model@results[["batch"]][seq(20001,40000),]), plot=FALSE) } ), "[[", "stats"))
+            write.table(boxes, file=sprintf("models/%s_%s_mcmc_posteriors%s.tsv"), row.names=FALSE)
+
             atvecs <- unlist(lapply(seq_along(these_mcmcs), function (k) { (seq_along(mnames)-1)*(8+xspace) + k }))
             colvec <- rep(1:8, each=length(mnames))
             typecols <- RColorBrewer::brewer.pal("Paired", n=8)[c(1,3,5,7,2,4,6,8)]
