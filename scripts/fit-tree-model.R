@@ -18,6 +18,7 @@ option_list <- list(
         make_option( c("-o","--outfile"), type="character", help="File to save results to.  [default: base of infile + base of genmatrix + jobid + .RData]"),
         make_option( c("-u","--basedir"), type="character", default=NULL, help="Directory to put output in. [default: same as infile]"),
         make_option( c("-x","--maxit"), type="integer", default=100, help="Number of iterations of optimization to run for. [default=%default]"),
+        make_option( c("-n","--nonnegative"), action="store_true", default=FALSE, help="Constrain mutation rates to be nonnegative? [default=%default]"),
         make_option( c("-j","--jobid"), type="character", default=formatC(1e6*runif(1),width=6,format="d",flag="0"), help="Unique job id. [default random]"),
         make_option( c("-z","--seed"), type="integer", help="Seed for pseudorandom number generator; an integer. [default: does not meddle]")
     )
@@ -29,7 +30,7 @@ if (!file.exists(opt$infile)) { stop("Cannot read input file.") }
 if (is.null(opt$basedir)) { opt$basedir <- dirname(opt$infile) }
 if (is.null(opt$outfile)) { 
     model.id <- if (is.null(opt$configfile)) { gsub("\\.[^.]*","",basename(opt$gmfile) ) } else { gsub("\\.[^.]*","",basename(opt$configfile) ) }
-    opt$outfile <- paste( opt$basedir, "/", gsub("\\.[^.]*","",basename(opt$infile) ), "-", model.id, "-", opt$jobid, ".RData", sep='' ) 
+    opt$outfile <- paste( opt$basedir, "/", gsub("\\.[^.]*","",basename(opt$infile) ), "-", model.id, "-", if (opt$nonnegative) { "nonnegative" } else {"unconstrained"}, "-", opt$jobid, ".RData", sep='' ) 
 }
 print(opt) # this will go in the pbs log
 
@@ -158,20 +159,21 @@ likfun <- function (sub.params){
     return(ans)
 }
 
+mut.lb <- if (opt$nonnegative) { 1e-6 } else { -Inf }
 lbs <- unlist( c( 
-                rep(1e-6,length(config$bases)), 
-                rep(1e-6,length(config$tree$edge.length)), 
+                rep(1e-6, length(config$bases)), 
+                rep(1e-6, length(config$tree$edge.length)), 
                 lapply( genmatrices, function (gm) { c( 
-                                rep(1e-6,nmuts(gm)), 
-                                rep(-5,nsel(gm)), 
-                                rep(-Inf,length(fixparams(gm))) ) } ) ) )
+                                rep(mut.lb, nmuts(gm)), 
+                                rep(-5, nsel(gm)), 
+                                rep(-Inf, length(fixparams(gm))) ) } ) ) )
 ubs <- unlist( c( 
-                rep(1,length(config$bases)), 
-                rep(Inf,length(config$tree$edge.length)), 
+                rep(1, length(config$bases)), 
+                rep(Inf, length(config$tree$edge.length)), 
                 lapply( genmatrices, function (gm) { c( 
-                                rep(Inf,nmuts(gm)), 
-                                rep(5,nsel(gm)), 
-                                rep(Inf,length(fixparams(gm))) ) } ) ) )
+                                rep(Inf, nmuts(gm)), 
+                                rep(5, nsel(gm)), 
+                                rep(Inf, length(fixparams(gm))) ) } ) ) )
 
 stopifnot( all( initparams >= lbs ) && all( initparams <= ubs ) )
 
