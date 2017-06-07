@@ -30,11 +30,12 @@ option_list <- list(
         make_option( c("-u","--basedir"), type="character", default=NULL, help="Directory to put output in. [default: same as infile]"),
         make_option( c("-m","--gmfile"), type="character", default="TRUE", help="File with precomputed generator matrix."),
         make_option( c("-x","--maxit"), type="integer", default=100, help="Number of iterations of optimization to run for. [default=%default]"),
-        make_option( c("-n","--nonnegative"), action="store_true", default=FALSE, help="Constrain mutation rates to be nonnegative? [default=%default]"),
+        make_option( c("-n","--unconstrained"), action="store_true", default=FALSE, help="Do not constrain mutation rates to be nonnegative? [default=%default]"),
         make_option( c("-j","--jobid"), type="character", default=formatC(1e6*runif(1),width=6,format="d",flag="0"), help="Unique job id. [default random]"),
         make_option( c("-z","--seed"), type="integer", help="Seed for pseudorandom number generator; an integer. [default: does not meddle]")
     )
 opt <- parse_args(OptionParser(option_list=option_list,description=usage))
+opt$nonnegative <- !opt$unconstrained
 if (is.null(opt$infile) || is.null(opt$configfile)) { stop("No input file.  Run\n  fit-model.R -h\n for help.\n") }
 if (!file.exists(opt$infile)) { stop("Cannot read input file.") }
 if ((!is.null(opt$configfile)) && (!file.exists(opt$configfile)) ) { stop("Could not find config file `", opt$configfile, "`.") }
