@@ -49,7 +49,9 @@
 % Model-based inference neighborhood dependence
 % Nearby sites affecting the likelihood
 % Rigorous inference with neighborhood dependency
-% Statistical inference with neighborhood interdependency
+% Statistical inference with local/neighborhood interdependency
+% It depends on the context: 
+% 
 
 \title{Inference using context-dependent models of mutation}
 \author{}
@@ -730,7 +732,7 @@ All models are strand-symmetric.
 \begin{itemize}
     \item[(basic)] 
         Single-base changes, with separate rates for transitions ($\mu_v$),
-        \nA$\leftrightarrow$\nT ($\mu_{A}T$), \nC$\leftrightarrow$\nG ($\mu_{CG}$),
+        \nA$\leftrightarrow$\nT{} ($\mu_{AT}$), \nC$\leftrightarrow$\nG{} ($\mu_{CG}$),
         and other transversions ($\mu_{r}$):
           \begin{center}
             \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }c|c@{\quad$\to$\quad}c@{\quad at rate\quad }c|c@{\quad$\to$\quad}c@{\quad at rate\quad }c}
@@ -741,7 +743,7 @@ All models are strand-symmetric.
             \end{tabular}
           \end{center}
 
-      \item[(CpG)] In addition to the above, an addition CpG rate:
+      \item[(CpG)] In addition to the above, an additional CpG rate:
           \begin{center}
             \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }c}
                 CG  &   TG   &  $\nu_{CpG}$ \\
@@ -751,12 +753,12 @@ All models are strand-symmetric.
 
       \item[(repair)] In addition to the above, we included a collection of mutation motifs associated with known DNA lesion/repair pathways
           curated from the literature \citep[reviewed in][]{sale2012yfamily,goodman2013translesion,roberts2014hypermutation,cobey2015evolution,goodman2002errorprone}:
-          deamination due to repair of UV-induced pyramidine dimers \citep[$\mu_{UV}$][]{sale2012yfamily,sinha2002uvinduced};
-          repair of guanine adducts at CpG sites \citet[$\mu_g$][]{pfeifer2006mutagenesis};
-          deamination by AID \citep[$\mu_{AID}$][]{teng2007immunoglobulin,kasar2015wholegenome};
-          deamination by members of the APOBEC family \citep[$\mu_\APOBEC$][]{alexandrov2013deciphering};
-          and repair by error-prone polymerases pol $\eta$ \citep[$\mu_\eta$][]{alexandrov2013deciphering};
-          and pol $\iota$ \citep[$\mu_{\iota}$][]{roberts2014hypermutation,maul2016polymerase}.
+          deamination due to repair of UV-induced pyramidine dimers \citep[$\mu_{UV}$,][]{sale2012yfamily,sinha2002uvinduced};
+          repair of guanine adducts at CpG sites \citet[$\mu_g$,][]{pfeifer2006mutagenesis};
+          deamination by AID \citep[$\mu_{AID}$,][]{teng2007immunoglobulin,kasar2015wholegenome};
+          deamination by members of the APOBEC family \citep[$\mu_\APOBEC$,][]{alexandrov2013deciphering};
+          and repair by error-prone polymerases pol $\eta$ \citep[$\mu_\eta$,][]{alexandrov2013deciphering};
+          and pol $\iota$ \citep[$\mu_{\iota}$,][]{roberts2014hypermutation,maul2016polymerase}.
           These are denoted here using ambiguity codes 
           \nR{}: \nA{} or \nG{},
           \nY{}: \nC{} or \nT{},
@@ -765,9 +767,9 @@ All models are strand-symmetric.
           so for instance 
           ``\nT\nC\nW$\to$\nT\nT\nW'' 
           means that both 
-          \nT\nC\nA$\to$\nT\nT\nA
+          \nT\nC\nA$\to$\nT\nT\nA{}
           and
-          \nT\nC\nT$\to$\nT\nT\nT
+          \nT\nC\nT$\to$\nT\nT\nT{}
           share the same mutation rate.
           \noindent
       \begin{center}
@@ -834,42 +836,42 @@ The top and bottom of the table of (2,1,0) and (2,0,1) T-mer residuals of this m
         \begin{tabular}{ccrrrr}
                 $x$ & $y$ & observed &   expected &    residual &  $Z$ \\
                 \hline
-                \nC\nG  & \_\nC   & 100410   &  120303    & -19892.50   &	-40.55  \\
-                \nC\nA  & \_\nT   &  19884   &   28350    &  -8466.43   &	-35.55  \\
-                \nC\nT  & \_\nT   &  19998   &   28061    &  -8063.46   &	-34.03  \\
-                \nC\nC  & \_\nT   &  23673   &   28177    &  -4503.96   &	-18.97  \\
-                \nG\nG  & \_\nC   &  17742   &   19418    &  -1675.92   &	 -8.50  \\
-                \nC\nG  & \_\nG   &  18450   &   19478    &  -1028.34   &	 -5.21  \\
-                \nA\nG  & \_\nC   &  10968   &   11760    &   -791.73   &	 -5.16  \\
-                \nG\nG  & \_\nG   & 118805   &  120975    &  -2170.25   &    \\
+                \nC\nG  & \nC\_   & 100410   &  120303    & -19892.50   &	-40.55  \\
+                \nC\nA  & \nT\_   &  19884   &   28350    &  -8466.43   &	-35.55  \\
+                \nC\nT  & \nT\_   &  19998   &   28061    &  -8063.46   &	-34.03  \\
+                \nC\nC  & \nT\_   &  23673   &   28177    &  -4503.96   &	-18.97  \\
+                \nG\nG  & \nC\_   &  17742   &   19418    &  -1675.92   &	 -8.50  \\
+                \nC\nG  & \nG\_   &  18450   &   19478    &  -1028.34   &	 -5.21  \\
+                \nA\nG  & \nC\_   &  10968   &   11760    &   -791.73   &	 -5.16  \\
+                \nG\nG  & \nG\_   & 118805   &  120975    &  -2170.25   &    \\
+                \hline         
+                \nA\nG  & \nT\_   &  17280   &   16515    &    765.20   &  4.21   \\
+                \nG\nT  & \nC\_   &  20490   &   19507    &    983.44   &  4.97   \\
+                \nG\nG  & \nT\_   &  20929   &   19278    &   1650.83   &  8.40   \\
+                \nC\nC  & \nC\_   & 124149   &  119880    &   4268.52   &  8.71   \\
+                \nG\nG  & \nA\_   &  30483   &   28288    &   2195.34   &  9.22   \\
+                \nC\nT  & \nC\_   & 126957   &  119389    &   7567.92   & 15.48   \\
+                \nC\nA  & \nC\_   & 128673   &  120619    &   8054.46   & 16.39   \\
+                \nC\nG  & \nT\_   &  49311   &   28276    &  21034.85   & 88.45   \\
                 \hline
-                \nA\nG  & \_\nT   &  17280   &   16515    &    765.20   &  4.21   \\
-                \nG\nT  & \_\nC   &  20490   &   19507    &    983.44   &  4.97   \\
-                \nG\nG  & \_\nT   &  20929   &   19278    &   1650.83   &  8.40   \\
-                \nC\nC  & \_\nC   & 124149   &  119880    &   4268.52   &  8.71   \\
-                \nG\nG  & \_\nA   &  30483   &   28288    &   2195.34   &  9.22   \\
-                \nC\nT  & \_\nC   & 126957   &  119389    &   7567.92   & 15.48   \\
-                \nC\nA  & \_\nC   & 128673   &  120619    &   8054.46   & 16.39   \\
-                \nC\nG  & \_\nT   &  49311   &   28276    &  21034.85   & 88.45   \\
                 \hline
-                \hline
-                \nC\nG  &  \nG\_  &  100803  &  120541  &  -19737.80  &  -40.19 \\
-                \nT\nG  &  \nA\_  &   20040  &   28179  &   -8139.45  &  -34.28 \\
-                \nG\nG  &  \nA\_  &   20985  &   28288  &   -7302.96  &  -30.70 \\
-                \nA\nG  &  \nA\_  &   22929  &   28399  &   -5469.73  &  -22.95 \\
-                \nC\nC  &  \nG\_  &   17805  &   19410  &   -1605.01  &   -8.14 \\
-                \nC\nT  &  \nG\_  &   10470  &   11684  &   -1214.31  &   -7.94 \\
-                \nC\nA  &  \nG\_  &   10839  &   11882  &   -1043.39  &   -6.76 \\
-                \nC\nG  &  \nC\_  &   18354  &   19348  &    -994.19  &   -5.05 \\
-                \hline
-                \nC\nT  &  \nA\_  &   17007  &   16078  &     929.33  &    5.18 \\
-                \nT\nC  &  \nG\_  &   20691  &   19509  &    1182.40  &    5.98 \\
-                \nC\nC  &  \nA\_  &   20640  &   19160  &    1480.44  &    7.56 \\
-                \nT\nC  &  \nT\_  &   30309  &   28320  &    1988.91  &    8.35 \\
-                \nA\nG  &  \nG\_  &  127191  &  121450  &    5740.76  &   11.64 \\
-                \nG\nG  &  \nG\_  &  127946  &  120977  &    6969.46  &   14.16 \\
-                \nT\nG  &  \nG\_  &  127539  &  120512  &    7026.52  &   14.31 \\
-                \nC\nG  &  \nA\_  &   49098  &   28186  &   20911.93  &   88.07 \\
+                \nC\nG  &  \_\nG  &  100803  &  120541  &  -19737.80  &  -40.19 \\
+                \nT\nG  &  \_\nA  &   20040  &   28179  &   -8139.45  &  -34.28 \\
+                \nG\nG  &  \_\nA  &   20985  &   28288  &   -7302.96  &  -30.70 \\
+                \nA\nG  &  \_\nA  &   22929  &   28399  &   -5469.73  &  -22.95 \\
+                \nC\nC  &  \_\nG  &   17805  &   19410  &   -1605.01  &   -8.14 \\
+                \nC\nT  &  \_\nG  &   10470  &   11684  &   -1214.31  &   -7.94 \\
+                \nC\nA  &  \_\nG  &   10839  &   11882  &   -1043.39  &   -6.76 \\
+                \nC\nG  &  \_\nC  &   18354  &   19348  &    -994.19  &   -5.05 \\
+                \hline       
+                \nC\nT  &  \_\nA  &   17007  &   16078  &     929.33  &    5.18 \\
+                \nT\nC  &  \_\nG  &   20691  &   19509  &    1182.40  &    5.98 \\
+                \nC\nC  &  \_\nA  &   20640  &   19160  &    1480.44  &    7.56 \\
+                \nT\nC  &  \_\nT  &   30309  &   28320  &    1988.91  &    8.35 \\
+                \nA\nG  &  \_\nG  &  127191  &  121450  &    5740.76  &   11.64 \\
+                \nG\nG  &  \_\nG  &  127946  &  120977  &    6969.46  &   14.16 \\
+                \nT\nG  &  \_\nG  &  127539  &  120512  &    7026.52  &   14.31 \\
+                \nC\nG  &  \_\nA  &   49098  &   28186  &   20911.93  &   88.07 \\
                 \hline
         \end{tabular}
     \end{center}
