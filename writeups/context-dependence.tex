@@ -50,8 +50,8 @@
 % Nearby sites affecting the likelihood
 % Rigorous inference with neighborhood dependency
 % Statistical inference with local/neighborhood interdependency
-% It depends on the context: 
-% 
+% It depends on the context:
+%
 
 \title{Inference using context-dependent models of mutation}
 \author{}
@@ -59,12 +59,12 @@
 \maketitle
 
 \begin{abstract}
-    
+
 \end{abstract}
 
 \section*{Introduction}
 
-It not uncommon to encounter models
+It now common to encounter models
 consisting of a lattice of sites,
 each site taking one of a finite collection of possible states,
 and whose stochastic, temporal evolution is Markov and governed by a set of local rules.
@@ -120,7 +120,7 @@ cancer and the hypervariable regions that generate immune system diversity \cite
 which provide quite different cellular contexts but share commonalities due to shared molecular machinery.
 In general, substitution rates depend on sequence context due to the interaction of a great many factors including:
 (a) likelihood of DNA damage or errors in cell division (e.g., UV damage \citep{goodman2002errorprone} or crossing over in meiosis \citep{arbeithuber2015crossovers});
-(b) activity levels and structural properties of the enzymes responsible for repair 
+(b) activity levels and structural properties of the enzymes responsible for repair
 (e.g., Y-family polymerases \citep{goodman2013translesion,sale2012yfamily});
 and (c) any functional effects of an error (e.g., lethal mutations will not be seen in a population census).
 (We are concerned with effects that are \emph{homogeneous} across the sequence,
@@ -129,7 +129,7 @@ Some of these effects -- particularly, activity levels of different enzymes in t
 will likely vary over evolutionary time,
 and so comparisons between widely separated species will identify time-averaged mutation rates.
 Recent studies have used a variety of exploratory techniques to identify sets of mutational patterns
-co-occurring in comparisons (a) between different cancer types \citep{alexandrov2013signatures,shiraishi2015simple} and 
+co-occurring in comparisons (a) between different cancer types \citep{alexandrov2013signatures,shiraishi2015simple} and
 (b) between different human populations \citep{harris2015evidence,harris2016rapid,mathieson2017differences},
 to disentangle distinct signals presumably coming from the action of distinct sources of mutation.
 
@@ -229,7 +229,7 @@ The set of all transition triples is denoted $\calT$.
 \peter{Should call this ``selection'' instead of a ``potential''? Or what?}
 
 To allow more compact specification of models,
-we also introduce a ``potential'': 
+we also introduce a ``potential'':
 suppose that there is a collection of patterns $\{p_i\}$
 such that each occurrence of $p_i$ adds a quantity $e_i$ to the total ``energy'' of a sequence,
 and that the rate at which each possible change occurs is modulated by a function of the energy difference the change would produce.
@@ -275,7 +275,7 @@ where $n(x,p_i)$ is the number of times the pattern $p_i$ occurs in $x$.
     \begin{center}
         \begin{tabular}{cc}
         pattern  &  energy \\
-        \nC{} or \nG   &  $s$   
+        \nC{} or \nG   &  $s$
       \end{tabular} ,
     \end{center}
     so that $E(y)-E(x)$ is the net change in number of G's and C's multiplied by $s$.
@@ -305,16 +305,16 @@ where $n(x,p_i)$ is the number of times the pattern $p_i$ occurs in $x$.
     \begin{center}
         \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }c}
           $+$  &   $-$   &  $\lambda$ \\
-          $-$  &   $+$   &  $\lambda$ 
-        \end{tabular} 
+          $-$  &   $+$   &  $\lambda$
+        \end{tabular}
         \qquad and \qquad
         \begin{tabular}{cc}
         pattern  &  energy \\
         $+-$ or $-+$  &   $\beta$ \\
         $+$ &   $\gamma$
-        \end{tabular} 
+        \end{tabular}
     \end{center}
-    and 
+    and
     \begin{align*}
         \phi(e) = \frac{1}{1+\exp(-e)} .
     \end{align*}
@@ -445,10 +445,10 @@ as it ignores dependencies between neighboring blocks.
         \textbf{(A)} A $(6,2,2)$ T-mer.
         Nonmutated sites are shown in lower case letters.
         \textbf{(B)}
-        The three mutations have extended the influence of the circled \nA{} 
+        The three mutations have extended the influence of the circled \nA{}
         in the initial sequence (top)
         to the six positions colored red in the final sequence.
-        Red dotted arrows show the propagation of dependency 
+        Red dotted arrows show the propagation of dependency
         between the circled \nA{}
         and the third site in the final sequence (bottom).
         The maximum window width, $w$, is equal to 1.
@@ -491,7 +491,7 @@ Using the same methods, we can approximate the terms in this sum
 by discarding approximately independent sites from the conditioning.
 If $\ell$ is long enough that approximation \eqref{eqn:window_approx} holds, then:
 \begin{align} \label{eqn:full_approx}
-    \P\{ Y_i = y_i \given Y_{<i} \;\&\; X \} 
+    \P\{ Y_i = y_i \given Y_{<i} \;\&\; X \}
     &\approx
         \P\{ Y_i = y_i \given Y_{i-2\ell}^{(2\ell+1)} \;\&\; X_{i-3\ell}^{(4\ell+1)} \}  \\
     &=
@@ -501,15 +501,15 @@ If $\ell$ is long enough that approximation \eqref{eqn:window_approx} holds, the
             p_{2\ell+1,\ell,\ell+1}(x_{i-3\ell}^{(4\ell+1)}, y_{i-2\ell}^{(2\ell)})
         } .
 \end{align}
-By rearranging the product, 
+By rearranging the product,
 this gives us an expression for the full likelihood as the ratio of the likelihoods of all $(n,\ell,\ell)$ T-mers in $(x,y)$
 to that of of all $(n,\ell,\ell+1)$ T-mers.
 % Define $n_\ell(x,y;a,b)$ to be the number of times pattern $a$ is seen in sequence $x$
 % matched to pattern $b$ in $y$ at a position offset by $\ell$.
 % Then
 % \begin{align}
-%     \log \like(y|x) 
-%     &\approx 
+%     \log \like(y|x)
+%     &\approx
 %         \sum_{a \in \calS^n} \sum_{b \in \calS^{n-2\ell}} n_\ell(x,y;a,b) \log p_{n,\ell,\ell}(a,b)
 %         -
 %         \sum_{c \in \calS^n} \sum_{d \in \calS^{n-2\ell-1}} n_\ell(x,y;c,d) \log p_{n,\ell,\ell+1}(c,d)
@@ -523,7 +523,7 @@ The intuition is straightforward, and provides a way to pick the overhang length
 a precise statement is given in Section \ref{ss:approx_pf}.
 Suppose that each instantaneous change depends on positions at most $w$ sites away.
 Then, the mutation process at any particular site
-depends on the initial sequence at that site and within distance $w$ on either side, 
+depends on the initial sequence at that site and within distance $w$ on either side,
 and the outcomes of any mutations that have occurred within that window.
 
 Therefore, the sequence at a particular site may directly affect the process at the neighboring $w$ sites on either side.
@@ -557,9 +557,9 @@ these events may affect other sites in $Y$ going back a distance $2\ell$.
 
 The difference between observed and expected T-mer counts provide a good assessment of how and whether a model can be improved.
 These \emph{residual} counts are usually most usefully computed for T-mers shorter than those used to fit the model.
-For each T-mer $(x,y)$, write $O_{x,y}$ for the number of this T-mer observed in the data, 
+For each T-mer $(x,y)$, write $O_{x,y}$ for the number of this T-mer observed in the data,
 and $E_{x,y}$ for the number expected under the model.
-(The expected number is the number of occurrences of $x$ in the initial sequence 
+(The expected number is the number of occurrences of $x$ in the initial sequence
 multiplied by the probability $p_{n,\ell,r}(t;x,y)$, where $n$ is the length of $x$,
 and $\ell$, $r$ are the appropriate overhangs.)
 If the T-mers were nonoverlapping, this would form a standard contingency table,
@@ -609,7 +609,7 @@ once we precompute a number of things.
 Let $g = (g_1, \ldots, g_d)$ be the nonzero entries of $G$, in some fixed ordering;
 sparse matrix representations of $G$ store only $g$ along with information about the rows and columns these are found in.
 Each $g_i$ is a linear combination of mutation rates $\mu_j$,
-multiplied by a function ($\phi$) of a linear combination of energy coefficents $e_j$, 
+multiplied by a function ($\phi$) of a linear combination of energy coefficents $e_j$,
 say $g_i = \sum_j A_{ij} \mu_j \phi(\sum_k B_{ik} e_k)$,
 so by precomputing the matrices $A$ and $B$ we can update $G$ with new parameter values
 using only two matrix multiplications and evaluation of $\phi()$ over a vector.
@@ -714,7 +714,7 @@ The algorithm for a general tree is written out in Appendix \ref{ss:peeling_algo
 %%%%%%%%%%%
 \subsection{Hominid data}
 
-We also applied the model to human--chimpanzee divergence data, 
+We also applied the model to human--chimpanzee divergence data,
 restricting the comparison to putative regulatory sequences,
 avoiding the additional constraints of coding sequences.
 To do this, we extracted regions in the human (hg38)--chimpanzee (panTro4) alignment % \citep[from the UCSC Genome Browser][]{pantroalign}
@@ -730,7 +730,7 @@ and fit models separately to each of the eight data sets.
 We constructed models from three, nested, sets of mutation motifs.
 All models are strand-symmetric.
 \begin{itemize}
-    \item[(basic)] 
+    \item[(basic)]
         Single-base changes, with separate rates for transitions ($\mu_v$),
         \nA$\leftrightarrow$\nT{} ($\mu_{AT}$), \nC$\leftrightarrow$\nG{} ($\mu_{CG}$),
         and other transversions ($\mu_{r}$):
@@ -759,14 +759,14 @@ All models are strand-symmetric.
           deamination by members of the APOBEC family \citep[$\mu_\APOBEC$,][]{alexandrov2013deciphering};
           and repair by error-prone polymerases pol $\eta$ \citep[$\mu_\eta$,][]{alexandrov2013deciphering};
           and pol $\iota$ \citep[$\mu_{\iota}$,][]{roberts2014hypermutation,maul2016polymerase}.
-          These are denoted here using ambiguity codes 
+          These are denoted here using ambiguity codes
           \nR{}: \nA{} or \nG{},
           \nY{}: \nC{} or \nT{},
           \nW{}: \nA{} or \nT{}, and
           \nS{}: \nC{} or \nG{};
-          so for instance 
-          ``\nT\nC\nW$\to$\nT\nT\nW'' 
-          means that both 
+          so for instance
+          ``\nT\nC\nW$\to$\nT\nT\nW''
+          means that both
           \nT\nC\nA$\to$\nT\nT\nA{}
           and
           \nT\nC\nT$\to$\nT\nT\nT{}
@@ -783,14 +783,14 @@ All models are strand-symmetric.
             \nC\nC     &   \nT\nT      &  $\mu_{UVd}$    & \nS\nG\nA    &   \nS\nA\nA    &  $\mu_{\APOBEC}$  \\
             \nG\nG     &   \nA\nA      &  $\mu_{UVd}$    & \nS\nG\nA    &   \nS\nC\nA    &  $\mu_{\APOBEC}$  \\
             \nT\nA     &   \nT\nG      &  $\mu_{\eta}$   & \nW\nR\nC\nY &  \nW\nR\nT\nY  &  $\mu_{\AID}$     \\
-            \nT\nA     &   \nC\nA      &  $\mu_{\eta}$   & \nR\nG\nY\nS &  \nR\nA\nY\nS  &  $\mu_{\AID}$     
+            \nT\nA     &   \nC\nA      &  $\mu_{\eta}$   & \nR\nG\nY\nS &  \nR\nA\nY\nS  &  $\mu_{\AID}$
         \end{tabular}
       \end{center}
 
 \end{itemize}
 
-The mutational motifs included above are far from complete 
--- context-specific affinities and error rates \textit{in vivo} 
+The mutational motifs included above are far from complete
+-- context-specific affinities and error rates \textit{in vivo}
 are not known for most DNA repair pathways --
 but neither do they exhaust the hypotheses available in the literature.
 For instance, many enzymes act more than once locally when they act,
@@ -804,7 +804,7 @@ such as AID \citep{senavirathne2015activationinduced} or error-prone polymerases
 \subsection{Stepwise model selection}
 
 In exploratory application to real data, how does one decide when to stop adading mutational motifs?
-Perhaps the simplest method conceptually is to 
+Perhaps the simplest method conceptually is to
 (a) fit a simple model,
 (b) choose new motifs to add based on statistically significant residuals,
 (c) repeat until no residuals are statisically significant.
@@ -844,7 +844,7 @@ The top and bottom of the table of (2,1,0) and (2,0,1) T-mer residuals of this m
                 \nC\nG  & \nG\_   &  18450   &   19478    &  -1028.34   &	 -5.21  \\
                 \nA\nG  & \nC\_   &  10968   &   11760    &   -791.73   &	 -5.16  \\
                 \nG\nG  & \nG\_   & 118805   &  120975    &  -2170.25   &    \\
-                \hline         
+                \hline
                 \nA\nG  & \nT\_   &  17280   &   16515    &    765.20   &  4.21   \\
                 \nG\nT  & \nC\_   &  20490   &   19507    &    983.44   &  4.97   \\
                 \nG\nG  & \nT\_   &  20929   &   19278    &   1650.83   &  8.40   \\
@@ -863,7 +863,7 @@ The top and bottom of the table of (2,1,0) and (2,0,1) T-mer residuals of this m
                 \nC\nT  &  \_\nG  &   10470  &   11684  &   -1214.31  &   -7.94 \\
                 \nC\nA  &  \_\nG  &   10839  &   11882  &   -1043.39  &   -6.76 \\
                 \nC\nG  &  \_\nC  &   18354  &   19348  &    -994.19  &   -5.05 \\
-                \hline       
+                \hline
                 \nC\nT  &  \_\nA  &   17007  &   16078  &     929.33  &    5.18 \\
                 \nT\nC  &  \_\nG  &   20691  &   19509  &    1182.40  &    5.98 \\
                 \nC\nC  &  \_\nA  &   20640  &   19160  &    1480.44  &    7.56 \\
@@ -901,12 +901,12 @@ but none so large as those seen in (3,1,1) T-mer residuals, shown here:
                 \nT\nC\nT  &  \_\nG\_  &   5421  &   5056  &    364.54  &   2.95  \\
                 \nT\nC\nC  &  \_\nT\_  &   7590  &   5500  &   2089.79  &  16.26  \\
                 \nA\nG\nG  &  \_\nA\_  &   7566  &   5263  &   2302.74  &  18.32  \\
-                \hline                                                     
+                \hline
         \end{tabular}
     \end{center}
 \ldots which again clearly call for adding the mutation tuples $TCC \to TTC$ and $AGG \to AAG$.
-After adding these in, 
-% and initializing all parameters to 0.1 
+After adding these in,
+% and initializing all parameters to 0.1
 no further (3,1,1) T-mer residuals achieved
 statistical significance after a Bonferroni correction;
 the final parameter values are shown in Table \ref{tab:cpg_results};
@@ -914,39 +914,39 @@ parameter estimates differ from the truth by less than 3\% (mostly within 1\%).
 
 
 % df <- structure(list(
-%     sim = c(0.1, 0.1, 0.15, 0.15, 0.08, 0.08, 0.08, 0.08, 0.12, 0.12, 0.12, 0.12, 0.4, 0.1), 
-%     fit = c(0.0996, 0.0982, 0.1505, 0.1497, 0.0784, 0.0792, 0.0798, 0.0795, 0.1202, 0.1196, 0.1198, 0.1193, 0.3978, 0.1033)), 
-%     .Names = c("sim", "fit"), 
-%     row.names = c("A->T", "T->A", "C->G", "G->C", "A->C", "T->G", "A->G", "T->C", "C->A", "G->T", "C->T", "G->A", "CG->TG|CG->CA", "TCC->TTC|AGG->AAG"), 
+%     sim = c(0.1, 0.1, 0.15, 0.15, 0.08, 0.08, 0.08, 0.08, 0.12, 0.12, 0.12, 0.12, 0.4, 0.1),
+%     fit = c(0.0996, 0.0982, 0.1505, 0.1497, 0.0784, 0.0792, 0.0798, 0.0795, 0.1202, 0.1196, 0.1198, 0.1193, 0.3978, 0.1033)),
+%     .Names = c("sim", "fit"),
+%     row.names = c("A->T", "T->A", "C->G", "G->C", "A->C", "T->G", "A->G", "T->C", "C->A", "G->T", "C->T", "G->A", "CG->TG|CG->CA", "TCC->TTC|AGG->AAG"),
 %     class = "data.frame")
 
 \begin{table}
   \begin{center}
         \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }ll}
           \hline
-            x & y & truth & MLE \\ 
+            x & y & truth & MLE \\
           \hline
-          \nA  &   \nT           & 0.10 & 0.0996 \\ 
-          \nT  &   \nA           & 0.10 & 0.0982 \\ 
-          \nC  &   \nG           & 0.15 & 0.1505 \\ 
-          \nG  &   \nC           & 0.15 & 0.1497 \\ 
-          \nA  &   \nC           & 0.08 & 0.0784 \\ 
-          \nT  &   \nG           & 0.08 & 0.0792 \\ 
-          \nA  &   \nG           & 0.08 & 0.0798 \\ 
-          \nT  &   \nC           & 0.08 & 0.0795 \\ 
-          \nC  &   \nA           & 0.12 & 0.1202 \\ 
-          \nG  &   \nT           & 0.12 & 0.1196 \\ 
-          \nC  &   \nT           & 0.12 & 0.1198 \\ 
-          \nG  &   \nA           & 0.12 & 0.1193 \\ 
-       \nC\nG  &  \nT\nG         & 0.40 & 0.3978 \\ 
-       \nC\nG  &  \nC\nA         & 0.40 & 0.3978 \\ 
-    \nT\nC\nC  &  \nT\nT\nC      & 0.10 & 0.1033 \\ 
-    \nA\nG\nG  &  \nA\nA\nG      & 0.10 & 0.1033 \\ 
+          \nA  &   \nT           & 0.10 & 0.0996 \\
+          \nT  &   \nA           & 0.10 & 0.0982 \\
+          \nC  &   \nG           & 0.15 & 0.1505 \\
+          \nG  &   \nC           & 0.15 & 0.1497 \\
+          \nA  &   \nC           & 0.08 & 0.0784 \\
+          \nT  &   \nG           & 0.08 & 0.0792 \\
+          \nA  &   \nG           & 0.08 & 0.0798 \\
+          \nT  &   \nC           & 0.08 & 0.0795 \\
+          \nC  &   \nA           & 0.12 & 0.1202 \\
+          \nG  &   \nT           & 0.12 & 0.1196 \\
+          \nC  &   \nT           & 0.12 & 0.1198 \\
+          \nG  &   \nA           & 0.12 & 0.1193 \\
+       \nC\nG  &  \nT\nG         & 0.40 & 0.3978 \\
+       \nC\nG  &  \nC\nA         & 0.40 & 0.3978 \\
+    \nT\nC\nC  &  \nT\nT\nC      & 0.10 & 0.1033 \\
+    \nA\nG\nG  &  \nA\nA\nG      & 0.10 & 0.1033 \\
            \hline
         \end{tabular}
   \end{center}
   \caption{ Results from iterative fitting to a $10^6$ sequence evolved to have 28.5\% sequence divergence
-    with the above mutational motifs. The transitions $CG \to TG$ and $CG \to CA$ 
+    with the above mutational motifs. The transitions $CG \to TG$ and $CG \to CA$
     were constrained to be equal (DNA strand symmetry),
     as were the transitions $TCC \to TTC$ and $AGG \to AAG$.
     \label{tab:cpg_results} }
@@ -961,7 +961,7 @@ to use a Metropolis-Hasting-based Markov chain Monte Carlo method
 to sample from the posterior distribution on parameters.
 To test this,
 we evolved $10^6$ sites from the Ising model (described above) with $\lambda=0.5$, $\beta=1.0$, and $\gamma=0.5$
-for 1 unit of time, 
+for 1 unit of time,
 resulting in around 460,000 possible mutations
 and differences at around 186,000 sites between initial and final sequence.
 We then placed an Exponential prior with mean 1 on both transitions $+ \to -$ and $- \to +$
@@ -974,7 +974,7 @@ We repeated this procedure separately on 60 independently simulated sequences,
 and show the resulting credible intervals in Figure \ref{fig:ising_coverage}.
 Poseterior medians are within half a percent of the truth for $+ \to -$ and $- \to +$ (corresponding to $\lambda$)
 and the temperature ($\beta$), but showed around 2\% error for the magnetic field $\gamma$.
-As seen in Table \ref{tab:ising_coverage}, 
+As seen in Table \ref{tab:ising_coverage},
 credible intervals were somewhat too narrow for shorter T-mers,
 but $(6,2,2)$ T-mers were long enough with sufficient overhang to produce well-calibrated posteriors.
 
@@ -982,12 +982,12 @@ but $(6,2,2)$ T-mers were long enough with sufficient overhang to produce well-c
 \centering
 \begin{tabular}{rrrr}
   \hline
-    & (4,1,1) & (5,1,1) & (6,2,2) \\ 
+    & (4,1,1) & (5,1,1) & (6,2,2) \\
   \hline
-  $\lambda_-$ & 0.61 & 0.63 & 0.96 \\ 
-  $\lambda_+$ & 0.87 & 0.86 & 0.85 \\ 
-  $\beta$     & 0.76 & 0.81 & 0.94 \\ 
-  $\gamma$    & 0.69 & 0.76 & 0.85 \\ 
+  $\lambda_-$ & 0.61 & 0.63 & 0.96 \\
+  $\lambda_+$ & 0.87 & 0.86 & 0.85 \\
+  $\beta$     & 0.76 & 0.81 & 0.94 \\
+  $\gamma$    & 0.69 & 0.76 & 0.85 \\
    \hline
 \end{tabular}
     \caption{
@@ -1000,9 +1000,9 @@ but $(6,2,2)$ T-mers were long enough with sufficient overhang to produce well-c
 \end{table}
 
 \begin{figure}
-    \begin{center} 
+    \begin{center}
         \includegraphics{writeup-plots/coverage_results}
-    \end{center} 
+    \end{center}
     \caption{
         Credible intervals for the four parameters of the dynamic Ising model,
         calculated using $(6,2,2)$ T-mers,
@@ -1020,9 +1020,9 @@ We also applied the method to changes between the human and chimpanzee reference
 
 
 \begin{figure}
-    \begin{center} 
+    \begin{center}
         \includegraphics[width=\textwidth]{writeup-plots/biochem_mcmc_posteriors}
-    \end{center} 
+    \end{center}
     \caption{
         Estimated average mutation rates
         for the motifs of Table \ref{tab:hominid_model}
@@ -1041,7 +1041,7 @@ or absurd that UV damage could play a significant role.
 This is in part due to the ``streetlight effect'' --
 we can't look for signatures that are not characterized --
 but it is also reasonable that shared repair machinery might induce similar context-dependent errors.
-More likely sources of error in the germline include the effects of recombination 
+More likely sources of error in the germline include the effects of recombination
 \citep{arbeithuber2015crossovers,myers2010drive}.
 
 %%%%%%%%%%%%%%%%%%%%
@@ -1093,7 +1093,7 @@ The model presented assumes that the same process occurs at every location along
 and that the length of the sequnce does not change (no indels).
 Neither of these assumptions are likely to be true for any data set of DNA sequence;
 however, both assumptions are also made the state of the art in phylogenetics.
-Some relaxation of the assumptions is possible -- for instnace, 
+Some relaxation of the assumptions is possible -- for instnace,
 we can easily allow heterogeneity between sites by scaling rates by an overall gamma-distributed random factor \citep{yang1994maximum}.
 Short deletions might be accomodated by introducing a ``gap'' letter to the alphabet,
 but insertions may be problematic.
@@ -1107,7 +1107,7 @@ Although the model is efficent enough to deal with fairly long T-mers,
 this exponential growth puts hard constraints on the application of the method.
 The length of T-mers required to accurately compute the likelihood in most models grows at most linearly
 with the mean density of substitution between the initial and final sequence.
-This does not in practice greatly increase the length of required T-mer 
+This does not in practice greatly increase the length of required T-mer
 since substitution densities approaching 100\% are unlikely to be usable in practice
 especially if how the sequences align with each other is unknown.
 A more serious determining factor of T-mer length is the degree of dependency in the model itself.
@@ -1118,7 +1118,7 @@ would require T-mers of width at least 25, and hence vectors of length $4^25 \ap
 \paragraph{Modeling}
 Careful building of complex models in this framework may take care,
 but no more than in any other class of models (e.g., multivariate linear regression).
-It is easy to specify nonidentifiable models -- 
+It is easy to specify nonidentifiable models --
 for instance, all 2mer mutation motifs include the 1mer motifs.
 The large number of possible mutation motifs also makes multiple testing an issue;
 an unguided approach might include all possible motifs but place a shrinkage prior on their values \citep{bhadra2015horseshoe}.
@@ -1142,7 +1142,7 @@ More things to do: cancer; include gaps; more taxa; leading/lagging strand...
 
 
 \subsection{Acknowledgements}
-The initial impetus for this project came from Matt Dean; 
+The initial impetus for this project came from Matt Dean;
 along the way substantial encouragement and useful suggestions were provided by
 Erick Matsen, Simon Tavar\'e, Rasmus Nielsen, Graham Coop, Yaniv Brandvain, and Sergey Nuzhdin.
 In particular, Erick Matsen helped improve the code and suggested the name ``T-mer''.
@@ -1155,9 +1155,9 @@ Many thanks are also due Jessica Crisci for curating the human-chimp data.
 \section{Supplementary figures}
 
 \begin{figure}
-    \begin{center} 
+    \begin{center}
         \includegraphics{writeup-plots/coverage_results_all}
-    \end{center} 
+    \end{center}
     \caption{
         As in \ref{fig:ising_coverage}:
         Credible intervals for the four parameters of the dynamic Ising model,
@@ -1171,9 +1171,9 @@ Many thanks are also due Jessica Crisci for curating the human-chimp data.
 \end{figure}
 
 \begin{figure}
-    \begin{center} 
+    \begin{center}
         \includegraphics[width=\textwidth]{writeup-plots/biochem_mcmc_posteriors_zoomed}
-    \end{center} 
+    \end{center}
     \caption{
         As in Figure \ref{fig:biochem_results}, but with reduce vertical axis range
         to see in more detail:
@@ -1188,11 +1188,11 @@ Many thanks are also due Jessica Crisci for curating the human-chimp data.
 \end{figure}
 
 \begin{figure}
-    \begin{center} 
+    \begin{center}
         \includegraphics[width=\textwidth]{writeup-plots/biochem_mcmc_posteriors_relative}
-    \end{center} 
+    \end{center}
     \caption{
-        As in Figures \ref{fig:biochem_results} and \ref{sfig:biochem_results_zoom}, 
+        As in Figures \ref{fig:biochem_results} and \ref{sfig:biochem_results_zoom},
         but where each rate is divided by the mean rate across all eight categories
         (as well as the 95\% credible interval endpoints).
         \label{sfig:biochem_results_relative}}
@@ -1242,7 +1242,7 @@ for instance, the left edge $L(s) = \min \{ j \in H(I,t-s,t) \}$ jumps leftwards
 that has mean $R/2$.
 General facts about random walks imply that \eqref{eqn:prob_approx} is bounded above by $C e^{-\alpha \ell/t}$, for some constants $C$ and $\alpha$.
 
-\paragraph{Full likelihood} 
+\paragraph{Full likelihood}
     Now we use these ideas to quantify and prove approximation \eqref{eqn:full_approx}.
 For two positions $(i,s)$ and $(j,t)$ in sequence $\times$ time,
 let $r(i,s;j,t) = |j-i|/|t-s|$ be the slope of the line between them,
@@ -1761,7 +1761,7 @@ Here is a reformulation of the CpG and Ising models without using a potential.
             \nT\nA     &   \nT\nG      &  $\mu_{\eta}$   & \nA\nA       &    \nA\nG      &  $\mu_{\iota1}$  & \nT\nG\nC\nT  &   \nT\nG\nT\nT   &  $\mu_{\AID}$ \\
             \nT\nA     &   \nC\nA      &  $\mu_{\eta}$   & \nT\nT       &    \nC\nT      &  $\mu_{\iota1}$  & \nT\nG\nC\nC  &   \nT\nG\nT\nC   &  $\mu_{\AID}$ \\
             \nA\nA     &   \nG\nT      &  $\mu_{\iota2}$ & \nT\nG\nC\nT &  \nT\nG\nT\nT  &  $\mu_{\AID}$    & \nT\nA\nC\nT  &   \nT\nA\nT\nT   &  $\mu_{\AID}$ \\
-            \nT\nT     &   \nA\nC      &  $\mu_{\iota2}$ & \nT\nG\nC\nC &  \nT\nG\nT\nC  &  $\mu_{\AID}$    & \nT\nA\nC\nC  &   \nT\nA\nT\nC   &  $\mu_{\AID}$ 
+            \nT\nT     &   \nA\nC      &  $\mu_{\iota2}$ & \nT\nG\nC\nC &  \nT\nG\nT\nC  &  $\mu_{\AID}$    & \nT\nA\nC\nC  &   \nT\nA\nT\nC   &  $\mu_{\AID}$
         \end{tabular}
       \end{center}
 

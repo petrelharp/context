@@ -23,3 +23,6 @@ clean:
 %.png : %.pdf
 	convert -density 300 $< -flatten $@
 
+continuous:
+	make
+	while :; do inotifywait -e modify $(PROJECT).tex $(PROJECT).bib; make; done
