@@ -346,7 +346,7 @@ x \xrightarrow{i,u,v} y \qquad \text{iff} \qquad \begin{cases}
 i.e.\ if $x$ and $y$ match except at positions $i,i+1,\ldots,i+h-1$,
 and for those positions $x$ matches with $u$ while $y$ matches with $v$.
 
-As noted above, there may be more than one way to mutate a sequence $x$ to get $y$:
+As noted above, there may be more than one way to mutate a such a sequence $x$ to get such a $y$:
 for each position $i$, let $J(i,x,y)$ be those transitions in $\calT$ that can be applied at $i$
 to change $x$ into $y$, i.e.
 \[
@@ -462,6 +462,7 @@ as it ignores dependencies between neighboring blocks.
         Red dotted arrows show the propagation of dependency
         between the circled \nA{}
         and the third site in the final sequence (bottom).
+        %EM This "window" terminology... should we have another quick definition here?
         The maximum window width, $w$, is equal to 1.
         \label{fig:Tmers}
     }
@@ -471,20 +472,30 @@ as it ignores dependencies between neighboring blocks.
 
 The key insight we use is that by including neighboring sequence context in the \emph{initial} sequence only,
 we can compute \emph{something} correctly,
+%EM The full exact likelihood? Isn't it an approximation?
 and that something will be sufficient to compute the full likelihood.
 To do this, let $p_{n,\ell,r}(x,y)$ for $r+\ell < n$ denote
+%EM Can we say initial subsequence or something?
 the probability that an initial sequence $x$ of length $n$, after time $t$,
 is found to match a smaller sequence $y$ of length $n-\ell-r$, offset by $\ell$ sites.
-We refer to such patterns as ``T-mers'', as depicted in Figure \ref{fig:Tmers}.
+%EM Say $a$ is the first $\ell$ bases of $x$ and $b$ is the last $r$ bases of $x$.
+We refer to such patterns as ``T-mers'', as depicted in Figure~\ref{fig:Tmers}.
+%EM Later we use the terminology "base of the T-mer." Let's define that here.
+%EM Shall we define w here?
 This quantity is found by marginalizing $p_m$:
 \begin{align}
+%EM Are we parameterizing in terms of n,\ell,r or n,\ell,m? We see both.
     p_{n,\ell,r}(t;x,y) &= \sum_{a \in \calS^\ell} \sum_{b \in \calS^r} p_n(t;x,a \join y \join b) , \quad \text{for}\; x \in \calS^n, \; y \in \calS^{n-\ell-r} ,
 \end{align}
 where $a \join y \join b$ is the sequence composed of concatenating $a$, $y$, and $b$ together in that order.
 We expect $p_{n,\ell,m}(x,y)$ to be asymptotically correct when $\ell$ is large (and $t$ is fixed),
 i.e.\ that the probability a given subsequence matching $x$ is later observed to have its center matching $y$
+%EM should this be p_{n,\ell,m} below?
+%EM What is k here? And do you mean \ell?
 is close to $p_{\ell,m}(x,y)$, regardless of context wider than $2k+l$:
 \begin{align} \label{eqn:window_approx}
+%EM I think I know what you're doing here but the $i$ seems rather lonely here. Do we think of it as something for marginalization or summation or something?
+%EM Also, x on the left hand side appears to be the full sequence, while on the right hand side it appears to be a subsequence. Same for y.
     p_{n,\ell,r}(x,y) \approx \P\{ X_{i+\ell}^{(n-\ell-r)}(t) = y \mid X_i^{(n)}(0) = x \}.
 \end{align}
 
@@ -498,13 +509,13 @@ the probability that a given sequence $x$ evolves into another, $y$, over a give
 This can be computed as the product of the probability of each site in $y$ given $x$ and previous sites:
 defining $x_{<i}=(x_1, \ldots, x_{i-1})$, this is:
 \begin{align*}
+%EM I'm not accustomed to seeing a big chunky ampersand in prob statements, rather I typically see commas. But you be you if this is how you do it.
     \like(y|x) &= \prod_i \P\{ Y_i = y_i \given Y_{<i} = y_{<i} \;\&\; X=x \} .
 \end{align*}
 Using the same methods, we can approximate the terms in this sum
 by discarding approximately independent sites from the conditioning.
 %EM The following sentence may get us in trouble with the formalization police.
 If $\ell$ is long enough that approximation \eqref{eqn:window_approx} holds, then:
-%EM This casual reader is a little confused about the left to right nature here.
 \begin{align} \label{eqn:full_approx}
     \P\{ Y_i = y_i \given Y_{<i} \;\&\; X \}
     &\approx
@@ -544,7 +555,7 @@ and the outcomes of any mutations that have occurred within that window.
 Therefore, the sequence at a particular site may directly affect the process at the neighboring $w$ sites on either side.
 If another change happens, say, at the end of this window,
 then the indirect effects of this change may extend out to $2w-1$ sites.
-In this way, the influence of the sequence at each site extends outwards, as shown in Figure \ref{fig:Tmers} --
+In this way, the influence of the sequence at each site extends outwards, as shown in Figure~\ref{fig:Tmers} --
 so if we take the overhangs long enough that this dependency is unlikely to extend to the base of the Tmer,
 the approximation will be good.
 As we show in Section \ref{ss:approx_pf}, if the overhangs are $\ell = r = kw$,
