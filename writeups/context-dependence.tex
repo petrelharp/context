@@ -540,6 +540,8 @@ to that of of all $(n,\ell,\ell+1)$ T-mers.
 %         \sum_{c \in \calS^n} \sum_{d \in \calS^{n-2\ell-1}} n_\ell(x,y;c,d) \log p_{n,\ell,\ell+1}(c,d)
 % \end{align}
 
+This statement is made more rigorous and proven in the Appendix.
+
 %%%%%
 \subsection{Choice of overhang}
 
@@ -1233,21 +1235,25 @@ Many thanks are also due Jessica Crisci for curating the human-chimp data.
 First we quantify and prove the approximation \eqref{eqn:window_approx}.
 In fact, the approximation improves exponentially as $\ell$ and $r$ increase --
 here is a simple argument.
+%EM Different notation for transition triples here it seems.
 Suppose the maximum length of any transition pattern is $R = \max\{ |u| : (\mu,u,v) \in \calT \}$.
 The transition rate at site $i$ at time $s$ is determined if we know $X_{i-R}^{(2R+1)}(s)$;
 this can be determined from $X_{i-R}^{2R+1}(0)$ and the outcome of all changes happening before time $s$ at sites in $(i-R-1, \ldots, i+R)$.
 These will depend in turn on the outcome of previous possible changes.
+%EM I'm going to suggest a separate sentence defining the si and sij
 For each site $i$ and times $s_1 < s_2$, define the set of states $H(i,s_1,s_2)$
 so that if one knows the possible change points $s_{ij}$,
+%EM Can I suggest "changes to the sequence outside..."
 then changes outside of $H(i,s_1,s_2)$ do not affect the distribution of $X_i(s_2)$.
 Concretely, define $H(i,s_1,s_2)$ by the property that $i \in H(i,s_1,s_2)$, and
 \begin{gather}
   \text{if } s_1 < s_{jk} \le s_2 \text{ for some } i-R-1 \le j \le i+R, \text{ then } H(j,s_1,s_{jk}) \subseteq H(i,s_1,s_2) .
 \end{gather}
+%EM I'm having some difficulty following... so far H has been described as states, neighborhoods, and changes. I guess it all comes back to subsequences.
 In other words, $H(i,s_1,s_2)$ is the union of the $R$-neighborhoods of $i$ and all possible changes occurring in $H(i,s_1,s_2)$ between $s_1$ and $s_2$.
 For a set of states $I$, let $H(I,s_1,s_2) = \bigcup_{i\in I} H(i,s_1,s_2)$.
 Formally, the state $X_i(s_2)$ is conditionally independent of $\{X_j(s_1) \st j \notin H(i,s_1,s_2)\}$.
-Informally, the approximation \eqref{eqn:window_approx} will be good if $H$ does note expand beyond the flanking context.
+Informally, the approximation \eqref{eqn:window_approx} will be good if $H$ does not expand beyond the flanking context.
 Now,
 \begin{multline}
   \P\{ X_i^{(m)}(t) = y \mid X(0) \}
@@ -1258,17 +1264,21 @@ Now,
 \end{multline}
 and so
 \begin{align} \label{eqn:prob_approx}
+  %EM You want _not_ contained in for the RHS here, right?
+  %EM I think I need this written out in a little more detail.
   \left| \P\{ X_i^{(m)}(t) = y \mid X(0) \} - p_{\ell,m}(t;x,y) \right| \le 2 \P\left\{  H(\{I,\ldots,i+m\},0,t)\subseteq\{i-\ell,\ldots,i+m+r\} \right\}.
 \end{align}
 
 So, the error is bounded by the probability that $H(I,0,t)$ is larger than the context from $I-\ell$ to $I+r$.
+%EM Oh, this is VERY cool.
+%EM But does this random walk ever jump to the right? If not, does left-only jumping still considered a random walk?
 However, following $H$ backwards in time, the outer edge of $H$ expands as a continuous-time random walk:
 for instance, the left edge $L(s) = \min \{ j \in H(I,t-s,t) \}$ jumps leftwards at rate $R\mu_*$ with a random jump size
 that has mean $R/2$.
-General facts about random walks imply that \eqref{eqn:prob_approx} is bounded above by $C e^{-\alpha \ell/t}$, for some constants $C$ and $\alpha$.
+General facts about random walks imply that~\eqref{eqn:prob_approx} is bounded above by $C e^{-\alpha \ell/t}$, for some constants $C$ and $\alpha$.
 
 \paragraph{Full likelihood}
-    Now we use these ideas to quantify and prove approximation \eqref{eqn:full_approx}.
+Now we use these ideas to quantify and prove approximation~\eqref{eqn:full_approx}.
 For two positions $(i,s)$ and $(j,t)$ in sequence $\times$ time,
 let $r(i,s;j,t) = |j-i|/|t-s|$ be the slope of the line between them,
 and if $I$ and $J$ are subsets of sites, let $r(I,s;J,t) = \min\{r(i,s;j,t) : i\in I, j \in J\}$
@@ -1279,28 +1289,32 @@ then $X_I(s)$ and $X_J(t)$ are nearly independent.
 Now, fix $t$ and for each site $i$ let $N_i$ denote its $r_*$-neighborhood,
 i.e.,
 \begin{align}
+%EM Before we had i,s,j,t, and now we have i,t,j,s. It doesn't make a difference, but should we choose one?
+%EM Do we want to specify a max allowable range for j as well on the RHS?
     N_i = \{ (j,s) : r(i,t; j,s) \le r_*, \; 0 \le s \le t \} .
 \end{align}
-These are depicted in figure~\ref{fig:neighborhoods}A.
+These are depicted in Figure~\ref{fig:neighborhoods}A.
 We will write $i \sim j$ if $|i-j| \le 2 r_* t$,
 or equivalently, if $N_i \cap N_j \neq \emptyset$,
 and $i \nsim j$ otherwise.
-We can think of $N_i$ as the parts of ancestral sequences in which a mutation might have affected the state at $(i,t)$.
+We can think of $N_i$ as the parts of ancestral sequences in which a mutation might have affected the state at $(i,t)$,.
 so if $i \nsim j$, then $i$ and $j$ are (approximately) independent at time $t$, given the sequence at time 0.
 Concretely,
 we have a small $\epsilon$ such that for any $i \nsim j$,
-\begin{align}
+\begin{align*}
     &\big|
     \log( \P\{ X_i(t) = x_i \and X_j(t) = x_j \} ) \\
     &\qquad {} -
     \log( \P\{ X_i(t) = x_i \} \P\{ X_j(t) = x_j \} )
     ) \big|
     \le \epsilon .
-\end{align}
+\end{align*}
 
 
 \begin{figure}
     \begin{center}
+    %EM This looks like N12 to me. Am I miscounting?
+    %EM I suggest we include t and s in the diagram too.
         \includegraphics{context-neighborhoods-defns}
 
         \vspace{2em}
@@ -1308,6 +1322,7 @@ we have a small $\epsilon$ such that for any $i \nsim j$,
         \includegraphics{context-neighborhoods-widths}
     \end{center}
     \caption{
+        %EM TODO make this A and B so we can refer to them in the text.
         Diagram of things in the text:
         (top) Dependency neighboorhods.
         (bottom) What we need to compute $\P\{X_i(t)=x \given X(0), X_{<i}(t)\}$:
