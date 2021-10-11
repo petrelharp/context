@@ -186,9 +186,11 @@ and $X_i(t)$ for the state of site $i$ at time $t$,
 we assume that $\{X(t)\}_{t \ge 0}$ is a Markov process on sequences of $n$ states $\calS^n$
 for which the probability a given site changes state in a small amount of time
 depends only on the sequence of states at nearby sites.
+%EM If we think that this can be generalized to the setting of position-specific local models, then let's mention that here and then put in a little section.
 
 To formalize this notion of local dependence,
 first define a \textit{pattern} to mean a contiguous sequence of states;
+%EM Do we use this length notation? I couldn't easily find an instance.
 let $|u|$ denote the length of the pattern $u$.
 Given $x \in \calS$,
 let $x_i^{(h)} = (x_i, x_{i+1}, \ldots, x_{i+h-1})$ denote the pattern of $x$ of length $h$ beginning at location $i$.
@@ -216,11 +218,12 @@ The set of all transition triples is denoted $\calT$.
 
   \begin{center}
     \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }c}
-      10  &   01   &  $\lambda$
+      10  &   01   &  $\lambda$.
     \end{tabular}
   \end{center}
 
-  This only has one parameter, the speed.
+  \noindent
+  This only has one parameter.
   If we allow particles to exit from the right, and new particles to enter from the left
   then from observing only starting and ending configurations
   we cannot tell with certainty which particles have moved where,
@@ -235,6 +238,7 @@ The set of all transition triples is denoted $\calT$.
 %EM I think we could have both, but certainly this biological interpretation.
 %Then we would have "selection" and "fitness" rather than "potential" and
 %"energy"?
+%EM Yes. Seems nice unless you think that this "fitness" model would just annoy a pop gen person.
 \peter{Should call this ``selection'' instead of a ``potential''? Or what?}
 
 To allow more compact specification of models,
@@ -244,17 +248,18 @@ such that each occurrence of $p_i$ adds a quantity $e_i$ to the total ``energy''
 and that the rate at which each possible change occurs is modulated by a function of the energy difference the change would produce.
 This is natural if that transition triples describe \emph{proposed} changes,
 and that the probability a proposed change actually occurs depends on how much it affects the energy.
-Concretely, let $\calP = \{(p_i, e_i\}$ be a set of (pattern, energy change) pairs,
+%EM I'm trying to understand why I should think of e_i as an energy *change*. Why not just an energy of pattern i? We already take differences of energies.
+Concretely, let $\calP = \{(p_i, e_i)\}$ be a set of (pattern, energy change) pairs,
 and for any sequence $x$ define
-$E(x) = \sum_i e_i n(x,p_i)$,
+$E(x) = \sum_i e_i\, n(x,p_i)$,
 where $n(x,p_i)$ is the number of times the pattern $p_i$ occurs in $x$.
 These will affect the rates through a nonnegative function $\phi$:
 we declare that if the rate at which $x$ changes to $y$ as computed
 from transition triples is $\mu$,
 then the actual rate is
-$$
-    \mu \phi(E(y) - E(x)) .
-$$
+\[
+    \mu \, \phi\left(E(y) - E(x)\right) .
+\]
 If $\phi(e)$ is not greater than 1, one way to think about this is that
 the transition triples give ``proposed changes'',
 but these changes only take effect with probability $\phi(E(y) - E(x))$.
@@ -268,10 +273,10 @@ but these changes only take effect with probability $\phi(E(y) - E(x))$.
     Embellishing the single-nucleotide model with this additional rate results in the model defined by
     \begin{center}
       \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }cc}
-        $x$  &  $y$  &  $m_{xy}$ & when $x \neq y \in \{\nA,\nC,\nG,\nT\}$  \\
+        $x$  &  $y$  &  $m_{xy}$ & for $x, y \in \{\nA,\nC,\nG,\nT\}$ and $x \neq y$ \\
         \nC\nG   &  \nT\nG   &  $\gamma$ & \\
         \nC\nG   &  \nC\nA   &  $\gamma$ &
-      \end{tabular} ,
+      \end{tabular},
     \end{center}
     where $\gamma$ is the additional CpG rate above the base mutation rate.
     Note that for a given pair of sequences,
@@ -294,6 +299,7 @@ but these changes only take effect with probability $\phi(E(y) - E(x))$.
     If the mutation occurs at rate $\mu$ per individual, the total rate it occurs at in the population is $\mu N$.
     GC-biased gene conversion effectively means that sequences with more G/Cs are selected against.
     This is incorporated as follows: set
+    %EM Is this table clearer than just saying "set the energy of pattern C or G to be $s$...."
     \begin{center}
         \begin{tabular}{cc}
         pattern  &  energy \\
@@ -303,10 +309,12 @@ but these changes only take effect with probability $\phi(E(y) - E(x))$.
     so that $E(y)-E(x)$ is the net change in number of G's and C's multiplied by $s$.
     Also, let
     \begin{align*}
+    %EM Does it make more sense to have the N here in the selection component, or in the mutation component with \mu?
+    %EM Also, could we stick with $s$ for this equation? I don't see a compelling reason to switch to e, which doesn't appear outside of the context of this equation as far as I can see.
         \phi(e) = N (1-\exp(-2e))/(1-\exp(-2eN))
     \end{align*}
     so that if a given change that occurs with rate $\mu$ would change a sequence $x$ to $y$,
-    then $\mu \phi(E(y)-E(x))$ is the rate at which the mutation appears and successfully takes over in the population.
+    then $\mu \, \phi(E(y)-E(x))$ is the rate at which the mutation appears and successfully takes over in the population.
 
 \end{example}
 
@@ -315,6 +323,7 @@ but these changes only take effect with probability $\phi(E(y) - E(x))$.
 \begin{example}[Gibbs sampling of the Ising model]
     In the Ising model, each site is labeled as either ``up'' or ``down'' ($+1$ or $-1$ respectively),
     imagined as magnetic dipoles,
+    %EM re i+1 in the following equation: as soon as I read this I'm already wondering what happens at the end of the sequence. Could we specify that here? Are we doing a loop?
     and the energy associated with a given state $x$ is $E(x) = - \frac{1}{2} \beta \sum_i x_i x_{i+1} - \frac{1}{2} \gamma \sum_i x_i$.
     Here $\beta$ represents inverse temperature, and $\gamma$ represents the strength of the magnetic field (here scaled by temperature).
     The associated stationary distribution on configurations is proportional to $\exp(-E(x))$.
@@ -361,28 +370,35 @@ x \xrightarrow{i,u,v} y \qquad \text{iff} \qquad \begin{cases}
 \]
 i.e., if $x$ and $y$ match except at positions $i,i+1,\ldots,i+h-1$,
 and for those positions $x$ matches with $u$ while $y$ matches with $v$.
+Let $\calT$ be the set of these transition triples.
 
 As noted above, there may be more than one way to mutate a sequence $x$ to get $y$:
 for each position $i$, let $J(i,x,y)$ be those transitions in $\calT$ that can be applied at $i$
 to change $x$ into $y$, i.e.,
 \[
+%EM I think we want h and not j here in the parenthetical superscript.
+%EM Perhaps we want \mu^{j} rather than \mu^{(j)}? I think the latter is more for subsequences.
+%EM And do we want to define that j is some meta-index for all triples?
     J(i,x,y) = \{ (\mu^{(j)},u^{(j)},v^{(j)}) \in \calT \st x \xrightarrow{i,u^{(j)},v^{(j)}} y \}.
 \]
-The rate $G(n)_{x,y}$ is then the sum of all matching transition rates,
-multiplied by the potential difference,
+The rate ${G(n)}_{x,y}$ is then the sum of all matching transition rates,
+multiplied by the fitness term,
 namely
 \begin{align} \label{eqn:G_defn}
-    G(n)_{x,y} = \phi(E(y)-E(x)) \sum_{i=1}^n \sum_{J(i,x,y)}  \mu^j ,
+%EM Are we happy with leaving the \sum_{J(i,x,y)} a little vague here? I think it's "j" for which there is a triple?
+    {G(n)}_{x,y} = \phi\left(E(y)-E(x)\right) \sum_{i=1}^n \sum_{J(i,x,y)}  \mu^j ,
 \end{align}
-and if there are no triples $(\mu,u,v)$ with $x \xrightarrow{i,u,v} y$ for some $i$, then $G(n)_{x,y}=0$.
+and if there are no triples $(\mu,u,v)$ with $x \xrightarrow{i,u,v} y$ for some $i$, then ${G(n)}_{x,y}=0$.
+%EM Do we need this following sentence? If so, we need to update it to also say something about the fitness term.
 This formalizes the statement that the transition rate from $x$ to $y$ is the sum of the rates of all transition triples
 that would change $x$ into $y$.
 In principle, this gives us the transition probabilities for the process by a matrix exponential:
 \begin{align} \label{eqn:full_likelihood}
-    p_n(t;x,y) := \P\{ X(t) = y \mid X(0) = x \} = \left(e^{tG(n)}\right)_{xy} ,
+    p_n(t;x,y) := \P\{ X(t) = y \mid X(0) = x \} = {\left(e^{tG(n)}\right)}_{xy} ,
 \end{align}
 which would then provide a route to parameter estimation.
-In practice, the size of these matrices makes direct application obviously impractical.
+%EM Here or somewhere else do we need to say something about setting the overall rate of the process? In phylogenetics it is common to scale the rate matrix so that substitutions happen with rate 1.
+In practice, the size of these matrices makes direct application obviously impractical for anything but very small $n$.
 This paper proposes an alternate strategy.
 
 
