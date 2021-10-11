@@ -169,7 +169,7 @@ can be well-approximated by marginalizing over a finite amount of surrounding co
 Motivated by the problem of inferring context-dependent mutation rates from diverged nucleotide sequences,
 we extend the inference framework to observations on trees.
 The tools are available as an R package,
-which is fairly efficient thanks to 
+which is fairly efficient thanks to
 computational techniques using sparse matrices.
 
 
@@ -181,7 +181,7 @@ Consider a 1-dimensional grid of sites, each of which can take one of a finite s
 and that switch randomly between states according to a local set of rules.
 We then observe a finite collection of these sites at only a few times,
 Suppose that the dynamics are Markov:
-writing $\calS$ for the set of possible states 
+writing $\calS$ for the set of possible states
 and $X_i(t)$ for the state of site $i$ at time $t$,
 we assume that $\{X(t)\}_{t \ge 0}$ is a Markov process on sequences of $n$ states $\calS^n$
 for which the probability a given site changes state in a small amount of time
@@ -255,7 +255,7 @@ then the actual rate is
 $$
     \mu \phi(E(y) - E(x)) .
 $$
-If $\phi(e)$ is not greater than 1, one way to think about this is that 
+If $\phi(e)$ is not greater than 1, one way to think about this is that
 the transition triples give ``proposed changes'',
 but these changes only take effect with probability $\phi(E(y) - E(x))$.
 
@@ -275,7 +275,8 @@ but these changes only take effect with probability $\phi(E(y) - E(x))$.
     \end{center}
     where $\gamma$ is the additional CpG rate above the base mutation rate.
     Note that for a given pair of sequences,
-    a change $\nA\nC\nG \to \nA\nT\nG$ could have occurred by a single $\nC \to \nT$ mutation,
+    a change $\nA\nC\nG \to \nA\nT\nG$ could have occurred by a $\nC \to \nT$ mutation
+    via the independent-sites model,
     or by a $\nC\nG \to \nT\nG$ mutation;
     in such cases
     the total instantaneous rate at which ACG changes to ATG is the sum of the rates
@@ -553,7 +554,7 @@ If $\ell$ is long enough that approximation \eqref{eqn:window_approx} holds, the
             p_{2\ell+1,\ell,\ell}(x_{i-3\ell}^{(4\ell+1)}, y_{i-2\ell}^{(2\ell+1)})
         }{
             p_{2\ell+1,\ell,\ell+1}(x_{i-3\ell}^{(4\ell+1)}, y_{i-2\ell}^{(2\ell)})
-        } 
+        }
     \end{split} .
 \end{align}
 By rearranging the product,
@@ -1354,7 +1355,7 @@ we can bound $\P\{A\}$ using the following lemma:
 \end{proof}
 
 Putting this together,
-we find that 
+we find that
 \begin{align*}
     \left|
         \P\{ X_{i+\ell}^{(n-\ell-r)}(t) = y \mid X_i^{(n)}(0) = x \}
