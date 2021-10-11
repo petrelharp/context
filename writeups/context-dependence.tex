@@ -230,7 +230,8 @@ The set of all transition triples is denoted $\calT$.
   so it is not obvious how to estimate the speed.
   However, summing over possible particle movements would allow us to
   compute the likelihood of a given configuration change,
-  and so estimate the speed by maximum likelihood.
+  and so estimate the speed by maximum likelihood
+  given an initial sequence, a final sequence and an elapsed time.
 
 \end{example}
 
@@ -377,7 +378,7 @@ for each position $i$, let $J(i,x,y)$ be those transitions in $\calT$ that can b
 to change $x$ into $y$, i.e.,
 \[
 %EM I think we want h and not j here in the parenthetical superscript.
-%EM Perhaps we want \mu^{j} rather than \mu^{(j)}? I think the latter is more for subsequences.
+%EM Perhaps we want \mu^{j} rather than \mu^{(j)}? I think it could be clearer to keep the latter just for subsequences. How about lower-j?
 %EM And do we want to define that j is some meta-index for all triples?
     J(i,x,y) = \{ (\mu^{(j)},u^{(j)},v^{(j)}) \in \calT \st x \xrightarrow{i,u^{(j)},v^{(j)}} y \}.
 \]
@@ -408,14 +409,18 @@ First, it will be useful for later proofs to have an explicit construction of th
 also used for simulation,
 using a variant of the ``jump chain representation'', also known as the ``Gillespie algorithm''
 or ``uniformization'' \citep{hobolth2009simulation}.
+%EM I note that here we are re-using the "possible change" terminology, which we used above for something that seems slightly different, namely the fitness setup.
+%EM It seems like either we should fit these possible changes into that framework, or call these something else.
 Briefly, this  works by first sampling a homogeneous Poisson process of times and locations of possible changes,
 at an appropriate rate $\mu^*$ per site,
 and then resolving each possible change in temporal order.
 The rate $\mu^*$ should be the maximum ``local'' rate at which transitions occur, across sites and transition outcome states:
 \[
+    %EM If we change anything about j and J above, propagate that change here.
     \mu^* = \max \left\{ \sum_{y \in \calS^n} \sum_{j\in J(i,x,y)} \mu^{(j)} \qquad \st x \in \calS^n, \quad 1 \le i \le n \right\} .
 \]
 Now sample possible changes:
+%EM Do we want to have sequence length become L here? It has been $n$ so far.
 in a sequence of length $L$, over a time period $t$,
 first draw the number of possible changes, $N$,
 from a Poisson distribution with mean $\mu^* t L$,
@@ -435,6 +440,7 @@ out of the possible transitions $\calT$, the $j^\text{th}$ one is chosen
 with probability
 \[
 q_j = \begin{cases}
+    %EM Perhaps we could look at this notation together? I would think that u^{(j)} is the length-j subsequence of u, but I don't think that's what's desired here.
     \mu^{(j)}/\mu^* \qquad & \text{if } x_i^{(|u^{(j)}|)} = u^{(j)}  \\
     0 \qquad & \text{otherwise.}
 \end{cases}
