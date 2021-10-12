@@ -461,7 +461,7 @@ and if so, switch them.
 
 \peter{refer to figure}
 
-The problem at hand is to infer the parameters of the model based on the final state of the model after it hsa evolved from some known initial state.
+The problem at hand is to infer the parameters of the model based on the final state of the model after it has evolved from some known initial state.
 % If the sequence is long enough and not too much time has gone by
 % this should be feasible -- there should be enough information in our observations to do this reliably.
 % If the time is too large, the process may ``saturate'' --
@@ -474,7 +474,7 @@ The problem at hand is to infer the parameters of the model based on the final s
 How can we extract the information?
 These are Markov processes, on the state space $\calS^n$,
 so the full likelihood function is given by \eqref{eqn:full_likelihood},
-but doing anything with the $|\calS|^n \times |\calS|^n$ matrix $G_n$ is clearly infeasible for even moderately sized $n$.
+but doing anything with the $|\calS|^n \times |\calS|^n$ matrix $G_n$ is clearly infeasible even for moderately sized $n$.
 We can, however, compute \eqref{eqn:full_likelihood} for smaller $n$,
 so the first thing that one might think to do is to break the sequence up into many blocks of length $m$,
 and treat these as independent.
@@ -489,6 +489,9 @@ so it is not clear how good this approximation might be.
 % -- and the likelihood thus obtained is asymptotically correct for $m$ large,
 % but computationally, we are stuck with small values of $m$.
 
+%EM I suggest that we have something like (B) in the introduction.
+%EM We need to make it clear that the window width of the underlying model, and the T-mer width, are two different things.
+%EM Yes, this is in the last paragraph, but I think this point gets lost when we start with "a general context-dependent model."
 \begin{figure}
     \begin{center}
         \includegraphics{Tmer-dependency}
@@ -539,7 +542,7 @@ We expect $p_{n,\ell,r}(x,y)$ to be asymptotically correct when $\ell$ and $r$ a
 In Appendix~\ref{ss:approx_pf}, we show that this is so, namely that
 the probability a given subsequence of length $n$ matching $x$
 is later observed to have its center matching $y$
-is close to $p_{n,\ell,m}(x,y)$, regardless of wider context.
+is close to $p_{n,\ell,r}(x,y)$, regardless of wider context.
 Formally, for each $i$,
 \begin{align} \label{eqn:window_approx}
     \P\{ X_{i+\ell}^{(n-\ell-r)}(t) = y \mid X_i^{(n)}(0) = x \}
@@ -548,8 +551,6 @@ Formally, for each $i$,
     .
 \end{align}
 
-%EM I feel like it needs emphasis that this is different than saying that we assume that the rates stay the same as in the initial sequence.
-%PR I'm not sure what you mean here?
 
 %%%%%%
 \subsection{Full likelihood}
@@ -560,15 +561,18 @@ This can be computed as the product of the probability of each site in $y$
 given $x$ and all sites in $y$ further to the left.
 Defining $x_{<i}=(x_1, \ldots, x_{i-1})$ to be the subsequence to the left of $i$, this is:
 \begin{align*}
-    \like(y|x) &= \prod_i \P\{ Y_i = y_i \given Y_{<i} = y_{<i} \;\text{and}\; X=x \} .
+    \like(y|x) &= \prod_i \P\{ Y_i = y_i \given Y_{<i} = y_{<i} \ \text{and}\; X=x \} .
 \end{align*}
 It turns out that
 we can approximate the terms in this sum
 by discarding approximately independent sites from the conditioning.
-If $\ell$ is long enough that approximation \eqref{eqn:window_approx} holds, then:
+These approximately independent sites are exactly those that are too far away from a given site to impact its evolution.
+Recall that the last base of $x_i^{(h)}$ is $x_{i+h-1}$.
+So, $x_{i-3\ell}^{(4\ell+1)}$ runs from $i-3\ell$ to $i + \ell$, inclusive, while $y_{i-2\ell}^{(2\ell+1)}$ runs from $i-2\ell$ to $i$, inclusive.
+If $\ell$ is long enough that approximation~\eqref{eqn:window_approx} holds, then:
 \begin{align} \label{eqn:full_approx}
     \begin{split}
-    \P\{ Y_i = y_i \given Y_{<i} \;\text{and}\; X \}
+    \P\{ Y_i = y_i \given Y_{<i} \ \text{and}\; X=x \}
     &\approx
         \P\{ Y_i = y_i \given Y_{i-2\ell}^{(2\ell+1)} \;\text{and}\; X_{i-3\ell}^{(4\ell+1)} \}  \\
     &=
@@ -580,8 +584,8 @@ If $\ell$ is long enough that approximation \eqref{eqn:window_approx} holds, the
     \end{split} .
 \end{align}
 By rearranging the product,
-this gives us an expression for the full likelihood as the ratio of the likelihoods of all $(n,\ell,\ell)$ T-mers in $(x,y)$
-to that of of all $(n,\ell,\ell+1)$ T-mers.
+this gives us an approximation for the full likelihood as the ratio of the likelihoods of all $(2\ell+1,\ell,\ell)$ T-mers in $(x,y)$
+to that of of all $(2\ell+1,\ell,\ell+1)$ T-mers.
 % Define $n_\ell(x,y;a,b)$ to be the number of times pattern $a$ is seen in sequence $x$
 % matched to pattern $b$ in $y$ at a position offset by $\ell$.
 % Then
@@ -594,14 +598,17 @@ to that of of all $(n,\ell,\ell+1)$ T-mers.
 % \end{align}
 See Appendix~\ref{ss:approx_pf} for a more rigorous statement and proof,
 and the next section for some intuition.
+%EM I know that it's all written out in the appendix, but I think that having a little more development here would be nice.
+%EM Can we re-instate the material just above, that's commented out?
+%EM Also, what about the edge cases? When you say "all the t-mers", I think that includes t-mers where some of the "arms" are sticking off the sequence? Or are we making the sequence into a circle?
 
 %%%%%
 \subsection{Choice of overhang}
 
-The approximations in \eqref{eqn:window_approx} and \eqref{eqn:full_approx} hold
+The approximations in~\eqref{eqn:window_approx} and~\eqref{eqn:full_approx} hold
 if the overhang, $\ell$, is long enough.
-The intuition is straightforward, and provides a way to pick the overhang lengths $\ell$ and $r$;
-a precise statement is given in Appendix \ref{ss:approx_pf}.
+We present intuition about these formulas here, which provides a way to pick the overhang lengths $\ell$ and $r$;
+a precise statement is given in Appendix~\ref{ss:approx_pf}.
 Suppose that each instantaneous change depends on positions at most $w$ sites away,
 and refer to $w$ as the ``window width''.
 Then, the mutation process at any particular site
