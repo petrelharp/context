@@ -656,6 +656,7 @@ and $\ell$, $r$ are the appropriate overhangs.)
 If the T-mers were nonoverlapping, this would form a standard contingency table,
 and standard practice would be to divide the residuals by the square root of the expected counts
 and compare these to a standard Normal distribution.
+%EM I think n is used here in a different sense than just above.
 However, there are are $n$ possible such tables --
 so, we compute normalized residuals as
 \begin{align}
@@ -664,9 +665,13 @@ so, we compute normalized residuals as
 which is equivalent to averaging the $z$-scores of the $n$ possible tables of nonoverlapping counts.
 These can then be compared to a standard Normal distribution.
 
+%EM This is beautifully simple but I'm not used to seeing p-values as a means of doing model selection (this is my lacking stats background showing up again).
+%EM Can you point me to other examples where this is done?
+
 %%%%%%%%%%%
 \section{Computation}
 
+%EM This needs some notation updating. I think we want to commit to the n, \ell, r notation just above? I can do this.
 For inference, we need to compute the $|\calS|^{m+2\ell} \times |\calS|^m$ matrix $F$ whose $(x,y)^\text{th}$ entry is $p_{m,\ell}(t,x,y)$,
 for various $t$.
 This matrix is a projection of the $|\calS|^{m+2\ell} \times |\calS|^{m+2\ell}$ matrix whose $(x,z)^\text{th}$ entry is
@@ -684,11 +689,14 @@ so in fact we don't need the entire matrix $e^{t G(m+2\ell)}$,
 just the product of this matrix with each of the columns of $U$.
 Modern techniques in sparse matrix computation (e.g., Krylov methods) provide efficient ways to do this.
 
+%EM Is it worth noting that (IIUC) we could have additional sparsity based on the underlying (not T-mer) model? E.g. when you are are doing stepwise addition of parts to your model, you aren't using all possible 2m+1 - mers?
 Using the R package expm \citep{R_expm}, this makes computation quite feasible:
 with four possible states and $\ell=2$ and $m=1$, so that $G(m+2\ell)$ is a $1024 \times 1024$ matrix,
 computing $e^{t G(5) }$ takes 13 seconds, while computing $e^{t G(5)} U$ takes only 0.3 seconds.
 Increasing to $\ell=4$ and $m=1$ or $\ell=3$ and $m=2$ is still feasible, taking $e^{t G(8)} U$ in 42 and 47 seconds, respectively
 (and much longer for the whole matrix $e^{t G(8)}$).
+
+%EM What if we want to do derivative-based optimization of t? Then we'll have sparse times exp(sparse) times U. Still seems fast?
 
 \paragraph{Sparsity and updating $G$}
 We can also take advantage of the sparsity of $G$ to perform efficient computation of the likelihood
@@ -711,6 +719,7 @@ since each step is carried out by lower-level compiled code (e.g., optimized lin
 %%%%%%%%
 \section{Phylogenetic inference}
 
+%EM I skipped for now.
 In phylogenetic applications, rather than ``before'' and ``after'' observations,
 we get two (or more) observations evolved from a common root.
 In the simplest case of two tips we have two processes $X$ and $Y$,
@@ -744,6 +753,7 @@ multiply rows by $\pi(z)$, and then matrix multiply by the transpose of $G(m+2\e
 
 \subsection{Phylogenetic peeling}
 
+%EM Peeling vs pruning?
 The general case is a modification of Felsenstein's ``peeling'' algorithm.
 
 \begin{figure}
@@ -794,7 +804,7 @@ However, we can reduce dimensionality by replacing the last step with
 
 \end{enumerate}
 i.e., only computing the likelihood for cases with $y=z=w$.
-On a three-taxon tree it is not clear that this is desireable, since missing out on double transitions
+On a three-taxon tree it is not clear that this is desirable, since missing out on double transitions
 might be a significant loss of information,
 but on larger trees it seems likely that we'd want to restrict to combinations with most sites agreeing across the tree.
 (Note, however, that one should not first look at the data, observe which combinations $(y,z)$ were most common, and then restrict to only those!)
@@ -1063,10 +1073,12 @@ counted $(5,3,1)$ T-mers,
 and used the mcmc package \citep{geyer2017mcmc} to run a random walk sampler for 10,000 steps
 (judged sufficient by examination of diagnostic plots).
 We repeated this procedure separately on 60 independently simulated sequences,
-and show the resulting credible intervals in Figure \ref{fig:ising_coverage}.
-Poseterior medians are within half a percent of the truth for $+ \to -$ and $- \to +$ (corresponding to $\lambda$)
+and show the resulting credible intervals in Figure~\ref{fig:ising_coverage}.
+
+Posterior medians were within half a percent of the truth for $+ \to -$ and $- \to +$ (corresponding to $\lambda$)
 and the temperature ($\beta$), but showed around 2\% error for the magnetic field $\gamma$.
-As seen in Table \ref{tab:ising_coverage},
+As seen in Table~\ref{tab:ising_coverage},
+%EM I think this credible interval statement is interesting. So it's definitely this narrowness vs just having the estimate be off?
 credible intervals were somewhat too narrow for shorter T-mers,
 but $(6,2,2)$ T-mers were long enough with sufficient overhang to produce well-calibrated posteriors.
 
@@ -1181,6 +1193,7 @@ might be used to estimate the process, and from this infer the original (ancestr
 (or sample from its posterior distribution).
 
 \paragraph{Limitations}
+%EM This is true for the implementation, but it's not clear that we couldn't do some of the same tricks for calculating likelihoods if we were handed a model.
 The model presented assumes that the same process occurs at every location along the sequence,
 and that the length of the sequnce does not change (no indels).
 Neither of these assumptions are likely to be true for any data set of DNA sequence;
@@ -1204,7 +1217,7 @@ since substitution densities approaching 100\% are unlikely to be usable in prac
 especially if how the sequences align with each other is unknown.
 A more serious determining factor of T-mer length is the degree of dependency in the model itself.
 For instance, inserting the 13-base pair motif selected against by meiotic drive in primates \citep{myers2010drive}
-would require T-mers of width at least 25, and hence vectors of length $4^25 \approx 1.13 \times 10^15$.
+would require T-mers of width at least 25, and hence vectors of length $4^{25} \approx 1.13 \times 10^{15}$.
 
 
 \paragraph{Modeling}
@@ -1218,7 +1231,7 @@ The converse approach of adding motifs that are overrepresented in the residuals
 may be quicker, but entails some degree of arbitrariness in choosing the motifs to add (and in which order).
 Finally, inference on trees may be difficult unless the root placement and distribution are strongly constrained:
 otherwise, initial investigations suggest the likelihood surface is often strongly ridged --
-for instance, increasing the abundance of \nG nucleotides at the root while also increasing the mutation rate away from \nG
+for instance, increasing the abundance of \nG\ nucleotides at the root while also increasing the mutation rate away from \nG\
 can achieve roughly the same result.
 However, in phylogenetic applications outgroups can be used to constrain these quantities.
 
