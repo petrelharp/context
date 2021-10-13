@@ -1315,6 +1315,7 @@ change only a single, central site in the pattern,
 taking into account context on each side of maximum length $w$.
 (For instance, a trinucleotide model in which the flanking sites on each side
 affect the mutation rate of the central site has $w=1$.)
+%EM I suggest that we could re-introduce the mu^* notation again and remind people that these potential changes are uniform.
 Recall that in our construction of the process we first chose the times and sites
 at which potential changes might occur.
 Suppose a potential change occurs at site $i-w$, at time $t$,
@@ -1324,6 +1325,7 @@ that might change the sequence between $i-w$ and $i + w$.
 Consider those that might happen only to the right of $i$,
 thus extending the sequence on which the change depends to the right.
 The number of such potential changes is Poisson with mean $\mu^* w t$,
+%EM Suggest "and their location is uniform..."
 and will extend the amount of sequence on which the change at site $i$ depends
 by a uniform random number of sites between 1 and $w$.
 If one occurs, say at time $0 < s < t$,
@@ -1332,6 +1334,7 @@ in the $w$ sites to the right of this older potential change
 will again extend the range of dependency.
 Putting this together, the amount of sequence to the right of a site
 on which a mutation at that site depends
+%EM Do we care that N is used for different things elsewhere?
 is bounded by the compound Poisson process $\sum_{k=1}^N W_k$,
 where $N$ is Poisson with mean $\mu^* w t$
 and each $W_k$ is independent and uniform on $\{1, 2, \ldots, w\}$.
@@ -1345,7 +1348,7 @@ and resolutions of potential changes.
 Our approximation, $p_{n,\ell,r}(x,y)$ is the probability that would be obtained
 by ignoring any potential changes that rely on context outside of the $n$-sequence $x$.
 So, if $A$ is the event that the final subsequence $y$
-depends on seequence outside of $x$ due to potential changes,
+depends on sequence outside of $x$ due to potential changes,
 then
 \begin{align*}
     \left|
