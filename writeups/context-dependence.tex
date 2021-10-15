@@ -1396,7 +1396,9 @@ we can bound $\P\{A\}$ using the following lemma:
     First note that $\P\{X > kw\} \le \P\{N > k\}$.
     Now, use the fact that if $f(n) = n (n-1) \cdots (n-k) / (k+1)!$
     then $f(n) = 0$ for integers $0 \le n \le k$ and $f(n) \ge 1$ for $n > k$,
-    and so $\P\{N > k\} \le \E[f(N)] = \lambda^{k+1} / k!$.
+    and so $\P\{N > k\} \le \E[f(N)]$.
+    Now, $\E[f(N)] = \lambda^{k+1} / (k+1)!$ via direct calculation or the
+    formula for the $k+1$st factorial moment for the Poisson distribution.
 \end{proof}
 
 Putting this together,
