@@ -48,6 +48,10 @@
 
 \begin{document}
 
+
+% TODO after submission: think about the BCR parameter regime.
+
+
 % Model-based inference neighborhood dependence
 % Nearby sites affecting the likelihood
 % Rigorous inference with neighborhood dependency
@@ -55,6 +59,7 @@
 % It depends on the context:
 %
 
+%EM My suggestion is "Inference using context-dependent models of mutation via bounds on interaction propagation"
 \title{Inference using context-dependent models of mutation}
 \author{}
 
@@ -85,7 +90,7 @@ and in many cases reduces to this if we only observe the system at one time poin
 These are used, for instance, in spatial statistics \citep{besag1972nearestneighbour,gelfand2010handbook}
 and image reconstruction \citep{geman1984stochastic,besag1986statistical}.
 The conditioning method we consider here
-is simliar to the ``coding'' scheme introduced by \citet{besag1974spatial},
+is similar to the ``coding'' scheme introduced by \citet{besag1974spatial},
 that conditions on a set of sites that makes the remaining observations independent (thanks to the Gibbs property);
 consistency of such methods has been shown by \citet{comets1992consistency} and reviewed by \citet{larribe2011composite}.
 A good review of recent statistical techniques is given by \citet{friel2012bayesian}.
@@ -124,9 +129,8 @@ in the interest of computational efficiency and lack of understanding of the und
 but some progress has been made.
 Often, the effects of a complex mutational spectrum are explored using summary statistics of larger blocks or other sensible but \textit{ad hoc} methods.
 For instance, \citet{arndt2003sequence} studied dinucleotide transitions,
-%EM suggest going back to http://www.sciencedirect.com/science/article/pii/016747819290134L
 and \citet{yaari2013models} displayed strong heterogeneity in the probability of synonymous mutations across 5-mers
-in B-cell immunoglobin genes.
+in B-cell immunoglobulin genes.
 Others have made progress using simplifying assumptions \citep{berard2012accurate},
 or by other approximations \citep{christensen2005pseudolikelihood}.
 \citet{pedersen2000dependent}, later extended by
@@ -172,6 +176,27 @@ The tools are available as an R package,
 which is fairly efficient thanks to
 computational techniques using sparse matrices.
 
+\begin{figure}
+    \begin{center}
+        \includegraphics{overview}
+    \end{center}
+    \caption{
+        An overview of the method for a neighbor-dependent model.
+        The red triangle represents the ``range of influence'' of mutations on a site of interest (the site at the bottom corner of the triangle).
+        The blue T shape is called a \emph{T-mer}, which is how our approximation to the process is parameterized.
+        The bottom is called the \emph{base} of the T-mer, which is considered the outcome of a probabilistic process parameterized by additional \emph{overhang} sequence extending to the left and right of the base.%
+        \label{fig:overview}
+    }
+\end{figure}
+
+Before diving into a formal problem specification, we offer an intuitive explanation of how the method works.
+The difficulty of context-sensitive models is that, in principle, one may have a sequence of events with cascading consequences that involves a lot of sequence.
+In the extreme case, one may have a sequence of mutations from, say, the left boundary of the sequence to the right boundary of the sequence, such that the probability of each mutation has been changed by that of the previous one.
+
+However, the point of the work presented here is that for typical models such a sequence of events is improbable.
+For that reason, we can perform computation using a local context which, although bigger than the context specified in the context-sensitive model, is much smaller than the entire sequence.
+We call the building blocks of this computation \emph{T-mers} (Figure~\ref{fig:overview}) which parameterize transition probabilities for a small section of sequence (the \emph{base} of the T-mer) based on additional sequence (the \emph{overhang} of the T-mer).
+We can bound the probability that the influence of a mutation outside the overhang of the T-mer will impact the sites at the base of the T-mer, which translates into an estimate of approximation error across the sequence when using a composite likelihood calculation based on T-mers.
 
 
 %%%%%%% %%%%%%%%%%
@@ -183,14 +208,12 @@ We then observe a finite collection of these sites at only a few times,
 Suppose that the dynamics are Markov:
 writing $\calS$ for the set of possible states
 and $X_i(t)$ for the state of site $i$ at time $t$,
-we assume that $\{X(t)\}_{t \ge 0}$ is a Markov process on sequences of $n$ states $\calS^n$
+we assume that $\{X(t)\}_{t \ge 0}$ is a Markov process on sequences of $L$ states $\calS^L$
 for which the probability a given site changes state in a small amount of time
 depends only on the sequence of states at nearby sites.
-%EM If we think that this can be generalized to the setting of position-specific local models, then let's mention that here and then put in a little section.
 
 To formalize this notion of local dependence,
 first define a \textit{pattern} to mean a contiguous sequence of states;
-%EM Do we use this length notation? I couldn't easily find an instance.
 let $|u|$ denote the length of the pattern $u$.
 Given $x \in \calS$,
 let $x_i^{(h)} = (x_i, x_{i+1}, \ldots, x_{i+h-1})$ denote the pattern of $x$ of length $h$ beginning at location $i$.
@@ -236,12 +259,6 @@ The set of all transition triples is denoted $\calT$.
 \end{example}
 
 
-%EM I think we could have both, but certainly this biological interpretation.
-%Then we would have "selection" and "fitness" rather than "potential" and
-%"energy"?
-%EM Yes. Seems nice unless you think that this "fitness" model would just annoy a pop gen person.
-\peter{Should call this ``selection'' instead of a ``potential''? Or what?}
-
 To allow more compact specification of models,
 we also introduce a ``potential'':
 suppose that there is a collection of patterns $\{p_i\}$
@@ -249,8 +266,8 @@ such that each occurrence of $p_i$ adds a quantity $e_i$ to the total ``energy''
 and that the rate at which each possible change occurs is modulated by a function of the energy difference the change would produce.
 This is natural if that transition triples describe \emph{proposed} changes,
 and that the probability a proposed change actually occurs depends on how much it affects the energy.
-%EM I'm trying to understand why I should think of e_i as an energy *change*. Why not just an energy of pattern i? We already take differences of energies.
-Concretely, let $\calP = \{(p_i, e_i)\}$ be a set of (pattern, energy change) pairs,
+
+Concretely, let $\calP = \{(p_i, e_i)\}$ be a set of (pattern, energy difference) pairs,
 and for any sequence $x$ define
 $E(x) = \sum_i e_i\, n(x,p_i)$,
 where $n(x,p_i)$ is the number of times the pattern $p_i$ occurs in $x$.
@@ -264,6 +281,7 @@ then the actual rate is
 If $\phi(e)$ is not greater than 1, one way to think about this is that
 the transition triples give ``proposed changes'',
 but these changes only take effect with probability $\phi(E(y) - E(x))$.
+We have described this idea in terms natural for a physics model such as an Ising model in which high energy configurations are disfavored, however it is also suitable for a population genetics model in which $\phi$ describes the probability of a mutant allele given a certain fitness change from the parent.
 
 \begin{example}[Genomic GC content]
     A sequence of genome can be written using A, C, G, and T;
@@ -299,23 +317,15 @@ but these changes only take effect with probability $\phi(E(y) - E(x))$.
     with probability approximately $(1-\exp(-2 s))/(1-\exp(-2 s N))$ \citep{kimura1962probability}.
     If the mutation occurs at rate $\mu$ per individual, the total rate it occurs at in the population is $\mu N$.
     GC-biased gene conversion effectively means that sequences with more G/Cs are selected against.
-    This is incorporated as follows: set
-    %EM Is this table clearer than just saying "set the energy of pattern C or G to be $s$...."
-    \begin{center}
-        \begin{tabular}{cc}
-        pattern  &  energy \\
-        \nC{} or \nG   &  $s$
-      \end{tabular} ,
-    \end{center}
+    This is incorporated as follows: set the energy of pattern of pattern \nC{} or \nG{} to be $s$,
     so that $E(y)-E(x)$ is the net change in number of G's and C's multiplied by $s$.
-    Also, let
+    Also, assume a $\phi$ function expressed in terms of an energy difference $e$:
     \begin{align*}
-    %EM Does it make more sense to have the N here in the selection component, or in the mutation component with \mu?
-    %EM Also, could we stick with $s$ for this equation? I don't see a compelling reason to switch to e, which doesn't appear outside of the context of this equation as far as I can see.
-        \phi(e) = N (1-\exp(-2e))/(1-\exp(-2eN))
+        \phi(e) = (1-\exp(-2e))/(1-\exp(-2eN)).
     \end{align*}
-    so that if a given change that occurs with rate $\mu$ would change a sequence $x$ to $y$,
-    then $\mu \, \phi(E(y)-E(x))$ is the rate at which the mutation appears and successfully takes over in the population.
+    Thus, if a given change that occurs with rate $\mu$ would change a sequence $x$ to $y$,
+    then $\mu \, N \phi(E(y)-E(x))$ is the rate at which the mutation
+    appears and successfully takes over in the population.
 
 \end{example}
 
@@ -323,9 +333,8 @@ but these changes only take effect with probability $\phi(E(y) - E(x))$.
 
 \begin{example}[Gibbs sampling of the Ising model]
     In the Ising model, each site is labeled as either ``up'' or ``down'' ($+1$ or $-1$ respectively),
-    imagined as magnetic dipoles,
-    %EM re i+1 in the following equation: as soon as I read this I'm already wondering what happens at the end of the sequence. Could we specify that here? Are we doing a loop?
-    and the energy associated with a given state $x$ is $E(x) = - \frac{1}{2} \beta \sum_i x_i x_{i+1} - \frac{1}{2} \gamma \sum_i x_i$.
+    imagined as a string of $n$ magnetic dipoles,
+    and the energy associated with a given state $x$ is $E(x) = - \frac{1}{2} \beta \sum_{i=1}^{n-1} x_i x_{i+1} - \frac{1}{2} \gamma \sum_{i=1}^n x_i$.
     Here $\beta$ represents inverse temperature, and $\gamma$ represents the strength of the magnetic field (here scaled by temperature).
     The associated stationary distribution on configurations is proportional to $\exp(-E(x))$.
     The following process, also known as ``Glauber dynamics'', preserves the stationary distribution:
@@ -377,28 +386,20 @@ As noted above, there may be more than one way to mutate a sequence $x$ to get $
 for each position $i$, let $J(i,x,y)$ be those transitions in $\calT$ that can be applied at $i$
 to change $x$ into $y$, i.e.,
 \[
-%EM I think we want h and not j here in the parenthetical superscript.
-%EM Perhaps we want \mu^{j} rather than \mu^{(j)}? I think it could be clearer to keep the latter just for subsequences. How about lower-j?
-%EM And do we want to define that j is some meta-index for all triples?
-    J(i,x,y) = \{ (\mu^{(j)},u^{(j)},v^{(j)}) \in \calT \st x \xrightarrow{i,u^{(j)},v^{(j)}} y \}.
+    J(i,x,y) = \{ (\mu,u,v) \in \calT \st x \xrightarrow{i,u,v} y \}.
 \]
 The rate ${G(n)}_{x,y}$ is then the sum of all matching transition rates,
 multiplied by the fitness term,
 namely
 \begin{align} \label{eqn:G_defn}
-%EM Are we happy with leaving the \sum_{J(i,x,y)} a little vague here? I think it's "j" for which there is a triple?
-    {G(n)}_{x,y} = \phi\left(E(y)-E(x)\right) \sum_{i=1}^n \sum_{J(i,x,y)}  \mu^j ,
+    {G(n)}_{x,y} = \phi\left(E(y)-E(x)\right) \, \sum_{i=1}^n \sum_{(\mu, u, v) \in J(i,x,y)}  \mu ,
 \end{align}
 and if there are no triples $(\mu,u,v)$ with $x \xrightarrow{i,u,v} y$ for some $i$, then ${G(n)}_{x,y}=0$.
-%EM Do we need this following sentence? If so, we need to update it to also say something about the fitness term.
-This formalizes the statement that the transition rate from $x$ to $y$ is the sum of the rates of all transition triples
-that would change $x$ into $y$.
 In principle, this gives us the transition probabilities for the process by a matrix exponential:
 \begin{align} \label{eqn:full_likelihood}
     p_n(t;x,y) := \P\{ X(t) = y \mid X(0) = x \} = {\left(e^{tG(n)}\right)}_{xy} ,
 \end{align}
 which would then provide a route to parameter estimation.
-%EM Here or somewhere else do we need to say something about setting the overall rate of the process? In phylogenetics it is common to scale the rate matrix so that substitutions happen with rate 1.
 In practice, the size of these matrices makes direct application obviously impractical for anything but very small $n$.
 This paper proposes an alternate strategy.
 
@@ -409,18 +410,17 @@ First, it will be useful for later proofs to have an explicit construction of th
 also used for simulation,
 using a variant of the ``jump chain representation'', also known as the ``Gillespie algorithm''
 or ``uniformization'' \citep{hobolth2009simulation}.
-%EM I note that here we are re-using the "possible change" terminology, which we used above for something that seems slightly different, namely the fitness setup.
-%EM It seems like either we should fit these possible changes into that framework, or call these something else.
 Briefly, this  works by first sampling a homogeneous Poisson process of times and locations of possible changes,
 at an appropriate rate $\mu^*$ per site,
 and then resolving each possible change in temporal order.
+(Note that these ``possible changes'' are different than the ``proposed changes'' described above
+in terms of the energy model.)
 The rate $\mu^*$ should be the maximum ``local'' rate at which transitions occur, across sites and transition outcome states:
 \[
-    %EM If we change anything about j and J above, propagate that change here.
-    \mu^* = \max \left\{ \sum_{y \in \calS^n} \sum_{j\in J(i,x,y)} \mu^{(j)} \qquad \st x \in \calS^n, \quad 1 \le i \le n \right\} .
+    %EM I think this n is supposed to be L.
+    \mu^* = \max \left\{ \sum_{y \in \calS^n} \sum_{(\mu, u, v) \in J(i,x,y)} \mu \qquad \st x \in \calS^n, \quad 1 \le i \le n \right\} .
 \]
 Now sample possible changes:
-%EM Do we want to have sequence length become L here? It has been $n$ so far.
 in a sequence of length $L$, over a time period $t$,
 first draw the number of possible changes, $N$,
 from a Poisson distribution with mean $\mu^* t L$,
@@ -440,7 +440,7 @@ out of the possible transitions $\calT$, the $j^\text{th}$ one is chosen
 with probability
 \[
 q_j = \begin{cases}
-    %EM Perhaps we could look at this notation together? I would think that u^{(j)} is the length-j subsequence of u, but I don't think that's what's desired here.
+    % TODO peter, fix notation, please.
     \mu^{(j)}/\mu^* \qquad & \text{if } x_i^{(|u^{(j)}|)} = u^{(j)}  \\
     0 \qquad & \text{otherwise.}
 \end{cases}
@@ -489,9 +489,6 @@ so it is not clear how good this approximation might be.
 % -- and the likelihood thus obtained is asymptotically correct for $m$ large,
 % but computationally, we are stuck with small values of $m$.
 
-%EM I suggest that we have something like (B) in the introduction.
-%EM We need to make it clear that the window width of the underlying model, and the T-mer width, are two different things.
-%EM Yes, this is in the last paragraph, but I think this point gets lost when we start with "a general context-dependent model."
 \begin{figure}
     \begin{center}
         \includegraphics{Tmer-dependency}
@@ -527,6 +524,7 @@ This central, smaller subsequence is called the ``base'' of the T-mer.
 We refer to such patterns as ``T-mers'', as depicted in Figure~\ref{fig:Tmers}.
 %EM Shall we define w here?
 %PR No, I think that'll muddy the waters.
+%EM My counter-argument is that we need to make it clear that the overhang of the T-mers is different than than the context-sensitivity width.
 This quantity is found by marginalizing $p_m$,
 summing over the possible inital and final substrings of $x$
 (denoted $a$ and $b$):
@@ -619,7 +617,7 @@ Therefore, the sequence at a particular site may directly affect the process at 
 If another change happens, say, at the end of this window,
 then the indirect effects of this change may extend out to $2w$ sites.
 In this way, the influence of the sequence at each site extends outwards, as shown in Figure~\ref{fig:Tmers} --
-so if we take the overhangs long enough that this dependency is unlikely to extend to the base of the Tmer,
+so if we take the overhangs long enough that this dependency is unlikely to extend to the base of the T-mer,
 the approximation will be good.
 As we show in Section \ref{ss:approx_pf}, if the overhangs are $\ell = r = kw$,
 then the error in approximation \eqref{eqn:window_approx}
