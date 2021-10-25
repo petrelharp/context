@@ -59,8 +59,7 @@
 % It depends on the context:
 %
 
-%EM My suggestion is "Inference using context-dependent models of mutation via bounds on interaction propagation"
-\title{Inference using context-dependent models of mutation}
+\title{Inference using context-dependent models of mutation via bounds on information propagation}
 \author{}
 
 \maketitle
@@ -313,9 +312,9 @@ We have described this idea in terms natural for a physics model such as an Isin
     We model the evolution of a \emph{single} sequence, not a population of sequences,
     imagining this sequence to be the consensus sequence of the population.
     A new mutation with an effect $s$ on fitness that occurs
-    in a population of effective size $N$ becomes ubiquitous, rather than dying out,
-    with probability approximately $(1-\exp(-2 s))/(1-\exp(-2 s N))$ \citep{kimura1962probability}.
-    If the mutation occurs at rate $\mu$ per individual, the total rate it occurs at in the population is $\mu N$.
+    in a population of effective size $N_e$ becomes ubiquitous, rather than dying out,
+    with probability approximately $(1-\exp(-2 s))/(1-\exp(-2 s N_e))$ \citep{kimura1962probability}.
+    If the mutation occurs at rate $\mu$ per individual, the total rate it occurs at in the population is $\mu N_e$.
     GC-biased gene conversion effectively means that sequences with more G/Cs are selected against.
     This is incorporated as follows: set the energy of pattern of pattern \nC{} or \nG{} to be $s$,
     so that $E(y)-E(x)$ is the net change in number of G's and C's multiplied by $s$.
@@ -324,7 +323,7 @@ We have described this idea in terms natural for a physics model such as an Isin
         \phi(e) = (1-\exp(-2e))/(1-\exp(-2eN)).
     \end{align*}
     Thus, if a given change that occurs with rate $\mu$ would change a sequence $x$ to $y$,
-    then $\mu \, N \phi(E(y)-E(x))$ is the rate at which the mutation
+    then $\mu \, N_e \phi(E(y)-E(x))$ is the rate at which the mutation
     appears and successfully takes over in the population.
 
 \end{example}
@@ -418,6 +417,7 @@ in terms of the energy model.)
 The rate $\mu^*$ should be the maximum ``local'' rate at which transitions occur, across sites and transition outcome states:
 \[
     %EM I think this n is supposed to be L.
+    %EM TODO fix
     \mu^* = \max \left\{ \sum_{y \in \calS^n} \sum_{(\mu, u, v) \in J(i,x,y)} \mu \qquad \st x \in \calS^n, \quad 1 \le i \le n \right\} .
 \]
 Now sample possible changes:
@@ -596,8 +596,7 @@ to that of of all $(2\ell+1,\ell,\ell+1)$ T-mers.
 % \end{align}
 See Appendix~\ref{ss:approx_pf} for a more rigorous statement and proof,
 and the next section for some intuition.
-%EM I know that it's all written out in the appendix, but I think that having a little more development here would be nice.
-%EM Can we re-instate the material just above, that's commented out?
+%EM Intro notation for the big product.
 %EM Also, what about the edge cases? When you say "all the t-mers", I think that includes t-mers where some of the "arms" are sticking off the sequence? Or are we making the sequence into a circle?
 
 %%%%%
@@ -646,6 +645,7 @@ these events may affect other sites in $Y$ going back a distance $2\ell$.
 Fitting a model to nucleotide data would likely require iterative modification of the model.
 The difference between observed and expected T-mer counts provide a good assessment of how and whether a model can be improved.
 These \emph{residual} counts are usually most usefully computed for T-mers shorter than those used to fit the model.
+%EM Let's use a and b
 For each T-mer $(x,y)$, write $O_{x,y}$ for the number of this T-mer observed in the data,
 and $E_{x,y}$ for the number expected under the model.
 (The expected number is the number of occurrences of $x$ in the initial sequence
@@ -654,7 +654,6 @@ and $\ell$, $r$ are the appropriate overhangs.)
 If the T-mers were nonoverlapping, this would form a standard contingency table,
 and standard practice would be to divide the residuals by the square root of the expected counts
 and compare these to a standard Normal distribution.
-%EM I think n is used here in a different sense than just above.
 However, there are are $n$ possible such tables --
 so, we compute normalized residuals as
 \begin{align}
@@ -663,8 +662,7 @@ so, we compute normalized residuals as
 which is equivalent to averaging the $z$-scores of the $n$ possible tables of nonoverlapping counts.
 These can then be compared to a standard Normal distribution.
 
-%EM This is beautifully simple but I'm not used to seeing p-values as a means of doing model selection (this is my lacking stats background showing up again).
-%EM Can you point me to other examples where this is done?
+%EM This is stepwise model addition.
 
 %%%%%%%%%%%
 \section{Computation}
@@ -688,6 +686,7 @@ just the product of this matrix with each of the columns of $U$.
 Modern techniques in sparse matrix computation (e.g., Krylov methods) provide efficient ways to do this.
 
 %EM Is it worth noting that (IIUC) we could have additional sparsity based on the underlying (not T-mer) model? E.g. when you are are doing stepwise addition of parts to your model, you aren't using all possible 2m+1 - mers?
+%EM E think
 Using the R package expm \citep{R_expm}, this makes computation quite feasible:
 with four possible states and $\ell=2$ and $m=1$, so that $G(m+2\ell)$ is a $1024 \times 1024$ matrix,
 computing $e^{t G(5) }$ takes 13 seconds, while computing $e^{t G(5)} U$ takes only 0.3 seconds.
@@ -695,6 +694,7 @@ Increasing to $\ell=4$ and $m=1$ or $\ell=3$ and $m=2$ is still feasible, taking
 (and much longer for the whole matrix $e^{t G(8)}$).
 
 %EM What if we want to do derivative-based optimization of t? Then we'll have sparse times exp(sparse) times U. Still seems fast?
+%EM Add simple statement
 
 \paragraph{Sparsity and updating $G$}
 We can also take advantage of the sparsity of $G$ to perform efficient computation of the likelihood
@@ -1332,7 +1332,6 @@ in the $w$ sites to the right of this older potential change
 will again extend the range of dependency.
 Putting this together, the amount of sequence to the right of a site
 on which a mutation at that site depends
-%EM Do we care that N is used for different things elsewhere?
 is bounded by the compound Poisson process $\sum_{k=1}^N W_k$,
 where $N$ is Poisson with mean $\mu^* w t$
 and each $W_k$ is independent and uniform on $\{1, 2, \ldots, w\}$.
