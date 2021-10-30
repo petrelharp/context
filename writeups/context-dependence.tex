@@ -82,6 +82,7 @@ Practical use of such models often requires
 inferring transition rules
 based on observations of the system at several time points,
 or of several states evolved along a tree from a single starting point.
+This paper concerns scalable methods for doing inference under such models using observations.
 
 The situation is similar to the widely-studied problem of inference based on observation
 of a single instance of a Markov random field,
@@ -189,10 +190,10 @@ computational techniques using sparse matrices.
 \end{figure}
 
 Before diving into a formal problem specification, we offer an intuitive explanation of how the method works.
-The difficulty of context-sensitive models is that, in principle, one may have a sequence of events with cascading consequences that involves a lot of sequence.
+The difficulty of context-sensitive models is that, in principle, one may have a sequence of events with cascading consequences that involves a lot of the sequence.
 In the extreme case, one may have a sequence of mutations from, say, the left boundary of the sequence to the right boundary of the sequence, such that the probability of each mutation has been changed by that of the previous one.
 
-However, the point of the work presented here is that for typical models such a sequence of events is improbable.
+However, the starting point of the work presented here is that for typical models such a sequence of events is improbable.
 For that reason, we can perform computation using a local context which, although bigger than the context specified in the context-sensitive model, is much smaller than the entire sequence.
 We call the building blocks of this computation \emph{T-mers} (Figure~\ref{fig:overview}) which parameterize transition probabilities for a small section of sequence (the \emph{base} of the T-mer) based on additional sequence (the \emph{overhang} of the T-mer).
 We can bound the probability that the influence of a mutation outside the overhang of the T-mer will impact the sites at the base of the T-mer, which translates into an estimate of approximation error across the sequence when using a composite likelihood calculation based on T-mers.
@@ -394,6 +395,8 @@ namely
     {G(n)}_{x,y} = \phi\left(E(y)-E(x)\right) \, \sum_{i=1}^n \sum_{(\mu, u, v) \in J(i,x,y)}  \mu ,
 \end{align}
 and if there are no triples $(\mu,u,v)$ with $x \xrightarrow{i,u,v} y$ for some $i$, then ${G(n)}_{x,y}=0$.
+Indeed, we anticipate this matrix to be sparse because for most pairs $(x,y)$ there are no transition triples that can modify $x$ to make $y$.
+
 In principle, this gives us the transition probabilities for the process by a matrix exponential:
 \begin{align} \label{eqn:full_likelihood}
     p_n(t;x,y) := \P\{ X(t) = y \mid X(0) = x \} = {\left(e^{tG(n)}\right)}_{xy} ,
@@ -416,9 +419,7 @@ and then resolving each possible change in temporal order.
 in terms of the energy model.)
 The rate $\mu^*$ should be the maximum ``local'' rate at which transitions occur, across sites and transition outcome states:
 \[
-    %EM I think this n is supposed to be L.
-    %EM TODO fix
-    \mu^* = \max \left\{ \sum_{y \in \calS^n} \sum_{(\mu, u, v) \in J(i,x,y)} \mu \qquad \st x \in \calS^n, \quad 1 \le i \le n \right\} .
+    \mu^* = \max \left\{ \sum_{y \in \calS^L} \sum_{(\mu, u, v) \in J(i,x,y)} \mu \qquad \st x \in \calS^L, \quad 1 \le i \le L \right\} .
 \]
 Now sample possible changes:
 in a sequence of length $L$, over a time period $t$,
@@ -517,15 +518,17 @@ The key insight we use is that by including neighboring sequence context in the 
 we can compute \emph{something} correctly,
 and that something will be sufficient to compute the full likelihood
 to an arbitrarily good approximation.
+%EM do we really want x and y here, which I've been thinking of as being the full sequence?
+%EM Note we'll need to change a and b below.
 To do this, let $p_{n,\ell,r}(x,y)$ for $\ell + r < n$ denote
 the probability that an initial subsequence $x$ of length $n$, after time $t$,
 is found to match a smaller subsequence $y$ of length $n-\ell-r$, offset by $\ell$ sites.
 This central, smaller subsequence is called the ``base'' of the T-mer.
-We refer to such patterns as ``T-mers'', as depicted in Figure~\ref{fig:Tmers}.
-%EM Shall we define w here?
-%PR No, I think that'll muddy the waters.
-%EM My counter-argument is that we need to make it clear that the overhang of the T-mers is different than than the context-sensitivity width.
-This quantity is found by marginalizing $p_m$,
+We refer to such patterns as \emph{T-mers}, as depicted in Figure~\ref{fig:Tmers}.
+We emphasize that the overhang of the T-mers is typically bigger than the
+context-sensitivity width of the underlying model (Figure~\ref{fig:overview}).
+
+These $p_{n,\ell,r}(x,y)$ probabilities can be found by marginalizing $p_m$,
 summing over the possible inital and final substrings of $x$
 (denoted $a$ and $b$):
 \begin{align}
@@ -534,6 +537,7 @@ summing over the possible inital and final substrings of $x$
     \sum_{a \in \calS^\ell} \sum_{b \in \calS^r} p_n(t;x,a \join y \join b) ,
     \quad
     \text{for}\; x \in \calS^n, \; y \in \calS^{n-\ell-r} ,
+    \label{eq:pmMarg}
 \end{align}
 where $a \join y \join b$ is the sequence composed of concatenating $a$, $y$, and $b$ together in that order.
 We expect $p_{n,\ell,r}(x,y)$ to be asymptotically correct when $\ell$ and $r$ are large (and $t$ is fixed).
@@ -559,7 +563,7 @@ This can be computed as the product of the probability of each site in $y$
 given $x$ and all sites in $y$ further to the left.
 Defining $x_{<i}=(x_1, \ldots, x_{i-1})$ to be the subsequence to the left of $i$, this is:
 \begin{align*}
-    \like(y|x) &= \prod_i \P\{ Y_i = y_i \given Y_{<i} = y_{<i} \ \text{and}\; X=x \} .
+    \like(y \mid x) &= \prod_i \P\{ Y_i = y_i \given Y_{<i} = y_{<i} \ \text{and}\; X=x \} .
 \end{align*}
 It turns out that
 we can approximate the terms in this sum
@@ -578,12 +582,23 @@ If $\ell$ is long enough that approximation~\eqref{eqn:window_approx} holds, the
             p_{2\ell+1,\ell,\ell}(x_{i-3\ell}^{(4\ell+1)}, y_{i-2\ell}^{(2\ell+1)})
         }{
             p_{2\ell+1,\ell,\ell+1}(x_{i-3\ell}^{(4\ell+1)}, y_{i-2\ell}^{(2\ell)})
-        }
-    \end{split} .
+        }.
+    \end{split}
 \end{align}
-By rearranging the product,
-this gives us an approximation for the full likelihood as the ratio of the likelihoods of all $(2\ell+1,\ell,\ell)$ T-mers in $(x,y)$
-to that of of all $(2\ell+1,\ell,\ell+1)$ T-mers.
+
+%EM I think you said that we could just treat the state of all positions before the beginning of the sequence and after the end as having another distinct state. If that's true I can write it out.
+
+Let $A_{n, \ell, r}(x,y)$ be the product of all probability of all $(n, \ell, r)$ T-mers transitioning from $x$ to $y$, i.e.\
+\[
+A_{n, \ell, r}(x,y) = \prod_{i=1}^L p_{n, \ell, r}\left(x_{i-\ell-m}^{(n)}, y_{i-m}^{(n-\ell-r)}\right).
+\]
+
+We can then express our likelihood as
+
+\[
+    \like(y \mid x) = \frac{ A_{2\ell+1, \ell, \ell}(x,y) }{ A_{2\ell+1, \ell, \ell+1}(x,y) }.
+\]
+
 % Define $n_\ell(x,y;a,b)$ to be the number of times pattern $a$ is seen in sequence $x$
 % matched to pattern $b$ in $y$ at a position offset by $\ell$.
 % Then
@@ -596,8 +611,6 @@ to that of of all $(2\ell+1,\ell,\ell+1)$ T-mers.
 % \end{align}
 See Appendix~\ref{ss:approx_pf} for a more rigorous statement and proof,
 and the next section for some intuition.
-%EM Intro notation for the big product.
-%EM Also, what about the edge cases? When you say "all the t-mers", I think that includes t-mers where some of the "arms" are sticking off the sequence? Or are we making the sequence into a circle?
 
 %%%%%
 \subsection{Choice of overhang}
@@ -645,11 +658,10 @@ these events may affect other sites in $Y$ going back a distance $2\ell$.
 Fitting a model to nucleotide data would likely require iterative modification of the model.
 The difference between observed and expected T-mer counts provide a good assessment of how and whether a model can be improved.
 These \emph{residual} counts are usually most usefully computed for T-mers shorter than those used to fit the model.
-%EM Let's use a and b
-For each T-mer $(x,y)$, write $O_{x,y}$ for the number of this T-mer observed in the data,
-and $E_{x,y}$ for the number expected under the model.
-(The expected number is the number of occurrences of $x$ in the initial sequence
-multiplied by the probability $p_{n,\ell,r}(t;x,y)$, where $n$ is the length of $x$,
+For each T-mer $(a,b)$, write $O_{a,b}$ for the number of this T-mer observed in the data,
+and $E_{a,b}$ for the number expected under the model.
+(The expected number is the number of occurrences of $a$ in the initial sequence
+multiplied by the probability $p_{n,\ell,r}(t;a,b)$, where $n$ is the length of $a$,
 and $\ell$, $r$ are the appropriate overhangs.)
 If the T-mers were nonoverlapping, this would form a standard contingency table,
 and standard practice would be to divide the residuals by the square root of the expected counts
@@ -657,7 +669,7 @@ and compare these to a standard Normal distribution.
 However, there are are $n$ possible such tables --
 so, we compute normalized residuals as
 \begin{align}
-    Z_{x,y} = \frac{ O_{x,y} - E_{x,y} }{ \sqrt{n E_{x,y}} },
+    Z_{a,b} = \frac{ O_{a,b} - E_{a,b} }{ \sqrt{n E_{a,b}} },
 \end{align}
 which is equivalent to averaging the $z$-scores of the $n$ possible tables of nonoverlapping counts.
 These can then be compared to a standard Normal distribution.
@@ -667,44 +679,45 @@ These can then be compared to a standard Normal distribution.
 %%%%%%%%%%%
 \section{Computation}
 
-%EM This needs some notation updating. I think we want to commit to the n, \ell, r notation just above? I can do this.
-For inference, we need to compute the $|\calS|^{m+2\ell} \times |\calS|^m$ matrix $F$ whose $(x,y)^\text{th}$ entry is $p_{m,\ell}(t,x,y)$,
+For inference, we need to compute the $|\calS|^{n} \times |\calS|^m$ matrix $F$ whose $(a,b)^\text{th}$ entry is $p_{n,\ell,r}(t,a,b)$,
 for various $t$.
-This matrix is a projection of the $|\calS|^{m+2\ell} \times |\calS|^{m+2\ell}$ matrix whose $(x,z)^\text{th}$ entry is
+This matrix is a projection of the $|\calS|^{n} \times |\calS|^{n}$ matrix whose $(a,c)^\text{th}$ entry is
 \begin{align}
-    p_{m+2\ell}(x,z) = \left( e^{t G(m+2\ell)} \right)_{x,z} ,
+    p_{n}(a,c) = \left( e^{t G(n)} \right)_{a,c} ,
 \end{align}
-where $G(m+2\ell)$ is the sparse $|\calS|^{m+2\ell} \times |\calS|^{m+2\ell}$ matrix defined in \eqref{eqn:G_defn}.
-The ``projection'' we need just marginalizes over long patterns $z$ that match the shorter pattern $y$:
-if we define the matrix $U$ in this way, so that $U_{zy}=1$ if $z_\ell^m=y$ and $U_{zy}=0$ otherwise,
+where $G(n)$ is the sparse $|\calS|^{n} \times |\calS|^{n}$ matrix defined in \eqref{eqn:G_defn}.
+The ``projection'' we need just marginalizes over long (i.e.\ length $n$) patterns $c$ that match the shorter (i.e.\ length $m$) pattern $b$
+as in \eqref{eq:pmMarg}:
+if we define the $n \times m$ matrix $U$ so that $U_{cb}=1$ if $c_\ell^m=b$ and $U_{cb}=0$ otherwise,
 then
 \begin{align} \label{eqn:Tmer_trans}
-    p_{m,\ell}(t,x,y) = \sum_{z \in \calS^{m+2\ell}} \left( e^{t G(m+2\ell)} \right)_{xz} U_{zy} ,
+    p_{m,\ell}(t,a,b) = \sum_{c \in \calS^{n}} \left( e^{t G(n)} \right)_{ac} U_{cb} ,
 \end{align}
-so in fact we don't need the entire matrix $e^{t G(m+2\ell)}$,
+so in fact we don't need the entire matrix $e^{t G(n)}$,
 just the product of this matrix with each of the columns of $U$.
 Modern techniques in sparse matrix computation (e.g., Krylov methods) provide efficient ways to do this.
 
-%EM Is it worth noting that (IIUC) we could have additional sparsity based on the underlying (not T-mer) model? E.g. when you are are doing stepwise addition of parts to your model, you aren't using all possible 2m+1 - mers?
-%EM E think
 Using the R package expm \citep{R_expm}, this makes computation quite feasible:
-with four possible states and $\ell=2$ and $m=1$, so that $G(m+2\ell)$ is a $1024 \times 1024$ matrix,
+with four possible states and $\ell=2$ and $m=1$, so that $G(n)$ is a $1024 \times 1024$ matrix,
 computing $e^{t G(5) }$ takes 13 seconds, while computing $e^{t G(5)} U$ takes only 0.3 seconds.
+%EM In the above, don't we only provide the recipe for the full likelihood when m = 2 ell + 1?
 Increasing to $\ell=4$ and $m=1$ or $\ell=3$ and $m=2$ is still feasible, taking $e^{t G(8)} U$ in 42 and 47 seconds, respectively
 (and much longer for the whole matrix $e^{t G(8)}$).
 
-%EM What if we want to do derivative-based optimization of t? Then we'll have sparse times exp(sparse) times U. Still seems fast?
-%EM Add simple statement
+Although we haven't used such tools here, taking the derivative with respect to $t$ can also be performed using sparse matrix operations.
+
 
 \paragraph{Sparsity and updating $G$}
 We can also take advantage of the sparsity of $G$ to perform efficient computation of the likelihood
 under many sets of parameters.
-First note that $G(m+2\ell)$ has, assuming only single-position changes,
-$(1+m(|\calS|-1)) |\calS|^{m+2\ell}$ nonzero entries, since each of the $|\calS|^{m+2\ell}$ can change in $m$ places.
-This will determine how the computation scales with $m$, $\ell$, and $|\calS|$,
+Let's assume that the T-mers only allow single-position changes.
+First note that in this case $G(n)$ has
+$(1+m(|\calS|-1)) |\calS|^{n}$ nonzero entries, since each of the $|\calS|^{n}$ can change in $m$ places.
+This will determine how the computation scales with $m$, $n$, and $|\calS|$,
 once we precompute a number of things.
 Let $g = (g_1, \ldots, g_d)$ be the nonzero entries of $G$, in some fixed ordering;
 sparse matrix representations of $G$ store only $g$ along with information about the rows and columns these are found in.
+%EM Here we are using lower j, rather than our "new" notation setup, but it doesn't seem like a big deal. This is a local note.
 Each $g_i$ is a linear combination of mutation rates $\mu_j$,
 multiplied by a function ($\phi$) of a linear combination of energy coefficents $e_j$,
 say $g_i = \sum_j A_{ij} \mu_j \phi(\sum_k B_{ik} e_k)$,
@@ -717,8 +730,9 @@ since each step is carried out by lower-level compiled code (e.g., optimized lin
 %%%%%%%%
 \section{Phylogenetic inference}
 
-%EM I skipped for now.
 In phylogenetic applications, rather than ``before'' and ``after'' observations,
+%EM Describe the root sequence, or a prob distribution on it?
+%EM We want to be able to talk about the probability of seeing a certain n-mer... is that obvious what that random process is on the whole-sequence level?
 we get two (or more) observations evolved from a common root.
 In the simplest case of two tips we have two processes $X$ and $Y$,
 with identical starting states $X(0)=Y(0)$,
@@ -727,31 +741,38 @@ observed only at times $t_X$ and $t_Y$ respectively.
 If the approximation described above holds,
 then we can write the probability that we see (long) pattern $x$ in $X(t_X)$ juxtaposed with (short) pattern $y$ in $Y(t_Y)$
 using the pattern frequencies at the root.
-Concretely: pick a random location $I$ in the sequence and let $X_{I-\ell}^{m+2\ell}(0) = \rho$ be the (long) pattern seen there at the root,
-and write $\pi(z)$ for the frequency of pattern $z$ in $X(0)$, i.e., $\P\{\rho=z\}=\pi(z)$.
+%EM Could we make it \rho_I to emphasize that it's a random quantity?
+Concretely: pick a random location $I$ in the sequence and let $X_{I-\ell}^{n}(0) = \rho$ be the (long) pattern seen there at the root.
+Write $\pi(z)$ for the frequency of a given pattern $z$ in $X(0)$, i.e., $\P\{\rho=z\}=\pi(z)$.
 % Given the corresponding pattern in $X(t_X)$, the distribution of $\rho$ is proportional to
 % \[
-%     \P\{ \rho=z \mid X_{I-\ell}^{m+2\ell}(t_X)=x\} \propto \pi(z) p_{m+2\ell}(t,z,x) .
+%     \P\{ \rho=z \mid X_{I-\ell}^{n}(t_X)=x\} \propto \pi(z) p_{n}(t,z,x) .
 % \]
 The probability that we see $x$ and $y$ at the random location $I$ is
 \begin{align} \label{eqn:phylo_likelihood}
-    \P\{X_{I-\ell}^{m+2\ell}(t_X)=x \text{ and } Y_I^\ell(t_Y)=y \} = \sum_{z \in \calS^{m+2\ell}} \pi(z) p_{m+2\ell}(t_X,z,x) p_{m,\ell}(t_Y,z,y) .
+    \P\{X_{I-\ell}^{n}(t_X)=x \text{ and } Y_I^\ell(t_Y)=y \} = \sum_{z \in \calS^{n}} \pi(z) \, p_{n,\ell,r}(t_X,z,x) \, p_{n,\ell,r}(t_Y,z,y) .
 \end{align}
 This can be computed without much more effort than the simpler case above,
 given the frequencies at the root, as described in greater generality below.
-These calculations can be done using the the same sparse matrix methods as above.
+These calculations can be done using the same sparse matrix methods as above.
 For instance, to compute
 \[
-    \sum_z \pi(z) p_{m+2\ell}(t_X,z,x) p_{m,\ell}(t_Y,z,y)
-    = \sum_z \left( e^{t_X G(m+2\ell)} \right)_{zx} \pi(z) \sum_w \left( e^{t_X G(m+2\ell)} \right)_{zw} U_{wy} ,
+    %EM This is super clever!
+    \sum_{z \in \calS^{n}} \pi(z) \, p_{n,\ell,r}(t_X,z,x) \, p_{n,\ell,r}(t_Y,z,y)
+    = \sum_{z \in \calS^{n}} \left( e^{t_X G(n)} \right)_{zx} \pi(z) \sum_{w \in \calS^{n}} \left( e^{t_Y G(n)} \right)_{zw} U_{wy} ,
 \]
-we can first compute $\sum_w \left( e^{t_X G(m+2\ell)} \right)_{zw} U_{wy}$ as above,
-multiply rows by $\pi(z)$, and then matrix multiply by the transpose of $G(m+2\ell)$.
+we can first compute $\sum_w \left( e^{t_Y G(n)} \right)_{zw} U_{wy}$ as above,
+multiply rows by $\pi(z)$, and then matrix multiply by the transpose of $e^{t_X G(n)}$.
 
 
+%EM It seems like we'd like to write out how this works for the entire set of sequences, as you did for the "full likelihood" section.
+%EM I think we have a bunch of ratios as before, where r is extended by 1 in the numerator?
+
+
+%EM I think this should be pruning, not peeling.
+%EM Want to check the modifications made above before continuing those to here.
 \subsection{Phylogenetic peeling}
 
-%EM Peeling vs pruning?
 The general case is a modification of Felsenstein's ``peeling'' algorithm.
 
 \begin{figure}
@@ -767,30 +788,30 @@ The general case is a modification of Felsenstein's ``peeling'' algorithm.
 
 To compute the likelihood on a more complicated tree, consider the following,
 with the three-taxon tree of figure \ref{fig:peeling} as an example,
-where we are counting occurrences of (long) $m+2\ell$-tuples in taxon $X$,
+where we are counting occurrences of (long) $n$-tuples in taxon $X$,
 and (shorter) $m$-tuples in taxa $Y$ and $Z$.
 The likelihood in this example is found by summing over the root state (the summation over $u$)
 and the interior node ($v$):
 \begin{align} \label{eqn:three_taxa_likelihood}
   \begin{split}
-    & \P\{X_{I-\ell}^{m+2\ell}=x \text{ and } Y_I^\ell=y \text{ and } Z_I^\ell=z \} \\
-    &\qquad = \sum_{u \in \calS^{m+2\ell}} \pi(u) p_{m,\ell}(t_C,u,z) \sum_{v \in \calS^{m+2\ell}} p_{m+2\ell}(t_{AB},u,v) p_{m+2\ell}(t_{A},v,x) p_{m,\ell}(t_B,v,y)
+    & \P\{X_{I-\ell}^{n}=x \text{ and } Y_I^\ell=y \text{ and } Z_I^\ell=z \} \\
+    &\qquad = \sum_{u \in \calS^{n}} \pi(u) p_{m,\ell}(t_C,u,z) \sum_{v \in \calS^{n}} p_{n}(t_{AB},u,v) p_{n}(t_{A},v,x) p_{m,\ell}(t_B,v,y)
   \end{split}
 \end{align}
 The steps for computing this are then:
 \begin{enumerate}
 
-  \item Compute $M_1(u,z) = p_{m,\ell}(t_C,u,z)$ (a $|\calS|^{m+2\ell} \times |\calS|^m$ matrix)
+  \item Compute $M_1(u,z) = p_{m,\ell}(t_C,u,z)$ (a $|\calS|^{n} \times |\calS|^m$ matrix)
 
-  \item Compute $M_2(v,z) = \sum_{u \in \calS^{m+2\ell}}  p_{m+2\ell}(t_{AB},u,v) \pi(u) M_1(u,z)$ (still a $|\calS|^{m+2\ell} \times |\calS|^m$ matrix)
+  \item Compute $M_2(v,z) = \sum_{u \in \calS^{n}}  p_{n}(t_{AB},u,v) \pi(u) M_1(u,z)$ (still a $|\calS|^{n} \times |\calS|^m$ matrix)
 
-  \item Compute $M_3(v,y) = p_{m,\ell}(t_B,v,y)$ (a $|\calS|^{m+2\ell} \times |\calS|^m$ matrix)
+  \item Compute $M_3(v,y) = p_{m,\ell}(t_B,v,y)$ (a $|\calS|^{n} \times |\calS|^m$ matrix)
 
-  \item Compute $M_4(x,(y,z)) = \sum_{v \in \calS^{m+2\ell}} p_{m+2\ell}(t_{A},v,x) M_2(v,z) M_3(v,y)$ (stored as a $|\calS|^{m+2\ell} \times |\calS|^{2m}$ matrix).
+  \item Compute $M_4(x,(y,z)) = \sum_{v \in \calS^{n}} p_{n}(t_{A},v,x) M_2(v,z) M_3(v,y)$ (stored as a $|\calS|^{n} \times |\calS|^{2m}$ matrix).
 
 \end{enumerate}
 Then $M_4$ gives all the likelihoods.
-This is depicted in the figure, writing $\left(e^{tG}\right)_{ab}$ for the matrix $p_{m+2\ell}(t,a,b)$,
+This is depicted in the figure, writing $\left(e^{tG}\right)_{ab}$ for the matrix $p_{n}(t,a,b)$,
 and $P$ for the projection matrix that gives $p_{m,\ell}(t,a,b) = \left( e^{tG} P\right)_{ab}$.
 
 
@@ -798,7 +819,7 @@ In total there are $|\calS|^{3m+2\ell}$ possible data combinations.
 However, we can reduce dimensionality by replacing the last step with
 \begin{enumerate}
 
-  \item[4'.] Compute $M_4(x,w) = \sum_{v \in \calS^{m+2\ell}} p_{m+2\ell}(t_{A},v,x) M_3(v,w) M_4(v,w)$ (stored as a $|\calS|^{m+2\ell} \times |\calS|^{m}$ matrix).
+  \item[4'.] Compute $M_4(x,w) = \sum_{v \in \calS^{n}} p_{n}(t_{A},v,x) M_3(v,w) M_4(v,w)$ (stored as a $|\calS|^{n} \times |\calS|^{m}$ matrix).
 
 \end{enumerate}
 i.e., only computing the likelihood for cases with $y=z=w$.
@@ -1191,7 +1212,6 @@ might be used to estimate the process, and from this infer the original (ancestr
 (or sample from its posterior distribution).
 
 \paragraph{Limitations}
-%EM This is true for the implementation, but it's not clear that we couldn't do some of the same tricks for calculating likelihoods if we were handed a model.
 The model presented assumes that the same process occurs at every location along the sequence,
 and that the length of the sequnce does not change (no indels).
 Neither of these assumptions are likely to be true for any data set of DNA sequence;
@@ -1558,7 +1578,7 @@ is matched by each possible combination of ``short'' sequences on the tips of th
 For nodes on the path from $a$ to the root, we compute the probability of observing
 each ``long'' sequence at that node, along with the combinations of ``short'' sequences
 on all tips further away from $a$ (i.e., below that node if it was rooted at $a$).
-For a node $w$ this will be stored as a $|\calS|^{m+2\ell} \times |\calS|^{cm}$ matrix, for some $c$,
+For a node $w$ this will be stored as a $|\calS|^{n} \times |\calS|^{cm}$ matrix, for some $c$,
 and denoted $M(w)$.
 Rows of $M(u_j)$ sum to 1,
 while each entire matrix $M(v_i)$ sums to 1;
