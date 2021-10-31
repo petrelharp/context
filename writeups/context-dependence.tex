@@ -691,7 +691,7 @@ as in \eqref{eq:pmMarg}:
 if we define the $n \times m$ matrix $U$ so that $U_{cb}=1$ if $c_\ell^m=b$ and $U_{cb}=0$ otherwise,
 then
 \begin{align} \label{eqn:Tmer_trans}
-    p_{m,\ell}(t,a,b) = \sum_{c \in \calS^{n}} \left( e^{t G(n)} \right)_{ac} U_{cb} ,
+    p_{n,\ell,r}(t,a,b) = \sum_{c \in \calS^{n}} \left( e^{t G(n)} \right)_{ac} U_{cb} ,
 \end{align}
 so in fact we don't need the entire matrix $e^{t G(n)}$,
 just the product of this matrix with each of the columns of $U$.
@@ -1334,17 +1334,21 @@ taking into account context on each side of maximum length $w$.
 (For instance, a trinucleotide model in which the flanking sites on each side
 affect the mutation rate of the central site has $w=1$.)
 %EM I suggest that we could re-introduce the mu^* notation again and remind people that these potential changes are uniform.
-Recall that in our construction of the process we first chose the times and sites
-at which potential changes might occur.
-Suppose a potential change occurs at site $i-w$, at time $t$,
+
+As in the ``Simulation'' section, we start by considering a broader collection
+of ``possible changes'' sampled from a homogeneous
+Poisson process at a rate $\mu^*$ per site.
+Suppose a possible change occurs at site $i-w$, at time $t$,
+%EM should this be "change in rate"?
 which therefore might result in a change in state at site $i$.
 To resolve this, we need to know the outcome of any other potential changes
 that might change the sequence between $i-w$ and $i + w$.
 Consider those that might happen only to the right of $i$,
 thus extending the sequence on which the change depends to the right.
-The number of such potential changes is Poisson with mean $\mu^* w t$,
-%EM Suggest "and their location is uniform..."
-and will extend the amount of sequence on which the change at site $i$ depends
+The number of such potential changes have a uniform location
+and their count is Poisson with mean $\mu^* w t$;
+these extend the amount of sequence on which the change at site $i$ depends
+%EM my understanding is that it's just uniform for a single mutation, but that's not obvious from the description.
 by a uniform random number of sites between 1 and $w$.
 If one occurs, say at time $0 < s < t$,
 then any further potential changes that occur between time 0 and time $s$
@@ -1379,6 +1383,7 @@ Since the size of the dependency window is a compound Poisson process,
 we can bound $\P\{A\}$ using the following lemma:
 
 \begin{lemma}
+%EM Let's rename this X to ... V? We already have an X.
     Let $X = \sum_{j=1}^N W_j$,
     where $N$ is Poisson with mean $\lambda$
     and each $W_j$ is independent and bounded between 0 and $w$.
@@ -1444,7 +1449,8 @@ across all transition triples.
 \paragraph{Full likelihood}
 Now we use these ideas to quantify and prove approximation~\eqref{eqn:full_approx}.
 For two positions $(i,s)$ and $(j,t)$ in sequence $\times$ time,
-let $r(i,s;j,t) = |j-i|/|t-s|$ be the slope of the line between them,
+let $r(i,s;j,t) = |j-i|/|t-s|$ be the absolute value of the
+slope of the line between them,
 and if $I$ and $J$ are subsets of sites, let $r(I,s;J,t) = \min\{r(i,s;j,t) : i\in I, j \in J\}$
 be the minimum.
 Above we have shown that there is a speed of dependency propagation $r_*$
@@ -1453,16 +1459,14 @@ then $X_I(s)$ and $X_J(t)$ are nearly independent.
 Now, fix $t$ and for each site $i$ let $N_i$ denote its $r_*$-neighborhood,
 i.e.,
 \begin{align}
-%EM Before we had i,s,j,t, and now we have i,t,j,s. It doesn't make a difference, but should we choose one?
-%EM Do we want to specify a max allowable range for j as well on the RHS?
-    N_i = \{ (j,s) : r(i,t; j,s) \le r_*, \; 0 \le s \le t \} .
+    N_i = \{ (j,s) : r(i,s; j,t) \le r_*, \; j \leq N, \; 0 \le s \le t \} .
 \end{align}
 These are depicted in Figure~\ref{fig:neighborhoods}A.
 We will write $i \sim j$ if $|i-j| \le 2 r_* t$,
 or equivalently, if $N_i \cap N_j \neq \emptyset$,
 and $i \nsim j$ otherwise.
-We can think of $N_i$ as the parts of ancestral sequences in which a mutation might have affected the state at $(i,t)$,.
-so if $i \nsim j$, then $i$ and $j$ are (approximately) independent at time $t$, given the sequence at time 0.
+We can think of $N_i$ as the parts of ancestral sequences in which a mutation might have affected the state at $(i,t)$.
+So, if $i \nsim j$, then $i$ and $j$ are (approximately) independent at time $t$, given the sequence at time 0.
 Concretely,
 we have a small $\epsilon$ such that for any $i \nsim j$,
 \begin{align*}
@@ -1541,6 +1545,11 @@ then (with $\loglike = \log \like$),
     \left| \aloglike(y|x) - \loglike(y|x) \right|
     \le n \epsilon .
 \end{align}
+
+%EM Would it be more direct to make a connection between
+%EM \P\{ X_i(t) = y_i \given X_{A(L(i))}(0) = x_{A(L(i))} \text{ and } X_{L(i)}(t) = y_{L(i)} \} ,
+%EM and
+%EM p_{2\ell+1,\ell,\ell}(x_{i-3\ell}^{(4\ell+1)}, y_{i-2\ell}^{(2\ell+1)})
 
 This is good, because we can compute $\aloglike$:
 let $w=r_*t$ be radius of a dependency neighborhood,
