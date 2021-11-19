@@ -70,9 +70,21 @@
 
 \section*{Introduction}
 
-It now common to encounter models
-consisting of a lattice of sites,
-each site taking one of a finite collection of possible states,
+Early models of DNA sequence mutation
+assumed that each nucleotide was equally likely to mutate
+into any other nucleotide \citep{jukes1969evolution}.
+These were followed by others that incorporated differences 
+in the mutation process, such as higher transition to transversion ratio
+\citep{hasegawa1985dating,felsenstein1996hidden}.
+Although the rates of mutation of a nucleotide
+are known to depend on not only the nucleotide itself
+but also nearby sequence context \citep{seplyarskiy2021population},
+it is difficult to take this context into account.
+
+This situation from biological sequence analysis
+is an example of a more commonly encountered class of models:
+a lattice of sites,
+with each site taking one of a finite collection of possible states,
 and whose stochastic, temporal evolution is Markov and governed by a set of local rules.
 For instance, at each site may sit
 a nucelotide whose mutation rate depends on physical properties determined by the nearby DNA sequence;
@@ -91,7 +103,8 @@ These are used, for instance, in spatial statistics \citep{besag1972nearestneigh
 and image reconstruction \citep{geman1984stochastic,besag1986statistical}.
 The conditioning method we consider here
 is similar to the ``coding'' scheme introduced by \citet{besag1974spatial},
-that conditions on a set of sites that makes the remaining observations independent (thanks to the Gibbs property);
+that conditions on a set of sites that makes the remaining observations independent;
+% (thanks to the Gibbs property);
 consistency of such methods has been shown by \citet{comets1992consistency} and reviewed by \citet{larribe2011composite}.
 A good review of recent statistical techniques is given by \citet{friel2012bayesian}.
 
@@ -103,51 +116,50 @@ due to the combined effects of context dependence of the nucleotide mutation pro
 selective constraints on the function of the sequence,
 and other processes such as biased gene conversion \citep{duret2009biased,arbeithuber2015crossovers}.
 Indeed, molecular studies have demonstrated that the spectrum of new mutations in humans
-is highly context dependent \citep{schaibley2013influence}
+is highly context dependent \citep{schaibley2013influence,gao2019overlooked,rodriguezgalindo2020germline}
 and that multinucleotide substitutions are relatively common \citep{schrider2011pervasive,terekhanova2013prevalence,harris2013errorprone}.
 In humans, the molecular processes underlying mutations are best studied in contexts of intense somatic mutation:
-cancer and the hypervariable regions that generate immune system diversity \citep{cobey2015evolution},
+cancer and the hypervariable regions that generate immune system diversity \citep{cobey2015evolution,herediagenestar2020extreme},
 which provide quite different cellular contexts but share commonalities due to shared molecular machinery.
 In general, substitution rates depend on sequence context due to the interaction of a great many factors including:
 (a) likelihood of DNA damage or errors in cell division (e.g., UV damage \citep{goodman2002errorprone} or crossing over in meiosis \citep{arbeithuber2015crossovers});
 (b) activity levels and structural properties of the enzymes responsible for repair
 (e.g., Y-family polymerases \citep{goodman2013translesion,sale2012yfamily});
 and (c) any functional effects of an error (e.g., lethal mutations will not be seen in a population census).
-(We are concerned with effects that are \emph{homogeneous} across the sequence,
-so do not consider further the many constraints on protein-coding sequence \citep[reviewed in][]{thorne2007protein}.)
+We are concerned with effects that are \emph{homogeneous} across the sequence,
+so do not consider further the many constraints on protein-coding sequence \citep[reviewed in][]{thorne2007protein}.
 Some of these effects -- particularly, activity levels of different enzymes in the germline --
 will likely vary over evolutionary time,
 and so comparisons between widely separated species will identify time-averaged mutation rates.
-Recent studies have used a variety of exploratory techniques to identify sets of mutational patterns
+Studies have used a variety of exploratory techniques to identify sets of mutational patterns
 co-occurring in comparisons (a) between different cancer types \citep{alexandrov2013signatures,shiraishi2015simple} and
 (b) between different human populations \citep{harris2015evidence,harris2016rapid,mathieson2017differences},
 to disentangle distinct signals presumably coming from the action of distinct sources of mutation.
 
 
 However, phylogenetic and population genetic methods usually ignore such dependencies
-in the interest of computational efficiency and lack of understanding of the underlying process,
+in the interest of computational efficiency,
 but some progress has been made.
 Often, the effects of a complex mutational spectrum are explored using summary statistics of larger blocks or other sensible but \textit{ad hoc} methods.
 For instance, \citet{arndt2003sequence} studied dinucleotide transitions,
 and \citet{yaari2013models} displayed strong heterogeneity in the probability of synonymous mutations across 5-mers
 in B-cell immunoglobulin genes.
 Others have made progress using simplifying assumptions \citep{berard2012accurate},
-or by other approximations \citep{christensen2005pseudolikelihood}.
+or by other approximations \citep{christensen2005pseudolikelihood,saunders2007insights}.
 \citet{pedersen2000dependent}, later extended by
-\citet{Hwang2004-pj,hobolth2008markov,baele2010using}, used data augmentation and an MCMC algorithm to do Bayesian inference;
+\citet{Hwang2004-pj,hobolth2008markov} and \citet{baele2010using}, used data augmentation and an MCMC algorithm to do Bayesian inference;
 \citet{lunter2004nucleotide} used an approximate matrix decomposition;
-while \citet{siepel2004phylogenetic} and later \citep{baele2010modelling} computed likelihoods by assuming a model that is Markov along the genome;
+while \citet{siepel2004phylogenetic} and later \citep{baele2010modelling} computed likelihoods by assuming a model that is Markov along the genome.
 however, all these methods are quite computationally intensive.
 
-Model with fixed flanking \citet{saunders2007insights}.
 
 Another canonical example of context-dependent transition is the Ising model of statistical physics
 with time evolution given by Glauber dynamics \citep{glauber1963timedependent},
 in which a lattice of up/down spins are perturbed by thermal noise,
 relaxing into states dependent on the energy of the resulting configuration.
 Parameter estimation for Ising model without temporal dynamics
-is relatively well-undersood \citep{pickard1982inference,frigessi1990parameter},
-but there does not seem to be similar work on the case when more than one observation is made of the dynamical system.
+is relatively well-understood \citep{pickard1982inference,frigessi1990parameter},
+but the problem of dynamical observations is less well-studied.
 
 The general framework also fits certain cellular automata models,
 e.g., modeling wildfire \citep{clarke1994cellular},
@@ -182,22 +194,42 @@ computational techniques using sparse matrices.
     \end{center}
     \caption{
         An overview of the method for a neighbor-dependent model.
-        The red triangle represents the ``range of influence'' of mutations on a site of interest (the site at the bottom corner of the triangle).
-        The blue T shape is called a \emph{T-mer}, which is how our approximation to the process is parameterized.
-        The bottom is called the \emph{base} of the T-mer, which is considered the outcome of a probabilistic process parameterized by additional \emph{overhang} sequence extending to the left and right of the base.%
+        The red triangle represents the ``range of influence'',
+        i.e., possible locations at which a mutations is likely
+        to affect the mutation outcome at
+        a site of interest (the site at the bottom corner of the triangle).
+        The blue T shape is called a \emph{T-mer},
+        which is how our approximation to the process is parameterized.
+        The central segment of the T is called the \emph{base} of the T-mer,
+        and the key building block computes the transition probability
+        for this base
+        conditioned on the ancestral state at the \emph{overhang}
+        of the top of the T.
         \label{fig:overview}
     }
 \end{figure}
 
-Before diving into a formal problem specification, we offer an intuitive explanation of how the method works.
-The difficulty of context-sensitive models is that, in principle, one may have a sequence of events with cascading consequences that involves a lot of the sequence.
-In the extreme case, one may have a sequence of mutations from, say, the left boundary of the sequence to the right boundary of the sequence, such that the probability of each mutation has been changed by that of the previous one.
+Before diving into a formal problem specification,
+we offer an intuitive explanation of how the method works.
+The difficulty of context-sensitive models is that, in principle,
+one may have a sequence of events with cascading consequences that involves a lot of the sequence.
+In the extreme case, one may have a sequence of mutations from,
+say, the left end of the sequence to the right end of the sequence,
+such that the probability of each mutation has been changed by that of the previous one.
 
-However, the starting point of the work presented here is that for typical models such a sequence of events is improbable.
-For that reason, we can perform computation using a local context which, although bigger than the context specified in the context-sensitive model, is much smaller than the entire sequence.
-We call the building blocks of this computation \emph{T-mers} (Figure~\ref{fig:overview}) which parameterize transition probabilities for a small section of sequence (the \emph{base} of the T-mer) based on additional sequence (the \emph{overhang} of the T-mer).
-We can bound the probability that the influence of a mutation outside the overhang of the T-mer will impact the sites at the base of the T-mer, which translates into an estimate of approximation error across the sequence when using a composite likelihood calculation based on T-mers.
-
+However, the starting point of the work presented here is that
+for typical models such a sequence of events is improbable.
+For that reason, we can compute the transition probability for each segment of the sequence
+using a local context which,
+although bigger than the context which determines the local transition rates,
+is much smaller than the entire sequence.
+We call the building blocks of this computation \emph{T-mers} (Figure~\ref{fig:overview})
+which parameterize transition probabilities for a small section of sequence
+(the \emph{base} of the T-mer) based on additional sequence (the \emph{overhang} of the T-mer).
+We can then bound the probability that the influence of a mutation
+outside the overhang of the T-mer will impact the sites at the base of the T-mer,
+which translates into an estimate of approximation error in our calculation of the likelihood.
+% note: we are not doing composite likelihood
 
 %%%%%%% %%%%%%%%%%
 \section{A general context-dependent model}

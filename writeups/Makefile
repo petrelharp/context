@@ -1,7 +1,7 @@
 PROJECT=context-dependence
 BUILDTEX=pdflatex $(PROJECT).tex
 
-all: peeling-schematic.pdf Tmer-dependency.pdf
+all: peeling-schematic.pdf Tmer-dependency.pdf overview.pdf
 	$(BUILDTEX)
 	bibtex $(PROJECT)
 	$(BUILDTEX)
