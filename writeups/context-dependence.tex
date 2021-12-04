@@ -24,8 +24,8 @@
 \newcommand{\nS}{\mbox{S}} % C or G
 \newcommand{\nW}{\mbox{W}} % A or T
 \newcommand{\nR}{\mbox{R}} % purine, A or G
-\newcommand{\nY}{\mbox{Y}} % pyramidine, C or T
-\newcommand{\join}{\oplus}  % matches
+\newcommand{\nY}{\mbox{Y}} % pyrimidine, C or T
+\newcommand{\join}{\oplus}  % concatenation
 \newcommand{\st}{\colon}  % such that
 \newcommand{\var}{\mathop{\mbox{var}}}
 \newcommand{\cov}{\mathop{\mbox{cov}}}
@@ -245,15 +245,16 @@ for which the probability a given site changes state in a small amount of time
 depends only on the sequence of states at nearby sites.
 
 To formalize this notion of local dependence,
-first define a \textit{pattern} to mean a contiguous sequence of states;
-let $|u|$ denote the length of the pattern $u$.
-Given $x \in \calS$,
+first define a \textit{pattern} to mean a contiguous sequence of states,
+and let $|u|$ denote the length of a pattern $u$.
+Given a state $x \in \calS$,
 let $x_i^{(h)} = (x_i, x_{i+1}, \ldots, x_{i+h-1})$ denote the pattern of $x$ of length $h$ beginning at location $i$.
 % Recall we are focusing on finite sequences, and by default, we do not allow patterns to ``hang off'' the end of the sequence.
 % This is natural in many situations, but in others we might want to other boundary conditions,
 % modeling extant, but unobserved, neighbors.
 % We will mention this when necessary.
-The dynamics of our stochastic process are determined by the set of allowed transitions and associated rates:
+The dynamics of our stochastic process
+are determined by the set of allowed transitions and associated rates:
 given two patterns $u$ and $v$ of common length $h$,
 saying ``pattern $u$ changes to $v$ at rate $\mu$'' means that
 \[
@@ -263,12 +264,23 @@ regardless of the location $i$ along the sequence.
 If more than one pattern would match to cause the same change, their rates add.
 Such a rule is defined by its ``transition triple'' $(\mu,u,v)$,
 written as ``$u \to v$ at rate $\mu$''.
-The set of all transition triples is denoted $\calT$.
+A model of context-dependent mutation
+is defined by a set of all transition triples,
+which we denote $\calT$.
+
+Although our main focus is on nucleotides,
+it is informative to consider other, simpler, models as well.
+Here is one such example.
 
 \begin{example}[TASEP]
-  The \emph{Totally Asymmetric Simple Exclusion Process} labels each site as ``empty'' or ``occupied'' (0 or 1, respectively),
-  and says that each occupied site, independently at rate $\lambda$, checks the site to the right to see if it is empty,
-  and if it is, moves there.
+  In the \emph{Totally Asymmetric Simple Exclusion Process}
+  describes a set of particles moving among some sites,
+  with at most one particle per site.
+  Each site is either ``empty'' or ``occupied''
+  (0 or 1, respectively),
+  and each particle, independently at rate $\lambda$,
+  checks whether the site to the right is empty,
+  and if so, moves there.
   This process therefore has only one transition triple:
 
   \begin{center}
@@ -279,7 +291,7 @@ The set of all transition triples is denoted $\calT$.
 
   \noindent
   This only has one parameter.
-  If we allow particles to exit from the right, and new particles to enter from the left
+  If we allow particles to exit from the right, and new particles to enter from the left,
   then from observing only starting and ending configurations
   we cannot tell with certainty which particles have moved where,
   so it is not obvious how to estimate the speed.
@@ -296,7 +308,7 @@ we also introduce a ``potential'':
 suppose that there is a collection of patterns $\{p_i\}$
 such that each occurrence of $p_i$ adds a quantity $e_i$ to the total ``energy'' of a sequence,
 and that the rate at which each possible change occurs is modulated by a function of the energy difference the change would produce.
-This is natural if that transition triples describe \emph{proposed} changes,
+This is natural if transition triples describe \emph{proposed} changes,
 and that the probability a proposed change actually occurs depends on how much it affects the energy.
 
 Concretely, let $\calP = \{(p_i, e_i)\}$ be a set of (pattern, energy difference) pairs,
@@ -316,7 +328,7 @@ but these changes only take effect with probability $\phi(E(y) - E(x))$.
 We have described this idea in terms natural for a physics model such as an Ising model in which high energy configurations are disfavored, however it is also suitable for a population genetics model in which $\phi$ describes the probability of a mutant allele given a certain fitness change from the parent.
 
 \begin{example}[Genomic GC content]
-    A sequence of genome can be written using A, C, G, and T;
+    A genome sequence can be written using A, C, G, and T;
     in the most general model of independent mutation across sites, each of the 12 possible transitions occurs at its own rate.
     Furthermore, it is a well-known observation that in many species,
     adjacent, methylated CG dinucleotides (``CpG sites'') have a much higher mutation rate to TG and CA
@@ -347,16 +359,19 @@ We have described this idea in terms natural for a physics model such as an Isin
     A new mutation with an effect $s$ on fitness that occurs
     in a population of effective size $N_e$ becomes ubiquitous, rather than dying out,
     with probability approximately $(1-\exp(-2 s))/(1-\exp(-2 s N_e))$ \citep{kimura1962probability}.
-    If the mutation occurs at rate $\mu$ per individual, the total rate it occurs at in the population is $\mu N_e$.
+    If the mutation occurs at rate $\mu$ per individual,
+    the total rate it occurs at in the population is $\mu N_e$.
     GC-biased gene conversion effectively means that sequences with more G/Cs are selected against.
     This is incorporated as follows: set the energy of pattern of pattern \nC{} or \nG{} to be $s$,
     so that $E(y)-E(x)$ is the net change in number of G's and C's multiplied by $s$.
-    Also, assume a $\phi$ function expressed in terms of an energy difference $e$:
+    Also, define $\phi(e)$ to be the expected rate of fixations of ``selected'' mutations
+    with advantage $e$:
     \begin{align*}
-        \phi(e) = (1-\exp(-2e))/(1-\exp(-2eN)).
+        \phi(e) = N_e (1-\exp(-2e))/(1-\exp(-2eN)).
     \end{align*}
-    Thus, if a given change that occurs with rate $\mu$ would change a sequence $x$ to $y$,
-    then $\mu \, N_e \phi(E(y)-E(x))$ is the rate at which the mutation
+    With these definitions,
+    if a given change that occurs with rate $\mu$ would change a sequence $x$ to $y$,
+    then $\mu \, \phi(E(y)-E(x))$ is the rate at which the mutation
     appears and successfully takes over in the population.
 
 \end{example}
@@ -391,8 +406,6 @@ We have described this idea in terms natural for a physics model such as an Isin
     \begin{align*}
         \phi(e) = \frac{1}{1+\exp(-e)} .
     \end{align*}
-
-    This process has been studied by XXX.
 \end{example}
 
 
@@ -412,22 +425,24 @@ x \xrightarrow{i,u,v} y \qquad \text{iff} \qquad \begin{cases}
 \]
 i.e., if $x$ and $y$ match except at positions $i,i+1,\ldots,i+h-1$,
 and for those positions $x$ matches with $u$ while $y$ matches with $v$.
-Let $\calT$ be the set of these transition triples.
 
+As before, let $\calT$ be the set of transition triples for the model.
 As noted above, there may be more than one way to mutate a sequence $x$ to get $y$:
 for each position $i$, let $J(i,x,y)$ be those transitions in $\calT$ that can be applied at $i$
 to change $x$ into $y$, i.e.,
 \[
     J(i,x,y) = \{ (\mu,u,v) \in \calT \st x \xrightarrow{i,u,v} y \}.
 \]
-The rate ${G(n)}_{x,y}$ is then the sum of all matching transition rates,
+The rate ${G(n)}_{x,y}$ is then the sum of all transition rates that can take $x$ to $y$,
 multiplied by the fitness term,
 namely
 \begin{align} \label{eqn:G_defn}
     {G(n)}_{x,y} = \phi\left(E(y)-E(x)\right) \, \sum_{i=1}^n \sum_{(\mu, u, v) \in J(i,x,y)}  \mu ,
 \end{align}
 and if there are no triples $(\mu,u,v)$ with $x \xrightarrow{i,u,v} y$ for some $i$, then ${G(n)}_{x,y}=0$.
-Indeed, we anticipate this matrix to be sparse because for most pairs $(x,y)$ there are no transition triples that can modify $x$ to make $y$.
+To make this the generator matrix for a Markov process,
+we also set each $G(n)_{x,x}$ so that rows sum to zero.
+Indeed, this matrix is very sparse because for most pairs $(x,y)$ there are no transition triples that can change $x$ into $y$.
 
 In principle, this gives us the transition probabilities for the process by a matrix exponential:
 \begin{align} \label{eqn:full_likelihood}
@@ -451,8 +466,11 @@ and then resolving each possible change in temporal order.
 in terms of the energy model.)
 The rate $\mu^*$ should be the maximum ``local'' rate at which transitions occur, across sites and transition outcome states:
 \[
-    \mu^* = \max \left\{ \sum_{y \in \calS^L} \sum_{(\mu, u, v) \in J(i,x,y)} \mu \qquad \st x \in \calS^L, \quad 1 \le i \le L \right\} .
+    \mu^* 
+    % = \max \left\{ \sum_{y \in \calS^L} \sum_{(\mu, u, v) \in J(i,x,y)} \mu \qquad \st x \in \calS^L, \quad 1 \le i \le L \right\} .
+    = \max_x \sum_{y \neq x} G(L)_{x,y} .
 \]
+Note that we do not actually need to construct $G(L)$ to find the maximum rate.
 Now sample possible changes:
 in a sequence of length $L$, over a time period $t$,
 first draw the number of possible changes, $N$,
@@ -469,24 +487,24 @@ changes occur at rate $\mu^*$ independently at each of the $L$ sites.)
 Now, suppose we have determined the state just before time $s_k$ to be $X(s_k) = x$.
 Then, a new state is then chosen at position $i_k$
 with probability proportional to the corresponding rate, i.e.,
-out of the possible transitions $\calT$, the $j^\text{th}$ one is chosen
+out of the possible transitions $\calT$, transition triple $(\mu(j), u(j), v(j))$ is chosen
 with probability
 \[
 q_j = \begin{cases}
-    % TODO peter, fix notation, please.
-    \mu^{(j)}/\mu^* \qquad & \text{if } x_i^{(|u^{(j)}|)} = u^{(j)}  \\
+    \mu(j)/\mu^* \qquad & \text{if } x_i^{(|u(j)|)} = u(j)  \\
     0 \qquad & \text{otherwise.}
 \end{cases}
 \]
 The remaining probability $q_0 = 1-\sum_{j=1}^{|\calT|} q_j$
 gives the probability that the state remains the same.
-(By construction of $\mu_*$, $q_0\ge 0$.)
-If triple $(\mu^{(j)}, u^{(j)}, v^{(j)})$ is chosen, then
-the substring of $x$ matching $u^{(j)}$ that begins at position $i$
-is replaced with $v^j$ to produce $X(s_k)$.
+(By construction of $\mu_*$, $q_0 \ge 0$.)
+If triple $(\mu(j), u(j), v(j))$ is chosen, then
+the substring of $x$ matching $u(j)$ that begins at position $i_k$
+is replaced with $v(j)$ to produce $X(s_k)$.
 
-For instance, to simulate the TASEP, one has only to let $\mu^*=\lambda$, and at each $c_{ij}$
-check if at site $i$ there is a 1 followed by a 0,
+For instance, to simulate the TASEP, one has only to let $\mu^*=\lambda$,
+and at each possible change
+check if at site $i_k$ there is a 1 followed by a 0,
 and if so, switch them.
 
 
@@ -505,10 +523,10 @@ The problem at hand is to infer the parameters of the model based on the final s
 % while in the Ising model we have information about the temperature $\beta$ and magnetic field $\gamma$ but not the speed of changes, $\lambda$.
 % In the CpG model it is not immediately clear what information is retained.
 How can we extract the information?
-These are Markov processes, on the state space $\calS^n$,
+These are Markov processes, on the state space $\calS^L$,
 so the full likelihood function is given by \eqref{eqn:full_likelihood},
-but doing anything with the $|\calS|^n \times |\calS|^n$ matrix $G_n$ is clearly infeasible even for moderately sized $n$.
-We can, however, compute \eqref{eqn:full_likelihood} for smaller $n$,
+but doing anything with the $|\calS|^L \times |\calS|^L$ matrix $G_L$ is clearly infeasible even for moderately sized $L$.
+We can, however, compute \eqref{eqn:full_likelihood} with smaller $G_n$,
 so the first thing that one might think to do is to break the sequence up into many blocks of length $m$,
 and treat these as independent.
 Then, defining $p_m(t;x,y)$ to be the probability that a string $x$ of length $m$ evolves to string $y$ over time $t$,
@@ -548,7 +566,7 @@ so it is not clear how good this approximation might be.
 
 The key insight we use is that by including neighboring sequence context in the \emph{initial} sequence only,
 we can compute \emph{something} correctly,
-and that something will be sufficient to compute the full likelihood
+and that will be sufficient to compute the full likelihood
 to an arbitrarily good approximation.
 %EM do we really want x and y here, which I've been thinking of as being the full sequence?
 %EM Note we'll need to change a and b below.
@@ -560,8 +578,8 @@ We refer to such patterns as \emph{T-mers}, as depicted in Figure~\ref{fig:Tmers
 We emphasize that the overhang of the T-mers is typically bigger than the
 context-sensitivity width of the underlying model (Figure~\ref{fig:overview}).
 
-These $p_{n,\ell,r}(x,y)$ probabilities can be found by marginalizing $p_m$,
-summing over the possible inital and final substrings of $x$
+These $p_{n,\ell,r}(x,y)$ probabilities can be found by marginalizing $p_n$,
+summing over the possible initial and final substrings of $x$
 (denoted $a$ and $b$):
 \begin{align}
     p_{n,\ell,r}(t;x,y)
@@ -582,8 +600,24 @@ Formally, for each $i$,
     \P\{ X_{i+\ell}^{(n-\ell-r)}(t) = y \mid X_i^{(n)}(0) = x \}
     \approx
     p_{n,\ell,r}(x,y)
-    .
+    ,
 \end{align}
+with the approximation getting better for longer $\ell$ and $r$.
+
+Equation \eqref{eq:pmMarg} could then be used to compute a composite likelihood,
+which we denote $A_{n, \ell, r}(x,y)$.
+This is the product of the probabilities
+of transition for all $(n, \ell, r)$ T-mers between $x$ to $y$, i.e.,
+with $m = n - \ell - r$,
+\begin{align}\label{eqn:composite_like}
+    A_{n, \ell, r}(x,y)
+        =
+        \prod_{i=1}^{L-m+1} p_{n, \ell, r}\left(x_i^{(n)}, y_{i+\ell}^{(m)}\right).
+\end{align}
+To keep notation simple we've ignored the boundaries of the sequence;
+to deal properly with these,
+on the right-hand side of the equation $\ell$ should be replaced with $\min(\ell, \max(i-1, 0))$,
+and $r$ should be replaced with $\min(r, \max(n-i-\ell-m+1, 0))$.
 
 
 %%%%%%
@@ -595,11 +629,14 @@ This can be computed as the product of the probability of each site in $y$
 given $x$ and all sites in $y$ further to the left.
 Defining $x_{<i}=(x_1, \ldots, x_{i-1})$ to be the subsequence to the left of $i$, this is:
 \begin{align*}
-    \like(y \mid x) &= \prod_i \P\{ Y_i = y_i \given Y_{<i} = y_{<i} \ \text{and}\; X=x \} .
+    \like(y \mid x) &= \prod_{i=1}^L \P\{ Y_i = y_i \given Y_{<i} = y_{<i} \ \text{and}\; X=x \} .
 \end{align*}
-It turns out that
-we can approximate the terms in this sum
-by discarding approximately independent sites from the conditioning.
+Each term in this product is the probability of $Y_i$, given all sites in $X$
+and all sites in $Y$ to the left of $i$.
+We can compute an approximation to this probability as in \eqref{eqn:window_approx}
+by discarding those sites from $X$ and $Y$ that are approximately independent of $Y_i$.
+Which are these?
+
 These approximately independent sites are exactly those that are too far away from a given site to impact its evolution.
 Recall that the last base of $x_i^{(h)}$ is $x_{i+h-1}$.
 So, $x_{i-3\ell}^{(4\ell+1)}$ runs from $i-3\ell$ to $i + \ell$, inclusive, while $y_{i-2\ell}^{(2\ell+1)}$ runs from $i-2\ell$ to $i$, inclusive.
@@ -611,26 +648,17 @@ If $\ell$ is long enough that approximation~\eqref{eqn:window_approx} holds, the
         \P\{ Y_i = y_i \given Y_{i-2\ell}^{(2\ell+1)} \;\text{and}\; X_{i-3\ell}^{(4\ell+1)} \}  \\
     &=
         \frac{
-            p_{2\ell+1,\ell,\ell}(x_{i-3\ell}^{(4\ell+1)}, y_{i-2\ell}^{(2\ell+1)})
+            p_{2\ell+1,\ell+1,\ell}(x_{i-3\ell}^{(4\ell+1)}, y_{i-2\ell}^{(2\ell+1)})
         }{
             p_{2\ell+1,\ell,\ell+1}(x_{i-3\ell}^{(4\ell+1)}, y_{i-2\ell}^{(2\ell)})
         }.
     \end{split}
 \end{align}
 
-%EM I think you said that we could just treat the state of all positions before the beginning of the sequence and after the end as having another distinct state. If that's true I can write it out.
-
-Let $A_{n, \ell, r}(x,y)$ be the product of all probability of all $(n, \ell, r)$ T-mers transitioning from $x$ to $y$, i.e.\
+We can then simply express our likelihood as
 \[
-A_{n, \ell, r}(x,y) = \prod_{i=1}^L p_{n, \ell, r}\left(x_{i-\ell-m}^{(n)}, y_{i-m}^{(n-\ell-r)}\right).
+    \like(y \mid x) = \frac{ A_{2\ell+1, \ell+1, \ell}(x,y) }{ A_{2\ell+1, \ell, \ell+1}(x,y) }.
 \]
-
-We can then express our likelihood as
-
-\[
-    \like(y \mid x) = \frac{ A_{2\ell+1, \ell, \ell}(x,y) }{ A_{2\ell+1, \ell, \ell+1}(x,y) }.
-\]
-
 % Define $n_\ell(x,y;a,b)$ to be the number of times pattern $a$ is seen in sequence $x$
 % matched to pattern $b$ in $y$ at a position offset by $\ell$.
 % Then
