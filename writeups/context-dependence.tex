@@ -73,16 +73,16 @@
 Early models of DNA sequence mutation
 assumed that each nucleotide was equally likely to mutate
 into any other nucleotide \citep{jukes1969evolution}.
-These were followed by others that incorporated differences 
+These were followed by others that incorporated differences
 in the mutation process, such as higher transition to transversion ratio
 \citep{hasegawa1985dating,felsenstein1996hidden}.
 Although the rates of mutation of a nucleotide
 are known to depend on not only the nucleotide itself
 but also nearby sequence context \citep{seplyarskiy2021population},
-it is difficult to take this context into account.
+it is difficult to take this context into account when performing inference.
 
 This situation from biological sequence analysis
-is an example of a more commonly encountered class of models:
+is an example of a more commonly encountered class of models in statistics:
 a lattice of sites,
 with each site taking one of a finite collection of possible states,
 and whose stochastic, temporal evolution is Markov and governed by a set of local rules.
@@ -120,7 +120,7 @@ is highly context dependent \citep{schaibley2013influence,gao2019overlooked,rodr
 and that multinucleotide substitutions are relatively common \citep{schrider2011pervasive,terekhanova2013prevalence,harris2013errorprone}.
 In humans, the molecular processes underlying mutations are best studied in contexts of intense somatic mutation:
 cancer and the hypervariable regions that generate immune system diversity \citep{cobey2015evolution,herediagenestar2020extreme},
-which provide quite different cellular contexts but share commonalities due to shared molecular machinery.
+which provide quite different cellular contexts but can share commonalities due to shared molecular machinery.
 In general, substitution rates depend on sequence context due to the interaction of a great many factors including:
 (a) likelihood of DNA damage or errors in cell division (e.g., UV damage \citep{goodman2002errorprone} or crossing over in meiosis \citep{arbeithuber2015crossovers});
 (b) activity levels and structural properties of the enzymes responsible for repair
@@ -1301,6 +1301,8 @@ The initial impetus for this project came from Matt Dean;
 along the way substantial encouragement and useful suggestions were provided by
 Simon Tavar\'e, Rasmus Nielsen, Graham Coop, Yaniv Brandvain, and Sergey Nuzhdin.
 Many thanks are also due Jessica Crisci for curating the human-chimp data.
+
+%EM TODO grant acknowledgements
 
 \bibliography{context-dependence}
 
