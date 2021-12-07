@@ -84,21 +84,8 @@ In each directory are shell scripts (usually `workflow.sh`) that demonstrate the
 
 To install the prerequisites separately:
 ```r
-install.packages(c("expm", "mcmc", "stringdist", "optparse", "jsonlite", "ape", "rmarkdown", "ggplot2"))
-source("http://bioconductor.org/biocLite.R")
-biocLite(c("Biostrings", "IRanges", "S4Vectors"))
-```
-If the BioConductor installer does not work due to permissions, the following may:
-```r
-source("http://bioconductor.org/biocLite.R")
-install.packages(c("Biostrings", "S4Vectors"), repos=biocinstallRepos())
-```
-If you don't have the most recent Bioconductor version, you may need to
-```r
-remove.packages("BiocInstaller") 
-
-## -- exit R then start again --
-
-source("http://bioconductor.org/biocLite.R")
-install.packages(c("Biostrings", "S4Vectors"), repos=biocinstallRepos())
+install.packages(c("expm", "mcmc", "stringdist", "optparse", "jsonlite", "ape", "rmarkdown", "ggplot2", "pander"))
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install(c("Biostrings", "IRanges", "S4Vectors"))
 ```

@@ -309,7 +309,7 @@ predictcounts.tree <- function (tree,
         transmatrix <- initcounts * transmatrix
     }
     colpatterns <- data.frame(do.call(rbind, strsplit(colnames(transmatrix), ",")), 
-                              stringsAsFactors=FALSE)
+                              stringsAsFactors=FALSE, check.names=FALSE)
     colnames(colpatterns) <- coltaxa
     out <- new("tuplecounts", 
             leftwin=leftwin, 

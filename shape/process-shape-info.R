@@ -3,7 +3,7 @@
 require(jsonlite)
 
 # read in shape data from Jessica
-x <- read.table("DNAshape-all-pentamers.txt",header=TRUE)
+x <- read.table("DNAshape-all-pentamers.txt",header=TRUE,stringsAsFactors=TRUE)
 
 # rescale variables: chosen so SDs are nearish to 1.  Centering is not necessary, but might as well, to remind us the scale has changed.
 xs <- scale(x[,-1], 

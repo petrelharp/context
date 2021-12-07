@@ -23,7 +23,7 @@ echo "fitting, width 4"
 Rscript ../scripts/fit-model.R -i simseqs/sim-tasep-123456-4-root-2-tip-l1-shift0.counts -m genmatrices/genmatrix-4-complete.RData -c tasep-model.json -t 0.1 -j 54321
 
 echo "computing residuals"
-Rscript ../scripts/compute-resids.R -i simseqs/sim-tasep-123456-4-root-2-tip-l1-shift0-genmatrix-4-complete-54321.RData
+Rscript ../scripts/compute-resids.R -i simseqs/sim-tasep-123456-4-root-2-tip-l1-shift0-genmatrix-4-complete-nonnegative-54321.RData
 
 echo "look at results"
-../scripts/templated-Rmd.sh ../scripts/simulation.Rmd simseqs/sim-tasep-123456-4-root-2-tip-l1-shift0-genmatrix-4-complete-54321.RData simseqs/sim-tasep-123456.RData
+../scripts/templated-Rmd.sh ../scripts/simulation.Rmd simseqs/sim-tasep-123456-4-root-2-tip-l1-shift0-genmatrix-4-complete-nonnegative-54321.RData simseqs/sim-tasep-123456.RData

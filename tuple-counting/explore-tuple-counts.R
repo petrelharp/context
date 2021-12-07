@@ -1,7 +1,7 @@
-chrs <- read.table("hu_ch_gor_differences_chr1.counts.gz",header=TRUE)
+chrs <- read.table("hu_ch_gor_differences_chr1.counts.gz",header=TRUE,stringsAsFactors=TRUE)
 names(chrs)[4] <- "chr1"
 for (k in 2:22) { 
-    chrs <- merge(chrs,read.table(paste("hu_ch_gor_differences_chr",k,".counts.gz",sep=''),header=TRUE),by=c("Hu_Quintet","Ch_Quintet","Gor_Quintet"),all=FALSE) 
+    chrs <- merge(chrs,read.table(paste("hu_ch_gor_differences_chr",k,".counts.gz",sep=''),header=TRUE,stringsAsFactors=TRUE),by=c("Hu_Quintet","Ch_Quintet","Gor_Quintet"),all=FALSE) 
     names(chrs)[match("count",names(chrs))] <- paste("chr",k,sep='') 
 }
 chrs <- subset(chrs, (!grepl("[^ACGT]",Hu_Quintet)) & (!grepl("[^ACGT]",Ch_Quintet)) & (!grepl("[^ACGT]",Gor_Quintet)) )

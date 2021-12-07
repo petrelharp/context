@@ -3,6 +3,16 @@ library(testthat)
 
 context("Reading in configuration files")
 
+fixup_expected_functions <- function (config) {
+    # testing for equality of fixfn fails because environment is not equal
+    for (a in names(config)) {
+        if ("fixfn" %in% names(config[[a]])) {
+            environment(config[[a]][['fixfn']]) <- asNamespace("contextual")
+        }
+    }
+    return(config)
+}
+
 model_json <- '
 {
     "bases" : [ "X", "O" ],
@@ -44,7 +54,8 @@ expect_list_equal(config,
 
 config <- parse.models(config)
 
-expect_list_equal(config, 
+expect_list_equal(config,
+                  fixup_expected_functions(
                     list(tree = structure(list(edge = structure(c(2L, 1L), .Dim = 1:2), Nnode = 1L, tip.label = "tip", node.label = "root", edge.length = 10), 
                                           .Names = c("edge", "Nnode", "tip.label", "node.label", "edge.length"), class = "phylo"), 
                          bases = c("X", "O"), 
@@ -54,7 +65,9 @@ expect_list_equal(config,
                                          .Names = c("bases", "initfreqs", "mutpats", "mutrates", "mutrates.scale", "selpats", "fixfn.params", 
                                                     "fixfn.params.scale", "selfactors", "fixfn", "selcoef", "selcoef.scale")), 
                          initfreqs = c(0.5, 0.5), 
-                         .models = structure("tip", .Names = "tip")) )
+                         .models = structure("tip", .Names = "tip"))
+                    )
+                 )
 
 
 context("Reading in tree configuration")
@@ -107,6 +120,7 @@ expect_list_equal( tree_config,
 tree_config <- parse.models(tree_config)
 
 expect_list_equal( tree_config, 
+                  fixup_expected_functions(
                     list(tree = structure(list(edge = structure(c(3L, 3L, 1L, 2L), .Dim = c(2L, 2L)), Nnode = 1L, tip.label = c("sp1", "sp2"), 
                                                edge.length = c(0.8, 1.2), node.label = "root"), 
                                           .Names = c("edge", "Nnode", "tip.label", "edge.length", "node.label"), class = "phylo", order = "cladewise"), 
@@ -123,6 +137,7 @@ expect_list_equal( tree_config,
                                         .Names = c("comment", "mutpats", "mutrates", "selpats", "bases", "fixfn.params", "fixfn.params.scale", 
                                                    "selfactors", "fixfn", "selcoef", "selcoef.scale")), 
                         .models = structure(c("sp1", "sp2"), .Names = c("sp1", "sp2"))) )
+                  )
 
 ####
 context("selection patterns")
@@ -151,6 +166,7 @@ config <- parse.models(treeify.config(model_config,tlen=10))
 
 test_that("selfactors are correctly parsed", {
         expect_list_equal( config,
+                  fixup_expected_functions(
                     list(
                          tree = structure(list(edge = structure(c(2L, 1L), .Dim = 1:2), Nnode = 1L, tip.label = "tip", node.label = "root", 
                                                edge.length = 10), .Names = c("edge", "Nnode", "tip.label", "node.label", "edge.length"), class = "phylo"), 
@@ -166,4 +182,5 @@ test_that("selfactors are correctly parsed", {
                                   fixfn = function (...) { 1 }),
                   initfreqs = NULL, 
                   .models = structure("tip", .Names = "tip")) )
+                )
 })

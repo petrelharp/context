@@ -71,7 +71,9 @@ counts <- read.counts(opt$infile, bases=genmatrix@bases, longpats=rownames(genma
 stopifnot( all( rownames(counts) == rownames(genmatrix) ) )
 
 # shorter counts for full likelihood
-stopifnot(shortwin(counts) > 1)
+if (shortwin(counts) <= 1) {
+    stop("shortwin must be > 1 to compute full likelihood")
+}
 counts.0 <- projectcounts(counts, new.shortwin=shortwin(counts) - 1)
 
 projmatrix <- collapsepatmatrix( ipatterns=rownames(genmatrix), leftwin=leftwin(counts), fpatterns=colnames(counts) )
@@ -184,6 +186,8 @@ assign("params",optim.results$par,envir=likfun.env)
 assign("genmatrix",model@genmatrix,envir=likfun.env)
 assign("projmatrix",model@projmatrix,envir=likfun.env)
 assign("counts",model@counts,envir=likfun.env)
+assign("projmatrix.0",projmatrix.0,envir=likfun.env)
+assign("counts.0",counts.0,envir=likfun.env)
 environment(model@likfun) <- likfun.env
 
 save(model,file=opt$outfile)

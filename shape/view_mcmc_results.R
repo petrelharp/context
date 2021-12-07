@@ -50,7 +50,7 @@ for (modelname in c("biochem-v5", "biochem-v4", "biochem-v3")) {
             write.table(boxes, file=sprintf("models/%s_%s_mcmc_posteriors.tsv", modelname,nameq), row.names=FALSE)
             if (FALSE) {
                 boxes <- as.matrix(read.table(sprintf("models/%s_%s_mcmc_posteriors.tsv", modelname,nameq), 
-                                    header=TRUE, check.names=FALSE))
+                                    header=TRUE, check.names=FALSE,stringsAsFactors=TRUE))
                 mnames <- unique(sapply(strsplit(colnames(boxes),"::"),"[[",2))
                 these_mcmcs <- unique(sapply(strsplit(colnames(boxes),"::"),"[[",1))
             }

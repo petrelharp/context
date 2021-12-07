@@ -11,7 +11,7 @@ if (length(tsvs)!=1) {
 
 tsv <- tsvs[1]
 
-x <- read.table(tsv,header=TRUE,check.names=FALSE)
+x <- read.table(tsv,header=TRUE,check.names=FALSE,stringsAsFactors=TRUE)
 pdf(paste0(tsv,".pdf"))
 n_params = sum(grepl("sim:", colnames(x)))
 stopifnot(n_params == sum(grepl("fit:", colnames(x))))

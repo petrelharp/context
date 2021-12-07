@@ -18,11 +18,20 @@
 #'
 #' @export
 computeresids <- function (model, pretty=TRUE, 
-                           longwin=longwin(model), 
-                           shortwin=shortwin(model), 
-                           leftwin=leftwin(model), 
+                           longwin,
+                           shortwin,
+                           leftwin,
                            counts=NULL, 
                            ...) {
+    if (missing(longwin)) {
+        longwin <- selectMethod("longwin", class(model))(model)
+    }
+    if (missing(shortwin)) {
+        shortwin <- selectMethod("shortwin", class(model))(model)
+    }
+    if (missing(leftwin)) {
+        leftwin <- selectMethod("leftwin", class(model))(model)
+    }
     # get counts
     if (is.null(counts) && ( longwin > longwin(model) || shortwin > shortwin(model) ) ) {
         stop("If window lengths are longer than fitted model, then need to supply counts and genmatrix.")

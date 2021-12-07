@@ -160,6 +160,8 @@ assign("prior.config",prior.config,envir=likfun.env)
 assign("genmatrix",model@genmatrix,envir=likfun.env)
 assign("projmatrix",model@projmatrix,envir=likfun.env)
 assign("counts",model@counts,envir=likfun.env)
+assign("projmatrix.0",projmatrix.0,envir=likfun.env)
+assign("counts.0",counts.0,envir=likfun.env)
 environment(model@likfun) <- likfun.env
 
 

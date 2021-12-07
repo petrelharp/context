@@ -157,6 +157,6 @@ pred.sp1.mean <- fitted(treemodel, rowtaxon="sp1", coltaxa=c("sp2","sp3"),
 test_that("Predicted tree counts are sensible.", {
               expect_equal(sum(pred.sp1@counts), sum(treemodel@counts@counts))
               expect_equal(sum(pred.sp1.mean@counts), sum(treemodel@counts@counts))
-              expect_true(all(pred.sp1@counts[,-match("OO,OO",colnames(pred.sp1@counts))]<1.0))
-              expect_true(pred.sp1.mean@counts["OO","OO,OO"] > sum(treemodel@counts@counts)-1)
+              expect_true(all(pred.sp1@counts[,-match("OO.OO",colnames(pred.sp1@counts))]<1.0))
+              expect_true(pred.sp1.mean@counts["OO","OO.OO"] > sum(treemodel@counts@counts)-1)
         } )
