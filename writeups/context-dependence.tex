@@ -190,6 +190,8 @@ computational techniques using sparse matrices.
 
 \begin{figure}
     \begin{center}
+        %EM Make width like in figure 2. 2 and 2.
+        %EM Bottom of triangle should be three bases.
         \includegraphics{overview}
     \end{center}
     \caption{
@@ -466,7 +468,7 @@ and then resolving each possible change in temporal order.
 in terms of the energy model.)
 The rate $\mu^*$ should be the maximum ``local'' rate at which transitions occur, across sites and transition outcome states:
 \[
-    \mu^* 
+    \mu^*
     % = \max \left\{ \sum_{y \in \calS^L} \sum_{(\mu, u, v) \in J(i,x,y)} \mu \qquad \st x \in \calS^L, \quad 1 \le i \le L \right\} .
     = \max_x \sum_{y \neq x} G(L)_{x,y} .
 \]
@@ -669,6 +671,11 @@ We can then simply express our likelihood as
 %         -
 %         \sum_{c \in \calS^n} \sum_{d \in \calS^{n-2\ell-1}} n_\ell(x,y;c,d) \log p_{n,\ell,\ell+1}(c,d)
 % \end{align}
+
+%EM It seems reasonable that we should be able to get away using a smaller T-mer.
+%EM Question: how much context should we include; argument in appendix.
+%EM Would be nice to show convergence of full likelihood eventually.
+
 See Appendix~\ref{ss:approx_pf} for a more rigorous statement and proof,
 and the next section for some intuition.
 
@@ -760,7 +767,6 @@ Modern techniques in sparse matrix computation (e.g., Krylov methods) provide ef
 Using the R package expm \citep{R_expm}, this makes computation quite feasible:
 with four possible states and $\ell=2$ and $m=1$, so that $G(n)$ is a $1024 \times 1024$ matrix,
 computing $e^{t G(5) }$ takes 13 seconds, while computing $e^{t G(5)} U$ takes only 0.3 seconds.
-%EM In the above, don't we only provide the recipe for the full likelihood when m = 2 ell + 1?
 Increasing to $\ell=4$ and $m=1$ or $\ell=3$ and $m=2$ is still feasible, taking $e^{t G(8)} U$ in 42 and 47 seconds, respectively
 (and much longer for the whole matrix $e^{t G(8)}$).
 
@@ -1157,7 +1163,6 @@ and show the resulting credible intervals in Figure~\ref{fig:ising_coverage}.
 Posterior medians were within half a percent of the truth for $+ \to -$ and $- \to +$ (corresponding to $\lambda$)
 and the temperature ($\beta$), but showed around 2\% error for the magnetic field $\gamma$.
 As seen in Table~\ref{tab:ising_coverage},
-%EM I think this credible interval statement is interesting. So it's definitely this narrowness vs just having the estimate be off?
 credible intervals were somewhat too narrow for shorter T-mers,
 but $(6,2,2)$ T-mers were long enough with sufficient overhang to produce well-calibrated posteriors.
 
