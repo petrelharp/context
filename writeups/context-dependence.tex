@@ -65,7 +65,26 @@
 \maketitle
 
 \begin{abstract}
-
+    Although the rates at which positions in the genome mutate
+    are known to depend not only on the nucleotide to be mutated
+    but also on neighboring nucleotides,
+    it remains challenging to do phylogenetic inference
+    using models of context-dependent mutation.
+    In these models,
+    the effects of one mutation may in principle propagate
+    to faraway locations,
+    making it difficult to compute exactly likelihoods.
+    This paper shows how to use bounds on the propagation of dependency
+    to compute likelihoods of mutation of a given segment of genome
+    by marginalizing over sufficiently long flanking sequence.
+    This can be used for maximum likelihood or Bayesian inference.
+    Protocols examining residuals and iterative model refinement
+    are also discussed.
+    Tools for efficiently working with these models
+    are provided in an R package,
+    that could be used in other applications.
+    The method is used to examine context dependence of mutations
+    since the common ancestor of humans and chimpanzee.
 \end{abstract}
 
 \section*{Introduction}
@@ -249,7 +268,7 @@ depends only on the sequence of states at nearby sites.
 To formalize this notion of local dependence,
 first define a \textit{pattern} to mean a contiguous sequence of states,
 and let $|u|$ denote the length of a pattern $u$.
-Given a state $x \in \calS$,
+Given a sequence $x \in \calS^L$,
 let $x_i^{(h)} = (x_i, x_{i+1}, \ldots, x_{i+h-1})$ denote the pattern of $x$ of length $h$ beginning at location $i$.
 % Recall we are focusing on finite sequences, and by default, we do not allow patterns to ``hang off'' the end of the sequence.
 % This is natural in many situations, but in others we might want to other boundary conditions,
@@ -293,7 +312,8 @@ Here is one such example.
 
   \noindent
   This only has one parameter.
-  If we allow particles to exit from the right, and new particles to enter from the left,
+  If we allow particles to exit from the right and new particles to enter from the left
+  (e.g., by adding special symbols for the start and end of the sequence),
   then from observing only starting and ending configurations
   we cannot tell with certainty which particles have moved where,
   so it is not obvious how to estimate the speed.
@@ -327,12 +347,16 @@ then the actual rate is
 If $\phi(e)$ is not greater than 1, one way to think about this is that
 the transition triples give ``proposed changes'',
 but these changes only take effect with probability $\phi(E(y) - E(x))$.
-We have described this idea in terms natural for a physics model such as an Ising model in which high energy configurations are disfavored, however it is also suitable for a population genetics model in which $\phi$ describes the probability of a mutant allele given a certain fitness change from the parent.
+We have described this idea in terms natural for a physics model
+in which high energy configurations are disfavored,
+however it is also suitable for a population genetics model
+in which $\phi$ describes the probability of fixation of a mutant allele
+given a certain fitness change from the parent.
 
 \begin{example}[Genomic GC content]
     A genome sequence can be written using A, C, G, and T;
     in the most general model of independent mutation across sites, each of the 12 possible transitions occurs at its own rate.
-    Furthermore, it is a well-known observation that in many species,
+    Furthermore, in many species
     adjacent, methylated CG dinucleotides (``CpG sites'') have a much higher mutation rate to TG and CA
     than either single nucleotide change under the independent model.
     Embellishing the single-nucleotide model with this additional rate results in the model defined by
@@ -355,7 +379,7 @@ We have described this idea in terms natural for a physics model such as an Isin
     % note that the model is identifiable, not overparameterized.
 
     Counteracting this trend towards increased G/C is GC-biased gene conversion \citep{glemin2015quantification},
-    which is effectively a selective pressure against G or C bases.
+    which acts effectively as a selective pressure against G or C bases.
     We model the evolution of a \emph{single} sequence, not a population of sequences,
     imagining this sequence to be the consensus sequence of the population.
     A new mutation with an effect $s$ on fitness that occurs
@@ -364,10 +388,10 @@ We have described this idea in terms natural for a physics model such as an Isin
     If the mutation occurs at rate $\mu$ per individual,
     the total rate it occurs at in the population is $\mu N_e$.
     GC-biased gene conversion effectively means that sequences with more G/Cs are selected against.
-    This is incorporated as follows: set the energy of pattern of pattern \nC{} or \nG{} to be $s$,
+    This is incorporated as follows: set the energy of patterns \nC{} and \nG{} to be $s$,
     so that $E(y)-E(x)$ is the net change in number of G's and C's multiplied by $s$.
     Also, define $\phi(e)$ to be the expected rate of fixations of ``selected'' mutations
-    with advantage $e$:
+    with advantage $e$ relative to the per-individual, per-site mutation rate:
     \begin{align*}
         \phi(e) = N_e (1-\exp(-2e))/(1-\exp(-2eN)).
     \end{align*}
@@ -378,7 +402,7 @@ We have described this idea in terms natural for a physics model such as an Isin
 
 \end{example}
 
-
+We close with a final example from statistical physics, to be used later:
 
 \begin{example}[Gibbs sampling of the Ising model]
     In the Ising model, each site is labeled as either ``up'' or ``down'' ($+1$ or $-1$ respectively),
@@ -486,8 +510,8 @@ Order the possible change times, so that
 \]
 (Note that this is equivalent to saying that possible
 changes occur at rate $\mu^*$ independently at each of the $L$ sites.)
-Now, suppose we have determined the state just before time $s_k$ to be $X(s_k) = x$.
-Then, a new state is then chosen at position $i_k$
+Now, suppose we have determined the state just before time $s_k$ to be $X(s_{k-1}) = x$.
+Then, the new state $X(s_k)$ is chosen by applying a mutation at position $i_k$
 with probability proportional to the corresponding rate, i.e.,
 out of the possible transitions $\calT$, transition triple $(\mu(j), u(j), v(j))$ is chosen
 with probability
@@ -568,8 +592,8 @@ so it is not clear how good this approximation might be.
 
 The key insight we use is that by including neighboring sequence context in the \emph{initial} sequence only,
 we can compute \emph{something} correctly,
-and that will be sufficient to compute the full likelihood
-to an arbitrarily good approximation.
+and that will be sufficient to compute the full likelihood,
+at least arbitrarily.
 %EM do we really want x and y here, which I've been thinking of as being the full sequence?
 %EM Note we'll need to change a and b below.
 To do this, let $p_{n,\ell,r}(x,y)$ for $\ell + r < n$ denote
@@ -635,14 +659,18 @@ Defining $x_{<i}=(x_1, \ldots, x_{i-1})$ to be the subsequence to the left of $i
 \end{align*}
 Each term in this product is the probability of $Y_i$, given all sites in $X$
 and all sites in $Y$ to the left of $i$.
-We can compute an approximation to this probability as in \eqref{eqn:window_approx}
-by discarding those sites from $X$ and $Y$ that are approximately independent of $Y_i$.
-Which are these?
-
-These approximately independent sites are exactly those that are too far away from a given site to impact its evolution.
+It seems reasonable that, similar to equation \eqref{eqn:window_approx} above,
+the process at position $i$ should be approximately independent
+of distant positions, given the neighboring positions.
+Suppose that $\ell$ is long enough that approximation~\eqref{eqn:window_approx} holds
+with $\ell = r$.
+Then we know that site $i$ approximately depends only on mutations within distance $\ell$.
+Furthermore, the sites up to distance $2 \ell$ to the left of $i$
+also depend on these mutations.
+We can now use \eqref{eqn:window_approx} to restrict the dependency on $x$.
 Recall that the last base of $x_i^{(h)}$ is $x_{i+h-1}$.
 So, $x_{i-3\ell}^{(4\ell+1)}$ runs from $i-3\ell$ to $i + \ell$, inclusive, while $y_{i-2\ell}^{(2\ell+1)}$ runs from $i-2\ell$ to $i$, inclusive.
-If $\ell$ is long enough that approximation~\eqref{eqn:window_approx} holds, then:
+This suggests that the following approximation should be good:
 \begin{align} \label{eqn:full_approx}
     \begin{split}
     \P\{ Y_i = y_i \given Y_{<i} \ \text{and}\; X=x \}
@@ -657,9 +685,11 @@ If $\ell$ is long enough that approximation~\eqref{eqn:window_approx} holds, the
     \end{split}
 \end{align}
 
-We can then simply express our likelihood as
+Since the full likelihood is a product across sites,
+we can then simply express an approximate full likelihood as
+a ratio of two composite likelihoods:
 \[
-    \like(y \mid x) = \frac{ A_{2\ell+1, \ell+1, \ell}(x,y) }{ A_{2\ell+1, \ell, \ell+1}(x,y) }.
+    \like(y \mid x) \approx \frac{ A_{2\ell+1, \ell+1, \ell}(x,y) }{ A_{2\ell+1, \ell, \ell+1}(x,y) }.
 \]
 % Define $n_\ell(x,y;a,b)$ to be the number of times pattern $a$ is seen in sequence $x$
 % matched to pattern $b$ in $y$ at a position offset by $\ell$.
@@ -676,8 +706,7 @@ We can then simply express our likelihood as
 %EM Question: how much context should we include; argument in appendix.
 %EM Would be nice to show convergence of full likelihood eventually.
 
-See Appendix~\ref{ss:approx_pf} for a more rigorous statement and proof,
-and the next section for some intuition.
+See the next section for more discussion of the approximations.
 
 %%%%%
 \subsection{Choice of overhang}
@@ -708,15 +737,28 @@ For instance, in the CpG model the window width is $w=1$
 because the process only depends on neighboring sites;
 and if the sequence has evolved for time $t$ then we expect no more than a Poisson($\lambda t$) number of changes at each site.
 If $\lambda t = 0.75$ (three-quarters of the sequence will have changed!),
-then taking $\ell = r = 3$ allows us to compute Tmer probabilities to within an error of 0.007,
+then taking $\ell = r = 3$ allows us to compute T-mer probabilities to within an error of 0.007,
 since this is the probability that a Poisson with mean 0.75 will be larger than 3.
 If $\lambda t = 0.25$ we would do even better with $\ell = r = 2$.
 
-To obtain the full likelihood, in \eqref{eqn:full_approx}, in addition to an overhang of $\ell$
-we needed the base of the T-mer to be of length $2\ell+1$.
-This is because we have also conditioned on the final sequence to the left of the focal site, $Y_{<i}$,
-and although the process at $i$ only depends on events within $\pm \ell$,
-these events may affect other sites in $Y$ going back a distance $2\ell$.
+Appendix~\ref{ss:approx_pf} makes this argument more precise;
+however, the argument for the full likelihood is slipperier,
+and we can only provide the rough argument above.
+To see one difficulty, consider the TASEP model,
+with $x_1 = y_n = 1$, and all remaining positions equal to 0.
+The full probability of this pair of sequences is very small,
+while the conditional probability of $Y_n=1$ given $X=10\cdots0$ and $Y_{<n} = 0\cdots0$
+is large since the 1 that initially began in the first position
+had to go somewhere.
+However, if we do not include the first position in the conditioning,
+this conditional probability is very different.
+% More generally, it is harder because conditioning on the final sequence $y$
+% in effect allows dependencies to propagate back in time as well as forward.
+Fortunately, such situations are rare,
+and the TASEP model provides the extreme case of dependency propagation.
+In practice, we recommend that the likelihood is computed with equation \eqref{eqn:full_approx}
+using successively larger values of $\ell$
+to check for convergence.
 
 
 %%%%%%%%
@@ -747,15 +789,15 @@ These can then be compared to a standard Normal distribution.
 \section{Computation}
 
 For inference, we need to compute the $|\calS|^{n} \times |\calS|^m$ matrix $F$ whose $(a,b)^\text{th}$ entry is $p_{n,\ell,r}(t,a,b)$,
-for various $t$.
+for various $t$ (and $m = n - \ell - r$).
 This matrix is a projection of the $|\calS|^{n} \times |\calS|^{n}$ matrix whose $(a,c)^\text{th}$ entry is
 \begin{align}
     p_{n}(a,c) = \left( e^{t G(n)} \right)_{a,c} ,
 \end{align}
 where $G(n)$ is the sparse $|\calS|^{n} \times |\calS|^{n}$ matrix defined in \eqref{eqn:G_defn}.
-The ``projection'' we need just marginalizes over long (i.e.\ length $n$) patterns $c$ that match the shorter (i.e.\ length $m$) pattern $b$
+The ``projection'' we need just marginalizes over long (i.e., length $n$) patterns $c$ that match the shorter (i.e., length $m$) pattern $b$
 as in \eqref{eq:pmMarg}:
-if we define the $n \times m$ matrix $U$ so that $U_{cb}=1$ if $c_\ell^m=b$ and $U_{cb}=0$ otherwise,
+if we define the $n \times m$ matrix $U$ so that $U_{cb}=1$ if $c_\ell^{(m)}=b$ and $U_{cb}=0$ otherwise,
 then
 \begin{align} \label{eqn:Tmer_trans}
     p_{n,\ell,r}(t,a,b) = \sum_{c \in \calS^{n}} \left( e^{t G(n)} \right)_{ac} U_{cb} ,
@@ -770,7 +812,7 @@ computing $e^{t G(5) }$ takes 13 seconds, while computing $e^{t G(5)} U$ takes o
 Increasing to $\ell=4$ and $m=1$ or $\ell=3$ and $m=2$ is still feasible, taking $e^{t G(8)} U$ in 42 and 47 seconds, respectively
 (and much longer for the whole matrix $e^{t G(8)}$).
 
-Although we haven't used such tools here, taking the derivative with respect to $t$ can also be performed using sparse matrix operations.
+% Although we haven't used such tools here, taking the derivative with respect to $t$ can also be performed using sparse matrix operations.
 
 
 \paragraph{Sparsity and updating $G$}
@@ -778,16 +820,16 @@ We can also take advantage of the sparsity of $G$ to perform efficient computati
 under many sets of parameters.
 Let's assume that the T-mers only allow single-position changes.
 First note that in this case $G(n)$ has
-$(1+m(|\calS|-1)) |\calS|^{n}$ nonzero entries, since each of the $|\calS|^{n}$ can change in $m$ places.
-This will determine how the computation scales with $m$, $n$, and $|\calS|$,
+$(1+n(|\calS|-1)) |\calS|^{n}$ nonzero entries,
+since each of the $|\calS|^{n}$ sequences can change in $n$ places.
+This will determine how the computation scales with $n$ and $|\calS|$,
 once we precompute a number of things.
-Let $g = (g_1, \ldots, g_d)$ be the nonzero entries of $G$, in some fixed ordering;
-sparse matrix representations of $G$ store only $g$ along with information about the rows and columns these are found in.
-%EM Here we are using lower j, rather than our "new" notation setup, but it doesn't seem like a big deal. This is a local note.
+Let $g = (g_1, \ldots, g_d)$ be the nonzero entries of $G(n)$, in some fixed ordering;
+sparse matrix representations of $G(n)$ store only $g$ along with information about the rows and columns these are found in.
 Each $g_i$ is a linear combination of mutation rates $\mu_j$,
 multiplied by a function ($\phi$) of a linear combination of energy coefficents $e_j$,
 say $g_i = \sum_j A_{ij} \mu_j \phi(\sum_k B_{ik} e_k)$,
-so by precomputing the matrices $A$ and $B$ we can update $G$ with new parameter values
+so by precomputing the matrices $A$ and $B$ we can update $G(n)$ with new parameter values
 using only two matrix multiplications and evaluation of $\phi()$ over a vector.
 This remains efficient to perform in interpreted languages such as R,
 since each step is carried out by lower-level compiled code (e.g., optimized linear algebra libraries).
@@ -809,7 +851,7 @@ then we can write the probability that we see (long) pattern $x$ in $X(t_X)$ jux
 using the pattern frequencies at the root.
 %EM Could we make it \rho_I to emphasize that it's a random quantity?
 Concretely: pick a random location $I$ in the sequence and let $X_{I-\ell}^{n}(0) = \rho$ be the (long) pattern seen there at the root.
-Write $\pi(z)$ for the frequency of a given pattern $z$ in $X(0)$, i.e., $\P\{\rho=z\}=\pi(z)$.
+Write $\pi(z)$ for the frequency of a given pattern $z$ seen there, i.e., $\P\{\rho=z\}=\pi(z)$.
 % Given the corresponding pattern in $X(t_X)$, the distribution of $\rho$ is proportional to
 % \[
 %     \P\{ \rho=z \mid X_{I-\ell}^{n}(t_X)=x\} \propto \pi(z) p_{n}(t,z,x) .
@@ -846,7 +888,8 @@ The general case is a modification of Felsenstein's ``peeling'' algorithm.
     \includegraphics{peeling-schematic}
     \end{center}
     \caption{
-        A depiction of the four steps in computing the likelihood of finding particular ``short'' subsequence at $Y$ and $Z$
+        A depiction of the four steps in computing the likelihood
+        of finding particular ``short'' subsequences at $Y$ and $Z$
         given the ``long'' subsequence at $X$: see text for details.
         \label{fig:peeling}
     }
@@ -899,6 +942,7 @@ The algorithm for a general tree is written out in Appendix \ref{ss:peeling_algo
 
 %%%%%%%%%%%
 \subsection{Hominid data}
+\label{hominid_section}
 
 We also applied the model to human--chimpanzee divergence data,
 restricting the comparison to putative regulatory sequences,
@@ -989,11 +1033,11 @@ such as AID \citep{senavirathne2015activationinduced} or error-prone polymerases
 %%%%%%%%%%%
 \subsection{Stepwise model selection}
 
-In exploratory application to real data, how does one decide when to stop adading mutational motifs?
+In exploratory application to real data, how does one decide when to stop adding mutational motifs?
 Perhaps the simplest method conceptually is to
 (a) fit a simple model,
 (b) choose new motifs to add based on statistically significant residuals,
-(c) repeat until no residuals are statisically significant.
+(c) repeat until no residuals are statistically significant.
 To test this method,
 we simulated a single sequence of $10^6$ nucleotides
 for one unit of time
@@ -1091,6 +1135,7 @@ but none so large as those seen in (3,1,1) T-mer residuals, shown here:
         \end{tabular}
     \end{center}
 \ldots which again clearly call for adding the mutation tuples $TCC \to TTC$ and $AGG \to AAG$.
+These were indeed the motifs used when simulating the data.
 After adding these in,
 % and initializing all parameters to 0.1
 no further (3,1,1) T-mer residuals achieved
@@ -1157,7 +1202,7 @@ and half-Gaussian priors with mean 0 and scale 3 on both $\beta$ and $\gamma$,
 counted $(5,3,1)$ T-mers,
 and used the mcmc package \citep{geyer2017mcmc} to run a random walk sampler for 10,000 steps
 (judged sufficient by examination of diagnostic plots).
-We repeated this procedure separately on 60 independently simulated sequences,
+We repeated this procedure separately on 61 independently simulated sequences,
 and show the resulting credible intervals in Figure~\ref{fig:ising_coverage}.
 
 Posterior medians were within half a percent of the truth for $+ \to -$ and $- \to +$ (corresponding to $\lambda$)
@@ -1204,7 +1249,8 @@ but $(6,2,2)$ T-mers were long enough with sufficient overhang to produce well-c
 %%%%%%%%%%%
 \subsection{Hominid mutation spectrum}
 
-We also applied the method to changes between the human and chimpanzee reference sequences.
+We also applied the method to changes between the human and chimpanzee reference sequences,
+using the model described above.
 
 
 \begin{figure}
@@ -1213,7 +1259,7 @@ We also applied the method to changes between the human and chimpanzee reference
     \end{center}
     \caption{
         Estimated average mutation rates
-        for the motifs of Table \ref{tab:hominid_model}
+        for the motifs in the ``Hominid data'' section
         since the common ancestor of humans and chimpanzee.
         Rates are scaled so that the mean time to common ancestor is 0.001 units --
         if we take this to be 6 million years \citep{scally2012insights,langergraber2012generation}
