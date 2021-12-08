@@ -756,7 +756,7 @@ this conditional probability is very different.
 % in effect allows dependencies to propagate back in time as well as forward.
 Fortunately, such situations are rare,
 and the TASEP model provides the extreme case of dependency propagation.
-In practice, we recommend that the likelihood is computed with equation \eqref{eqn:full_approx}
+In practice, we recommend computing the likelihood with equation \eqref{eqn:full_approx}
 using successively larger values of $\ell$
 to check for convergence.
 
@@ -783,7 +783,6 @@ so, we compute normalized residuals as
 which is equivalent to averaging the $z$-scores of the $n$ possible tables of nonoverlapping counts.
 These can then be compared to a standard Normal distribution.
 
-%EM This is stepwise model addition.
 
 %%%%%%%%%%%
 \section{Computation}
@@ -839,8 +838,6 @@ since each step is carried out by lower-level compiled code (e.g., optimized lin
 \section{Phylogenetic inference}
 
 In phylogenetic applications, rather than ``before'' and ``after'' observations,
-%EM Describe the root sequence, or a prob distribution on it?
-%EM We want to be able to talk about the probability of seeing a certain n-mer... is that obvious what that random process is on the whole-sequence level?
 we get two (or more) observations evolved from a common root.
 In the simplest case of two tips we have two processes $X$ and $Y$,
 with identical starting states $X(0)=Y(0)$,
@@ -865,7 +862,6 @@ given the frequencies at the root, as described in greater generality below.
 These calculations can be done using the same sparse matrix methods as above.
 For instance, to compute
 \[
-    %EM This is super clever!
     \sum_{z \in \calS^{n}} \pi(z) \, p_{n,\ell,r}(t_X,z,x) \, p_{n,\ell,r}(t_Y,z,y)
     = \sum_{z \in \calS^{n}} \left( e^{t_X G(n)} \right)_{zx} \pi(z) \sum_{w \in \calS^{n}} \left( e^{t_Y G(n)} \right)_{zw} U_{wy} ,
 \]
