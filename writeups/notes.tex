@@ -1,0 +1,125 @@
+\documentclass{article}
+\usepackage{fullpage}
+\usepackage{amsmath,amssymb}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\usepackage{natbib}
+\usepackage[hidelinks]{hyperref}
+\usepackage{bm}
+\usepackage{todonotes}
+
+\newcommand{\E}{\mathbb{E}}
+\renewcommand{\P}{\mathbb{P}}
+\newcommand{\calS}{\mathcal{S}}  % set of states
+\newcommand{\calT}{\mathcal{T}}  % set of transition triples
+\newcommand{\calP}{\mathcal{P}}  % set of selection pairs
+\newcommand{\calM}{\mathcal{M}}  % set of potential mutations
+\newcommand{\nA}{\mbox{A}}  % nucleotides:
+\newcommand{\nC}{\mbox{C}}
+\newcommand{\nG}{\mbox{G}}
+\newcommand{\nT}{\mbox{T}}
+\newcommand{\nS}{\mbox{S}} % C or G
+\newcommand{\nW}{\mbox{W}} % A or T
+\newcommand{\nR}{\mbox{R}} % purine, A or G
+\newcommand{\nY}{\mbox{Y}} % pyrimidine, C or T
+\newcommand{\join}{\oplus}  % concatenation
+\newcommand{\st}{\colon}  % such that
+\newcommand{\var}{\mathop{\mbox{var}}}
+\newcommand{\cov}{\mathop{\mbox{cov}}}
+\newcommand{\given}{\;\mid\;}
+\newcommand{\like}{\mathcal L}
+\newcommand{\loglike}{\ell}
+\newcommand{\alike}{\widetilde{\like}}
+\newcommand{\aloglike}{\widetilde{\loglike}}
+
+\newcommand{\APOBEC}{\text{\tiny APOBEC}}
+\newcommand{\AID}{\text{\tiny AID}}
+
+\begin{document}
+
+Here are some bits removed from the main text that might provide useful context.
+
+%%%%%%%%
+\subsection{Edge effects and cyclicization}
+
+The choice to treat long sequences as cyclical is generally of little importance.
+However, we have defined in \eqref{eqn:G_defn} the basic building block of our approximation, $G(m)$,
+to be the transition matrix \emph{for a circular sequence} of length $m$, where $m$ may be short.
+\peter{no we haven't}
+This seems strange -- but, what else would we do at the edges?
+We want to use $G(\ell+m+r)$ to compute the chance that a given $(\ell+m+r)$-sequence ends up with another given $m$-sequence in the middle;
+and if $\ell$ and $r$ are big enough relative to $t$, this will be a good approximation regardless of what we do at the edges.
+One answer would be to not allow patterns hanging off of either end to match,
+resulting in a slight underestimate of the chance of change.
+A better approximation would be to use the marginal frequencies in some way to average over surrounding sequence
+-- but, this requires marginal frequencies to be known, and these are not stationary.
+However, the leftmost site in a randomly chosen window is a sample from the marginal distribution,
+and if sites separated by distance $\ell+m+r$ are sufficiently uncorrelated,
+wrapping the sequence around is a good approximation to averaging over marginal frequencies in the surrounding sequence.
+It is easy to imagine situations where this would not be the best solution --
+but again, if $\ell$ and $r$ are large enough, it won't matter much.
+
+%%%%
+\subsection{The root distribution}
+
+We clearly don't want to add an extra parameter $\pi(z)$ for all $z \in \calS^{m+2\ell}$.
+If nothing else, it would make the inference depend on $m$ and $\ell$, which we'd like to avoid.
+One approach would be to put a Dirichlet distribution on $\pi(z)$.
+This has the nice property that you can choose priors that are consistent across different values of $m$ and $\ell$.
+We'd have to still MCMC around in the space of $\pi(z)$, so they'd be nuisance parameters from that point of view.
+Also, making the frequencies at the root random introduces correlations between counts, which we want to avoid.
+An alternative is to specify $\pi$ through lower-dimensional statistics,
+for instance to model the root state as a sample from a Markov random field
+with parameters for the marginal frequencies of each state, and pairwise (or higher) correlations between them.
+
+A Markov random field with interactions between sites no more than distance two away
+is determined by the energy function $\phi(a,b,c)$ which gives the ``energy'' of the configuration $abc$ for each $a,b,c \in \calS$.
+We use this to define the distribution on root patterns $\pi$ by
+\begin{align}  \label{eqn:root_mrf}
+    \pi(z) = \frac{1}{Z} \exp\left( - \sum_{i=1}^{|z|} \phi(z_{i-1},z_i,z_{i+1}) \right),
+\end{align}
+i.e., the exponential of the total energy of each three adjacent sites,
+where $Z$ is the normalizing constant.
+Note that it is often difficult to compute $Z$ in applications of Markov random fields,
+but here we are working with relatively short sequences,
+so we just compute \eqref{eqn:root_mrf} for all possible $z$, and divide by the sum.
+(However, for this same reason this is not equivalent to saying that $X(0)$ is a sample from the Markov random field
+and finding the distribution of patterns within this.)
+
+
+%%%%%
+\subsubsection{Mixing}
+
+There can be significant confounding of the frequencies at the root with the other parameters,
+which results in poor mixing.
+(See CpG results, below.)
+To see why this is, consider the following back-of-the-envelope calculation.
+Take $x \neq y$ to be single bases (so, set $\ell=0$ and $w=1$),
+so that $N(x,y)$ gives the number of times an $x$ and a $y$ are homologous.
+Let $q(x,y)$ be the instantaneous rate that $x \to y$ (averaged somehow over context?),
+so that $N(x,y)$ should be, roughly,
+\begin{align*}
+  \sum_z \pi(z) q(z,x) q(z,y) &\approx t \pi(x) (1+q(x,x)) q(x,y) + t \pi(y) q(y,x) (1+q(y,y)) ,
+\end{align*}
+where as usual $q(x,x) = (-1) \sum_{z \neq x} q(x,z)$ is (minus) the total jump rate out of $x$.
+
+So, when we propose a change to $\pi$ we might want to also adjust the rates accordingly to keep this more-or-less constant:
+if we chnage $\pi(x) \mapsto \pi(x) + \epsilon_x$, we want $\delta_{xy}$ to satisfy
+\begin{align*}
+  \sum_z \pi(z) q(z,x) q(z,y) = \sum_z (\pi(z) + \epsilon_z) ( q(z,x) + \delta_{zx} ) ( q(z,y) + \delta_{zy} ) ,
+\end{align*}
+or, to first order in $\delta$,
+\begin{align*}
+  0 &\approx \sum_z \epsilon_z q(z,x) q(z,y) + \sum_z \pi(z) \delta_{zx} q(z,y) + \sum_z \pi(z) q(z,x) \delta_{zy} \\
+   &\approx \sum_z \epsilon_z q(z,x) q(z,y) + \sum_z (\pi(z)+\epsilon_z) \delta_{zx} q(z,y) + \sum_z (\pi(z)+\epsilon_z) q(z,x) \delta_{zy} \\
+   &\approx \epsilon_x (1+q(x,x)) q(x,y) + \epsilon_y q(y,x) (1+q(y,y)) + (\pi(y)+\epsilon_y) \delta_{yx} (1+q(y,y)) + (\pi(x)+\epsilon_x) (1+q(x,x)) \delta_{xy} \\
+   &= \left( \epsilon_x q(x,y) + (\pi(x)+\epsilon_x) \delta_{xy} \right)(1+q(x,x)) + \left( \epsilon_y q(y,x) + (\pi(y)+\epsilon_y) \delta_{yx} \right)(1+q(y,y))
+\end{align*}
+One solution to this is to let $\delta_{xy} = - \epsilon_x q(x,y) / \pi(x)$.
+
+Suppose each change is a single-base change, so that changes $\delta \mu_i$ in $\mu$ contribute to $q$ by
+$\delta_{xy} = \sum_{i: x \to y} \delta \mu_i$.
+Given $\delta_{xy}$, this gives a linear equation for $\delta \mu_i$ that may or may not be solvable,
+but certainly is if we have all the single-base transitions as parameters.
+
+\end{document}
