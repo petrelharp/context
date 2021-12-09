@@ -7,6 +7,8 @@
 \usepackage[hidelinks]{hyperref}
 \usepackage{bm}
 \usepackage{todonotes}
+\usepackage{authblk}
+\renewcommand\Affilfont{\itshape\small}
 
 \newcommand{\peter}[1]{\todo[color=green!40]{Peter: #1}}
 \newcommand{\erick}[1]{\todo[color=purple!40]{Erick: #1}}
@@ -51,29 +53,34 @@
 
 % TODO after submission: think about the BCR parameter regime.
 
+% TODO include github information
 
-% Model-based inference neighborhood dependence
-% Nearby sites affecting the likelihood
-% Rigorous inference with neighborhood dependency
-% Statistical inference with local/neighborhood interdependency
-% It depends on the context:
-%
-
+%EM I'm going to suggest "dependence propagation" rather than information
 \title{Inference using context-dependent models of mutation via bounds on information propagation}
-\author{}
+\author[1]{Peter L Ralph}
+\author[2,3,4,5]{Frederick A Matsen IV}
+\author[1,*]{Peter L Ralph}
+
+\affil[1]{Institute of Ecology \& Evolution, Department of Biology, University of Oregon}
+\affil[2]{Computational Biology Program, Fred Hutchinson Cancer Research Center, United States}
+\affil[3]{Department of Genome Sciences, University of Washington}
+\affil[4]{Department of Statistics, University of Washington}
+\affil[5]{Howard Hughes Medical Institute}
+\affil[*]{Corresponding author: plr@uoregon.edu}
+
 
 \maketitle
 
 \begin{abstract}
     Although the rates at which positions in the genome mutate
-    are known to depend not only on the nucleotide to be mutated
+    are known to depend not only on the nucleotide to be mutated,
     but also on neighboring nucleotides,
     it remains challenging to do phylogenetic inference
     using models of context-dependent mutation.
     In these models,
     the effects of one mutation may in principle propagate
     to faraway locations,
-    making it difficult to compute exactly likelihoods.
+    making it difficult to compute exact likelihoods.
     This paper shows how to use bounds on the propagation of dependency
     to compute likelihoods of mutation of a given segment of genome
     by marginalizing over sufficiently long flanking sequence.
@@ -213,8 +220,10 @@ computational techniques using sparse matrices.
         \includegraphics{overview}
     \end{center}
     \caption{
-        An overview of the method for a neighbor-dependent model.
-        The red trapezoidal region represents the ``range of influence'',
+        An overview of the method for a neighbor-dependent model, showing an
+        initial sequence on top, a collection of mutations progressing through
+        time, and a final sequence.
+        The pink trapezoidal region represents the ``range of influence'',
         i.e., possible locations and times at which a mutations is likely
         to affect the mutation outcome at
         the sites of interest (the three sites in the center of the final sequence).
@@ -223,8 +232,8 @@ computational techniques using sparse matrices.
         The central, smaller segment of the T is called the \emph{base} of the T-mer,
         and the key building block computes the transition probability
         for this subsequence
-        conditioned on the ancestral state at the \emph{overhang}
-        of the top of the T.
+        conditioned on the ancestral state at the additional \emph{overhang}
+        sites of the top of the T.
         \label{fig:overview}
     }
 \end{figure}
@@ -600,14 +609,10 @@ The key insight we use is that by including neighboring sequence context in the 
 we can compute \emph{something} correctly,
 and that will be sufficient to compute the full likelihood,
 at least arbitrarily.
-%EM do we really want x and y here, which I've been thinking of as being the full sequence?
-%EM Note we'll need to change a and b below.
-%PR I think this is okay? x and y are not exactly the same here, but are still sequences?
-%PR To me it seems less confusing than introducing another variable?
 To do this, let $p_{n,\ell,r}(x,y)$ for $\ell + r < n$ denote
 the probability that an initial subsequence $x$ of length $n$, after time $t$,
 is found to match a smaller subsequence $y$ of length $n-\ell-r$, offset by $\ell$ sites
-(see Figure \ref{Tmer-dependency}).
+(see Figure \ref{fig:Tmers}).
 This central, smaller subsequence is called the ``base'' of the T-mer.
 We refer to such patterns as \emph{T-mers}, as depicted in Figure~\ref{fig:Tmers}.
 We emphasize that the overhang of the T-mers is typically bigger than the
@@ -731,7 +736,7 @@ and refer to $w$ as the ``window width''.
 Then, the mutation process at any particular site
 depends on the initial sequence at that site and within distance $w$ on either side\ldots
 \emph{and} the outcomes of any mutations that have occurred within that window
-(see Figure \ref{Tmer-dependency}).
+(see Figure \ref{fig:Tmers}).
 
 Therefore, the sequence at a particular site may directly affect the process at the neighboring $w$ sites on either side.
 If another change happens, say, at the end of this window,
@@ -748,6 +753,7 @@ Concretely, sites further away than $kw$ only matter if there is a chain of at l
 For instance, in the CpG model the window width is $w=1$
 because the process only depends on neighboring sites;
 and if the sequence has evolved for time $t$ then we expect no more than a Poisson($\lambda t$) number of changes at each site.
+%EM suggest "every site will have 75\% chance of changing", which is a little different than what you say because of multiple hits, right?
 If $\lambda t = 0.75$ (three-quarters of the sequence will have changed!),
 then taking $\ell = r = 3$ allows us to compute T-mer probabilities to within an error of 0.007,
 since this is the probability that a Poisson with mean 0.75 will be larger than 3.
@@ -872,6 +878,7 @@ Write $\pi(z)$ for the frequency of a given pattern $z$ seen there, i.e., $\P\{\
 % \]
 The probability that we see $x$ and $y$ at the random location $I$ is
 \begin{align} \label{eqn:phylo_likelihood}
+    %EM I think the superscript of Y_I should be (m)
     \P\{X_{I-\ell}^{(n)}(t_X)=x \text{ and } Y_I^{(\ell)}(t_Y)=y \}
     =
     \sum_{z \in \calS^{n}} \pi(z) \, p_{n,0,0}(t_X,z,x) \, p_{n,\ell,r}(t_Y,z,y) .
@@ -894,6 +901,8 @@ we can first compute $\sum_w \left( e^{t_Y G(n)} \right)_{zw} U_{wy}$ as above,
 multiply rows by $\pi(z)$, and then matrix multiply by the transpose of $e^{t_X G(n)}$.
 
 We might approximate the full likelihood as follows,
+%EM In the previous full likelihood section, we discuss choosing l, r, and n, and use those in the equations.
+%EM This makes the equations look a little different. Do we want to just clarify that we are writing the equations for general l, r, n, and that we refer the reader to the previous choice to choose these quantities?
 assuming for the sake of notational simplicity that we have a few positions
 of $X$ observed before the start and after then end of the sequence
 (so that, e.g., we can refer to $x_{n+1}, \ldots, x_{n+r}$):
@@ -919,15 +928,13 @@ We expect this to be a good approximation to the true likelihood
 when the same conditions above are met, taking $t$ to the be the largest distance
 between two taxa in the tree.
 
-%EM I think this should be pruning, not peeling.
-%PR I'll take your word for it! Wikipedia suggests either would do?
-%EM Want to check the modifications made above before continuing those to here.
 \subsection{Phylogenetic pruning}
 
 The general case is a modification of Felsenstein's ``pruning'' algorithm.
 
 \begin{figure}
     \begin{center}
+    %EM We need to put these superscripts in parens, no? Also, should we use n instead of x+2l?
     \includegraphics{pruning-schematic}
     \end{center}
     \caption{
@@ -939,7 +946,7 @@ The general case is a modification of Felsenstein's ``pruning'' algorithm.
 \end{figure}
 
 To compute the likelihood on a more complicated tree, consider the following,
-with the three-taxon tree of figure \ref{fig:pruning} as an example,
+with the three-taxon tree of Figure~\ref{fig:pruning} as an example,
 where we are counting occurrences of (long) $n$-tuples in taxon $X$,
 and (shorter) $m$-tuples in taxa $Y$ and $Z$.
 The likelihood in this example is found by summing over the root state (the summation over $u$)
@@ -949,6 +956,7 @@ and the interior node ($v$):
     & \P\{X_{I-\ell}^{n}=x \text{ and } Y_I^\ell=y \text{ and } Z_I^\ell=z \} \\
     &\qquad
       =
+      %EM I think this should be n, ell, r, not m, ell, r
       \sum_{u \in \calS^{n}} \pi(u) p_{m,\ell,r}(t_C,u,z)
       \sum_{v \in \calS^{n}} p_{n,0,0}(t_{AB},u,v) p_{n,0,0}(t_{A},v,x) p_{m,\ell,r}(t_B,v,y)
   \end{split}
@@ -969,7 +977,7 @@ Then $M_4$ gives all the likelihoods.
 This is depicted in the figure, writing $\left(e^{tG}\right)_{ab}$ for the matrix $p_{n,0,0}(t,a,b)$,
 and $U$ for the projection matrix that gives $p_{m,\ell,r}(t,a,b) = \left( e^{tG} U\right)_{ab}$.
 
-
+%EM I'm not really following this section. If we are only calculating likelihood for places where y and z are the same, why is phylogenetic inference useful?
 In total there are $|\calS|^{3m+2\ell}$ possible data combinations.
 However, we can reduce dimensionality by replacing the last step with
 \begin{enumerate}
@@ -1012,10 +1020,11 @@ All models are strand-symmetric.
         and other transversions ($\mu_{r}$):
           \begin{center}
             \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }c|c@{\quad$\to$\quad}c@{\quad at rate\quad }c|c@{\quad$\to$\quad}c@{\quad at rate\quad }c}
-                \nT  &   \nA   &  $\mu_{AT}$ & \nA  &   \nG   &  $\mu_{r}$ & \nA  &   \nG   &  $\mu_{v}$ \\
-                \nA  &   \nT   &  $\mu_{AT}$ & \nG  &   \nA   &  $\mu_{r}$ & \nG  &   \nA   &  $\mu_{v}$ \\
-                \nC  &   \nG   &  $\mu_{CG}$ & \nC  &   \nT   &  $\mu_{r}$ & \nT  &   \nC   &  $\mu_{v}$ \\
-                \nG  &   \nC   &  $\mu_{CG}$ & \nT  &   \nC   &  $\mu_{r}$ & \nC  &   \nT   &  $\mu_{v}$ \\
+                %EM I think there were some typos in this table that I fixed.
+                \nT  &   \nA   &  $\mu_{AT}$ & \nA  &   \nC   &  $\mu_{r}$ & \nA  &   \nG   &  $\mu_{v}$ \\
+                \nA  &   \nT   &  $\mu_{AT}$ & \nC  &   \nA   &  $\mu_{r}$ & \nG  &   \nA   &  $\mu_{v}$ \\
+                \nC  &   \nG   &  $\mu_{CG}$ & \nG  &   \nT   &  $\mu_{r}$ & \nT  &   \nC   &  $\mu_{v}$ \\
+                \nG  &   \nC   &  $\mu_{CG}$ & \nT  &   \nG   &  $\mu_{r}$ & \nC  &   \nT   &  $\mu_{v}$ \\
             \end{tabular}
           \end{center}
 
@@ -1155,6 +1164,7 @@ The situation clearly calls for addition of the CpG mutation motif.
 After adding these patterns into the model and re-fitting,
 % starting at the parameters inferred from the first run and a CpG rate of 0.0,
 some length 2 residuals had statistically significant residuals,
+%EM In my compilation there is a float that interrupts this flow.
 but none so large as those seen in (3,1,1) T-mer residuals, shown here:
     \begin{center}
         \begin{tabular}{ccrrrr}
@@ -1222,7 +1232,7 @@ parameter estimates differ from the truth by less than 3\% (mostly within 1\%).
            \hline
         \end{tabular}
   \end{center}
-  \caption{ Results from iterative fitting to a $10^6$bp sequence
+  \caption{ Results from iterative fitting to a $10^6$ bp sequence
     evolved to have 28.5\% sequence divergence
     with the above mutational motifs. The transitions $CG \to TG$ and $CG \to CA$
     were constrained to be equal (DNA strand symmetry),
@@ -1311,8 +1321,8 @@ using the model described above.
         if we take this to be 6 million years \citep{scally2012insights,langergraber2012generation}
         then rates are in units of mutations per 6,000 years.
         Shown are posterior medians (points) and 95\% credible intervals (lines, which are quite small in all cases).
-        Figure \ref{sfig:biochem_results_zoom} shows the smaller rates in more detail,
-        and figure \ref{sfig:biochem_results_relative} shows the rates between categories relative to each other.
+        Figure~\ref{sfig:biochem_results_zoom} shows the smaller rates in more detail,
+        and Figure~\ref{sfig:biochem_results_relative} shows the rates between categories relative to each other.
         \label{fig:biochem_results}}
 \end{figure}
 
@@ -1338,7 +1348,7 @@ and models of DNA sequence evolution.
 The methods described here provide a way to efficiently calculate full likelihoods,
 which in many circumstances provide the optimal basis for inference \citep{neyman1933problem},
 fast enough to allow Bayesian inference from Monte Carlo sampling.
-The method is fast thanks to its dependence only only local neighborhoods
+The method is fast thanks to its dependence on only local neighborhoods
 (so the time does not scale with sequence length once T-mer abundances are counted)
 and its reliance on sparse matrices whose structure can be precomputed and cached.
 It avoids approximations made by previous methods thanks to the use of T-mers
@@ -1425,10 +1435,12 @@ A promising alternative would be to use the distinct signatures obtained by dime
 The initial impetus for this project came from Matt Dean;
 along the way substantial encouragement and useful suggestions were provided by
 Simon Tavar\'e, Rasmus Nielsen, Graham Coop, Yaniv Brandvain, and Sergey Nuzhdin.
-Many thanks are also due Jessica Crisci for curating the human-chimp data.
+Many thanks are also due to Jessica Crisci for curating the human-chimp data.
 The majority of this work was done while PR was at USC.
 
-%EM TODO grant acknowledgements
+FAM's work supported by NIH grants R01 AI146028 and U01 AI150747.
+Dr.\ Matsen is an Investigator of the Howard Hughes Medical Institute.
+
 
 \bibliography{context-dependence}
 
