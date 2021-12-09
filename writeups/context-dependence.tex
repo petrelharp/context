@@ -753,8 +753,7 @@ Concretely, sites further away than $kw$ only matter if there is a chain of at l
 For instance, in the CpG model the window width is $w=1$
 because the process only depends on neighboring sites;
 and if the sequence has evolved for time $t$ then we expect no more than a Poisson($\lambda t$) number of changes at each site.
-%EM suggest "every site will have 75\% chance of changing", which is a little different than what you say because of multiple hits, right?
-If $\lambda t = 0.75$ (three-quarters of the sequence will have changed!),
+If $\lambda t = 0.75$ ($1-e^{-3/4}=52\%$ of the sequence will have changed!),
 then taking $\ell = r = 3$ allows us to compute T-mer probabilities to within an error of 0.007,
 since this is the probability that a Poisson with mean 0.75 will be larger than 3.
 If $\lambda t = 0.25$ we would do even better with $\ell = r = 2$.
@@ -878,8 +877,7 @@ Write $\pi(z)$ for the frequency of a given pattern $z$ seen there, i.e., $\P\{\
 % \]
 The probability that we see $x$ and $y$ at the random location $I$ is
 \begin{align} \label{eqn:phylo_likelihood}
-    %EM I think the superscript of Y_I should be (m)
-    \P\{X_{I-\ell}^{(n)}(t_X)=x \text{ and } Y_I^{(\ell)}(t_Y)=y \}
+    \P\{X_{I-\ell}^{(n)}(t_X)=x \text{ and } Y_I^{(m)}(t_Y)=y \}
     =
     \sum_{z \in \calS^{n}} \pi(z) \, p_{n,0,0}(t_X,z,x) \, p_{n,\ell,r}(t_Y,z,y) .
 \end{align}
@@ -901,11 +899,10 @@ we can first compute $\sum_w \left( e^{t_Y G(n)} \right)_{zw} U_{wy}$ as above,
 multiply rows by $\pi(z)$, and then matrix multiply by the transpose of $e^{t_X G(n)}$.
 
 We might approximate the full likelihood as follows,
-%EM In the previous full likelihood section, we discuss choosing l, r, and n, and use those in the equations.
-%EM This makes the equations look a little different. Do we want to just clarify that we are writing the equations for general l, r, n, and that we refer the reader to the previous choice to choose these quantities?
-assuming for the sake of notational simplicity that we have a few positions
+after choosing $n$, $\ell$, and $r$ appropriately (see above).
+For the sake of notational simplicity, assume that we have a few positions
 of $X$ observed before the start and after then end of the sequence
-(so that, e.g., we can refer to $x_{n+1}, \ldots, x_{n+r}$):
+(so that, e.g., we can refer to $x_{n+1}, \ldots, x_{n+r}$).
 \begin{align*}
     \like(x, y)
     &=
@@ -934,7 +931,6 @@ The general case is a modification of Felsenstein's ``pruning'' algorithm.
 
 \begin{figure}
     \begin{center}
-    %EM We need to put these superscripts in parens, no? Also, should we use n instead of x+2l?
     \includegraphics{pruning-schematic}
     \end{center}
     \caption{
@@ -956,9 +952,8 @@ and the interior node ($v$):
     & \P\{X_{I-\ell}^{n}=x \text{ and } Y_I^\ell=y \text{ and } Z_I^\ell=z \} \\
     &\qquad
       =
-      %EM I think this should be n, ell, r, not m, ell, r
-      \sum_{u \in \calS^{n}} \pi(u) p_{m,\ell,r}(t_C,u,z)
-      \sum_{v \in \calS^{n}} p_{n,0,0}(t_{AB},u,v) p_{n,0,0}(t_{A},v,x) p_{m,\ell,r}(t_B,v,y)
+      \sum_{u \in \calS^{n}} \pi(u) p_{n,\ell,r}(t_C,u,z)
+      \sum_{v \in \calS^{n}} p_{n,0,0}(t_{AB},u,v) p_{n,0,0}(t_{A},v,x) p_{n,\ell,r}(t_B,v,y)
   \end{split}
 \end{align}
 The steps for computing this are then:
@@ -977,17 +972,17 @@ Then $M_4$ gives all the likelihoods.
 This is depicted in the figure, writing $\left(e^{tG}\right)_{ab}$ for the matrix $p_{n,0,0}(t,a,b)$,
 and $U$ for the projection matrix that gives $p_{m,\ell,r}(t,a,b) = \left( e^{tG} U\right)_{ab}$.
 
-%EM I'm not really following this section. If we are only calculating likelihood for places where y and z are the same, why is phylogenetic inference useful?
 In total there are $|\calS|^{3m+2\ell}$ possible data combinations.
-However, we can reduce dimensionality by replacing the last step with
+However, we can reduce dimensionality by only computing probabilities
+for certain (more common) patterns: for instance,
+we'd compute the likelihood for situations where $y$ and $z$ agree (but may differ from $x$
+by replacing step (4) with:
 \begin{enumerate}
 
   \item[4'.] Compute $M_4(x,w) = \sum_{v \in \calS^{n}} p_{n,0,0}(t_{A},v,x) M_3(v,w) M_4(v,w)$ (stored as a $|\calS|^{n} \times |\calS|^{m}$ matrix).
 
 \end{enumerate}
-i.e., only computing the likelihood for cases with $y=z=w$.
-On a three-taxon tree it is not clear that this is desirable, since missing out on double transitions
-might be a significant loss of information,
+On a three-taxon tree it is not clear that this is desirable,
 but on larger trees it seems likely that we'd want to restrict to combinations with most sites agreeing across the tree.
 (Note, however, that one should not first look at the data, observe which combinations $(y,z)$ were most common, and then restrict to only those!)
 
@@ -1020,7 +1015,6 @@ All models are strand-symmetric.
         and other transversions ($\mu_{r}$):
           \begin{center}
             \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }c|c@{\quad$\to$\quad}c@{\quad at rate\quad }c|c@{\quad$\to$\quad}c@{\quad at rate\quad }c}
-                %EM I think there were some typos in this table that I fixed.
                 \nT  &   \nA   &  $\mu_{AT}$ & \nA  &   \nC   &  $\mu_{r}$ & \nA  &   \nG   &  $\mu_{v}$ \\
                 \nA  &   \nT   &  $\mu_{AT}$ & \nC  &   \nA   &  $\mu_{r}$ & \nG  &   \nA   &  $\mu_{v}$ \\
                 \nC  &   \nG   &  $\mu_{CG}$ & \nG  &   \nT   &  $\mu_{r}$ & \nT  &   \nC   &  $\mu_{v}$ \\
@@ -1097,7 +1091,7 @@ To test this method,
 we simulated a single sequence of $10^6$ nucleotides
 for one unit of time
 under the model given in Table \ref{tab:cpg_results},
-obtained by embellishing the basic CpG hypermutability
+obtained by embellishing the basic CpG hypermutability model
 with the longer mutational motif identified by \citet{harris2015evidence}.
 %     \begin{center}
 %       \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }cc}
@@ -1114,7 +1108,45 @@ The resulting sequences differed at 28.5\% of the sites.
 We then fit an unconstrained model of single-nucleotide substitution using (5,1,1) T-mers
 (three sites at the base with an overhang of one on each side)
 using a constrained quasi-Newton method (``optim(.., method='L-BFGS-B')'' in R).
-The top and bottom of the table of (2,1,0) and (2,0,1) T-mer residuals of this model were as follows:
+The top and bottom of the table of (2,1,0) and (2,0,1) T-mer residuals of this model were
+as shown in Table~\ref{tab:resid1}.
+
+\begin{table}
+  \begin{center}
+        \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }ll}
+          \hline
+            x & y & truth & MLE \\
+          \hline
+          \nA  &   \nT           & 0.10 & 0.0996 \\
+          \nT  &   \nA           & 0.10 & 0.0982 \\
+          \nC  &   \nG           & 0.15 & 0.1505 \\
+          \nG  &   \nC           & 0.15 & 0.1497 \\
+          \nA  &   \nC           & 0.08 & 0.0784 \\
+          \nT  &   \nG           & 0.08 & 0.0792 \\
+          \nA  &   \nG           & 0.08 & 0.0798 \\
+          \nT  &   \nC           & 0.08 & 0.0795 \\
+          \nC  &   \nA           & 0.12 & 0.1202 \\
+          \nG  &   \nT           & 0.12 & 0.1196 \\
+          \nC  &   \nT           & 0.12 & 0.1198 \\
+          \nG  &   \nA           & 0.12 & 0.1193 \\
+       \nC\nG  &  \nT\nG         & 0.40 & 0.3978 \\
+       \nC\nG  &  \nC\nA         & 0.40 & 0.3978 \\
+    \nT\nC\nC  &  \nT\nT\nC      & 0.10 & 0.1033 \\
+    \nA\nG\nG  &  \nA\nA\nG      & 0.10 & 0.1033 \\
+           \hline
+        \end{tabular}
+  \end{center}
+  \caption{
+      True parameter values, and estimates obtained
+      from iterative fitting to a $10^6$ bp sequence
+    evolved to have 28.5\% sequence divergence
+    with the above mutational motifs. The transitions $CG \to TG$ and $CG \to CA$
+    were constrained during fitting to be equal (DNA strand symmetry),
+    as were the transitions $TCC \to TTC$ and $AGG \to AAG$.
+    \label{tab:cpg_results} }
+\end{table}
+
+\begin{table}
 % cpg-plus-epsilon/32140/base-model-fit-5-3-l1-resids.2.1.l0.tsv
 % cpg-plus-epsilon/32140/base-model-fit-5-3-l1-resids.2.1.l1.tsv
     \begin{center}
@@ -1160,12 +1192,23 @@ The top and bottom of the table of (2,1,0) and (2,0,1) T-mer residuals of this m
                 \hline
         \end{tabular}
     \end{center}
+    \caption{
+        Largest residuals of shape (2,1,0) and (2,0,1) after fitting a model with only ``basic''
+        (single-nucleotide) mutations to sequence simulated under the model
+        of Table~\ref{tab:cpg_results}, that also includes CpG hypermutability
+        as well as $TCC \to TTC$ and $AGG \to AAG$ mutations.
+        Note that in the table, the underscore means ``any nucleotide''.
+        \label{tab:resid1}
+    }
+\end{table}
+
 The situation clearly calls for addition of the CpG mutation motif.
 After adding these patterns into the model and re-fitting,
 % starting at the parameters inferred from the first run and a CpG rate of 0.0,
 some length 2 residuals had statistically significant residuals,
-%EM In my compilation there is a float that interrupts this flow.
-but none so large as those seen in (3,1,1) T-mer residuals, shown here:
+but none so large as those seen in (3,1,1) T-mer residuals, shown in Table~\ref{tab:resid2}.
+
+\begin{table}
     \begin{center}
         \begin{tabular}{ccrrrr}
             \hline
@@ -1190,6 +1233,15 @@ but none so large as those seen in (3,1,1) T-mer residuals, shown here:
                 \hline
         \end{tabular}
     \end{center}
+    \caption{
+        Largest residuals of shape (3,1,1) after fitting a model with ``basic''
+        (single-nucleotide) and CpG mutations to sequence simulated under the mdoel
+        of Table~\ref{tab:cpg_results}, that also includes $TCC \to TTC$ and $AGG \to AAG$ mutations.
+        Note that in the table, the underscore means ``any nucleotide''.
+        \label{tab:resid2}
+    }
+\end{table}
+
 \ldots which again clearly call for adding the mutation tuples $TCC \to TTC$ and $AGG \to AAG$.
 These were indeed the motifs used when simulating the data.
 After adding these in,
@@ -1206,39 +1258,6 @@ parameter estimates differ from the truth by less than 3\% (mostly within 1\%).
 %     .Names = c("sim", "fit"),
 %     row.names = c("A->T", "T->A", "C->G", "G->C", "A->C", "T->G", "A->G", "T->C", "C->A", "G->T", "C->T", "G->A", "CG->TG|CG->CA", "TCC->TTC|AGG->AAG"),
 %     class = "data.frame")
-
-\begin{table}
-  \begin{center}
-        \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }ll}
-          \hline
-            x & y & truth & MLE \\
-          \hline
-          \nA  &   \nT           & 0.10 & 0.0996 \\
-          \nT  &   \nA           & 0.10 & 0.0982 \\
-          \nC  &   \nG           & 0.15 & 0.1505 \\
-          \nG  &   \nC           & 0.15 & 0.1497 \\
-          \nA  &   \nC           & 0.08 & 0.0784 \\
-          \nT  &   \nG           & 0.08 & 0.0792 \\
-          \nA  &   \nG           & 0.08 & 0.0798 \\
-          \nT  &   \nC           & 0.08 & 0.0795 \\
-          \nC  &   \nA           & 0.12 & 0.1202 \\
-          \nG  &   \nT           & 0.12 & 0.1196 \\
-          \nC  &   \nT           & 0.12 & 0.1198 \\
-          \nG  &   \nA           & 0.12 & 0.1193 \\
-       \nC\nG  &  \nT\nG         & 0.40 & 0.3978 \\
-       \nC\nG  &  \nC\nA         & 0.40 & 0.3978 \\
-    \nT\nC\nC  &  \nT\nT\nC      & 0.10 & 0.1033 \\
-    \nA\nG\nG  &  \nA\nA\nG      & 0.10 & 0.1033 \\
-           \hline
-        \end{tabular}
-  \end{center}
-  \caption{ Results from iterative fitting to a $10^6$ bp sequence
-    evolved to have 28.5\% sequence divergence
-    with the above mutational motifs. The transitions $CG \to TG$ and $CG \to CA$
-    were constrained to be equal (DNA strand symmetry),
-    as were the transitions $TCC \to TTC$ and $AGG \to AAG$.
-    \label{tab:cpg_results} }
-\end{table}
 
 
 %%%%%%%%%%%
@@ -1505,23 +1524,23 @@ change only a single, central site in the pattern,
 taking into account context on each side of maximum length $w$.
 (For instance, a trinucleotide model in which the flanking sites on each side
 affect the mutation rate of the central site has $w=1$.)
-%EM I suggest that we could re-introduce the mu^* notation again and remind people that these potential changes are uniform.
 
-As in the ``Simulation'' section, we start by considering a broader collection
-of ``possible changes'' sampled from a homogeneous
-Poisson process at a rate $\mu^*$ per site.
+Recall that, as described in the ``Simulation'' section,
+we may represent the process by first laying down a homogeneous Poisson process
+with rate $\mu^*$ per site of ``potential mutations'',
+where $\mu^*$ is the maximum possible mutation rate,
+and then resolving these appropriately.
+(In particular, the times and locations of these potential mutations are chosen uniformly.)
 Suppose a possible change occurs at site $i-w$, at time $t$,
-%EM should this be "change in rate"?
-which therefore might result in a change in state at site $i$.
+which therefore might result in a change in mutation rate at site $i$.
 To resolve this, we need to know the outcome of any other potential changes
 that might change the sequence between $i-w$ and $i + w$.
 Consider those that might happen only to the right of $i$,
 thus extending the sequence on which the change depends to the right.
-The number of such potential changes have a uniform location
-and their count is Poisson with mean $\mu^* w t$;
-these extend the amount of sequence on which the change at site $i$ depends
-%EM my understanding is that it's just uniform for a single mutation, but that's not obvious from the description.
-by a uniform random number of sites between 1 and $w$.
+The number of such potential changes is Poisson with mean $\mu^* w t$;
+if this number is nonzero, then
+this extends the amount of sequence on which the change at site $i$ depends
+by a uniform number between $1$ and $w$.
 If one occurs, say at time $0 < s < t$,
 then any further potential changes that occur between time 0 and time $s$
 in the $w$ sites to the right of this older potential change
@@ -1555,13 +1574,12 @@ Since the size of the dependency window is a compound Poisson process,
 we can bound $\P\{A\}$ using the following lemma:
 
 \begin{lemma}
-%EM Let's rename this X to ... V? We already have an X.
-    Let $X = \sum_{j=1}^N W_j$,
+    Let $V = \sum_{j=1}^N W_j$,
     where $N$ is Poisson with mean $\lambda$
     and each $W_j$ is independent and bounded between 0 and $w$.
     Then for $k \ge 1$,
     \begin{align}
-        \P\{ X > k w \}
+        \P\{ V > k w \}
         \le
         \frac{\lambda^{k+1}}{(k+1)!} .
     \end{align}
@@ -1587,7 +1605,7 @@ we can bound $\P\{A\}$ using the following lemma:
 % legend('topright', lty=1, col=seq_along(wvals), legend=sprintf("w=%d", wvals))
 
 \begin{proof}
-    First note that $\P\{X > kw\} \le \P\{N > k\}$.
+    First note that $\P\{V > kw\} \le \P\{N > k\}$.
     Now, use the fact that if $f(n) = n (n-1) \cdots (n-k) / (k+1)!$
     then $f(n) = 0$ for integers $0 \le n \le k$ and $f(n) \ge 1$ for $n > k$,
     and so $\P\{N > k\} \le \E[f(N)]$.
