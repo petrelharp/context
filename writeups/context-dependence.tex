@@ -106,7 +106,7 @@ a lattice of sites,
 with each site taking one of a finite collection of possible states,
 and whose stochastic, temporal evolution is Markov and governed by a set of local rules.
 For instance, at each site may sit
-a nucelotide whose mutation rate depends on physical properties determined by the nearby DNA sequence;
+a nucleotide whose mutation rate depends on physical properties determined by the nearby DNA sequence;
 a cell whose infection status depends on the state of its neighbors;
 or a particle whose spin is perturbed by external noise to a state whose distribution depends on the local energy configuration.
 Practical use of such models often requires
@@ -169,7 +169,7 @@ or by other approximations \citep{christensen2005pseudolikelihood,saunders2007in
 \citet{Hwang2004-pj,hobolth2008markov} and \citet{baele2010using}, used data augmentation and an MCMC algorithm to do Bayesian inference;
 \citet{lunter2004nucleotide} used an approximate matrix decomposition;
 while \citet{siepel2004phylogenetic} and later \citep{baele2010modelling} computed likelihoods by assuming a model that is Markov along the genome.
-however, all these methods are quite computationally intensive.
+However, all these methods are quite computationally intensive.
 
 
 Another canonical example of context-dependent transition is the Ising model of statistical physics
@@ -826,7 +826,7 @@ once we precompute a number of things.
 Let $g = (g_1, \ldots, g_d)$ be the nonzero entries of $G(n)$, in some fixed ordering;
 sparse matrix representations of $G(n)$ store only $g$ along with information about the rows and columns these are found in.
 Each $g_i$ is a linear combination of mutation rates $\mu_j$,
-multiplied by a function ($\phi$) of a linear combination of energy coefficents $e_j$,
+multiplied by a function ($\phi$) of a linear combination of energy coefficients $e_j$,
 say $g_i = \sum_j A_{ij} \mu_j \phi(\sum_k B_{ik} e_k)$,
 so by precomputing the matrices $A$ and $B$ we can update $G(n)$ with new parameter values
 using only two matrix multiplications and evaluation of $\phi()$ over a vector.
@@ -950,7 +950,7 @@ These were furthermore divided into regions that either did or did not overlap a
 from the hg38 Annotations Database \citep{kent2002human}
 and filtered for length:
 aligned regions below either 3000bp (promoter flanking regions) or 1000bp (all other types).
-We then counted Tmers of appropriate length in each of the eight resulting sets of aligned regions, omitting any Tmers that included gaps or repeat-masked positions,
+We then counted T-mers of appropriate length in each of the eight resulting sets of aligned regions, omitting any T-mers that included gaps or repeat-masked positions,
 and fit models separately to each of the eight data sets.
 
 We constructed models from three, nested, sets of mutation motifs.
@@ -1266,7 +1266,7 @@ using the model described above.
         \label{fig:biochem_results}}
 \end{figure}
 
-It may seem tenous to look for mutational signatures associated with cancer in the germline,
+It may seem tenuous to look for mutational signatures associated with cancer in the germline,
 or absurd that UV damage could play a significant role.
 This is in part due to the ``streetlight effect'' --
 we can't look for signatures that are not characterized --
@@ -1292,7 +1292,7 @@ The method is fast thanks to its dependence only only local neighborhoods
 (so the time does not scale with sequence length once T-mer abundances are counted)
 and its reliance on sparse matrices whose structure can be precomputed and cached.
 It avoids approximations made by previous methods thanks to the use of T-mers
-and explict quantification of the necessary length of the ``arms'' of the T-mers.
+and explicit quantification of the necessary length of the ``arms'' of the T-mers.
 We first discuss possible uses of the method,
 followed by challenges (and possible solutions).
 
@@ -1320,12 +1320,12 @@ might be used to estimate the process, and from this infer the original (ancestr
 
 \paragraph{Limitations}
 The model presented assumes that the same process occurs at every location along the sequence,
-and that the length of the sequnce does not change (no indels).
+and that the length of the sequence does not change (no indels).
 Neither of these assumptions are likely to be true for any data set of DNA sequence;
 however, both assumptions are also made the state of the art in phylogenetics.
-Some relaxation of the assumptions is possible -- for instnace,
+Some relaxation of the assumptions is possible -- for instance,
 we can easily allow heterogeneity between sites by scaling rates by an overall gamma-distributed random factor \citep{yang1994maximum}.
-Short deletions might be accomodated by introducing a ``gap'' letter to the alphabet,
+Short deletions might be accommodated by introducing a ``gap'' letter to the alphabet,
 but insertions may be problematic.
 
 
@@ -1333,7 +1333,7 @@ but insertions may be problematic.
 The main factor that determines computation time
 is the lengths of the T-mers used for inference,
 since all computations scale with the number of possible patterns at the long end of the T-mer.
-Although the model is efficent enough to deal with fairly long T-mers,
+Although the model is efficient enough to deal with fairly long T-mers,
 this exponential growth puts hard constraints on the application of the method.
 The length of T-mers required to accurately compute the likelihood in most models grows at most linearly
 with the mean density of substitution between the initial and final sequence.
@@ -1601,7 +1601,7 @@ we have a small $\epsilon$ such that for any $i \nsim j$,
     \caption{
         %EM TODO make this A and B so we can refer to them in the text.
         Diagram of things in the text:
-        (top) Dependency neighboorhods.
+        (top) Dependency neighborhoods.
         (bottom) What we need to compute $\P\{X_i(t)=x \given X(0), X_{<i}(t)\}$:
         site $i$ depends on the blue squares in $N_i$;
         the sites to the left of this in $L(i)$ are those other sites in $X(t)$
@@ -1926,7 +1926,7 @@ We want to use $G(\ell+m+r)$ to compute the chance that a given $(\ell+m+r)$-seq
 and if $\ell$ and $r$ are big enough relative to $t$, this will be a good approximation regardless of what we do at the edges.
 One answer would be to not allow patterns hanging off of either end to match,
 resulting in a slight underestimate of the chance of change.
-A better approximation would be to use the marginal frequencies in some way to average over surroudning sequence
+A better approximation would be to use the marginal frequencies in some way to average over surrounding sequence
 -- but, this requires marginal frequencies to be known, and these are not stationary.
 However, the leftmost site in a randomly chosen window is a sample from the marginal distribution,
 and if sites separated by distance $\ell+m+r$ are sufficiently uncorrelated,
@@ -1995,7 +1995,7 @@ One solution to this is to let $\delta_{xy} = - \epsilon_x q(x,y) / \pi(x)$.
 Suppose each change is a single-base change, so that changes $\delta \mu_i$ in $\mu$ contribute to $q$ by
 $\delta_{xy} = \sum_{i: x \to y} \delta \mu_i$.
 Given $\delta_{xy}$, this gives a linear equation for $\delta \mu_i$ that may or may not be solvable,
-but certainly is if we have all the single-base transitions as paramters.
+but certainly is if we have all the single-base transitions as parameters.
 
 \subsection{Models without using potential}
 
