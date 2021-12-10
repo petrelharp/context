@@ -718,10 +718,6 @@ a ratio of two composite likelihoods:
 %         \sum_{c \in \calS^n} \sum_{d \in \calS^{n-2\ell-1}} n_\ell(x,y;c,d) \log p_{n,\ell,\ell+1}(c,d)
 % \end{align}
 
-%EM It seems reasonable that we should be able to get away using a smaller T-mer.
-%EM Question: how much context should we include; argument in appendix.
-%EM Would be nice to show convergence of full likelihood eventually.
-
 See the next section for more discussion of the approximations.
 
 %%%%%
@@ -777,28 +773,6 @@ In practice, we recommend computing the likelihood with equation \eqref{eqn:full
 using successively larger values of $\ell$
 to check for convergence.
 
-
-%%%%%%%%
-\subsection{Model fit and model selection}
-
-Fitting a model to nucleotide data would likely require iterative modification of the model.
-The difference between observed and expected T-mer counts provide a good assessment of how and whether a model can be improved.
-These \emph{residual} counts are usually most usefully computed for T-mers shorter than those used to fit the model.
-For each T-mer $(a,b)$, write $O_{a,b}$ for the number of this T-mer observed in the data,
-and $E_{a,b}$ for the number expected under the model.
-(The expected number is the number of occurrences of $a$ in the initial sequence
-multiplied by the probability $p_{n,\ell,r}(t;a,b)$, where $n$ is the length of $a$,
-and $\ell$, $r$ are the appropriate overhangs.)
-If the T-mers were nonoverlapping, this would form a standard contingency table,
-and standard practice would be to divide the residuals by the square root of the expected counts
-and compare these to a standard Normal distribution.
-However, there are are $n$ possible such tables --
-so, we compute normalized residuals as
-\begin{align}
-    Z_{a,b} = \frac{ O_{a,b} - E_{a,b} }{ \sqrt{n E_{a,b}} },
-\end{align}
-which is equivalent to averaging the $z$-scores of the $n$ possible tables of nonoverlapping counts.
-These can then be compared to a standard Normal distribution.
 
 
 %%%%%%%%%%%
@@ -927,7 +901,7 @@ between two taxa in the tree.
 
 \subsection{Phylogenetic pruning}
 
-The general case is a modification of Felsenstein's ``pruning'' algorithm.
+The general case is a modification of Felsenstein's ``pruning'' algorithm\citep{felsenstein1981evolutionary}.
 
 \begin{figure}
     \begin{center}
@@ -975,11 +949,11 @@ and $U$ for the projection matrix that gives $p_{m,\ell,r}(t,a,b) = \left( e^{tG
 In total there are $|\calS|^{3m+2\ell}$ possible data combinations.
 However, we can reduce dimensionality by only computing probabilities
 for certain (more common) patterns: for instance,
-we'd compute the likelihood for situations where $y$ and $z$ agree (but may differ from $x$
+one could compute the likelihood for situations where $y$ and $z$ agree (but may differ from $x$
 by replacing step (4) with:
 \begin{enumerate}
 
-  \item[4'.] Compute $M_4(x,w) = \sum_{v \in \calS^{n}} p_{n,0,0}(t_{A},v,x) M_3(v,w) M_4(v,w)$ (stored as a $|\calS|^{n} \times |\calS|^{m}$ matrix).
+  \item[$4'$.] Compute $M_4(x,w) = \sum_{v \in \calS^{n}} p_{n,0,0}(t_{A},v,x) M_3(v,w) M_4(v,w)$ (stored as a $|\calS|^{n} \times |\calS|^{m}$ matrix).
 
 \end{enumerate}
 On a three-taxon tree it is not clear that this is desirable,
@@ -988,12 +962,293 @@ but on larger trees it seems likely that we'd want to restrict to combinations w
 
 The algorithm for a general tree is written out in Appendix \ref{ss:pruning_algorithm}.
 
+%%%%%%%%
+\subsection{Model fit and model selection}
+%EM I promoted this section here because we use residuals a lot in the results.
+Fitting a model to nucleotide data will likely require iterative modification of the model.
+The difference between observed and expected T-mer counts provide a good assessment of how and whether a model can be improved.
+%EM Why shorter? Because there are fewer of them?
+These \emph{residual} counts are usually most usefully computed for T-mers shorter than those used to fit the model.
+%EM Should we replace a and b with x and y here to agree with the rest of the doc?
+For each T-mer $(a,b)$, write $O_{a,b}$ for the number of this T-mer observed in the data,
+and $E_{a,b}$ for the number expected under the model.
+(The expected number is the number of occurrences of $a$ in the initial sequence
+multiplied by the probability $p_{n,\ell,r}(t;a,b)$, where $n$ is the length of $a$,
+and $\ell$, $r$ are the appropriate overhangs.)
+If the T-mers were nonoverlapping, this would form a standard contingency table,
+and standard practice would be to divide the residuals by the square root of the expected counts
+and compare these to a standard Normal distribution.
+However, there are are $n$ possible such tables --
+so, we compute normalized residuals as
+\begin{align}
+    Z_{a,b} = \frac{ O_{a,b} - E_{a,b} }{ \sqrt{n E_{a,b}} },
+\end{align}
+which is equivalent to averaging the $z$-scores of the $n$ possible tables of nonoverlapping counts.
+These can then be compared to a standard Normal distribution.
+
+
+
+%%%%%%%
+\section{Results}
 
 %%%%%%%%%%%
-\subsection{Hominid data}
-\label{hominid_section}
+\subsection{Stepwise model selection}
 
-We also applied the model to human--chimpanzee divergence data,
+We benchmarked the performance of stepwise model selection:
+(a) fit a simple model,
+(b) choose new motifs to add based on statistically significant residuals,
+(c) repeat until no residuals are statistically significant.
+To test this method,
+we simulated a single sequence of $10^6$ nucleotides
+for one unit of time
+under the model given in Table \ref{tab:cpg_results},
+obtained by embellishing the basic CpG hypermutability model
+with the longer mutational motif identified by \citet{harris2015evidence}.
+%     \begin{center}
+%       \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }cc}
+%         $x$  &    $y$  &  $m_{xy}$ & when $x \neq y \in \{\nA,\nC,\nG,\nT\}$  \\
+%         \nC\nG     &  \nT\nG     &  $0.4$ & \\
+%         \nC\nG     &  \nC\nA     &  $0.4$ & \\
+%         \nT\nC\nC  &  \nT\nT\nC  &  $0.1$ & \\
+%         \nA\nG\nG  &  \nA\nA\nG  &  $0.1$ &
+%       \end{tabular} ,
+%     \end{center}
+% with $m_{AT}=m_{TA}=0.1$, $m_{CG}=m_{GC}=0.15$, $m_{AC}=m_{TG}=m_{AG}=m_{TC}=0.08$, and $m_{CA}=m_{GT}=m_{CT}=m_{GA}=0.12$.
+% Note the model is symmetric under reverse complementation.
+The resulting sequences differed at 28.5\% of the sites.
+
+To begin, we fit an unconstrained model of single-nucleotide substitution using (5,1,1) T-mers
+(three sites at the base with an overhang of one on each side)
+using a constrained quasi-Newton method (\verb|optim(.., method='L-BFGS-B')| in R).
+
+\begin{table}[ht]
+  \begin{center}
+        \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }ll}
+          \hline
+            x & y & truth & MLE \\
+          \hline
+          %EM I'm confused why we have MLE parameters for these single NT terms because I don't see those being used in the iterative model fitting. I thought we started with a (5,1,1) model.
+          \nA  &   \nT           & 0.10 & 0.0996 \\
+          \nT  &   \nA           & 0.10 & 0.0982 \\
+          \nC  &   \nG           & 0.15 & 0.1505 \\
+          \nG  &   \nC           & 0.15 & 0.1497 \\
+          \nA  &   \nC           & 0.08 & 0.0784 \\
+          \nT  &   \nG           & 0.08 & 0.0792 \\
+          \nA  &   \nG           & 0.08 & 0.0798 \\
+          \nT  &   \nC           & 0.08 & 0.0795 \\
+          \nC  &   \nA           & 0.12 & 0.1202 \\
+          \nG  &   \nT           & 0.12 & 0.1196 \\
+          \nC  &   \nT           & 0.12 & 0.1198 \\
+          \nG  &   \nA           & 0.12 & 0.1193 \\
+       \nC\nG  &  \nT\nG         & 0.40 & 0.3978 \\
+       \nC\nG  &  \nC\nA         & 0.40 & 0.3978 \\
+    \nT\nC\nC  &  \nT\nT\nC      & 0.10 & 0.1033 \\
+    \nA\nG\nG  &  \nA\nA\nG      & 0.10 & 0.1033 \\
+           \hline
+        \end{tabular}
+  \end{center}
+  \caption{
+      True parameter values, and MLE estimates obtained
+      from iterative fitting as described in the text to a $10^6$ bp sequence
+    evolved to have 28.5\% sequence divergence
+    with the above mutational motifs. The transitions $\nC\nG \to \nT\nG$ and $\nC\nG \to \nC\nA$
+    were constrained during fitting to be equal (DNA strand symmetry),
+    as were the transitions $\nT\nC\nC \to \nT\nT\nC$ and $\nA\nG\nG \to \nA\nA\nG$.
+    \label{tab:cpg_results} }
+\end{table}
+
+We find that the (2,1,0) and (2,0,1) T-mer residuals of this model are dominated by
+terms involving CG (Table~\ref{tab:resid1}).
+%EM Stupid question: why weren't these picked up by the 5,1,1 model?
+%EM Why isn't the starting point a (1,0,0) model?
+These results clearly call for addition of the CpG mutation motif.
+
+\begin{table}
+%EM This table is BIG. And it seems like our conclusions only stem from the very biggest residuals.
+%EM What if we cut of anything that doesn't have an absolute Z-score bigger than 10?
+% cpg-plus-epsilon/32140/base-model-fit-5-3-l1-resids.2.1.l0.tsv
+% cpg-plus-epsilon/32140/base-model-fit-5-3-l1-resids.2.1.l1.tsv
+    \begin{center}
+        \begin{tabular}{ccrrrr}
+                $x$ & $y$ & observed &   expected &    residual &  $Z$ \\
+                \hline
+                \nC\nG  & \nC\_   & 100410   &  120303    & -19892.50   &	-40.55  \\
+                \nC\nA  & \nT\_   &  19884   &   28350    &  -8466.43   &	-35.55  \\
+                \nC\nT  & \nT\_   &  19998   &   28061    &  -8063.46   &	-34.03  \\
+                \nC\nC  & \nT\_   &  23673   &   28177    &  -4503.96   &	-18.97  \\
+                \nG\nG  & \nC\_   &  17742   &   19418    &  -1675.92   &	 -8.50  \\
+                \nC\nG  & \nG\_   &  18450   &   19478    &  -1028.34   &	 -5.21  \\
+                \nA\nG  & \nC\_   &  10968   &   11760    &   -791.73   &	 -5.16  \\
+                %EM It looks like this is missing an entry?
+                \nG\nG  & \nG\_   & 118805   &  120975    &  -2170.25   &    \\
+                \hline
+                \nA\nG  & \nT\_   &  17280   &   16515    &    765.20   &  4.21   \\
+                \nG\nT  & \nC\_   &  20490   &   19507    &    983.44   &  4.97   \\
+                \nG\nG  & \nT\_   &  20929   &   19278    &   1650.83   &  8.40   \\
+                \nC\nC  & \nC\_   & 124149   &  119880    &   4268.52   &  8.71   \\
+                \nG\nG  & \nA\_   &  30483   &   28288    &   2195.34   &  9.22   \\
+                \nC\nT  & \nC\_   & 126957   &  119389    &   7567.92   & 15.48   \\
+                \nC\nA  & \nC\_   & 128673   &  120619    &   8054.46   & 16.39   \\
+                \nC\nG  & \nT\_   &  49311   &   28276    &  21034.85   & 88.45   \\
+                \hline
+                \hline
+                \nC\nG  &  \_\nG  &  100803  &  120541  &  -19737.80  &  -40.19 \\
+                \nT\nG  &  \_\nA  &   20040  &   28179  &   -8139.45  &  -34.28 \\
+                \nG\nG  &  \_\nA  &   20985  &   28288  &   -7302.96  &  -30.70 \\
+                \nA\nG  &  \_\nA  &   22929  &   28399  &   -5469.73  &  -22.95 \\
+                \nC\nC  &  \_\nG  &   17805  &   19410  &   -1605.01  &   -8.14 \\
+                \nC\nT  &  \_\nG  &   10470  &   11684  &   -1214.31  &   -7.94 \\
+                \nC\nA  &  \_\nG  &   10839  &   11882  &   -1043.39  &   -6.76 \\
+                \nC\nG  &  \_\nC  &   18354  &   19348  &    -994.19  &   -5.05 \\
+                \hline
+                \nC\nT  &  \_\nA  &   17007  &   16078  &     929.33  &    5.18 \\
+                \nT\nC  &  \_\nG  &   20691  &   19509  &    1182.40  &    5.98 \\
+                \nC\nC  &  \_\nA  &   20640  &   19160  &    1480.44  &    7.56 \\
+                \nT\nC  &  \_\nT  &   30309  &   28320  &    1988.91  &    8.35 \\
+                \nA\nG  &  \_\nG  &  127191  &  121450  &    5740.76  &   11.64 \\
+                \nG\nG  &  \_\nG  &  127946  &  120977  &    6969.46  &   14.16 \\
+                \nT\nG  &  \_\nG  &  127539  &  120512  &    7026.52  &   14.31 \\
+                \nC\nG  &  \_\nA  &   49098  &   28186  &   20911.93  &   88.07 \\
+                \hline
+        \end{tabular}
+    \end{center}
+    \caption{
+        Largest residuals of shape (2,1,0) and (2,0,1) after fitting a model with only ``basic''
+        (single-nucleotide) mutations to sequence simulated under the model
+        of Table~\ref{tab:cpg_results}, that also includes CpG hypermutability
+        as well as $\nT\nC\nC \to \nT\nT\nC$ and $\nA\nG\nG \to \nA\nA\nG$ mutations.
+        Note that in the table, the underscore means ``any nucleotide''.
+        \label{tab:resid1}
+    }
+\end{table}
+
+%EM "These patterns": Is it exactly the patterns in the true model?
+%EM Would we need to have prior information about CpGs to pick those additional terms?
+After adding these patterns into the model and re-fitting, we searched for evidence of additional processes happening in the data.
+% starting at the parameters inferred from the first run and a CpG rate of 0.0,
+%EM what is "statistically significant" here? I searched around and found 1.96 corresponding to 0.05.
+To do so, we calculated length 2 residuals and (3,1,1) T-mer residuals.
+Although some of the length 2 residuals were statistically significant,
+none were as large as those seen in (3,1,1) T-mer residuals, which are shown in Table~\ref{tab:resid2}.
+These residuals clearly call for adding the mutation tuples $\nT\nC\nC \to \nT\nT\nC$ and $\nA\nG\nG \to \nA\nA\nG$.
+These were indeed the motifs used when simulating the data.
+After adding these in,
+% and initializing all parameters to 0.1
+no further (3,1,1) T-mer residuals achieved
+statistical significance after a Bonferroni correction;
+the final parameter values are shown in Table \ref{tab:cpg_results};
+parameter estimates differ from the truth by less than 3\% (mostly within 1\%).
+
+
+\begin{table}
+    \begin{center}
+        \begin{tabular}{ccrrrr}
+            \hline
+                $x$ & $y$ & observed &   expected &    residual &  $Z$ \\
+                \hline
+                \nA\nG\nG  &  \_\nG\_  &  30024  &  32167  &  -2143.48  &  -6.90 \\
+                \nT\nC\nC  &  \_\nC\_  &  29910  &  31748  &  -1838.13  &  -5.95 \\
+                \nG\nG\nT  &  \_\nA\_  &   5064  &   5549  &   -484.61  &  -3.75 \\
+                \nT\nG\nC  &  \_\nA\_  &   4830  &   5172  &   -342.42  &  -2.74 \\
+                \nG\nG\nA  &  \_\nA\_  &   5115  &   5462  &   -346.97  &  -2.71 \\
+                \nC\nT\nT  &  \_\nG\_  &   2472  &   2717  &   -244.56  &  -2.70 \\
+                \nG\nC\nT  &  \_\nT\_  &   4863  &   5192  &   -328.56  &  -2.63 \\
+                \hline
+                \nA\nT\nG  &  \_\nG\_  &   3225  &   3028  &    196.78  &   2.06  \\
+                \nA\nC\nG  &  \_\nA\_  &   4830  &   4588  &    242.29  &   2.06  \\
+                \nT\nG\nT  &  \_\nC\_  &   5364  &   5105  &    258.74  &   2.09  \\
+                \nG\nA\nG  &  \_\nG\_  &   3285  &   3055  &    229.78  &   2.40  \\
+                \nT\nT\nG  &  \_\nC\_  &   2973  &   2752  &    220.59  &   2.42  \\
+                \nT\nC\nT  &  \_\nG\_  &   5421  &   5056  &    364.54  &   2.95  \\
+                \nT\nC\nC  &  \_\nT\_  &   7590  &   5500  &   2089.79  &  16.26  \\
+                \nA\nG\nG  &  \_\nA\_  &   7566  &   5263  &   2302.74  &  18.32  \\
+                \hline
+        \end{tabular}
+    \end{center}
+    \caption{
+        Largest residuals of shape (3,1,1) after fitting a model with ``basic''
+        (single-nucleotide) and CpG mutations to sequence simulated under the model
+        of Table~\ref{tab:cpg_results}, that also includes $\nT\nC\nC \to \nT\nT\nC$ and $\nA\nG\nG \to \nA\nA\nG$ mutations.
+        Note that in the table, the underscore means ``any nucleotide''.
+        \label{tab:resid2}
+    }
+\end{table}
+
+
+% df <- structure(list(
+%     sim = c(0.1, 0.1, 0.15, 0.15, 0.08, 0.08, 0.08, 0.08, 0.12, 0.12, 0.12, 0.12, 0.4, 0.1),
+%     fit = c(0.0996, 0.0982, 0.1505, 0.1497, 0.0784, 0.0792, 0.0798, 0.0795, 0.1202, 0.1196, 0.1198, 0.1193, 0.3978, 0.1033)),
+%     .Names = c("sim", "fit"),
+%     row.names = c("A->T", "T->A", "C->G", "G->C", "A->C", "T->G", "A->G", "T->C", "C->A", "G->T", "C->T", "G->A", "CG->TG|CG->CA", "TCC->TTC|AGG->AAG"),
+%     class = "data.frame")
+
+
+%%%%%%%%%%%
+\subsection{Bayesian inference}
+
+The usage of fast sparse matrix methods described above make likelihood computation fast enough
+to use a Metropolis-Hastings-based Markov chain Monte Carlo method
+to sample from the posterior distribution on parameters.
+To test this,
+we evolved $10^6$ sites from the Ising model (described above) with $\lambda=0.5$, $\beta=1.0$, and $\gamma=0.5$
+for 1 unit of time,
+resulting in around 460,000 possible mutations
+and differences at around 186,000 sites between initial and final sequence.
+We then placed an Exponential prior with mean 1 on both transitions $+ \to -$ and $- \to +$
+(without constraining these to be equal)
+and half-Gaussian priors with mean 0 and scale 3 on both $\beta$ and $\gamma$,
+counted $(5,3,1)$ T-mers,
+and used the \texttt{mcmc} package \citep{geyer2017mcmc} to run a random walk sampler for 10,000 steps
+(judged sufficient by examination of diagnostic plots).
+We repeated this procedure separately on 61 independently simulated sequences,
+and show the resulting credible intervals in Figure~\ref{fig:ising_coverage}.
+
+Posterior medians were within half a percent of the truth for $+ \to -$ and $- \to +$ (corresponding to $\lambda$)
+and the temperature ($\beta$), but showed around 2\% error for the magnetic field $\gamma$.
+As seen in Table~\ref{tab:ising_coverage},
+credible intervals were somewhat too narrow for shorter T-mers,
+but $(6,2,2)$ T-mers were long enough with sufficient overhang to produce well-calibrated posteriors.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrr}
+  \hline
+    & (4,1,1) & (5,1,1) & (6,2,2) \\
+  \hline
+  $\lambda_-$ & 0.61 & 0.63 & 0.96 \\
+  $\lambda_+$ & 0.87 & 0.86 & 0.85 \\
+  $\beta$     & 0.76 & 0.81 & 0.94 \\
+  $\gamma$    & 0.69 & 0.76 & 0.85 \\
+   \hline
+\end{tabular}
+    \caption{
+        Posterior coverage of the four parameters of the dynamic Ising model at four different T-mer sizes.
+        Shown are the proportion of runs in which the true value fell within the 95\% credible interval,
+        for T-mers of length 4, 5, and 6 with overhangs of length 1, 1, and 2 respectively.
+        The total number of runs was 61 for $(6,2,2)$ T-mers and 121 for the others.
+        \label{tab:ising_coverage}
+    }
+\end{table}
+
+\begin{figure}
+    \begin{center}
+        %EM Should I be looking at the gray bars or black bars? What are they? I'm guessing 95% is gray, because that corresponds to good coverage.
+        \includegraphics{writeup-plots/coverage_results}
+    \end{center}
+    \caption{
+        Credible intervals for the four parameters of the dynamic Ising model,
+        calculated using $(6,2,2)$ T-mers,
+        from 61 MCMC runs on independently simulated sequences of $10^6$ bases
+        differing at around 18.6\% of the sites.
+        Shown are relative intervals, obtained by dividing by the true value.
+        \label{fig:ising_coverage}}
+\end{figure}
+
+
+%%%%%%%%%%%
+\subsection{Hominid mutation spectrum}
+
+We also applied the method to human--chimpanzee divergence data,
 restricting the comparison to putative regulatory sequences,
 avoiding the additional constraints of coding sequences.
 To do this, we extracted regions in the human (hg38)--chimpanzee (panTro4) alignment % \citep[from the UCSC Genome Browser][]{pantroalign}
@@ -1034,7 +1289,7 @@ All models are strand-symmetric.
           curated from the literature \citep[reviewed in][]{sale2012yfamily,goodman2013translesion,roberts2014hypermutation,cobey2015evolution,goodman2002errorprone}:
           deamination due to repair of UV-induced pyramidine dimers \citep[$\mu_{UV}$,][]{sale2012yfamily,sinha2002uvinduced};
           repair of guanine adducts at CpG sites \citet[$\mu_g$,][]{pfeifer2006mutagenesis};
-          deamination by AID \citep[$\mu_{AID}$,][]{teng2007immunoglobulin,kasar2015wholegenome};
+          deamination by AID \citep[$\mu_\AID$,][]{teng2007immunoglobulin,kasar2015wholegenome};
           deamination by members of the APOBEC family \citep[$\mu_\APOBEC$,][]{alexandrov2013deciphering};
           and repair by error-prone polymerases pol $\eta$ \citep[$\mu_\eta$,][]{alexandrov2013deciphering};
           and pol $\iota$ \citep[$\mu_{\iota}$,][]{roberts2014hypermutation,maul2016polymerase}.
@@ -1075,257 +1330,16 @@ but neither do they exhaust the hypotheses available in the literature.
 For instance, many enzymes act more than once locally when they act,
 such as AID \citep{senavirathne2015activationinduced} or error-prone polymerases involved in repair \citep{maul2016polymerase}.
 
-
-%%%%%%%
-\section{Results}
-
-%%%%%%%%%%%
-\subsection{Stepwise model selection}
-
-In exploratory application to real data, how does one decide when to stop adding mutational motifs?
-Perhaps the simplest method conceptually is to
-(a) fit a simple model,
-(b) choose new motifs to add based on statistically significant residuals,
-(c) repeat until no residuals are statistically significant.
-To test this method,
-we simulated a single sequence of $10^6$ nucleotides
-for one unit of time
-under the model given in Table \ref{tab:cpg_results},
-obtained by embellishing the basic CpG hypermutability model
-with the longer mutational motif identified by \citet{harris2015evidence}.
-%     \begin{center}
-%       \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }cc}
-%         $x$  &    $y$  &  $m_{xy}$ & when $x \neq y \in \{\nA,\nC,\nG,\nT\}$  \\
-%         \nC\nG     &  \nT\nG     &  $0.4$ & \\
-%         \nC\nG     &  \nC\nA     &  $0.4$ & \\
-%         \nT\nC\nC  &  \nT\nT\nC  &  $0.1$ & \\
-%         \nA\nG\nG  &  \nA\nA\nG  &  $0.1$ &
-%       \end{tabular} ,
-%     \end{center}
-% with $m_{AT}=m_{TA}=0.1$, $m_{CG}=m_{GC}=0.15$, $m_{AC}=m_{TG}=m_{AG}=m_{TC}=0.08$, and $m_{CA}=m_{GT}=m_{CT}=m_{GA}=0.12$.
-% Note the model is symmetric under reverse complementation.
-The resulting sequences differed at 28.5\% of the sites.
-We then fit an unconstrained model of single-nucleotide substitution using (5,1,1) T-mers
-(three sites at the base with an overhang of one on each side)
-using a constrained quasi-Newton method (``optim(.., method='L-BFGS-B')'' in R).
-The top and bottom of the table of (2,1,0) and (2,0,1) T-mer residuals of this model were
-as shown in Table~\ref{tab:resid1}.
-
-\begin{table}
-  \begin{center}
-        \begin{tabular}{c@{\quad$\to$\quad}c@{\quad at rate\quad }ll}
-          \hline
-            x & y & truth & MLE \\
-          \hline
-          \nA  &   \nT           & 0.10 & 0.0996 \\
-          \nT  &   \nA           & 0.10 & 0.0982 \\
-          \nC  &   \nG           & 0.15 & 0.1505 \\
-          \nG  &   \nC           & 0.15 & 0.1497 \\
-          \nA  &   \nC           & 0.08 & 0.0784 \\
-          \nT  &   \nG           & 0.08 & 0.0792 \\
-          \nA  &   \nG           & 0.08 & 0.0798 \\
-          \nT  &   \nC           & 0.08 & 0.0795 \\
-          \nC  &   \nA           & 0.12 & 0.1202 \\
-          \nG  &   \nT           & 0.12 & 0.1196 \\
-          \nC  &   \nT           & 0.12 & 0.1198 \\
-          \nG  &   \nA           & 0.12 & 0.1193 \\
-       \nC\nG  &  \nT\nG         & 0.40 & 0.3978 \\
-       \nC\nG  &  \nC\nA         & 0.40 & 0.3978 \\
-    \nT\nC\nC  &  \nT\nT\nC      & 0.10 & 0.1033 \\
-    \nA\nG\nG  &  \nA\nA\nG      & 0.10 & 0.1033 \\
-           \hline
-        \end{tabular}
-  \end{center}
-  \caption{
-      True parameter values, and estimates obtained
-      from iterative fitting to a $10^6$ bp sequence
-    evolved to have 28.5\% sequence divergence
-    with the above mutational motifs. The transitions $CG \to TG$ and $CG \to CA$
-    were constrained during fitting to be equal (DNA strand symmetry),
-    as were the transitions $TCC \to TTC$ and $AGG \to AAG$.
-    \label{tab:cpg_results} }
-\end{table}
-
-\begin{table}
-% cpg-plus-epsilon/32140/base-model-fit-5-3-l1-resids.2.1.l0.tsv
-% cpg-plus-epsilon/32140/base-model-fit-5-3-l1-resids.2.1.l1.tsv
-    \begin{center}
-        \begin{tabular}{ccrrrr}
-                $x$ & $y$ & observed &   expected &    residual &  $Z$ \\
-                \hline
-                \nC\nG  & \nC\_   & 100410   &  120303    & -19892.50   &	-40.55  \\
-                \nC\nA  & \nT\_   &  19884   &   28350    &  -8466.43   &	-35.55  \\
-                \nC\nT  & \nT\_   &  19998   &   28061    &  -8063.46   &	-34.03  \\
-                \nC\nC  & \nT\_   &  23673   &   28177    &  -4503.96   &	-18.97  \\
-                \nG\nG  & \nC\_   &  17742   &   19418    &  -1675.92   &	 -8.50  \\
-                \nC\nG  & \nG\_   &  18450   &   19478    &  -1028.34   &	 -5.21  \\
-                \nA\nG  & \nC\_   &  10968   &   11760    &   -791.73   &	 -5.16  \\
-                \nG\nG  & \nG\_   & 118805   &  120975    &  -2170.25   &    \\
-                \hline
-                \nA\nG  & \nT\_   &  17280   &   16515    &    765.20   &  4.21   \\
-                \nG\nT  & \nC\_   &  20490   &   19507    &    983.44   &  4.97   \\
-                \nG\nG  & \nT\_   &  20929   &   19278    &   1650.83   &  8.40   \\
-                \nC\nC  & \nC\_   & 124149   &  119880    &   4268.52   &  8.71   \\
-                \nG\nG  & \nA\_   &  30483   &   28288    &   2195.34   &  9.22   \\
-                \nC\nT  & \nC\_   & 126957   &  119389    &   7567.92   & 15.48   \\
-                \nC\nA  & \nC\_   & 128673   &  120619    &   8054.46   & 16.39   \\
-                \nC\nG  & \nT\_   &  49311   &   28276    &  21034.85   & 88.45   \\
-                \hline
-                \hline
-                \nC\nG  &  \_\nG  &  100803  &  120541  &  -19737.80  &  -40.19 \\
-                \nT\nG  &  \_\nA  &   20040  &   28179  &   -8139.45  &  -34.28 \\
-                \nG\nG  &  \_\nA  &   20985  &   28288  &   -7302.96  &  -30.70 \\
-                \nA\nG  &  \_\nA  &   22929  &   28399  &   -5469.73  &  -22.95 \\
-                \nC\nC  &  \_\nG  &   17805  &   19410  &   -1605.01  &   -8.14 \\
-                \nC\nT  &  \_\nG  &   10470  &   11684  &   -1214.31  &   -7.94 \\
-                \nC\nA  &  \_\nG  &   10839  &   11882  &   -1043.39  &   -6.76 \\
-                \nC\nG  &  \_\nC  &   18354  &   19348  &    -994.19  &   -5.05 \\
-                \hline
-                \nC\nT  &  \_\nA  &   17007  &   16078  &     929.33  &    5.18 \\
-                \nT\nC  &  \_\nG  &   20691  &   19509  &    1182.40  &    5.98 \\
-                \nC\nC  &  \_\nA  &   20640  &   19160  &    1480.44  &    7.56 \\
-                \nT\nC  &  \_\nT  &   30309  &   28320  &    1988.91  &    8.35 \\
-                \nA\nG  &  \_\nG  &  127191  &  121450  &    5740.76  &   11.64 \\
-                \nG\nG  &  \_\nG  &  127946  &  120977  &    6969.46  &   14.16 \\
-                \nT\nG  &  \_\nG  &  127539  &  120512  &    7026.52  &   14.31 \\
-                \nC\nG  &  \_\nA  &   49098  &   28186  &   20911.93  &   88.07 \\
-                \hline
-        \end{tabular}
-    \end{center}
-    \caption{
-        Largest residuals of shape (2,1,0) and (2,0,1) after fitting a model with only ``basic''
-        (single-nucleotide) mutations to sequence simulated under the model
-        of Table~\ref{tab:cpg_results}, that also includes CpG hypermutability
-        as well as $TCC \to TTC$ and $AGG \to AAG$ mutations.
-        Note that in the table, the underscore means ``any nucleotide''.
-        \label{tab:resid1}
-    }
-\end{table}
-
-The situation clearly calls for addition of the CpG mutation motif.
-After adding these patterns into the model and re-fitting,
-% starting at the parameters inferred from the first run and a CpG rate of 0.0,
-some length 2 residuals had statistically significant residuals,
-but none so large as those seen in (3,1,1) T-mer residuals, shown in Table~\ref{tab:resid2}.
-
-\begin{table}
-    \begin{center}
-        \begin{tabular}{ccrrrr}
-            \hline
-                $x$ & $y$ & observed &   expected &    residual &  $Z$ \\
-                \hline
-                \nA\nG\nG  &  \_\nG\_  &  30024  &  32167  &  -2143.48  &  -6.90 \\
-                \nT\nC\nC  &  \_\nC\_  &  29910  &  31748  &  -1838.13  &  -5.95 \\
-                \nG\nG\nT  &  \_\nA\_  &   5064  &   5549  &   -484.61  &  -3.75 \\
-                \nT\nG\nC  &  \_\nA\_  &   4830  &   5172  &   -342.42  &  -2.74 \\
-                \nG\nG\nA  &  \_\nA\_  &   5115  &   5462  &   -346.97  &  -2.71 \\
-                \nC\nT\nT  &  \_\nG\_  &   2472  &   2717  &   -244.56  &  -2.70 \\
-                \nG\nC\nT  &  \_\nT\_  &   4863  &   5192  &   -328.56  &  -2.63 \\
-                \hline
-                \nA\nT\nG  &  \_\nG\_  &   3225  &   3028  &    196.78  &   2.06  \\
-                \nA\nC\nG  &  \_\nA\_  &   4830  &   4588  &    242.29  &   2.06  \\
-                \nT\nG\nT  &  \_\nC\_  &   5364  &   5105  &    258.74  &   2.09  \\
-                \nG\nA\nG  &  \_\nG\_  &   3285  &   3055  &    229.78  &   2.40  \\
-                \nT\nT\nG  &  \_\nC\_  &   2973  &   2752  &    220.59  &   2.42  \\
-                \nT\nC\nT  &  \_\nG\_  &   5421  &   5056  &    364.54  &   2.95  \\
-                \nT\nC\nC  &  \_\nT\_  &   7590  &   5500  &   2089.79  &  16.26  \\
-                \nA\nG\nG  &  \_\nA\_  &   7566  &   5263  &   2302.74  &  18.32  \\
-                \hline
-        \end{tabular}
-    \end{center}
-    \caption{
-        Largest residuals of shape (3,1,1) after fitting a model with ``basic''
-        (single-nucleotide) and CpG mutations to sequence simulated under the mdoel
-        of Table~\ref{tab:cpg_results}, that also includes $TCC \to TTC$ and $AGG \to AAG$ mutations.
-        Note that in the table, the underscore means ``any nucleotide''.
-        \label{tab:resid2}
-    }
-\end{table}
-
-\ldots which again clearly call for adding the mutation tuples $TCC \to TTC$ and $AGG \to AAG$.
-These were indeed the motifs used when simulating the data.
-After adding these in,
-% and initializing all parameters to 0.1
-no further (3,1,1) T-mer residuals achieved
-statistical significance after a Bonferroni correction;
-the final parameter values are shown in Table \ref{tab:cpg_results};
-parameter estimates differ from the truth by less than 3\% (mostly within 1\%).
-
-
-% df <- structure(list(
-%     sim = c(0.1, 0.1, 0.15, 0.15, 0.08, 0.08, 0.08, 0.08, 0.12, 0.12, 0.12, 0.12, 0.4, 0.1),
-%     fit = c(0.0996, 0.0982, 0.1505, 0.1497, 0.0784, 0.0792, 0.0798, 0.0795, 0.1202, 0.1196, 0.1198, 0.1193, 0.3978, 0.1033)),
-%     .Names = c("sim", "fit"),
-%     row.names = c("A->T", "T->A", "C->G", "G->C", "A->C", "T->G", "A->G", "T->C", "C->A", "G->T", "C->T", "G->A", "CG->TG|CG->CA", "TCC->TTC|AGG->AAG"),
-%     class = "data.frame")
-
-
-%%%%%%%%%%%
-\subsection{Bayesian inference}
-
-The usage of fast sparse matrix methods described above make likelihood computation fast enough
-to use a Metropolis-Hasting-based Markov chain Monte Carlo method
-to sample from the posterior distribution on parameters.
-To test this,
-we evolved $10^6$ sites from the Ising model (described above) with $\lambda=0.5$, $\beta=1.0$, and $\gamma=0.5$
-for 1 unit of time,
-resulting in around 460,000 possible mutations
-and differences at around 186,000 sites between initial and final sequence.
-We then placed an Exponential prior with mean 1 on both transitions $+ \to -$ and $- \to +$
-(without constraining these to be equal)
-and half-Gaussian priors with mean 0 and scale 3 on both $\beta$ and $\gamma$,
-counted $(5,3,1)$ T-mers,
-and used the mcmc package \citep{geyer2017mcmc} to run a random walk sampler for 10,000 steps
-(judged sufficient by examination of diagnostic plots).
-We repeated this procedure separately on 61 independently simulated sequences,
-and show the resulting credible intervals in Figure~\ref{fig:ising_coverage}.
-
-Posterior medians were within half a percent of the truth for $+ \to -$ and $- \to +$ (corresponding to $\lambda$)
-and the temperature ($\beta$), but showed around 2\% error for the magnetic field $\gamma$.
-As seen in Table~\ref{tab:ising_coverage},
-credible intervals were somewhat too narrow for shorter T-mers,
-but $(6,2,2)$ T-mers were long enough with sufficient overhang to produce well-calibrated posteriors.
-
-\begin{table}[ht]
-\centering
-\begin{tabular}{rrrr}
-  \hline
-    & (4,1,1) & (5,1,1) & (6,2,2) \\
-  \hline
-  $\lambda_-$ & 0.61 & 0.63 & 0.96 \\
-  $\lambda_+$ & 0.87 & 0.86 & 0.85 \\
-  $\beta$     & 0.76 & 0.81 & 0.94 \\
-  $\gamma$    & 0.69 & 0.76 & 0.85 \\
-   \hline
-\end{tabular}
-    \caption{
-        Posterior coverage of the four parameters of the dynamic Ising model at four different T-mer sizes.
-        Shown are the proportion of runs in which the true value fell within the 95\% credible interval,
-        for T-mers of length 4, 5, and 6 with overhangs of length 1, 1, and 2 respectively.
-        The total number of runs was 61 for $(6,2,2)$ T-mers and 121 for the others.
-        \label{tab:ising_coverage}
-    }
-\end{table}
-
-\begin{figure}
-    \begin{center}
-        \includegraphics{writeup-plots/coverage_results}
-    \end{center}
-    \caption{
-        Credible intervals for the four parameters of the dynamic Ising model,
-        calculated using $(6,2,2)$ T-mers,
-        from 61 MCMC runs on independently simulated sequences of $10^6$ bases
-        differing at around 18.6\% of the sites.
-        Shown are relative intervals, obtained by dividing by the true value.
-        \label{fig:ising_coverage}}
-\end{figure}
-
-
-%%%%%%%%%%%
-\subsection{Hominid mutation spectrum}
-
-We also applied the method to changes between the human and chimpanzee reference sequences,
-using the model described above.
+Nevertheless, we find significant effects for a number of biochemically-informed mutation features (Figure~\ref{fig:biochem_results}).
+Specifically, we find strong CpG and UV damage effects.
+%EM Kelley saw the same thing https://paperpile.com/shared/aAYSgW ...
+It may seem tenuous to look for mutational signatures associated with cancer in the germline,
+or absurd that UV damage could play a significant role.
+This is in part due to the ``streetlight effect'' --
+we can't look for signatures that are not characterized --
+but it is also reasonable that shared repair machinery might induce similar context-dependent errors.
+More likely sources of error in the germline include the effects of recombination
+\citep{arbeithuber2015crossovers,myers2010drive}.
 
 
 \begin{figure}
@@ -1345,25 +1359,20 @@ using the model described above.
         \label{fig:biochem_results}}
 \end{figure}
 
-It may seem tenuous to look for mutational signatures associated with cancer in the germline,
-or absurd that UV damage could play a significant role.
-This is in part due to the ``streetlight effect'' --
-we can't look for signatures that are not characterized --
-but it is also reasonable that shared repair machinery might induce similar context-dependent errors.
-More likely sources of error in the germline include the effects of recombination
-\citep{arbeithuber2015crossovers,myers2010drive}.
-
 %%%%%%%%%%%%%%%%%%%%
 \section{Discussion}
 
+%EM given the full likelihood arguments, can we really say provably correct?
 This paper presents a tractable, provably correct method
 for doing statistical inference using observations of a particle model
 in which probabilities of change are affected by nearby sites.
 Such models appear in many fields, for instance,
+%EM are semicolons really legal here?
 as the dynamic counterparts to Markov random fields;
 many spin glass models;
 and models of DNA sequence evolution.
 
+%EM approximate full likelihoods?
 The methods described here provide a way to efficiently calculate full likelihoods,
 which in many circumstances provide the optimal basis for inference \citep{neyman1933problem},
 fast enough to allow Bayesian inference from Monte Carlo sampling.
@@ -1400,13 +1409,16 @@ might be used to estimate the process, and from this infer the original (ancestr
 
 \paragraph{Limitations}
 The model presented assumes that the same process occurs at every location along the sequence,
-and that the length of the sequence does not change (no indels).
+and that the length of the sequence does not change (no insertions or deletions).
 Neither of these assumptions are likely to be true for any data set of DNA sequence;
 however, both assumptions are also commonly made in phylogenetics.
 Some relaxation of the assumptions is possible -- for instance,
 we can easily allow heterogeneity between sites by scaling rates by an overall gamma-distributed random factor \citep{yang1994maximum}.
+%EM Does a gap character really make sense? It seems like this changes the interpretation of the tmer length... I'd skip.
 Short deletions might be accommodated by introducing a ``gap'' letter to the alphabet,
 but insertions are problematic.
+
+%EM Full likelihood conjecture?
 
 
 \paragraph{Computation}
