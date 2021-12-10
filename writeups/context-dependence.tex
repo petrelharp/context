@@ -48,6 +48,16 @@
 
 \bibliographystyle{plainnat}
 
+% http://bytesizebio.net/2013/03/11/adding-supplementary-tables-and-figures-in-latex/
+\newcommand{\beginsupplement}{%
+        \setcounter{table}{0}
+        \renewcommand{\thetable}{S\arabic{table}}%
+        \setcounter{figure}{0}
+        \renewcommand{\thefigure}{S\arabic{figure}}%
+     }
+
+
+
 \begin{document}
 
 
@@ -1475,16 +1485,20 @@ Dr.\ Matsen is an Investigator of the Howard Hughes Medical Institute.
 
 \bibliography{context-dependence}
 
+\clearpage
+
+\beginsupplement
+
 \appendix
 
 \section{Supplementary figures}
 
-\begin{figure}
+\begin{figure}[h!]
     \begin{center}
         \includegraphics{writeup-plots/coverage_results_all}
     \end{center}
     \caption{
-        As in \ref{fig:ising_coverage}:
+        As in Figure~\ref{fig:ising_coverage}:
         Credible intervals for the four parameters of the dynamic Ising model,
         from MCMC runs on independently simulated sequences of $10^6$ bases
         differing at around 18.6\% of the sites.
@@ -1523,6 +1537,7 @@ Dr.\ Matsen is an Investigator of the Howard Hughes Medical Institute.
         \label{sfig:biochem_results_relative}}
 \end{figure}
 
+\clearpage
 
 %%%%
 \section{Proof of the approximation}
