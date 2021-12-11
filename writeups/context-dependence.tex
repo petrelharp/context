@@ -1035,7 +1035,8 @@ with the longer mutational motif identified by \citet{harris2015evidence}.
 % Note the model is symmetric under reverse complementation.
 The resulting sequences differed at 28.5\% of the sites.
 
-To begin, we fit an unconstrained model of single-nucleotide substitution
+To begin, we fit an unconstrained non-context-dependent
+model of single-nucleotide substitution
 using a constrained quasi-Newton method (\verb|optim(.., method='L-BFGS-B')| in R).
 Recall that for inference, we next need to pick a T-mer shape
 with which to compute likelihoods,
@@ -1092,10 +1093,6 @@ which was used in simulating the data.
 \end{table}
 
 \begin{table}
-%EM This table is BIG. And it seems like our conclusions only stem from the very biggest residuals.
-%EM What if we cut of anything that doesn't have an absolute Z-score bigger than 10?
-%PR True, but I'd like to show that the $z$-scores do down to something smaller?
-%PR I've cut out four lines...
 % cpg-plus-epsilon/32140/base-model-fit-5-3-l1-resids.2.1.l0.tsv
 % cpg-plus-epsilon/32140/base-model-fit-5-3-l1-resids.2.1.l1.tsv
     \begin{center}
@@ -1147,9 +1144,6 @@ which was used in simulating the data.
     }
 \end{table}
 
-%EM "These patterns": Is it exactly the patterns in the true model?
-%EM Would we need to have prior information about CpGs to pick those additional terms?
-%PR No - I've added explanation - see above.
 After adding these patterns into the model and re-fitting, we searched for evidence of additional processes happening in the data.
 To do so, we calculated length 2 residuals and (3,1,1) T-mer residuals.
 Although some of the length 2 residuals had large $z$-scores,
@@ -1444,7 +1438,7 @@ however, we believe such situations to be rare,
 so that the full likelihood can be well approximated on a set of outcomes of high probability.
 The TASEP model represents in some ways the worst-case of dependency propagation,
 and has an analytic solution \citep{schutz1997exact}.
-Futher theoretical work in this direction would be welcome.
+Further theoretical work in this direction would be welcome.
 In practice,
 the approximation may be checked by computing the likelihood
 using successively longer T-mers,
@@ -1685,7 +1679,7 @@ across all transition triples.
 
 
 
-\section{Peeling algorithm}
+\section{Pruning algorithm}
 \label{ss:pruning_algorithm}
 
 Fix one tip of the tree, $a$, to be the taxa where we count ``long'' sequences, let $\rho$ be the root, and let $b_1, \ldots, b_n$ be the remaining tips,
@@ -1701,6 +1695,8 @@ is matched by each possible combination of ``short'' sequences on the tips of th
 For nodes on the path from $a$ to the root, we compute the probability of observing
 each ``long'' sequence at that node, along with the combinations of ``short'' sequences
 on all tips further away from $a$ (i.e., below that node if it was rooted at $a$).
+%EM I think I understand that the c is the number of tips on that side of the tree?
+%EM So we should think about y and z below of concatenation of short sequences on the tips of the tree, and (y,z) as the concatenation operator?
 For a node $w$ this will be stored as a $|\calS|^{n} \times |\calS|^{cm}$ matrix, for some $c$,
 and denoted $M(w)$.
 Rows of $M(u_j)$ sum to 1,
@@ -1716,16 +1712,18 @@ and denote by $G^T$ the transpose of $G$.
   \item Set $M(b_i) = U$ for each $b_i$.
 
   \item While there are $u_j$ whose children $w_1$ and $w_2$ both have matrices computed,
+  %EM I'm not sure why there is a single-item enumeration block here
     \begin{enumerate}
       \item let
         \begin{align}
+          %EM Is there a typo here? (x,z) appears 2x
           M(u_j)_{x,(y,z)} = \left( e^{t(w_1) G} M(w_1) \right)_{x,y} \left( e^{t(w_2) G} M(w_2)_{x,z} \right)_{x,z} .
         \end{align}
     \end{enumerate}
 
   \item Let
     \begin{align}
-      M(\rho)_{x,y} = \pi(x) \left( e^{t(u(\rho)) G} M(w(\rho)) \right)_{x,y}
+      M(\rho)_{x,y} = \pi(x) \left( e^{t(u(\rho)) G} M(w(\rho)) \right)_{x,y}.
     \end{align}
 
   \item For each $1 \le k < \ell$,
