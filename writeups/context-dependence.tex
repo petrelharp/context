@@ -63,7 +63,6 @@
 
 % TODO after submission: think about the BCR parameter regime.
 
-% TODO include github information
 
 %EM I'm going to suggest "dependence propagation" rather than information
 \title{Inference using context-dependent models of mutation via bounds on information propagation}
@@ -994,6 +993,18 @@ so, we compute normalized residuals as
 which is equivalent to averaging the $z$-scores of the $n$ possible tables of nonoverlapping counts.
 These can then be compared to a standard Normal distribution.
 
+
+
+%%%%%%%
+\section{Software}
+
+The methods described here
+are implemented in R
+and freely available at \url{https://github.com/petrelharp/context}.
+The core implementation of T-mer counting and likelihood evaluation
+is provided in an R package, \texttt{contextual},
+and is supplemented by (documented) code to simulate from context-dependent models
+and perform maximum likelihood or Bayesian inference.
 
 
 %%%%%%%
