@@ -1,0 +1,219 @@
+%%%%%%
+%%
+%%  Don't reorder the reviewer points; that'll mess up the automatic referencing!
+%%
+%%%%%
+
+\begin{minipage}[b]{2.5in}
+  Resubmission Cover Letter \\
+  {\it Evolution}
+\end{minipage}
+\hfill
+\begin{minipage}[b]{2.5in}
+    Joshua Schiffman \\
+    \emph{and} Peter Ralph \\
+  \today
+\end{minipage}
+ 
+\vskip 2em
+ 
+\noindent
+{\bf To the Editor(s) -- }
+ 
+\vskip 1em
+
+Our revised manuscript.
+
+\noindent \hspace{4em}
+\begin{minipage}{3in}
+\noindent
+{\bf Sincerely,}
+
+\vskip 2em
+
+{\bf 
+Erick Matsen and
+Peter Ralph
+}\\
+\end{minipage}
+
+\vskip 4em
+
+\pagebreak
+
+%%%%%%%%%%%%%%
+\reviewersection{1}
+
+
+\begin{quote}
+In their article ``Enabling inference for context-dependent models of
+mutation by bounding the propagation of dependency'' Matsen and Ralph
+discuss methodology to infer mutation rates in context dependent
+models of DNA evolution. With the advent of more sequence data it
+became clear that the first very simple models of DNA evolution are
+only a crude approximation to the ``real'' process. The extension of
+such models to also include neighbor dependencies is very timely.
+However, the inclusion of such processes is easier said than done -
+without ``bounding the propagation of dependency'' such models are
+computational not tractable.
+
+The paper is very well written and gives sufficient detail.
+
+The source code of the mentioned R package is available at github.com.
+\end{quote}
+
+Thanks very much for the kind words!
+
+%%%%%%%%%%%%%%
+\reviewersection{2}
+
+
+\begin{quote}
+In this manuscript the authors address the problem how to infer model
+parameters and model ``ingredients'' (allowed transitions) in models of
+sequence evolution, in which the rate of mutations depends on the
+local sequence context of a site. This is a significant problem and
+surprisingly difficult. The authors present a solution where they
+decompose the full transition matrix into elements that map
+subsequences into even shorter subsequences. This is an approximation,
+but they give a bound on the approximation and even more importantly
+show that the method works on two sets of simulated data. They then
+apply the method to real sequence data from humans and chimpanzee and
+find interesting rates for different processes relevant for sequence
+evolution.
+\end{quote}
+
+% > This is overall a very nice work, which in addition is presented very
+% > lucidly, but there are a few points the authors should address before
+% > publication:
+
+\begin{point}{}
+Could the authors provide some thoughts about sequences with
+periodic boundary conditions. That would be a natural setup both for
+the TASEP that they use as one of their examples and for bacterial
+genomes. Would they expect the method to still work and/or does
+anything need to be changed?
+\end{point}
+
+\reply{
+This is something that we thought about a good deal early on in this project,
+but removed to avoid introducing additional complexities.
+We agree it's a natural question to ask,
+and so have inserted some dicussion \revref.
+}
+
+\begin{point}{}
+Since the authors in the introduction bring up contexts like wild
+fires, land use patterns, and cell-cell interactions, could the
+authors in the discussion at least speculate about the possibility of
+extending this approach to 2D or 3D systems?
+\end{point}
+
+\reply{
+Good idea; we've inserted a brief note. \revref
+}
+
+\begin{quote}
+3) There are a few places where the presentation could be improved:
+\end{quote}
+
+\begin{point}{}
+It is somewhat confusing that in the definition of the
+% x --i,u,v--> y
+$ x \xrightarrow{i,u,v} y$
+relation toward the end of section 1 \revref{}
+the indices $i$ of the sequences
+$x$ and $y$ are one-based while the indices $k$ of the patterns $u$ and $v$ are
+zero-based. Can this be made more consistent?
+\end{point}
+
+\reply{
+Thanks for pointing this out,
+but after trying a few solutions out
+we'd like to keep it as-is.
+We think that the indexing on transition triples (for $u$ and $v$)
+should certainly be zero-based, because they are offsets.
+On the other hand, there would be no problem doing zero-based indexing for sequences ($x$ and $y$),
+but since these indexes are absolute positions it seems less important,
+and we think that $\sum_{i=1}^n$ is slightly more clear than $\sum_{i=0}^{n-1}$.
+(We tried inserting a note about this, but felt that even the note made things more confusing.)
+}
+
+\begin{point}{}
+It is quite confusing that the length of the sequence is $n$ in
+section 1 and then switches to $L$ in section 2. Later $n$ becomes the
+length of a subsequence block. The notation should ideally be made
+consistent between the sections, or, at a minimum, the reader should
+be warned of these notation changes.
+\end{point}
+
+\reply{
+This is a good point; we've made this change.
+(We had been trying to arrange things to introduce the generator matrix
+using the notation $G(n)$ rather than $G(L)$,
+as that's how it would mostly appear later,
+but this was not making this more clear.)
+}
+
+\begin{point}{}
+This referee would take some objection to calling the simulation
+algorithm in section 2 a Gillespie algorithm. The whole point of the
+Gillespie algorithm is to advance time in such a way that every step
+of the algorithm results in a transition. This is not the case in the
+algorithm the authors present since they always step forward with the
+maximal possible rate but then allow non-transitions.
+\end{point}
+
+\reply{
+We don't entirely agree here:
+one could also say that
+the point of the Gillespie algorithm is to obtain an exact trajectory
+of a continuous-time system
+by only considering those discrete times when there is a transition.
+This view doesn't disallow ``do-nothing'' transitions.
+We wouldn't mind removing the phrase entirely,
+but on the other hand the phrase is widely used
+(see for instance a nice Wikipedia page and 8,500 google scholar hits),
+so we'd like to leave it in to give readers new to the subject
+some more pointers into the background literature.
+}
+
+
+
+\begin{point}{3d}
+There is an inconsistency between equations (5), (6), and the
+equation right below (6). In the numerator the identification between
+the symbols must be that (n,l,r) in (5) is (2l+1,l+1,l) in (6).
+However, the upper index on x is n in (5) but 4l+1 != 2l+1 in (6).
+That is true in the denominator as well. Also,
+m=n-l-r=(2l+1)-(l+1)-l=0 != 2l+1 (if the authors meant that n was
+actually 4l+1, 4l+1-(l+1)-l=2l != 2l+1 does not work much better
+either) and in the denominator it is not clear why m should change
+given that l and r just get swapped and m only depends on their sum.
+Maybe this referee totally misunderstands the notation here, but this
+fact alone means that something needs to be improved in the
+presentation in this area.
+\end{point}
+
+\reply{
+TODO: Sorry about this. I suggest the solution is to change the
+first subscript on p to 4l+1.
+}
+
+\begin{point}{3e}
+It is somewhat counterintuitive that the caption of figure 4 talks
+of ``bases''. This seems like taking the analogy a bit too far.
+Shouldn't it be ``spins''?
+\end{point}
+
+\reply{
+Good point; done.
+}
+
+\begin{point}{3f}
+Remove a ``that'' in ``that that'' in the fifth line of appendix C.
+\end{point}
+
+\reply{
+Fixed, thanks.
+}

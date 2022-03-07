@@ -56,6 +56,43 @@
         \renewcommand{\thefigure}{S\arabic{figure}}%
      }
 
+% Responses to reviews
+\input{reviews/review-response-commands}
+% set this to show line numbers and include responses to reviews or not
+\newif\ifreviewresponses
+\reviewresponsestrue  % include them
+% \reviewresponsesfalse  % don't include them
+\newcommand{\responsefile}{reviews/reviews.v1.tex}  % name of the review responses file
+
+\newif\ifsubmission
+\submissiontrue
+% \submissionfalse
+\ifsubmission
+    % % stuff for submission
+    \usepackage{lineno}
+    % allow line numbers around math environments
+    % from https://tex.stackexchange.com/questions/43648/why-doesnt-lineno-number-a-paragraph-when-it-is-followed-by-an-align-equation
+        \newcommand*\patchAmsMathEnvironmentForLineno[1]{%
+          \expandafter\let\csname old#1\expandafter\endcsname\csname #1\endcsname
+          \expandafter\let\csname oldend#1\expandafter\endcsname\csname end#1\endcsname
+          \renewenvironment{#1}%
+             {\linenomath\csname old#1\endcsname}%
+             {\csname oldend#1\endcsname\endlinenomath}}% 
+        \newcommand*\patchBothAmsMathEnvironmentsForLineno[1]{%
+          \patchAmsMathEnvironmentForLineno{#1}%
+          \patchAmsMathEnvironmentForLineno{#1*}}%
+        \AtBeginDocument{%
+        \patchBothAmsMathEnvironmentsForLineno{equation}%
+        \patchBothAmsMathEnvironmentsForLineno{align}%
+        \patchBothAmsMathEnvironmentsForLineno{flalign}%
+        \patchBothAmsMathEnvironmentsForLineno{alignat}%
+        \patchBothAmsMathEnvironmentsForLineno{gather}%
+        \patchBothAmsMathEnvironmentsForLineno{multline}%
+        }
+\else
+    % for the nice version
+\fi
+
 
 
 \begin{document}
@@ -421,8 +458,8 @@ We close with a final example from statistical physics, to be used later:
 
 \begin{example}[Gibbs sampling of the Ising model]
     In the Ising model, each site is labeled as either ``up'' or ``down'' ($+1$ or $-1$ respectively),
-    imagined as a string of $n$ magnetic dipoles,
-    and the energy associated with a given state $x$ is $E(x) = - \frac{1}{2} \beta \sum_{i=1}^{n-1} x_i x_{i+1} - \frac{1}{2} \gamma \sum_{i=1}^n x_i$.
+    imagined as a string of $L$ magnetic dipoles,
+    and the energy associated with a given state $x$ is $E(x) = - \frac{1}{2} \beta \sum_{i=1}^{L-1} x_i x_{i+1} - \frac{1}{2} \gamma \sum_{i=1}^L x_i$.
     Here $\beta$ represents inverse temperature, and $\gamma$ represents the strength of the magnetic field (here scaled by temperature).
     The associated stationary distribution on configurations is proportional to $\exp(-E(x))$.
     The following process, also known as ``Glauber dynamics'', preserves the stationary distribution:
@@ -452,10 +489,10 @@ We close with a final example from statistical physics, to be used later:
 
 \paragraph{The generator matrix}
 We now describe concretely how the set of transition rates on patterns determines the transition rate matrix for complete sequences, that is,
-the $|\calS|^n \times |\calS|^n$ matrix $G(n)$ whose $(x,y)^\text{th}$ entry gives the instantaneous rate
-with which the process in state $x \in \calS^n$ jumps to state $y \in \calS^n$.
+the $|\calS|^L \times |\calS|^L$ matrix $G(L)$ whose $(x,y)^\text{th}$ entry gives the instantaneous rate
+with which the process in state $x \in \calS^L$ jumps to state $y \in \calS^L$.
 Recall that $x_i^{(h)} = (x_i, x_{i+1}, \ldots, x_{i+h-1})$ denotes the subsequence of length $h$ beginning at location $i$.
-For each $1\le i \le n$, pattern length $h > 0$, and patterns $u,v \in \calS^h$ define the relation
+For each $1\le i \le L$, pattern length $h > 0$, and patterns $u,v \in \calS^h$ define the relation
 \[
 x \xrightarrow{i,u,v} y \qquad \text{iff} \qquad \begin{cases}
   x_k = y_k \quad &\text{for } k<i \\
@@ -466,6 +503,7 @@ x \xrightarrow{i,u,v} y \qquad \text{iff} \qquad \begin{cases}
 \]
 i.e., if $x$ and $y$ match except at positions $i,i+1,\ldots,i+h-1$,
 and for those positions $x$ matches with $u$ while $y$ matches with $v$.
+\revpoint{2}{3}
 
 As before, let $\calT$ be the set of transition triples for the model.
 As noted above, there may be more than one way to mutate a sequence $x$ to get $y$:
@@ -474,32 +512,35 @@ to change $x$ into $y$, i.e.,
 \[
     J(i,x,y) = \{ (\mu,u,v) \in \calT \st x \xrightarrow{i,u,v} y \}.
 \]
-The rate ${G(n)}_{x,y}$ is then the sum of all transition rates that can take $x$ to $y$,
+The rate ${G(L)}_{x,y}$ is then the sum of all transition rates that can take $x$ to $y$,
 multiplied by the fitness term,
 namely
 \begin{align} \label{eqn:G_defn}
-    {G(n)}_{x,y} = \phi\left(E(y)-E(x)\right) \, \sum_{i=1}^n \sum_{(\mu, u, v) \in J(i,x,y)}  \mu ,
+    {G(L)}_{x,y} = \phi\left(E(y)-E(x)\right) \, \sum_{i=1}^L \sum_{(\mu, u, v) \in J(i,x,y)}  \mu ,
 \end{align}
-and if there are no triples $(\mu,u,v)$ with $x \xrightarrow{i,u,v} y$ for some $i$, then ${G(n)}_{x,y}=0$.
+and if there are no triples $(\mu,u,v)$ with $x \xrightarrow{i,u,v} y$ for some $i$, then ${G(L)}_{x,y}=0$.
 To make this the generator matrix for a Markov process,
-we also set each $G(n)_{x,x}$ so that rows sum to zero.
+we also set each $G(L)_{x,x}$ so that rows sum to zero.
 Indeed, this matrix is very sparse because for most pairs $(x,y)$ there are no transition triples that can change $x$ into $y$.
 
 In principle, this gives us the transition probabilities for the process by a matrix exponential:
 \begin{align} \label{eqn:full_likelihood}
-    p_n(t;x,y) := \P\{ X(t) = y \mid X(0) = x \} = {\left(e^{tG(n)}\right)}_{xy} ,
+    p_n(t;x,y) := \P\{ X(t) = y \mid X(0) = x \} = {\left(e^{tG(L)}\right)}_{xy} ,
 \end{align}
 which would then provide a route to parameter estimation.
-In practice, the size of these matrices makes direct application obviously impractical for anything but very small $n$.
+In practice, the size of these matrices makes direct application obviously impractical for anything but very small $L$.
 This paper proposes an alternate strategy.
 
 
+
+%%%%%%%%%%%%%%%%%%%%%
 \section{Simulation}
 
 First, it will be useful for later proofs to have an explicit construction of the process,
 also used for simulation,
 using a variant of the ``jump chain representation'', also known as the ``Gillespie algorithm''
 or ``uniformization'' \citep{hobolth2009simulation}.
+\revpoint{2}{5}
 Briefly, this  works by first sampling a homogeneous Poisson process of times and locations of possible changes,
 at an appropriate rate $\mu^*$ per site,
 and then resolving each possible change in temporal order.
@@ -565,8 +606,9 @@ The problem at hand is to infer the parameters of the model based on the final s
 How can we extract the information?
 These are Markov processes, on the state space $\calS^L$,
 so the full likelihood function is given by \eqref{eqn:full_likelihood},
-but doing anything with the $|\calS|^L \times |\calS|^L$ matrix $G_L$ is clearly infeasible even for moderately sized $L$.
-We can, however, compute \eqref{eqn:full_likelihood} with smaller $G_n$,
+but doing anything with the $|\calS|^L \times |\calS|^L$ matrix $G(L)$
+is clearly infeasible even for moderately sized $L$.
+We can, however, compute \eqref{eqn:full_likelihood} with smaller $G(n)$,
 so the first thing that one might think to do is to break the sequence up into many blocks of length $m$,
 and treat these as independent.
 Then, defining $p_m(t;x,y)$ to be the probability that a string $x$ of length $m$ evolves to string $y$ over time $t$,
@@ -780,6 +822,21 @@ In practice, we recommend computing the likelihood with equation \eqref{eqn:full
 using successively larger values of $\ell$
 to check for convergence.
 
+\paragraph{Boundary conditions} \revpoint{2}{1}
+Above, we have chosen to disallow changes whose patterns extend beyond the end of the sequence,
+i.e., the pattern $u$ (and hence, also the replacement $v$) of each transition triple
+must fit entirely within the existing sequence.
+Alternatively, we might assume periodic boundary conditions,
+which are natural for the Ising or TASEP models.
+Or, if the sequence we consider is embedded within a larger, unknown sequence,
+then we might assume a statistical model for the flanking sequence,
+averaging over the rates implied by states chosen from a stationary distribution.
+Our choice here of ``empty'' boundary conditions
+has the nice property that the total rate of changes on a given sub-segment of sequence
+is monotonically increasing in the length of the overhang,
+which gives us a simple check that the overhang is long enough
+(by seeing whether the total rate of change has converged).
+However, the software also allows periodic boundary conditions.
 
 
 %%%%%%%%%%%
@@ -1256,7 +1313,7 @@ but $(6,2,2)$ T-mers were long enough with sufficient overhang to produce well-c
     \caption{
         Credible intervals for the four parameters of the dynamic Ising model,
         calculated using $(6,2,2)$ T-mers,
-        from 61 MCMC runs on independently simulated sequences of $10^6$ bases
+        from 61 MCMC runs on independently simulated sequences of $10^6$ spins
         differing at around 18.6\% of the sites.
         Dark bars show the 50\% credible intervals, and lighter grey bars the 95\% credible intervals.
         Values shown are relative parameters, obtained by dividing by the true value.
@@ -1418,6 +1475,11 @@ Alternatively, multiple observations of independently transmitted copies of a si
 (e.g., down a phylogenetic tree)
 might be used to estimate the process, and from this infer the original (ancestral) sequence
 (or sample from its posterior distribution).
+There is no conceptual barrier to applying these methods to lattices in higher dimensions,
+such as noisy images or particle systems used to model other physical processes.
+However, computational costs will grow with the size of the local neighborhood used
+even faster than in one dimension. \revpoint{2}{2}
+
 
 \paragraph{Limitations}
 The model presented assumes that the same process occurs at every location along the sequence,
@@ -1735,5 +1797,8 @@ and denote by $G^T$ the transpose of $G$.
     \end{align}
 
 \end{enumerate}
+
+%%%%%%%%%%%%%%%%%
+\includereviews
 
 \end{document}
