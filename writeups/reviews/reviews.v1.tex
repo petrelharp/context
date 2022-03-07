@@ -180,24 +180,30 @@ some more pointers into the background literature.
 
 
 
-\begin{point}{3d}
-There is an inconsistency between equations (5), (6), and the
-equation right below (6). In the numerator the identification between
-the symbols must be that (n,l,r) in (5) is (2l+1,l+1,l) in (6).
-However, the upper index on x is n in (5) but 4l+1 != 2l+1 in (6).
+\begin{point}{}
+There is an inconsistency between equations \eqref{eqn:composite_like}, \eqref{eqn:full_approx},
+and the equation right below \eqref{eqn:full_approx}. In the numerator the identification between
+the symbols must be that $(n,\ell,r)$
+in \eqref{eqn:composite_like} is $(2\ell+1,\ell+1, \ell)$ in \eqref{eqn:full_approx}.
+However, the upper index on $x$ is $n$ in \eqref{eqn:composite_like}
+but $4\ell+1 \neq 2\ell+1$ in \eqref{eqn:full_approx}.
 That is true in the denominator as well. Also,
-m=n-l-r=(2l+1)-(l+1)-l=0 != 2l+1 (if the authors meant that n was
-actually 4l+1, 4l+1-(l+1)-l=2l != 2l+1 does not work much better
-either) and in the denominator it is not clear why m should change
-given that l and r just get swapped and m only depends on their sum.
+$m=n-\ell-r=(2\ell+1)-(\ell+1)-\ell=0 \neq 2\ell+1$
+(if the authors meant that $n$ was
+actually $4\ell+1$, then $4\ell+1-(\ell+1)-\ell=2\ell != 2\ell+1$ does not work much better
+either) and in the denominator it is not clear why $m$ should change
+given that $\ell$ and $r$ just get swapped and m only depends on their sum.
 Maybe this referee totally misunderstands the notation here, but this
 fact alone means that something needs to be improved in the
 presentation in this area.
 \end{point}
 
 \reply{
-TODO: Sorry about this. I suggest the solution is to change the
-first subscript on p to 4l+1.
+Whoops - sorry about that.
+The inconsistency stemmed from our switching around notation in a previous draft
+but forgetting to update it in equation \eqref{eqn:full_approx}.
+(This is confusing, which is why we have Figure~\ref{fig:Tmers}C to refer to.)
+The notation is now fixed. \revref
 }
 
 \begin{point}{3e}

@@ -430,8 +430,9 @@ given a certain fitness change from the parent.
     % Although this means there are many possible parameterizations,
     % note that the model is identifiable, not overparameterized.
 
-    Counteracting this trend towards increased G/C is GC-biased gene conversion \citep{glemin2015quantification},
-    which acts effectively as a selective pressure against G or C bases.
+    Counteracting this trend towards decreased G/C
+    is GC-biased gene conversion \citep{glemin2015quantification},
+    which acts effectively as a selective pressure in favor of G or C bases.
     We model the evolution of a \emph{single} sequence, not a population of sequences,
     imagining this sequence to be the consensus sequence of the population.
     A new mutation with an effect $s$ on fitness that occurs
@@ -439,9 +440,10 @@ given a certain fitness change from the parent.
     with probability approximately $(1-\exp(-2 s))/(1-\exp(-2 s N_e))$ \citep{kimura1962probability}.
     If the mutation occurs at rate $\mu$ per individual,
     the total rate it occurs at in the population is $\mu N_e$.
-    GC-biased gene conversion effectively means that sequences with more G/Cs are selected against.
+    GC-biased gene conversion effectively means that sequences with more G/Cs are selected for.
     This is incorporated as follows: set the energy of patterns \nC{} and \nG{} to be $s$,
     so that $E(y)-E(x)$ is the net change in number of G's and C's multiplied by $s$.
+    We then expect $s$ to be positive.
     Also, define $\phi(e)$ to be the expected rate of fixations of ``selected'' mutations
     with advantage $e$ relative to the per-individual, per-site mutation rate:
     \begin{align*}
@@ -460,7 +462,9 @@ We close with a final example from statistical physics, to be used later:
     In the Ising model, each site is labeled as either ``up'' or ``down'' ($+1$ or $-1$ respectively),
     imagined as a string of $L$ magnetic dipoles,
     and the energy associated with a given state $x$ is $E(x) = - \frac{1}{2} \beta \sum_{i=1}^{L-1} x_i x_{i+1} - \frac{1}{2} \gamma \sum_{i=1}^L x_i$.
-    Here $\beta$ represents inverse temperature, and $\gamma$ represents the strength of the magnetic field (here scaled by temperature).
+    Here $\beta$ controls the strength of coupling between neighboring dipoles,
+    and $\gamma$ controls the strength of an external magnetic field
+    (and both are scaled by temperature).
     The associated stationary distribution on configurations is proportional to $\exp(-E(x))$.
     The following process, also known as ``Glauber dynamics'', preserves the stationary distribution:
     each site, independently at rate $\lambda$,
@@ -496,8 +500,8 @@ For each $1\le i \le L$, pattern length $h > 0$, and patterns $u,v \in \calS^h$ 
 \[
 x \xrightarrow{i,u,v} y \qquad \text{iff} \qquad \begin{cases}
   x_k = y_k \quad &\text{for } k<i \\
-  x_{i+k} = u_k \quad &\text{for } 0 \le k < h \\
-  y_{i+k} = v_k \quad &\text{for } 0 \le k < h,\ \text{and} \\
+  x_{i+j} = u_j \quad &\text{for } 0 \le j < h \\
+  y_{i+j} = v_j \quad &\text{for } 0 \le j < h,\ \text{and} \\
   x_k = y_k \quad &\text{for } k\ge i+h ,
 \end{cases}
 \]
@@ -614,7 +618,7 @@ and treat these as independent.
 Then, defining $p_m(t;x,y)$ to be the probability that a string $x$ of length $m$ evolves to string $y$ over time $t$,
 we would obtain the approximate likelihood function
 \[
-  \prod_{k=0}^{n/m} p_m(x_{km+1}^{(m)},y_{km+1}^{(m)}) .
+  \prod_{k=0}^{n/m} p_m(t;x_{km+1}^{(m)},y_{km+1}^{(m)}) .
 \]
 However, this ignores dependencies between neighboring blocks,
 so it is not clear how good this approximation might be.
@@ -657,8 +661,8 @@ so it is not clear how good this approximation might be.
 The key insight we use is that by including neighboring sequence context in the \emph{initial} sequence only,
 we can compute \emph{something} correctly,
 and that will be sufficient to compute the full likelihood,
-at least arbitrarily.
-To do this, let $p_{n,\ell,r}(x,y)$ for $\ell + r < n$ denote
+at least approximately.
+To do this, let $p_{n,\ell,r}(t;x,y)$ for $\ell + r < n$ denote
 the probability that an initial subsequence $x$ of length $n$, after time $t$,
 is found to match a smaller subsequence $y$ of length $n-\ell-r$, offset by $\ell$ sites
 (see Figure \ref{fig:Tmers}).
@@ -667,7 +671,7 @@ We refer to such patterns as \emph{T-mers}, as depicted in Figure~\ref{fig:Tmers
 We emphasize that the overhang of the T-mers is typically bigger than the
 context-sensitivity width of the underlying model (Figure~\ref{fig:overview}).
 
-These $p_{n,\ell,r}(x,y)$ probabilities can be found by marginalizing $p_n$,
+These $p_{n,\ell,r}(t;x,y)$ probabilities can be found by marginalizing $p_n$,
 summing over the possible initial and final substrings of $x$
 (denoted $a$ and $b$):
 \begin{align}
@@ -679,16 +683,16 @@ summing over the possible initial and final substrings of $x$
     \label{eq:pmMarg}
 \end{align}
 where $a \join y \join b$ is the sequence composed of concatenating $a$, $y$, and $b$ together in that order.
-We expect $p_{n,\ell,r}(x,y)$ to be asymptotically correct when $\ell$ and $r$ are large (and $t$ is fixed).
+We expect $p_{n,\ell,r}(t;x,y)$ to be asymptotically correct when $\ell$ and $r$ are large (and $t$ is fixed).
 In Appendix~\ref{ss:approx_pf}, we show that this is so, namely that
 the probability a given subsequence of length $n$ matching $x$
 is later observed to have its center matching $y$
-is close to $p_{n,\ell,r}(x,y)$, regardless of wider context.
+is close to $p_{n,\ell,r}(t;x,y)$, regardless of wider context.
 Formally, for each $i$,
 \begin{align} \label{eqn:window_approx}
     \P\{ X_{i+\ell}^{(n-\ell-r)}(t) = y \mid X_i^{(n)}(0) = x \}
     \approx
-    p_{n,\ell,r}(x,y)
+    p_{n,\ell,r}(t;x,y)
     ,
 \end{align}
 with the approximation getting better for longer $\ell$ and $r$.
@@ -701,7 +705,7 @@ with $m = n - \ell - r$,
 \begin{align}\label{eqn:composite_like}
     A_{n, \ell, r}(x,y)
         =
-        \prod_{i=1}^{L-m+1} p_{n, \ell, r}\left(x_i^{(n)}, y_{i+\ell}^{(m)}\right).
+        \prod_{i=1}^{L-m+1} p_{n, \ell, r}\left(t;x_i^{(n)}, y_{i+\ell}^{(m)}\right).
 \end{align}
 To keep notation simple we've ignored the boundaries of the sequence;
 to deal properly with these,
@@ -743,18 +747,19 @@ This suggests that the following approximation should be good:
         \P\{ Y_i = y_i \given Y_{i-2\ell}^{(2\ell+1)} \;\text{and}\; X_{i-3\ell}^{(4\ell+1)} \}  \\
     &=
         \frac{
-            p_{2\ell+1,\ell+1,\ell}(x_{i-3\ell}^{(4\ell+1)}, y_{i-2\ell}^{(2\ell+1)})
+            p_{4\ell+1,\ell,\ell}(t; x_{i-3\ell}^{(4\ell+1)}, y_{i-2\ell}^{(2\ell+1)})
         }{
-            p_{2\ell+1,\ell,\ell+1}(x_{i-3\ell}^{(4\ell+1)}, y_{i-2\ell}^{(2\ell)})
+            p_{4\ell+1,\ell,\ell+1}(t; x_{i-3\ell}^{(4\ell+1)}, y_{i-2\ell}^{(2\ell)})
         }.
     \end{split}
 \end{align}
+\revpoint{2}{6}
 
 Since the full likelihood is a product across sites,
 we can then simply express an approximate full likelihood as
 a ratio of two composite likelihoods:
 \[
-    \like(y \mid x) \approx \frac{ A_{2\ell+1, \ell+1, \ell}(x,y) }{ A_{2\ell+1, \ell, \ell+1}(x,y) }.
+    \like(y \mid x) \approx \frac{ A_{4\ell+1, \ell, \ell}(x,y) }{ A_{4\ell+1, \ell, \ell+1}(x,y) }.
 \]
 % Define $n_\ell(x,y;a,b)$ to be the number of times pattern $a$ is seen in sequence $x$
 % matched to pattern $b$ in $y$ at a position offset by $\ell$.
@@ -762,9 +767,9 @@ a ratio of two composite likelihoods:
 % \begin{align}
 %     \log \like(y|x)
 %     &\approx
-%         \sum_{a \in \calS^n} \sum_{b \in \calS^{n-2\ell}} n_\ell(x,y;a,b) \log p_{n,\ell,\ell}(a,b)
+%         \sum_{a \in \calS^n} \sum_{b \in \calS^{n-2\ell}} n_\ell(x,y;a,b) \log p_{n,\ell,\ell}(t;a,b)
 %         -
-%         \sum_{c \in \calS^n} \sum_{d \in \calS^{n-2\ell-1}} n_\ell(x,y;c,d) \log p_{n,\ell,\ell+1}(c,d)
+%         \sum_{c \in \calS^n} \sum_{d \in \calS^{n-2\ell-1}} n_\ell(x,y;c,d) \log p_{n,\ell,\ell+1}(t;c,d)
 % \end{align}
 
 See the next section for more discussion of the approximations.
@@ -846,7 +851,7 @@ For inference, we need to compute the $|\calS|^{n} \times |\calS|^m$ matrix $F$ 
 for various $t$ (and $m = n - \ell - r$).
 This matrix is a projection of the $|\calS|^{n} \times |\calS|^{n}$ matrix whose $(a,c)^\text{th}$ entry is
 \begin{align}
-    p_{n}(a,c) = \left( e^{t G(n)} \right)_{a,c} ,
+    p_{n}(t;a,c) = \left( e^{t G(n)} \right)_{a,c} ,
 \end{align}
 where $G(n)$ is the sparse $|\calS|^{n} \times |\calS|^{n}$ matrix defined in \eqref{eqn:G_defn}.
 The ``projection'' we need just marginalizes over long (i.e., length $n$) patterns $c$ that match the shorter (i.e., length $m$) pattern $b$
@@ -854,7 +859,7 @@ as in \eqref{eq:pmMarg}:
 if we define the $n \times m$ matrix $U$ so that $U_{cb}=1$ if $c_\ell^{(m)}=b$ and $U_{cb}=0$ otherwise,
 then
 \begin{align} \label{eqn:Tmer_trans}
-    p_{n,\ell,r}(t,a,b) = \sum_{c \in \calS^{n}} \left( e^{t G(n)} \right)_{ac} U_{cb} ,
+    p_{n,\ell,r}(t;a,b) = \sum_{c \in \calS^{n}} \left( e^{t G(n)} \right)_{ac} U_{cb} ,
 \end{align}
 so in fact we don't need the entire matrix $e^{t G(n)}$,
 just the product of this matrix with each of the columns of $U$.
@@ -917,7 +922,7 @@ The probability that we see $x$ and $y$ at the random location $I$ is
 \begin{align} \label{eqn:phylo_likelihood}
     \P\{X_{I-\ell}^{(n)}(t_X)=x \text{ and } Y_I^{(m)}(t_Y)=y \}
     =
-    \sum_{z \in \calS^{n}} \pi(z) \, p_{n,0,0}(t_X,z,x) \, p_{n,\ell,r}(t_Y,z,y) .
+    \sum_{z \in \calS^{n}} \pi(z) \, p_{n,0,0}(t_X;z,x) \, p_{n,\ell,r}(t_Y;z,y) .
 \end{align}
 Denote this quantity $p_{n,\ell,r}(x, y)$.
 This can be computed without much more effort than the simpler case above,
@@ -926,7 +931,7 @@ These calculations can be done using the same sparse matrix methods as above.
 For instance, to compute
 \[
     \sum_{z \in \calS^{n}}
-        \pi(z) \, p_{n,0,0}(t_X,z,x) \, p_{n,\ell,r}(t_Y,z,y)
+        \pi(z) \, p_{n,0,0}(t_X;z,x) \, p_{n,\ell,r}(t_Y;z,y)
     =
     \sum_{z \in \calS^{n}}
     \left( e^{t_X G(n)} \right)_{zx}
@@ -1550,7 +1555,7 @@ A promising alternative would be to use the distinct signatures obtained by dime
 \subsection{Acknowledgements}
 The initial impetus for this project came from Matt Dean;
 along the way substantial encouragement and useful suggestions were provided by
-Simon Tavar\'e, Rasmus Nielsen, Graham Coop, Yaniv Brandvain, and Sergey Nuzhdin.
+Will DeWitt, Simon Tavar\'e, Rasmus Nielsen, Graham Coop, Yaniv Brandvain, and Sergey Nuzhdin.
 Many thanks are also due to Jessica Crisci for curating the human-chimp data.
 The majority of this work was done while PR was at USC.
 
