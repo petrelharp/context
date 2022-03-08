@@ -529,7 +529,7 @@ Indeed, this matrix is very sparse because for most pairs $(x,y)$ there are no t
 
 In principle, this gives us the transition probabilities for the process by a matrix exponential:
 \begin{align} \label{eqn:full_likelihood}
-    p_n(t;x,y) := \P\{ X(t) = y \mid X(0) = x \} = {\left(e^{tG(L)}\right)}_{xy} ,
+    p_n(t;\,x,y) := \P\{ X(t) = y \mid X(0) = x \} = {\left(e^{tG(L)}\right)}_{xy} ,
 \end{align}
 which would then provide a route to parameter estimation.
 In practice, the size of these matrices makes direct application obviously impractical for anything but very small $L$.
@@ -612,13 +612,13 @@ These are Markov processes, on the state space $\calS^L$,
 so the full likelihood function is given by \eqref{eqn:full_likelihood},
 but doing anything with the $|\calS|^L \times |\calS|^L$ matrix $G(L)$
 is clearly infeasible even for moderately sized $L$.
-We can, however, compute \eqref{eqn:full_likelihood} with smaller $G(n)$,
+We can, however, compute \eqref{eqn:full_likelihood} using $G(n)$ for some smaller $n$,
 so the first thing that one might think to do is to break the sequence up into many blocks of length $m$,
 and treat these as independent.
-Then, defining $p_m(t;x,y)$ to be the probability that a string $x$ of length $m$ evolves to string $y$ over time $t$,
+Then, defining $p_m(t;\,x,y)$ to be the probability that a string $x$ of length $m$ evolves to string $y$ over time $t$,
 we would obtain the approximate likelihood function
 \[
-  \prod_{k=0}^{n/m} p_m(t;x_{km+1}^{(m)},y_{km+1}^{(m)}) .
+  \prod_{k=0}^{n/m} p_m(t;\,x_{km+1}^{(m)},y_{km+1}^{(m)}) .
 \]
 However, this ignores dependencies between neighboring blocks,
 so it is not clear how good this approximation might be.
@@ -662,7 +662,7 @@ The key insight we use is that by including neighboring sequence context in the 
 we can compute \emph{something} correctly,
 and that will be sufficient to compute the full likelihood,
 at least approximately.
-To do this, let $p_{n,\ell,r}(t;x,y)$ for $\ell + r < n$ denote
+To do this, let $p_{n,\ell,r}(t;\,x,y)$ for $\ell + r < n$ denote
 the probability that an initial subsequence $x$ of length $n$, after time $t$,
 is found to match a smaller subsequence $y$ of length $n-\ell-r$, offset by $\ell$ sites
 (see Figure \ref{fig:Tmers}).
@@ -671,28 +671,28 @@ We refer to such patterns as \emph{T-mers}, as depicted in Figure~\ref{fig:Tmers
 We emphasize that the overhang of the T-mers is typically bigger than the
 context-sensitivity width of the underlying model (Figure~\ref{fig:overview}).
 
-These $p_{n,\ell,r}(t;x,y)$ probabilities can be found by marginalizing $p_n$,
+These $p_{n,\ell,r}(t;\,x,y)$ probabilities can be found by marginalizing $p_n$,
 summing over the possible initial and final substrings of $x$
 (denoted $a$ and $b$):
 \begin{align}
-    p_{n,\ell,r}(t;x,y)
+    p_{n,\ell,r}(t;\,x,y)
     &=
-    \sum_{a \in \calS^\ell} \sum_{b \in \calS^r} p_n(t;x,a \join y \join b) ,
+    \sum_{a \in \calS^\ell} \sum_{b \in \calS^r} p_n(t;\,x,a \join y \join b) ,
     \quad
     \text{for}\; x \in \calS^n, \; y \in \calS^{n-\ell-r} ,
     \label{eq:pmMarg}
 \end{align}
 where $a \join y \join b$ is the sequence composed of concatenating $a$, $y$, and $b$ together in that order.
-We expect $p_{n,\ell,r}(t;x,y)$ to be asymptotically correct when $\ell$ and $r$ are large (and $t$ is fixed).
+We expect $p_{n,\ell,r}(t;\,x,y)$ to be asymptotically correct when $\ell$ and $r$ are large (and $t$ is fixed).
 In Appendix~\ref{ss:approx_pf}, we show that this is so, namely that
 the probability a given subsequence of length $n$ matching $x$
 is later observed to have its center matching $y$
-is close to $p_{n,\ell,r}(t;x,y)$, regardless of wider context.
+is close to $p_{n,\ell,r}(t;\,x,y)$, regardless of wider context.
 Formally, for each $i$,
 \begin{align} \label{eqn:window_approx}
     \P\{ X_{i+\ell}^{(n-\ell-r)}(t) = y \mid X_i^{(n)}(0) = x \}
     \approx
-    p_{n,\ell,r}(t;x,y)
+    p_{n,\ell,r}(t;\,x,y)
     ,
 \end{align}
 with the approximation getting better for longer $\ell$ and $r$.
@@ -705,7 +705,7 @@ with $m = n - \ell - r$,
 \begin{align}\label{eqn:composite_like}
     A_{n, \ell, r}(x,y)
         =
-        \prod_{i=1}^{L-m+1} p_{n, \ell, r}\left(t;x_i^{(n)}, y_{i+\ell}^{(m)}\right).
+        \prod_{i=1}^{L-m+1} p_{n, \ell, r}\left(t;\,x_i^{(n)}, y_{i+\ell}^{(m)}\right).
 \end{align}
 To keep notation simple we've ignored the boundaries of the sequence;
 to deal properly with these,
@@ -747,9 +747,9 @@ This suggests that the following approximation should be good:
         \P\{ Y_i = y_i \given Y_{i-2\ell}^{(2\ell+1)} \;\text{and}\; X_{i-3\ell}^{(4\ell+1)} \}  \\
     &=
         \frac{
-            p_{4\ell+1,\ell,\ell}(t; x_{i-3\ell}^{(4\ell+1)}, y_{i-2\ell}^{(2\ell+1)})
+            p_{4\ell+1,\ell,\ell}(t;\, x_{i-3\ell}^{(4\ell+1)}, y_{i-2\ell}^{(2\ell+1)})
         }{
-            p_{4\ell+1,\ell,\ell+1}(t; x_{i-3\ell}^{(4\ell+1)}, y_{i-2\ell}^{(2\ell)})
+            p_{4\ell+1,\ell,\ell+1}(t;\, x_{i-3\ell}^{(4\ell+1)}, y_{i-2\ell}^{(2\ell)})
         }.
     \end{split}
 \end{align}
@@ -767,9 +767,9 @@ a ratio of two composite likelihoods:
 % \begin{align}
 %     \log \like(y|x)
 %     &\approx
-%         \sum_{a \in \calS^n} \sum_{b \in \calS^{n-2\ell}} n_\ell(x,y;a,b) \log p_{n,\ell,\ell}(t;a,b)
+%         \sum_{a \in \calS^n} \sum_{b \in \calS^{n-2\ell}} n_\ell(x,y;a,b) \log p_{n,\ell,\ell}(t;\,a,b)
 %         -
-%         \sum_{c \in \calS^n} \sum_{d \in \calS^{n-2\ell-1}} n_\ell(x,y;c,d) \log p_{n,\ell,\ell+1}(t;c,d)
+%         \sum_{c \in \calS^n} \sum_{d \in \calS^{n-2\ell-1}} n_\ell(x,y;c,d) \log p_{n,\ell,\ell+1}(t;\,c,d)
 % \end{align}
 
 See the next section for more discussion of the approximations.
@@ -829,6 +829,7 @@ to check for convergence.
 
 \paragraph{Boundary conditions} \revpoint{2}{1}
 Above, we have chosen to disallow changes whose patterns extend beyond the end of the sequence,
+%EM This i.e. seems out of place
 i.e., the pattern $u$ (and hence, also the replacement $v$) of each transition triple
 must fit entirely within the existing sequence.
 Alternatively, we might assume periodic boundary conditions,
@@ -851,7 +852,7 @@ For inference, we need to compute the $|\calS|^{n} \times |\calS|^m$ matrix $F$ 
 for various $t$ (and $m = n - \ell - r$).
 This matrix is a projection of the $|\calS|^{n} \times |\calS|^{n}$ matrix whose $(a,c)^\text{th}$ entry is
 \begin{align}
-    p_{n}(t;a,c) = \left( e^{t G(n)} \right)_{a,c} ,
+    p_{n}(t;\,a,c) = \left( e^{t G(n)} \right)_{a,c} ,
 \end{align}
 where $G(n)$ is the sparse $|\calS|^{n} \times |\calS|^{n}$ matrix defined in \eqref{eqn:G_defn}.
 The ``projection'' we need just marginalizes over long (i.e., length $n$) patterns $c$ that match the shorter (i.e., length $m$) pattern $b$
@@ -859,7 +860,7 @@ as in \eqref{eq:pmMarg}:
 if we define the $n \times m$ matrix $U$ so that $U_{cb}=1$ if $c_\ell^{(m)}=b$ and $U_{cb}=0$ otherwise,
 then
 \begin{align} \label{eqn:Tmer_trans}
-    p_{n,\ell,r}(t;a,b) = \sum_{c \in \calS^{n}} \left( e^{t G(n)} \right)_{ac} U_{cb} ,
+    p_{n,\ell,r}(t;\,a,b) = \sum_{c \in \calS^{n}} \left( e^{t G(n)} \right)_{ac} U_{cb} ,
 \end{align}
 so in fact we don't need the entire matrix $e^{t G(n)}$,
 just the product of this matrix with each of the columns of $U$.
@@ -1040,7 +1041,7 @@ because the smaller total number of possible T-mers makes it easier to identify 
 For each T-mer $(x,y)$, write $O_{x,y}$ for the number of this T-mer observed in the data,
 and $E_{x,y}$ for the number expected under the model.
 (The expected number is the number of occurrences of $x$ in the initial sequence
-multiplied by the probability $p_{n,\ell,r}(t;x,y)$, where $n$ is the length of $x$,
+multiplied by the probability $p_{n,\ell,r}(t;\,x,y)$, where $n$ is the length of $x$,
 and $\ell$, $r$ are the appropriate overhangs.)
 If the T-mers were nonoverlapping, this would form a standard contingency table,
 and standard practice would be to divide the residuals by the square root of the expected counts
@@ -1482,6 +1483,7 @@ might be used to estimate the process, and from this infer the original (ancestr
 (or sample from its posterior distribution).
 There is no conceptual barrier to applying these methods to lattices in higher dimensions,
 such as noisy images or particle systems used to model other physical processes.
+%EM I suggest taking out "used"
 However, computational costs will grow with the size of the local neighborhood used
 even faster than in one dimension. \revpoint{2}{2}
 
@@ -1561,7 +1563,7 @@ The majority of this work was done while PR was at USC.
 
 FAM's work supported by NIH grants R01 AI146028 and U01 AI150747.
 Dr.\ Matsen is an Investigator of the Howard Hughes Medical Institute.
-PLR's work was supported by NIH award R01HG010774
+PLR's work was supported by NIH award R01HG010774.
 
 
 \bibliography{context-dependence}
