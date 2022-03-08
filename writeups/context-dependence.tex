@@ -77,7 +77,7 @@
           \expandafter\let\csname oldend#1\expandafter\endcsname\csname end#1\endcsname
           \renewenvironment{#1}%
              {\linenomath\csname old#1\endcsname}%
-             {\csname oldend#1\endcsname\endlinenomath}}% 
+             {\csname oldend#1\endcsname\endlinenomath}}%
         \newcommand*\patchBothAmsMathEnvironmentsForLineno[1]{%
           \patchAmsMathEnvironmentForLineno{#1}%
           \patchAmsMathEnvironmentForLineno{#1*}}%
@@ -273,8 +273,8 @@ computational techniques using sparse matrices.
         the sites of interest (the three sites in the center of the final sequence).
         The blue T shape is called a \emph{T-mer},
         which is how our approximation to the process is parameterized.
-        The central, smaller segment of the T is called the \emph{base} of the T-mer,
-        and the key building block computes the transition probability
+        The central, smaller segment of the T is called the \emph{base} of the T-mer.
+        The key building block for our method computes the transition probability
         for this subsequence
         conditioned on the ancestral state at the additional \emph{overhang}
         sites of the top of the T.
@@ -775,7 +775,7 @@ a ratio of two composite likelihoods:
 See the next section for more discussion of the approximations.
 
 %%%%%
-\subsection{Choice of overhang}
+\ubsection{Choice of overhang}
 
 The approximations in~\eqref{eqn:window_approx} and~\eqref{eqn:full_approx} hold
 if the overhang, $\ell$, is long enough.
