@@ -188,6 +188,8 @@ and other processes such as biased gene conversion \citep{duret2009biased,arbeit
 Indeed, molecular studies have demonstrated that the spectrum of new mutations in humans
 is highly context dependent \citep{schaibley2013influence,gao2019overlooked,rodriguezgalindo2020germline}
 and that multinucleotide substitutions are relatively common \citep{schrider2011pervasive,terekhanova2013prevalence,harris2013errorprone}.
+\citet{dewitt2021nonparametric} has even identified how these mutational signatures in humans
+have varied over recent time.
 In humans, the molecular processes underlying mutations are best studied in contexts of intense somatic mutation:
 cancer and the hypervariable regions that generate immune system diversity \citep{cobey2015evolution,herediagenestar2020extreme},
 which provide quite different cellular contexts but can share commonalities due to shared molecular machinery.
@@ -198,12 +200,12 @@ In general, substitution rates depend on sequence context due to the interaction
 and (c) any functional effects of an error (e.g., lethal mutations will not be seen in a population census).
 We are concerned with effects that are \emph{homogeneous} across the sequence,
 so do not consider further the many constraints on protein-coding sequence \citep[reviewed in][]{thorne2007protein}.
-Some of these effects -- particularly, activity levels of different enzymes in the germline --
-will likely vary over evolutionary time,
-and so comparisons between widely separated species will identify time-averaged mutation rates.
+% Some of these effects -- particularly, activity levels of different enzymes in the germline --
+% will likely vary over evolutionary time,
+% and so comparisons between widely separated species will identify time-averaged mutation rates.
 Studies have used a variety of exploratory techniques to identify sets of mutational patterns
-co-occurring in comparisons (a) between different cancer types \citep{alexandrov2013signatures,shiraishi2015simple} and
-(b) between different human populations \citep{harris2015evidence,harris2016rapid,mathieson2017differences},
+co-occurring in comparisons between different cancer types \citep{alexandrov2013signatures,shiraishi2015simple} and
+between different human populations \citep{harris2015evidence,harris2016rapid,mathieson2017differences}
 to disentangle distinct signals presumably coming from the action of distinct sources of mutation.
 
 
@@ -219,7 +221,7 @@ or by other approximations \citep{christensen2005pseudolikelihood,saunders2007in
 \citet{pedersen2000dependent}, later extended by
 \citet{Hwang2004-pj,hobolth2008markov} and \citet{baele2010using}, used data augmentation and an MCMC algorithm to do Bayesian inference;
 \citet{lunter2004nucleotide} used an approximate matrix decomposition;
-while \citet{siepel2004phylogenetic} and later \citep{baele2010modelling} computed likelihoods by assuming a model that is Markov along the genome.
+while \citet{siepel2004phylogenetic} and later \citet{baele2010modelling} computed likelihoods by assuming a model that is Markov along the genome.
 However, all these methods are quite computationally intensive.
 
 
@@ -227,7 +229,7 @@ Another canonical example of context-dependent transition is the Ising model of 
 with time evolution given by Glauber dynamics \citep{glauber1963timedependent},
 in which a lattice of up/down spins are perturbed by thermal noise,
 relaxing into states dependent on the energy of the resulting configuration.
-Parameter estimation for Ising model without temporal dynamics
+Parameter estimation for the Ising model without temporal dynamics
 is relatively well-understood \citep{pickard1982inference,frigessi1990parameter},
 but the problem of dynamical observations is less well-studied.
 
@@ -239,7 +241,7 @@ Complex models may introduce long-range dependencies beyond the scope of this pa
 but these methods may still prove useful in the modeling process.
 
 
-This general class of models are known in the probability literature as
+This general class of models is known in the probability literature as
 interacting particle systems \citep{liggett2005ips} with neighborhood structure
 -- continuous-time Markov chains on lattice-indexed collections of states
 whose transition probabilities are \emph{local}
@@ -346,7 +348,7 @@ it is informative to consider other, simpler, models as well.
 Here is one such example.
 
 \begin{example}[TASEP]
-  In the \emph{Totally Asymmetric Simple Exclusion Process}
+  The \emph{Totally Asymmetric Simple Exclusion Process}
   describes a set of particles moving among some sites,
   with at most one particle per site.
   Each site is either ``empty'' or ``occupied''
@@ -408,7 +410,7 @@ given a certain fitness change from the parent.
 \begin{example}[Genomic GC content]
     A genome sequence can be written using A, C, G, and T;
     in the most general model of independent mutation across sites, each of the 12 possible transitions occurs at its own rate.
-    Furthermore, in many species
+    Furthermore, in many species,
     adjacent, methylated CG dinucleotides (``CpG sites'') have a much higher mutation rate to TG and CA
     than either single nucleotide change under the independent model.
     Embellishing the single-nucleotide model with this additional rate results in the model defined by
@@ -437,17 +439,17 @@ given a certain fitness change from the parent.
     imagining this sequence to be the consensus sequence of the population.
     A new mutation with an effect $s$ on fitness that occurs
     in a population of effective size $N_e$ becomes ubiquitous, rather than dying out,
-    with probability approximately $(1-\exp(-2 s))/(1-\exp(-2 s N_e))$ \citep{kimura1962probability}.
+    with probability approximately $(1-\exp(-2 s))/(1-\exp(-4 s N_e))$ \citep{kimura1962probability}.
     If the mutation occurs at rate $\mu$ per individual,
-    the total rate it occurs at in the population is $\mu N_e$.
-    GC-biased gene conversion effectively means that sequences with more G/Cs are selected for.
+    the total rate it occurs at in the population is $2 \mu N_e$.
+    The effect of GC-biased gene conversion can be modeled as a selective pressure in favor of G/Cs.
     This is incorporated as follows: set the energy of patterns \nC{} and \nG{} to be $s$,
     so that $E(y)-E(x)$ is the net change in number of G's and C's multiplied by $s$.
     We then expect $s$ to be positive.
     Also, define $\phi(e)$ to be the expected rate of fixations of ``selected'' mutations
     with advantage $e$ relative to the per-individual, per-site mutation rate:
     \begin{align*}
-        \phi(e) = N_e (1-\exp(-2e))/(1-\exp(-2eN)).
+        \phi(e) = 2 N_e (1-\exp(-2 e))/(1-\exp(-4 e N_e)).
     \end{align*}
     With these definitions,
     if a given change that occurs with rate $\mu$ would change a sequence $x$ to $y$,
@@ -556,7 +558,9 @@ The rate $\mu^*$ should be the maximum ``local'' rate at which transitions occur
     % = \max \left\{ \sum_{y \in \calS^L} \sum_{(\mu, u, v) \in J(i,x,y)} \mu \qquad \st x \in \calS^L, \quad 1 \le i \le L \right\} .
     = \max_x \sum_{y \neq x} G(L)_{x,y} .
 \]
-Note that we do not actually need to construct $G(L)$ to find the maximum rate.
+Note that we do not actually need to construct $G(L)$ to find $\mu^*$:
+since $\mu^*$ must only be greater than this maximum value (not necessarily equal to it),
+we can take $\mu^*$ to be $L$ multiplied by the maximum ``per-site'' rate.
 Now sample possible changes:
 in a sequence of length $L$, over a time period $t$,
 first draw the number of possible changes, $N$,
@@ -568,8 +572,8 @@ Order the possible change times, so that
 \[
     0 < s_1 < \cdots < s_N < t .
 \]
-(Note that this is equivalent to saying that possible
-changes occur at rate $\mu^*$ independently at each of the $L$ sites.)
+(Note that this is equivalent to placing a Poisson process of possible
+changes at rate $\mu^*$ independently at each of the $L$ sites.)
 Now, suppose we have determined the state just before time $s_k$ to be $X(s_{k-1}) = x$.
 Then, the new state $X(s_k)$ is chosen by applying a mutation at position $i_k$
 with probability proportional to the corresponding rate, i.e.,
@@ -664,11 +668,10 @@ and that will be sufficient to compute the full likelihood,
 at least approximately.
 To do this, let $p_{n,\ell,r}(t;\,x,y)$ for $\ell + r < n$ denote
 the probability that an initial subsequence $x$ of length $n$, after time $t$,
-is found to match a smaller subsequence $y$ of length $n-\ell-r$, offset by $\ell$ sites
-(see Figure \ref{fig:Tmers}).
-This central, smaller subsequence is called the ``base'' of the T-mer.
-We refer to such patterns as \emph{T-mers}, as depicted in Figure~\ref{fig:Tmers}.
-We emphasize that the overhang of the T-mers is typically bigger than the
+is found to match a smaller subsequence $y$ of length $n-\ell-r$, offset by $\ell$ sites.
+We refer to such patterns as \emph{T-mers}, as depicted in Figure~\ref{fig:Tmers},
+and this central, smaller subsequence is called the ``base'' of the T-mer.
+The overhang of the T-mers is typically bigger than the
 context-sensitivity width of the underlying model (Figure~\ref{fig:overview}).
 
 These $p_{n,\ell,r}(t;\,x,y)$ probabilities can be found by marginalizing $p_n$,
@@ -709,8 +712,9 @@ with $m = n - \ell - r$,
 \end{align}
 To keep notation simple we've ignored the boundaries of the sequence;
 to deal properly with these,
-on the right-hand side of the equation $\ell$ should be replaced with $\min(\ell, \max(i-1, 0))$,
-and $r$ should be replaced with $\min(r, \max(n-i-\ell-m+1, 0))$.
+$\ell$ and $r$ should be made smaller near the left and right ends of the sequence, respectively
+% on the right-hand side of the equation $\ell$ should be replaced with $\min(\ell, i-1)$,
+% and $r$ should be replaced with $\min(r, L-i-\ell-m+1)$.
 
 
 %%%%%%
@@ -775,7 +779,7 @@ a ratio of two composite likelihoods:
 See the next section for more discussion of the approximations.
 
 %%%%%
-\ubsection{Choice of overhang}
+\subsection{Choice of overhang}
 
 The approximations in~\eqref{eqn:window_approx} and~\eqref{eqn:full_approx} hold
 if the overhang, $\ell$, is long enough.
@@ -803,10 +807,10 @@ Concretely, sites further away than $kw$ only matter if there is a chain of at l
 For instance, in the CpG model the window width is $w=1$
 because the process only depends on neighboring sites;
 and if the sequence has evolved for time $t$ then we expect no more than a Poisson($\lambda t$) number of changes at each site.
-If $\lambda t = 0.75$ ($1-e^{-3/4}=52\%$ of the sequence will have changed!),
+If $\lambda t = 0.75$ (in which case $1-e^{-3/4}=52\%$ of the sequence will have changed!),
 then taking $\ell = r = 3$ allows us to compute T-mer probabilities to within an error of 0.007,
 since this is the probability that a Poisson with mean 0.75 will be larger than 3.
-If $\lambda t = 0.25$ we would do even better with $\ell = r = 2$.
+If $\lambda t = 0.25$ we would do even better with only $\ell = r = 2$.
 
 Appendix~\ref{ss:approx_pf} makes this argument more precise.
 The argument for the full likelihood is more difficult,
@@ -848,14 +852,15 @@ However, the software also allows periodic boundary conditions.
 %%%%%%%%%%%
 \section{Computation}
 
-For inference, we need to compute the $|\calS|^{n} \times |\calS|^m$ matrix $F$ whose $(a,b)^\text{th}$ entry is $p_{n,\ell,r}(t,a,b)$,
-for various $t$ (and $m = n - \ell - r$).
+For inference, we need to compute the $|\calS|^{n} \times |\calS|^m$ matrix $F$ whose $(a,b)^\text{th}$ entry is $p_{n,\ell,r}(t;a,b)$,
+for various $t$.
 This matrix is a projection of the $|\calS|^{n} \times |\calS|^{n}$ matrix whose $(a,c)^\text{th}$ entry is
 \begin{align}
     p_{n}(t;\,a,c) = \left( e^{t G(n)} \right)_{a,c} ,
 \end{align}
 where $G(n)$ is the sparse $|\calS|^{n} \times |\calS|^{n}$ matrix defined in \eqref{eqn:G_defn}.
-The ``projection'' we need just marginalizes over long (i.e., length $n$) patterns $c$ that match the shorter (i.e., length $m$) pattern $b$
+The ``projection'' we need just marginalizes over long (i.e., length $n$) patterns $c$ that match the shorter
+(i.e., length $m=n - \ell - r$) pattern $b$
 as in \eqref{eq:pmMarg}:
 if we define the $n \times m$ matrix $U$ so that $U_{cb}=1$ if $c_\ell^{(m)}=b$ and $U_{cb}=0$ otherwise,
 then
@@ -943,9 +948,9 @@ we can first compute $\sum_w \left( e^{t_Y G(n)} \right)_{zw} U_{wy}$ as above,
 multiply rows by $\pi(z)$, and then matrix multiply by the transpose of $e^{t_X G(n)}$.
 
 We might approximate the full likelihood as follows,
-after choosing $n$, $\ell$, and $r$ appropriately (see above).
+after choosing $n$, $\ell$, and $r$ as above.
 For the sake of notational simplicity, assume that we have a few positions
-of $X$ observed before the start and after then end of the sequence
+of $X$ observed before the start and after the end of the sequence
 (so that, e.g., we can refer to $x_{n+1}, \ldots, x_{n+r}$).
 \begin{align*}
     \like(x, y)
@@ -993,7 +998,7 @@ The likelihood in this example is found by summing over the root state (the summ
 and the interior node ($v$):
 \begin{align} \label{eqn:three_taxa_likelihood}
   \begin{split}
-    & \P\{X_{I-\ell}^{n}=x \text{ and } Y_I^\ell=y \text{ and } Z_I^\ell=z \} \\
+      & \P\{X_{I-\ell}^{(n)}=x \text{ and } Y_I^{(m)}=y \text{ and } Z_I^{(m)}=z \} \\
     &\qquad
       =
       \sum_{u \in \calS^{n}} \pi(u) p_{n,\ell,r}(t_C,u,z)
@@ -1019,7 +1024,7 @@ and $U$ for the projection matrix that gives $p_{m,\ell,r}(t,a,b) = \left( e^{tG
 In total there are $|\calS|^{3m+2\ell}$ possible data combinations.
 However, we can reduce dimensionality by only computing probabilities
 for certain (more common) patterns: for instance,
-one could compute the likelihood for situations where $y$ and $z$ agree (but may differ from $x$
+one could compute the likelihood for situations where $y$ and $z$ agree (but may differ from $x$)
 by replacing step (4) with:
 \begin{enumerate}
 
@@ -1411,14 +1416,22 @@ are not known for most DNA repair pathways --
 but neither do they exhaust the hypotheses available in the literature.
 For instance, many enzymes act more than once locally when they act,
 such as AID \citep{senavirathne2015activationinduced} or error-prone polymerases involved in repair \citep{maul2016polymerase}.
-
-Nevertheless, we find significant effects for a number of biochemically-informed mutation features (Figure~\ref{fig:biochem_results}).
-Specifically, we find strong CpG and UV damage effects \citep[][also seen by]{harris2015evidence}.
 It may seem tenuous to look for mutational signatures associated with cancer in the germline,
 or surprising that UV damage could play a significant role,
 but it is reasonable that shared repair machinery might induce similar context-dependent errors.
 Other likely sources of error in the germline include the effects of recombination
 \citep{arbeithuber2015crossovers,myers2010drive}.
+
+The strongest context-specific signals we find are a high CpG rate (Figure~\ref{fig:biochem_results}),
+and a strong \emph{negative} rate for the UV damage motif.
+A negative estimate implies that the corresponding motifs mutate \emph{less}
+than expected based on other rates -- so, for instance,
+a lower \nG\nA$\to$\nA\nA\ rate than expected based on the \nG$\to$\nA\ rate,
+perhaps because the latter rate was estimated to be particularly high.
+Notably, we find a small but significant rate of UV-associated dimer formation,
+also seen by \citet{harris2015evidence}.
+All rates were statistically significantly nonzero except those associated with pol $\iota$.
+
 
 
 \begin{figure}
@@ -1530,8 +1543,8 @@ would require T-mers of width at least 25, and hence vectors of length $4^{25} \
 
 
 \paragraph{Modeling}
-Careful building of complex models in this framework may take care,
-but no more than in any other class of models (e.g., multivariate linear regression).
+Careful building of complex models in this framework can be difficult,
+as in variable selection more generally  (e.g., multivariate linear modeling).
 It is easy to specify nonidentifiable models --
 for instance, all 2mer mutation motifs include the 1mer motifs.
 The large number of possible mutation motifs also makes multiple testing an issue;
@@ -1676,7 +1689,7 @@ then
     \left|
         \P\{ X_{i+\ell}^{(n-\ell-r)}(t) = y \mid X_i^{(n)}(0) = x \}
         -
-        p_{n,\ell,r}(x,y)
+        p_{n,\ell,r}(t;x,y)
     \right|
     \le \P\{A\} .
 \end{align*}
@@ -1720,7 +1733,7 @@ we can bound $\P\{A\}$ using the following lemma:
     then $f(n) = 0$ for integers $0 \le n \le k$ and $f(n) \ge 1$ for $n > k$,
     and so $\P\{N > k\} \le \E[f(N)]$.
     Now, $\E[f(N)] = \lambda^{k+1} / (k+1)!$ via direct calculation or the
-    formula for the $k+1$st factorial moment for the Poisson distribution.
+    formula for the $k+1^\text{st}$ factorial moment for the Poisson distribution.
 \end{proof}
 
 Putting this together,
@@ -1729,7 +1742,7 @@ we find that
     \left|
         \P\{ X_{i+\ell}^{(n-\ell-r)}(t) = y \mid X_i^{(n)}(0) = x \}
         -
-        p_{n,\ell,r}(x,y)
+        p_{n,\ell,r}(t;x,y)
     \right|
     \le
     \frac{
