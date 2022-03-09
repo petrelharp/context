@@ -26,3 +26,7 @@ clean:
 continuous:
 	make
 	while :; do inotifywait -e modify $(PROJECT).tex $(PROJECT).bib; make; done
+
+diff-to-first-submission.tex : context-dependence.tex
+	latexdiff-git --force -r b9f2c8a27be749f32546775019d3c17b85d61b56 $<
+	mv context-dependence-diffb9f2c8a27be749f32546775019d3c17b85d61b56.tex $@
