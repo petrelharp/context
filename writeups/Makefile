@@ -3,12 +3,12 @@ BUILDTEX=pdflatex $(PROJECT).tex
 
 all: pruning-schematic.pdf Tmer-dependency.pdf overview.pdf
 	$(BUILDTEX)
-	bibtex $(PROJECT)
+	biber $(PROJECT)
 	$(BUILDTEX)
 	$(BUILDTEX)
 
 clean:
-	rm -f *.log *.bak *.aux *.bbl *.blg *.idx *.toc *.out *~
+	rm -f *.log *.bak *.aux *.bbl *.blg *.idx *.toc *.out *.bcf *.run.xml *~
 
 # save inkscape svg files as .ink.svg and this'll do the right thing
 %.svg : %.ink.svg

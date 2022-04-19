@@ -1,14 +1,17 @@
-\documentclass{article}
+\documentclass[english]{article}
 \usepackage{fullpage}
 \usepackage{amsmath,amssymb}
 \usepackage{amsthm}
 \usepackage{graphicx}
-\usepackage{natbib}
+\usepackage{babel}
+\usepackage[natbib=true,style=authoryear,backend=biber]{biblatex}
 \usepackage[hidelinks]{hyperref}
 \usepackage{bm}
 \usepackage{todonotes}
 \usepackage{authblk}
 \renewcommand\Affilfont{\itshape\small}
+
+\addbibresource{context-dependence.bib}
 
 \newcommand{\peter}[1]{\todo[color=green!40]{Peter: #1}}
 \newcommand{\erick}[1]{\todo[color=purple!40]{Erick: #1}}
@@ -46,7 +49,6 @@
 \theoremstyle{definition}
 \newtheorem{example}{Example}[section]
 
-\bibliographystyle{plainnat}
 
 % http://bytesizebio.net/2013/03/11/adding-supplementary-tables-and-figures-in-latex/
 \newcommand{\beginsupplement}{%
@@ -56,49 +58,11 @@
         \renewcommand{\thefigure}{S\arabic{figure}}%
      }
 
-% Responses to reviews
-\input{reviews/review-response-commands}
-% set this to show line numbers and include responses to reviews or not
-\newif\ifreviewresponses
-\reviewresponsestrue  % include them
-% \reviewresponsesfalse  % don't include them
-\newcommand{\responsefile}{reviews/reviews.v1.tex}  % name of the review responses file
-
-\newif\ifsubmission
-\submissiontrue
-% \submissionfalse
-\ifsubmission
-    % % stuff for submission
-    \usepackage{lineno}
-    % allow line numbers around math environments
-    % from https://tex.stackexchange.com/questions/43648/why-doesnt-lineno-number-a-paragraph-when-it-is-followed-by-an-align-equation
-        \newcommand*\patchAmsMathEnvironmentForLineno[1]{%
-          \expandafter\let\csname old#1\expandafter\endcsname\csname #1\endcsname
-          \expandafter\let\csname oldend#1\expandafter\endcsname\csname end#1\endcsname
-          \renewenvironment{#1}%
-             {\linenomath\csname old#1\endcsname}%
-             {\csname oldend#1\endcsname\endlinenomath}}%
-        \newcommand*\patchBothAmsMathEnvironmentsForLineno[1]{%
-          \patchAmsMathEnvironmentForLineno{#1}%
-          \patchAmsMathEnvironmentForLineno{#1*}}%
-        \AtBeginDocument{%
-        \patchBothAmsMathEnvironmentsForLineno{equation}%
-        \patchBothAmsMathEnvironmentsForLineno{align}%
-        \patchBothAmsMathEnvironmentsForLineno{flalign}%
-        \patchBothAmsMathEnvironmentsForLineno{alignat}%
-        \patchBothAmsMathEnvironmentsForLineno{gather}%
-        \patchBothAmsMathEnvironmentsForLineno{multline}%
-        }
-\else
-    % for the nice version
-\fi
 
 
 
 \begin{document}
 
-
-% TODO after submission: think about the BCR parameter regime.
 
 
 \title{Enabling inference for context-dependent models of mutation by bounding the propagation of dependency}
@@ -1566,19 +1530,26 @@ A promising alternative would be to use the distinct signatures obtained by dime
 
 
 
-\subsection{Acknowledgements}
+\section*{Acknowledgements}
 The initial impetus for this project came from Matt Dean;
 along the way substantial encouragement and useful suggestions were provided by
 Will DeWitt, Simon Tavar\'e, Rasmus Nielsen, Graham Coop, Yaniv Brandvain, and Sergey Nuzhdin.
 Many thanks are also due to Jessica Crisci for curating the human-chimp data.
 The majority of this work was done while PR was at USC.
 
+\section*{Author contributions}
+PLR designed the method and wrote the first drafts of the code.
+PLR and FAM tested the code and wrote the paper.
+
+\section*{Authors' disclosure}
+The authors declare no conflict of interest.
+
+\section*{Funding statement}
 FAM's work supported by NIH grants R01 AI146028 and U01 AI150747.
 Dr.\ Matsen is an Investigator of the Howard Hughes Medical Institute.
 PLR's work was supported by NIH award R01HG010774.
 
-
-\bibliography{context-dependence}
+\printbibliography
 
 \clearpage
 
