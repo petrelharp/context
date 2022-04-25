@@ -1,20 +1,11 @@
-\documentclass[english]{article}
-\usepackage{fullpage}
+\documentclass[english]{Liebert_Author_revised}
 \usepackage{amsmath,amssymb}
 \usepackage{amsthm}
 \usepackage{graphicx}
 \usepackage{babel}
-\usepackage[natbib=true,style=authoryear,backend=biber]{biblatex}
-\usepackage[hidelinks]{hyperref}
+\usepackage{natbib}
 \usepackage{bm}
-\usepackage{todonotes}
-\usepackage{authblk}
-\renewcommand\Affilfont{\itshape\small}
 
-\addbibresource{context-dependence.bib}
-
-\newcommand{\peter}[1]{\todo[color=green!40]{Peter: #1}}
-\newcommand{\erick}[1]{\todo[color=purple!40]{Erick: #1}}
 
 \newcommand{\E}{\mathbb{E}}
 \renewcommand{\P}{\mathbb{P}}
@@ -43,9 +34,6 @@
 \newcommand{\APOBEC}{\text{\tiny APOBEC}}
 \newcommand{\AID}{\text{\tiny AID}}
 
-\theoremstyle{plain}
-\newtheorem{theorem}{Theorem}
-\newtheorem{lemma}{Lemma}
 \theoremstyle{definition}
 \newtheorem{example}{Example}[section]
 
@@ -66,15 +54,16 @@
 
 
 \title{Enabling inference for context-dependent models of mutation by bounding the propagation of dependency}
-\author[2,3,4,5]{Frederick A Matsen IV}
-\author[1,*]{Peter L Ralph}
-
-\affil[1]{Institute of Ecology \& Evolution, Department of Biology, University of Oregon}
-\affil[2]{Computational Biology Program, Fred Hutchinson Cancer Research Center, United States}
-\affil[3]{Department of Genome Sciences, University of Washington}
-\affil[4]{Department of Statistics, University of Washington}
-\affil[5]{Howard Hughes Medical Institute}
-\affil[*]{Corresponding author: plr@uoregon.edu}
+\author{
+    Frederick A Matsen IV$^{2,3,4,5}$,
+    Peter L Ralph$^{1,*}$\\
+$^1$Institute of Ecology \& Evolution, Department of Biology, University of Oregon \\
+$^2$Computational Biology Program, Fred Hutchinson Cancer Research Center, United States \\
+$^3$Department of Genome Sciences, University of Washington \\
+$^4$Department of Statistics, University of Washington \\
+$^5$Howard Hughes Medical Institute \\
+$^*$To whom correspondence should be addressed: plr@uoregon.edu
+}
 
 
 \maketitle
@@ -473,7 +462,6 @@ x \xrightarrow{i,u,v} y \qquad \text{iff} \qquad \begin{cases}
 \]
 i.e., if $x$ and $y$ match except at positions $i,i+1,\ldots,i+h-1$,
 and for those positions $x$ matches with $u$ while $y$ matches with $v$.
-\revpoint{2}{3}
 
 As before, let $\calT$ be the set of transition triples for the model.
 As noted above, there may be more than one way to mutate a sequence $x$ to get $y$:
@@ -510,7 +498,6 @@ First, it will be useful for later proofs to have an explicit construction of th
 also used for simulation,
 using a variant of the ``jump chain representation'', also known as the ``Gillespie algorithm''
 or ``uniformization'' \citep{hobolth2009simulation}.
-\revpoint{2}{5}
 Briefly, this  works by first sampling a homogeneous Poisson process of times and locations of possible changes,
 at an appropriate rate $\mu^*$ per site,
 and then resolving each possible change in temporal order.
@@ -721,7 +708,6 @@ This suggests that the following approximation should be good:
         }.
     \end{split}
 \end{align}
-\revpoint{2}{6}
 
 Since the full likelihood is a product across sites,
 we can then simply express an approximate full likelihood as
@@ -795,7 +781,7 @@ In practice, we recommend computing the likelihood with equation \eqref{eqn:full
 using successively larger values of $\ell$
 to check for convergence.
 
-\paragraph{Boundary conditions} \revpoint{2}{1}
+\paragraph{Boundary conditions}
 Above, we have chosen to disallow changes whose patterns extend beyond the end of the sequence,
 %EM This i.e. seems out of place
 i.e., the pattern $u$ (and hence, also the replacement $v$) of each transition triple
@@ -1461,7 +1447,7 @@ might be used to estimate the process, and from this infer the original (ancestr
 There is no conceptual barrier to applying these methods to lattices in higher dimensions,
 such as noisy images or particle systems modeling other physical processes.
 However, computational costs will grow with the size of the local neighborhood used
-even faster than in one dimension. \revpoint{2}{2}
+even faster than in one dimension. 
 
 
 \paragraph{Limitations}
@@ -1549,7 +1535,8 @@ FAM's work supported by NIH grants R01 AI146028 and U01 AI150747.
 Dr.\ Matsen is an Investigator of the Howard Hughes Medical Institute.
 PLR's work was supported by NIH award R01HG010774.
 
-\printbibliography
+\bibliographystyle{plainnat-revised}
+\bibliography{context-dependence}
 
 \clearpage
 
@@ -1788,7 +1775,5 @@ and denote by $G^T$ the transpose of $G$.
 
 \end{enumerate}
 
-%%%%%%%%%%%%%%%%%
-\includereviews
 
 \end{document}

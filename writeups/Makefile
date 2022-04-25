@@ -3,7 +3,8 @@ BUILDTEX=pdflatex $(PROJECT).tex
 
 all: pruning-schematic.pdf Tmer-dependency.pdf overview.pdf
 	$(BUILDTEX)
-	biber $(PROJECT)
+	bibtex $(PROJECT)
+	$(BUILDTEX)
 	$(BUILDTEX)
 	$(BUILDTEX)
 
