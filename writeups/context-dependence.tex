@@ -3,9 +3,10 @@
 \usepackage{amsthm}
 \usepackage{graphicx}
 \usepackage{babel}
-\usepackage{natbib}
+\usepackage[natbib=true,style=authoryear,backend=biber]{biblatex}
 \usepackage{bm}
 
+\addbibresource{context-dependence.bib}
 
 \newcommand{\E}{\mathbb{E}}
 \renewcommand{\P}{\mathbb{P}}
@@ -1535,8 +1536,7 @@ FAM's work supported by NIH grants R01 AI146028 and U01 AI150747.
 Dr.\ Matsen is an Investigator of the Howard Hughes Medical Institute.
 PLR's work was supported by NIH award R01HG010774.
 
-\bibliographystyle{plainnat-revised}
-\bibliography{context-dependence}
+\printbibliography
 
 \clearpage
 
