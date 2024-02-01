@@ -1,5 +1,8 @@
 # Inference with context-dependent models of nucleotide substitution
 
+This method is described in the paper [Enabling Inference for Context-Dependent Models of Mutation by Bounding the Propagation of Dependency](https://www.liebertpub.com/doi/abs/10.1089/cmb.2021.0644),
+by Erick Matsen and Peter Ralph (2022) - preprint [here](https://www.biorxiv.org/content/10.1101/2021.12.15.472813v1).
+
 ## Description of the method
 
 Words and math describing the method are in the subdirectory `writeups/`.
